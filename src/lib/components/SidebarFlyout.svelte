@@ -51,8 +51,8 @@
 	use:portal
 	class="flyout-menu {className}"
 	style="top: {top}px; left: {left}px; --flyout-duration: {duration}ms;"
-	on:mouseenter={onMouseEnter}
-	on:mouseleave={onMouseLeave}
+	onmouseenter={onMouseEnter}
+	onmouseleave={onMouseLeave}
 >
 	{#if children}
 		{@render children()}

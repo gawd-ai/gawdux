@@ -202,7 +202,8 @@
 						>
 							<svelte:fragment slot="icon">
 								{#if item.icon}
-									<svelte:component this={item.icon} class="w-8 h-8" />
+									{@const Icon = item.icon}
+									<Icon class="w-8 h-8" />
 								{:else}
 									<ChartOutline class="w-8 h-8" />
 								{/if}
@@ -249,9 +250,9 @@
 				aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
 			>
 				{#if sidebarOpen}
-					<svelte:component this={CollapseIcon} class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+					<CollapseIcon class="w-5 h-5 text-gray-500 dark:text-gray-400" />
 				{:else}
-					<svelte:component this={ExpandIcon} class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+					<ExpandIcon class="w-5 h-5 text-gray-500 dark:text-gray-400" />
 				{/if}
 			</Button>
 			{#if sidebarOpen && showToggleAll}
@@ -261,7 +262,7 @@
 					class="p-2"
 					aria-label="Toggle all menu groups"
 				>
-					<svelte:component this={ToggleAllIcon} class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+					<ToggleAllIcon class="w-5 h-5 text-gray-500 dark:text-gray-400" />
 				</Button>
 			{/if}
 		</div>

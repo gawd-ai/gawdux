@@ -69,7 +69,8 @@
 >
 	<SidebarDropdownWrapper label={group.label} bind:isOpen>
 		<svelte:fragment slot="icon">
-			<svelte:component this={group.icon} class="w-8 h-8" />
+			{@const GroupIcon = group.icon}
+			<GroupIcon class="w-8 h-8" />
 		</svelte:fragment>
 		{#each sortedItems as item}
 			<SidebarDropdownItem href={item.href} label={item.label} />

@@ -37,10 +37,7 @@
 	let ready = $state(false);
 
 	// Start with default, will be updated on mount from localStorage
-	// svelte-ignore state_referenced_locally
-	const initialOpen = $derived(!(config.defaultCollapsed ?? false));
-	// svelte-ignore state_referenced_locally
-	let sidebarOpen = $state(initialOpen);
+	let sidebarOpen = $state(!(config.defaultCollapsed ?? false));
 
 	onMount(() => {
 		// Read actual state from localStorage on client
@@ -68,10 +65,9 @@
 	const dropdownKeys = $derived(groups.map((g) => g.id));
 
 	// Initialize dropdown states with defaultOpen support
-	// svelte-ignore state_referenced_locally
-	const initialDropdownStates = $derived(Object.fromEntries((config.groups ?? []).map((g) => [g.id, g.defaultOpen ?? false])));
-	// svelte-ignore state_referenced_locally
-	let dropdownStates: Record<string, boolean> = $state(initialDropdownStates);
+	let dropdownStates: Record<string, boolean> = $state(
+		Object.fromEntries((config.groups ?? []).map((g) => [g.id, g.defaultOpen ?? false]))
+	);
 
 	// Whether we have any navigation content to render
 	let hasNavContent = $derived(groups.length > 0 || (config.rootItems ?? []).length > 0);
@@ -186,6 +182,7 @@
 	style={widthStyle}
 	role="navigation"
 	aria-label="Main navigation"
+	aria-expanded={sidebarOpen}
 >
 	<div class="flex-1 overflow-y-auto overflow-x-hidden">
 		{#if header}
@@ -205,7 +202,8 @@
 						>
 							<svelte:fragment slot="icon">
 								{#if item.icon}
-									<Component this={item.icon} class="w-8 h-8" />
+									{@const Icon = item.icon}
+									<Icon class="w-8 h-8" />
 								{:else}
 									<ChartOutline class="w-8 h-8" />
 								{/if}
@@ -252,9 +250,9 @@
 				aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
 			>
 				{#if sidebarOpen}
-					<Component this={CollapseIcon} class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+					<CollapseIcon class="w-5 h-5 text-gray-500 dark:text-gray-400" />
 				{:else}
-					<Component this={ExpandIcon} class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+					<ExpandIcon class="w-5 h-5 text-gray-500 dark:text-gray-400" />
 				{/if}
 			</Button>
 			{#if sidebarOpen && showToggleAll}
@@ -264,7 +262,7 @@
 					class="p-2"
 					aria-label="Toggle all menu groups"
 				>
-					<Component this={ToggleAllIcon} class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+					<ToggleAllIcon class="w-5 h-5 text-gray-500 dark:text-gray-400" />
 				</Button>
 			{/if}
 		</div>
