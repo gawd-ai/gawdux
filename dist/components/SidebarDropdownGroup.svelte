@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { SidebarDropdownWrapper, SidebarDropdownItem } from 'flowbite-svelte';
+	import { ChevronDownOutline } from 'flowbite-svelte-icons';
 	import type { SidebarMenuGroup } from '../types/sidebar.types';
 
 	interface Props {
@@ -8,8 +9,9 @@
 		expanded: boolean;
 		isOpen: boolean;
 		flyoutActive: boolean;
-		onMouseEnter?: (event: MouseEvent) => void;
-		onMouseLeave?: () => void;
+		onCollapsedTriggerClick?: (event: MouseEvent) => void;
+		onCollapsedMouseEnter?: (event: MouseEvent) => void;
+		onCollapsedMouseLeave?: () => void;
 	}
 
 	let {
@@ -17,8 +19,9 @@
 		expanded,
 		isOpen = $bindable(false),
 		flyoutActive = false,
-		onMouseEnter,
-		onMouseLeave
+		onCollapsedTriggerClick,
+		onCollapsedMouseEnter,
+		onCollapsedMouseLeave
 	}: Props = $props();
 
 	let wrapperEl: HTMLDivElement;
@@ -40,18 +43,19 @@
 			e.preventDefault();
 			e.stopPropagation();
 			e.stopImmediatePropagation();
+			onCollapsedTriggerClick?.(e);
 		}
 	}
 
 	function handleMouseEnter(e: MouseEvent) {
 		if (!expanded) {
-			onMouseEnter?.(e);
+			onCollapsedMouseEnter?.(e);
 		}
 	}
 
 	function handleMouseLeave() {
 		if (!expanded) {
-			onMouseLeave?.();
+			onCollapsedMouseLeave?.();
 		}
 	}
 </script>
@@ -63,6 +67,7 @@
 	class="dropdown-wrapper"
 	class:collapsed={!expanded}
 	class:flyout-active={flyoutActive}
+	class:open={isOpen}
 	onmouseenter={handleMouseEnter}
 	onmouseleave={handleMouseLeave}
 	onclickcapture={handleClickCapture}
@@ -76,6 +81,13 @@
 			<SidebarDropdownItem href={item.href} label={item.label} />
 		{/each}
 	</SidebarDropdownWrapper>
+	<!-- Persistent chevron — flowbite swaps its built-in chevron between
+	     two if-block branches when isOpen toggles, which destroys the DOM
+	     element and prevents transform transitions from playing. We
+	     suppress flowbite's chevron via CSS and render our own here so the
+	     same element stays in the tree and rotates smoothly in both
+	     directions. -->
+	<ChevronDownOutline class="dropdown-chevron" />
 </div>
 
 <style>
@@ -88,20 +100,25 @@
 		opacity: 0;
 	}
 
-	/* Force consistent button height for all dropdowns */
+	/* Let button height come from its padding + content so root items
+	   (links) and dropdown items (buttons) share the exact same metrics —
+	   no forced height that would make them differ. */
 	.dropdown-wrapper :global(button) {
-		height: 44px;
+		box-shadow: none;
+	}
+
+	/* Highlight icon background when flyout is active. Square off the
+	   right corners so the icon BG flows continuously into the flyout
+	   header (which sits flush against the right edge of the icon). */
+	.dropdown-wrapper.flyout-active :global(button) {
+		background-color: var(--color-gray-100) !important;
+		border-top-right-radius: 0;
+		border-bottom-right-radius: 0;
 		transition: background-color 0ms;
 	}
 
-	/* Highlight icon background when flyout is active */
-	.dropdown-wrapper.flyout-active :global(button) {
-		background-color: rgb(243 244 246);
-		transition: background-color 200ms ease-out;
-	}
-
 	:global(.dark) .dropdown-wrapper.flyout-active :global(button) {
-		background-color: rgb(55 65 81);
+		background-color: var(--color-gray-700) !important;
 	}
 
 	/* Remove all focus styling from dropdown items */

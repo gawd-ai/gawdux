@@ -4,8 +4,9 @@ interface Props {
     expanded: boolean;
     isOpen: boolean;
     flyoutActive: boolean;
-    onMouseEnter?: (event: MouseEvent) => void;
-    onMouseLeave?: () => void;
+    onCollapsedTriggerClick?: (event: MouseEvent) => void;
+    onCollapsedMouseEnter?: (event: MouseEvent) => void;
+    onCollapsedMouseLeave?: () => void;
 }
 declare const SidebarDropdownGroup: import("svelte").Component<Props, {}, "isOpen">;
 type SidebarDropdownGroup = ReturnType<typeof SidebarDropdownGroup>;

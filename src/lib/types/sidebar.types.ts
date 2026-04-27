@@ -107,6 +107,16 @@ export interface AppSidebarProps {
 	footer?: Snippet<[SidebarContext]>;
 	/** Custom toggle bar replacing the default collapse/expand button. Rendered pinned to sidebar bottom. */
 	toggleBar?: Snippet<[{ collapsed: boolean; toggle: () => void }]>;
+	/**
+	 * Pre-resolved initial open state. When provided (boolean), AppSidebar
+	 * uses this as the starting state and skips the onMount localStorage
+	 * restoration. Use this to avoid the SSR/hydration flash by reading a
+	 * cookie server-side and passing the result here. The host is
+	 * responsible for keeping the cookie in sync with user toggles via
+	 * the `ontoggle` callback. When `undefined`, AppSidebar falls back to
+	 * legacy behavior: render hidden until onMount, then read localStorage.
+	 */
+	initialOpen?: boolean;
 }
 
 /**

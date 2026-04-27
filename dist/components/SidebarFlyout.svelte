@@ -50,16 +50,27 @@
 <div
 	use:portal
 	class="flyout-menu {className}"
-	style="top: {top}px; left: {left}px; --flyout-duration: {duration}ms;"
+	data-sidebar-flyout="true"
+	style="top: {top}px; left: {left}px; --flyout-duration: {duration}ms; --flyout-header-height: {headerHeight}px;"
+	role="menu"
+	tabindex="-1"
+	aria-label={label ? `${label} submenu` : 'Sidebar submenu'}
 	onmouseenter={onMouseEnter}
 	onmouseleave={onMouseLeave}
 >
 	{#if children}
 		{@render children()}
 	{:else}
-		<div class="flyout-header" style="height: {headerHeight - 1}px;">{label}</div>
+		<div class="flyout-header" style="height: {headerHeight}px;">{label}</div>
 		{#each sortedItems as item}
-			<a href={item.href} class="flyout-item" onclick={() => onItemClick?.(item.href)}>{item.label}</a>
+			<a
+				href={item.href}
+				class="flyout-item"
+				role="menuitem"
+				onclick={() => onItemClick?.(item.href)}
+			>
+				{item.label}
+			</a>
 		{/each}
 	{/if}
 </div>
@@ -68,11 +79,24 @@
 	.flyout-menu {
 		position: fixed;
 		min-width: 180px;
-		background: white;
-		border: 1px solid rgb(229 231 235);
+		background: var(--color-gray-50);
+		border: 1px solid white;
 		border-left: none;
 		border-radius: 0 0.5rem 0.5rem 0;
-		box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+		box-shadow: 0 2px 6px -1px rgb(0 0 0 / 0.12);
+		/* Clip ONLY the items area (below the header) on the left, so the
+		   items panel starts at the sidebar's right edge. The header
+		   keeps its full width and extends into the 8px overlap zone,
+		   staying visually continuous with the icon button BG.
+		   Right/bottom extended so the shadow can render outward. */
+		clip-path: polygon(
+			0 0,
+			calc(100% + 50px) 0,
+			calc(100% + 50px) calc(100% + 50px),
+			8px calc(100% + 50px),
+			8px calc(var(--flyout-header-height, 44px) + 1px),
+			0 calc(var(--flyout-header-height, 44px) + 1px)
+		);
 		z-index: 9999;
 		overflow: hidden;
 		animation: flyout-enter var(--flyout-duration, 200ms) ease-out;
@@ -90,29 +114,32 @@
 	}
 
 	:global(.dark) .flyout-menu {
-		background: rgb(31 41 55);
-		border-color: rgb(55 65 81);
+		background: var(--color-gray-800);
+		border-color: var(--color-gray-900); /* matches sidebar surface */
+		/* Dark-on-dark shadows are barely visible with low alpha; bump
+		   the opacity so the eye actually catches the depth. */
+		box-shadow: 0 2px 6px -1px rgb(0 0 0 / 0.4);
 	}
 
 	.flyout-header {
 		display: flex;
 		align-items: center;
-		padding: 0 1rem;
+		padding: 0 1rem 0 1.5rem;
 		font-size: 0.875rem;
 		font-weight: 700;
 		text-transform: uppercase;
 		color: rgb(107 114 128);
-		background-color: rgb(243 244 246);
+		background-color: var(--color-gray-100);
 	}
 
 	:global(.dark) .flyout-header {
 		color: white;
-		background-color: rgb(55 65 81);
+		background-color: var(--color-gray-700);
 	}
 
 	.flyout-item {
 		display: block;
-		padding: 0.5rem 1rem;
+		padding: 0.5rem 1rem 0.5rem 1.5rem;
 		font-size: 0.875rem;
 		color: rgb(55 65 81);
 		text-decoration: none;
@@ -120,7 +147,7 @@
 	}
 
 	.flyout-item:hover {
-		background-color: rgb(243 244 246);
+		background-color: var(--color-gray-100);
 	}
 
 	:global(.dark) .flyout-item {
