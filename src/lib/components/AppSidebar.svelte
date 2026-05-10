@@ -13,7 +13,7 @@
 		AdjustmentsVerticalOutline,
 		ChartOutline
 	} from 'flowbite-svelte-icons';
-	import type { SidebarConfig, SidebarMenuGroup, SidebarContext, AppSidebarProps } from '../types/sidebar.types';
+	import type { SidebarConfig, SidebarMenuGroup, SidebarMenuItem, SidebarContext, AppSidebarProps } from '../types/sidebar.types';
 	import { isBrowser, getStorageItem, setStorageItem } from '../utils/browser';
 	import SidebarFlyout from './SidebarFlyout.svelte';
 	import SidebarDropdownGroup from './SidebarDropdownGroup.svelte';
@@ -227,6 +227,31 @@
 		() => [...(config.rootItems ?? [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
 	);
 
+	// Merge root items + groups into a single ordered list so a high-order
+	// root item (e.g. order 90) can sit BELOW a low-order group (order 1)
+	// instead of being forced to the top of the sidebar. Each entry is
+	// tagged so the template can render the right primitive.
+	type NavEntry =
+		| { kind: 'item'; order: number; key: string; item: SidebarMenuItem }
+		| { kind: 'group'; order: number; key: string; group: SidebarMenuGroup };
+	let mergedNav = $derived.by<NavEntry[]>(() => {
+		const entries: NavEntry[] = [
+			...sortedRootItems.map<NavEntry>((item) => ({
+				kind: 'item',
+				order: item.order ?? 0,
+				key: `item:${item.id ?? item.href}`,
+				item
+			})),
+			...sortedGroups.map<NavEntry>((group) => ({
+				kind: 'group',
+				order: group.order ?? 0,
+				key: `group:${group.id}`,
+				group
+			}))
+		];
+		return entries.sort((a, b) => a.order - b.order);
+	});
+
 	// Show toggle all button (only when groups exist)
 	let showToggleAll = $derived((config.showToggleAll ?? true) && groups.length > 0);
 
@@ -260,40 +285,46 @@
 		{#if hasNavContent}
 			<Sidebar asideClass="w-full" class="sidebar h-full">
 				<SidebarWrapper divClass="h-full overflow-y-auto overflow-x-hidden py-4 bg-transparent rounded-none">
-					<!-- Root Items (direct links, no dropdown) -->
-					{#each sortedRootItems as item}
-						{@const isActive = activeUrl ? item.href === activeUrl : false}
-						<SidebarItem
-							href={item.href}
-							label={item.label}
-							class={isActive ? 'bg-gray-100 dark:bg-gray-700' : ''}
-						>
-							<svelte:fragment slot="icon">
-								{#if item.icon}
-									{@const Icon = item.icon}
-									<Icon class="w-8 h-8" />
-								{:else}
-									<ChartOutline class="w-8 h-8" />
+					<!--
+					  Root items and groups are merged into a single ordered
+					  list so a high-order root item can render BELOW low-order
+					  groups (e.g. a footer-like nav link sorted last).
+					-->
+					{#each mergedNav as entry (entry.key)}
+						{#if entry.kind === 'item'}
+							{@const item = entry.item}
+							{@const isActive = activeUrl ? item.href === activeUrl : false}
+							<SidebarItem
+								href={item.href}
+								label={item.label}
+								class={isActive ? 'bg-gray-100 dark:bg-gray-700' : ''}
+							>
+								<svelte:fragment slot="icon">
+									{#if item.icon}
+										{@const Icon = item.icon}
+										<Icon class="w-8 h-8" />
+									{:else}
+										<ChartOutline class="w-8 h-8" />
+									{/if}
+								</svelte:fragment>
+								{#if item.badge && sidebarOpen}
+									<Badge color={item.badgeColor ?? 'blue' as any} class="ml-auto">{item.badge}</Badge>
 								{/if}
-							</svelte:fragment>
-							{#if item.badge && sidebarOpen}
-								<Badge color={item.badgeColor ?? 'blue' as any} class="ml-auto">{item.badge}</Badge>
+							</SidebarItem>
+						{:else}
+							{@const group = entry.group}
+							{#if group.items.length > 0 && dropdownStates[group.id] !== undefined}
+								<SidebarDropdownGroup
+									{group}
+									expanded={sidebarOpen}
+									bind:isOpen={dropdownStates[group.id]}
+									flyoutActive={activeFlyout === group.id}
+									{activeUrl}
+									onCollapsedTriggerClick={(e) => showCollapsedFlyout(group.id, e)}
+									onCollapsedMouseEnter={(e) => showCollapsedFlyout(group.id, e)}
+									onCollapsedMouseLeave={hideCollapsedFlyoutSoon}
+								/>
 							{/if}
-						</SidebarItem>
-					{/each}
-
-					<!-- Groups (dropdown menus with flyouts when collapsed) -->
-					{#each sortedGroups as group}
-						{#if group.items.length > 0 && dropdownStates[group.id] !== undefined}
-							<SidebarDropdownGroup
-								{group}
-								expanded={sidebarOpen}
-								bind:isOpen={dropdownStates[group.id]}
-								flyoutActive={activeFlyout === group.id}
-								onCollapsedTriggerClick={(e) => showCollapsedFlyout(group.id, e)}
-								onCollapsedMouseEnter={(e) => showCollapsedFlyout(group.id, e)}
-								onCollapsedMouseLeave={hideCollapsedFlyoutSoon}
-							/>
 						{/if}
 					{/each}
 				</SidebarWrapper>
