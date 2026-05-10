@@ -1,0 +1,4 @@
+/* gawdux/styles/tokens.css — shared design tokens (form/interactive/command-bar
+ * /tabs/list-layout). Consumer apps import this once; Tailwind utilities and
+ * consumer overrides layer on top. Empty until Stage 6 of the lift initiative
+ * extracts SIMS app.css tokens. */
