@@ -1,4 +1,614 @@
-/* gawdux/styles/tokens.css — shared design tokens (form/interactive/command-bar
- * /tabs/list-layout). Consumer apps import this once; Tailwind utilities and
- * consumer overrides layer on top. Empty until Stage 6 of the lift initiative
- * extracts SIMS app.css tokens. */
+/* gawdux/styles/tokens.css — shared design tokens for operator-grade
+ * SIMS-style apps. Lifted from SIMS src/app.css after the primitive lift
+ * (Stages 0–5). Consumers (SIMS, fleet, future projects) import this once
+ * from their own app.css; Tailwind utilities and consumer-specific layout
+ * rules layer on top.
+ *
+ * Requirements for the importing consumer:
+ *   - Tailwind v4 with @tailwindcss/vite (or postcss equivalent)
+ *   - flowbite-svelte ^0.47.x (the badge pill override below targets
+ *     Flowbite's badge DOM; the sidebar/list classes pair with
+ *     gawdux primitives that consume them)
+ *
+ * The `* { scrollbar-* }` rules below intentionally style the entire
+ * page's scrollbars — any consumer of this file inherits the SIMS
+ * scrollbar look. The Flowbite badge pill override is global by
+ * tag/class and therefore couples this stylesheet to flowbite-svelte's
+ * badge DOM shape.
+ */
+
+/* Redeclared so the file compiles even when a consumer hasn't declared
+ * their own dark variant. Tailwind v4 tolerates redeclaration. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer components {
+	/* ---------- Form input system ---------- */
+	.form-input {
+		@apply mb-0 !h-8 !py-0 px-2 rounded-lg bg-gray-50 dark:!bg-gray-900 text-gray-800
+    dark:!text-gray-200 !border !border-gray-300 dark:!border-gray-700;
+	}
+
+	/* Make native date/time picker icons visible in dark mode */
+	.dark input[type='date']::-webkit-calendar-picker-indicator,
+	.dark input[type='datetime-local']::-webkit-calendar-picker-indicator,
+	.dark input[type='time']::-webkit-calendar-picker-indicator {
+		filter: invert(1);
+	}
+
+	/* Normalize vertical centering for compact inputs/selects */
+	select.form-input,
+	input.form-input {
+		@apply !leading-8;
+	}
+
+	/* Match Select colors to Input, especially in dark mode */
+	select.form-input,
+	.form-input select {
+		@apply !bg-gray-50 dark:!bg-gray-900 !text-gray-800 dark:!text-gray-200 !border !border-gray-300 dark:!border-gray-700;
+	}
+
+	.form-label {
+		@apply mb-1 text-gray-600 dark:text-gray-400 !text-xs;
+	}
+
+	.readonly-label {
+		@apply text-gray-600 dark:text-gray-400 text-xs;
+	}
+
+	.readonly-value {
+		@apply text-gray-800 dark:text-gray-200;
+	}
+
+	/* Ensure labels inside the Toggle wrapper use white text in dark mode */
+	.form-toggle label {
+		@apply !text-gray-800 dark:!text-gray-200;
+	}
+
+	/* Remove default end margin from the Toggle track and add minimal right padding */
+	.form-toggle label > span {
+		margin-right: 0.75rem !important;
+		padding-right: 0 !important;
+	}
+
+	/* ---------- Generic layout primitives ---------- */
+	.detail-lanes {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+	.detail-lane {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 1rem;
+	}
+	.detail-lane-two {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+	@media (max-width: 640px) {
+		.detail-lane,
+		.detail-lane-two {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+
+	.form-group {
+		@apply space-y-4;
+	}
+
+	.form-row {
+		@apply grid grid-cols-2 gap-4;
+	}
+
+	.details-grid {
+		@apply grid grid-cols-2 gap-2;
+	}
+	.details-subgrid {
+		@apply grid grid-cols-2 gap-4;
+	}
+
+	/* ---------- Interactive surfaces ---------- */
+	.interactive-hover {
+		@apply cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700;
+	}
+
+	.interactive-surface {
+		cursor: pointer;
+		transition:
+			background-color 120ms ease,
+			border-color 120ms ease,
+			box-shadow 120ms ease;
+	}
+
+	.interactive-surface:hover {
+		border-color: rgb(156 163 175) !important;
+		box-shadow:
+			0 0 0 1px rgb(148 163 184 / 0.28),
+			0 2px 6px rgb(15 23 42 / 0.12) !important;
+	}
+
+	.dark .interactive-surface:hover {
+		border-color: rgb(107 114 128) !important;
+		box-shadow:
+			0 0 0 1px rgb(107 114 128 / 0.35),
+			0 2px 6px rgb(0 0 0 / 0.28) !important;
+	}
+
+	.interactive-surface:focus-visible {
+		outline: 2px solid rgb(37 99 235);
+		outline-offset: 2px;
+	}
+
+	/* ---------- Tab + sticky chrome ---------- */
+	/* Neutralize tab-content so panels behave naturally (no forced internal scroll) */
+	.tab-content {
+		max-height: none;
+		overflow: visible;
+		@apply min-h-0;
+	}
+
+	.header-bar {
+		@apply flex justify-between items-center
+    sticky !p-0 !pb-2 !pt-2 !m-0 !mt-0 top-0 z-11
+    !bg-white dark:!bg-gray-900 border-none;
+	}
+
+	.tabs-stick {
+		@apply sticky top-0 z-10 !m-0 rounded-t-lg border-b !border-gray-200 bg-white px-2
+    dark:!border-gray-700 dark:bg-gray-800;
+	}
+
+	.page-tabs-shell {
+		@apply w-full rounded-lg border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800;
+	}
+
+	/* ---------- Card system ---------- */
+	.card-container {
+		@apply max-w-none !p-0 overflow-hidden w-full block;
+	}
+
+	.card-header {
+		@apply bg-gray-50 dark:bg-gray-700 px-6 py-3 text-left;
+	}
+
+	.card-header-title {
+		@apply text-xs font-bold text-gray-500 dark:text-gray-400 uppercase;
+	}
+
+	.card-content {
+		@apply p-4;
+	}
+
+	/* ---------- Table + list scaffolding ---------- */
+	.table-container {
+		@apply border rounded-lg border-gray-200 dark:border-gray-700 shadow-md bg-white dark:bg-gray-800;
+	}
+
+	.list-page-scaffold {
+		@apply flex min-h-0 flex-1 flex-col;
+	}
+
+	.list-table-container {
+		@apply flex min-h-0 flex-1 flex-col overflow-hidden;
+	}
+
+	.list-tab-scaffold,
+	.list-embedded-scaffold {
+		@apply flex min-h-0 flex-col;
+	}
+
+	.list-tab-scaffold {
+		@apply flex-1;
+	}
+
+	.list-tab-table-container,
+	.list-embedded-table-container {
+		@apply flex min-h-0 flex-col overflow-hidden;
+	}
+
+	.list-tab-table-container {
+		@apply flex-1;
+	}
+
+	.list-surface-header {
+		@apply flex shrink-0 items-start justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800;
+	}
+
+	.list-table-scroll {
+		@apply min-h-0 flex-1 overflow-auto pb-1;
+	}
+
+	.list-tab-scroll {
+		@apply min-h-0 flex-1;
+	}
+
+	.list-embedded-scroll {
+		@apply flex-none max-h-[28rem];
+	}
+
+	.list-table-frame {
+		@apply min-w-full overflow-visible;
+	}
+
+	.list-page-footer {
+		@apply shrink-0 border-t border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800;
+	}
+
+	.table-container thead {
+		@apply border-b border-gray-200 dark:border-gray-700;
+	}
+
+	.table-container tbody tr {
+		@apply border-b border-gray-200 dark:border-gray-700;
+	}
+
+	/* Generic scroll surface (companion to list-table-scroll for non-table surfaces) */
+	.scroll-surface {
+		@apply min-h-0 flex-1 overflow-auto bg-white pt-4 px-4 pb-1 dark:bg-gray-800;
+	}
+
+	/* Reusable compact list table with edge padding */
+	.list-table {
+		@apply w-full;
+	}
+	.list-table-scroll .list-table thead th {
+		@apply sticky top-0 z-10 bg-gray-50 dark:bg-gray-700;
+	}
+	.list-table th,
+	.list-table td {
+		@apply !px-2;
+	}
+	.list-table thead th:first-child {
+		@apply !pl-4;
+	}
+	.list-table thead th:last-child {
+		@apply !pr-4;
+	}
+	.list-table tbody td:first-child {
+		@apply !pl-4;
+	}
+	.list-table tbody td:last-child {
+		@apply !pr-4;
+	}
+
+	/* Status column width utility */
+	.status-col {
+		@apply w-28 whitespace-nowrap;
+	}
+
+	/* ---------- Action icons + button rows ---------- */
+	.table-button-icon {
+		@apply w-4 h-4 mr-2;
+	}
+
+	.top-action-icons {
+		@apply w-5 mr-2 -ml-2 !h-4;
+	}
+
+	.header-actions {
+		@apply flex gap-2;
+	}
+
+	.table-actions {
+		@apply flex gap-2 justify-end;
+	}
+
+	/* ---------- Breadcrumb chrome ---------- */
+	.breadcrumb-title {
+		@apply text-lg font-semibold text-gray-700 dark:text-gray-300;
+	}
+
+	.breadcrumb-section-icon {
+		@apply !w-7 !h-7 mr-2 text-gray-700 dark:text-gray-400;
+	}
+
+	.breadcrumb-chevron {
+		@apply !w-7 !h-7 mt-0.5 -mx-0.5 text-gray-500 dark:text-gray-500;
+	}
+
+	/* ---------- Filter bar ---------- */
+	.filter-bar {
+		@apply p-4 pt-2 space-y-4;
+	}
+
+	.filter-row {
+		@apply flex flex-col gap-4 sm:flex-row sm:items-end;
+	}
+
+	.filter-field-flex-1 {
+		@apply flex-1;
+	}
+
+	.filter-field {
+		@apply flex-none;
+	}
+}
+
+/* ---------- Aesthetic globals ---------- */
+
+/* All Flowbite Badges render as rounded pills globally. Couples this
+   file to flowbite-svelte's badge DOM (div.inline-flex.items-center.
+   justify-center.font-medium). */
+div.inline-flex.items-center.justify-center.font-medium {
+	border-radius: 9999px !important;
+}
+
+/* App-wide soft shadow: every panel/card uses the same subtle elevation
+   (CardContainer, TableContainer, Flowbite Card, etc.). Replaces
+   Tailwind's heavier .shadow-md default in light mode; dark mode keeps
+   Tailwind's stack since it reads fine against the dark bg. */
+.shadow-md {
+	box-shadow:
+		0 1px 3px 0 rgb(0 0 0 / 0.08),
+		0 1px 2px -1px rgb(0 0 0 / 0.04) !important;
+}
+.dark .shadow-md {
+	box-shadow:
+		0 4px 6px -1px rgb(0 0 0 / 0.1),
+		0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+}
+
+/* ---------- Tabs underline system ---------- */
+/* Match the sidebar nav vocabulary so the whole app shares one hover
+   language: gray-500/400 idle, blue-600/400 on hover/active with the
+   same 500ms color fade. The active/hover underline is a 2px line that
+   scales from center on hover or when active — the classic Stripe/
+   Vercel grow-in indicator. Flowbite's own border-b-2 is suppressed so
+   the pseudo-element is the only visual underline.
+   NOTE: Flowbite TabItem adds a `.active` class (not aria-selected). */
+.tabs-underline [role='tab'] {
+	@apply text-gray-500 dark:text-gray-400
+    hover:text-blue-600 dark:hover:text-blue-400
+    aria-[disabled=true]:text-gray-400 aria-[disabled=true]:dark:text-gray-600
+    aria-[disabled=true]:opacity-30 aria-[disabled=true]:cursor-not-allowed
+    aria-[disabled=true]:pointer-events-none;
+	position: relative;
+	border-bottom-color: transparent !important;
+	transition: color 500ms ease-out;
+}
+.tabs-underline [role='tab']::after {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: -2px; /* sits where Flowbite's border-b-2 was */
+	height: 2px;
+	background-color: rgb(191 219 254); /* blue-200 */
+	transform: scaleX(0);
+	transform-origin: center;
+	transition:
+		transform 200ms cubic-bezier(0.4, 0, 0.2, 1),
+		opacity 500ms ease-out;
+}
+.dark .tabs-underline [role='tab']::after {
+	background-color: rgb(30 58 138); /* blue-900 */
+}
+.tabs-underline [role='tab']:hover::after,
+.tabs-underline [role='tab'].active::after {
+	transform: scaleX(1);
+}
+.tabs-underline [role='tab'].active {
+	color: rgb(37 99 235); /* blue-600 */
+}
+.dark .tabs-underline [role='tab'].active {
+	color: rgb(96 165 250); /* blue-400 */
+}
+
+/* When any tab is hovered, dim the non-hovered active tab's text back
+   to the idle gray so only the hovered tab is "lit". The active tab's
+   underline stays grown (.active::after) to keep showing which tab is
+   currently selected — one highlight at a time, but the selection cue
+   never disappears. */
+.tabs-underline:has([role='tab']:hover) [role='tab'].active:not(:hover) {
+	color: rgb(107 114 128); /* gray-500 */
+}
+.dark .tabs-underline:has([role='tab']:hover) [role='tab'].active:not(:hover) {
+	color: rgb(156 163 175); /* gray-400 */
+}
+.tabs-underline:has([role='tab']:hover) [role='tab'].active:not(:hover)::after {
+	opacity: 0.4;
+}
+
+/* ---------- Scrollbar styling (WebKit + Firefox) ---------- */
+::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+::-webkit-scrollbar-track {
+	background: #f1f1f1;
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+	background: #c1c1c1;
+	border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: #a1a1a1;
+}
+
+.dark ::-webkit-scrollbar-track {
+	background: #1f2937;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+	background: #4b5563;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+	background: #6b7280;
+}
+
+/* Firefox scrollbar — applies to every element. Consumers inherit
+   this app-wide. */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: #c1c1c1 #f1f1f1;
+}
+
+.dark * {
+	scrollbar-color: #4b5563 #1f2937;
+}
+
+/* ---------- Page command bar / context-surface merge ---------- */
+/* When the page command bar is paired with a .context-surface (the
+   page's outermost rounded panel — applied implicitly by PageTabs, or
+   manually by single-card / form-only pages), the two merge into one
+   unified panel. The surface loses its bottom rounding/border, the bar
+   loses its top rounding, and both keep `shadow-md` so the merged stack
+   has a uniform shadow profile (the seam doubles for ~1px but with the
+   soft global shadow it's invisible).
+   `flex: 1` lets the surface stretch to fill available vertical space
+   so its bottom edge is always flush against the bar (otherwise the
+   bar's `mt-auto` would leave a gap on short pages). */
+main:has(.page-command-bar) .context-surface {
+	border-bottom-left-radius: 0 !important;
+	border-bottom-right-radius: 0 !important;
+	border-bottom-width: 0 !important;
+	flex: 1 1 auto;
+	min-height: 0;
+}
+main:has(.context-surface) .page-command-bar {
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+	border-top-width: 0;
+}
+
+/* ---------- Mission-control page command bar ---------- */
+/* Bottom command bar that lives inside <main> as the last child with
+   mt-auto, so the panel's stretch-to-viewport behavior anchors the bar
+   at the bottom edge. Styled as a card-like footer (matching content
+   surface bg + border) so it reads as part of the content panel
+   rather than separate chrome. Three CSS zones from day one:
+   left = supplementary actions, center = lifecycle actions / status,
+   right = pagination + meta. */
+.page-command-bar {
+	margin-top: auto;
+	flex-shrink: 0;
+	display: grid;
+	grid-template-columns: 1fr auto 1fr;
+	align-items: center;
+	gap: 1rem;
+	/* Defaults are for the empty/standalone case (e.g. dashboards): a
+	   small pill just tall enough to show the corner radius. When any
+	   zone has content, the :has rule below expands to a full 52px bar
+	   with action-button padding. The merge rule above strips the top
+	   border + top rounding when a .context-surface sits above, so they
+	   read as one continuous panel.
+	   shadow-md applied via class on the element so both this bar and
+	   the .context-surface above use the identical Tailwind output —
+	   any inline box-shadow value here would diverge from how Tailwind
+	   composes its var-based shadow stack. */
+	min-height: 0.5rem;
+	padding: 0;
+	background-color: rgb(249 250 251);
+	border: 1px solid rgb(229 231 235);
+	border-radius: 0.5rem;
+}
+.page-command-bar:has(.cmd-bar-zone > *) {
+	min-height: 52px;
+	padding: 0.5rem 0.75rem;
+}
+.dark .page-command-bar {
+	background-color: rgb(28 37 51);
+	border-color: rgb(55 65 81);
+}
+
+.cmd-bar-zone {
+	display: flex;
+	align-items: center;
+	min-width: 0;
+	gap: 0.5rem;
+}
+.cmd-bar-left {
+	justify-content: flex-start;
+	overflow-x: auto;
+	white-space: nowrap;
+}
+.cmd-bar-center {
+	justify-content: center;
+}
+.cmd-bar-right {
+	justify-content: flex-end;
+}
+
+/* Bar button skin — borrows the sidenav active-sub-item grammar
+   (soft-filled badge: blue-50 bg, blue-700 text, blue-100 hover)
+   and extends the same tone to red (Retire/Cancel) and green (Save).
+   Overrides Flowbite's outline-button defaults; we detect the
+   semantic color via the text-{color}-700 class Flowbite emits.
+   Action buttons are direct children of the zone; pagination's
+   chevrons are grandchildren via .pagination-pill, so > scopes us
+   correctly without :not() escapes. */
+.cmd-bar-zone > :is(button, a) {
+	background-color: rgb(239 246 255) !important;
+	color: rgb(29 78 216) !important;
+	border: 1px solid rgb(219 234 254) !important;
+	border-radius: 0.5rem !important;
+	padding: 0.375rem 0.875rem !important;
+	font-weight: 500 !important;
+	transition:
+		background-color 150ms ease-out,
+		border-color 150ms ease-out,
+		color 150ms ease-out !important;
+}
+.cmd-bar-zone > :is(button, a):hover:not(:disabled) {
+	background-color: rgb(219 234 254) !important;
+	border-color: rgb(191 219 254) !important;
+	color: rgb(29 78 216) !important;
+}
+.dark .cmd-bar-zone > :is(button, a) {
+	background-color: rgb(23 37 84) !important;
+	color: rgb(147 197 253) !important;
+	border-color: rgb(30 58 138) !important;
+}
+.dark .cmd-bar-zone > :is(button, a):hover:not(:disabled) {
+	background-color: rgb(30 58 138) !important;
+	border-color: rgb(30 64 175) !important;
+	color: rgb(191 219 254) !important;
+}
+
+/* Red variant — Retire (destructive) and Cancel (discard). */
+.cmd-bar-zone > :is(button, a)[class*='text-red-'] {
+	background-color: rgb(254 242 242) !important;
+	color: rgb(185 28 28) !important;
+	border-color: rgb(254 226 226) !important;
+}
+.cmd-bar-zone > :is(button, a)[class*='text-red-']:hover:not(:disabled) {
+	background-color: rgb(254 226 226) !important;
+	border-color: rgb(254 202 202) !important;
+	color: rgb(185 28 28) !important;
+}
+.dark .cmd-bar-zone > :is(button, a)[class*='text-red-'] {
+	background-color: rgb(69 10 10) !important;
+	color: rgb(252 165 165) !important;
+	border-color: rgb(127 29 29) !important;
+}
+.dark .cmd-bar-zone > :is(button, a)[class*='text-red-']:hover:not(:disabled) {
+	background-color: rgb(127 29 29) !important;
+	border-color: rgb(153 27 27) !important;
+	color: rgb(254 202 202) !important;
+}
+
+/* Green variant — Save (commit) and Unretire. */
+.cmd-bar-zone > :is(button, a)[class*='text-green-'] {
+	background-color: rgb(240 253 244) !important;
+	color: rgb(21 128 61) !important;
+	border-color: rgb(220 252 231) !important;
+}
+.cmd-bar-zone > :is(button, a)[class*='text-green-']:hover:not(:disabled) {
+	background-color: rgb(220 252 231) !important;
+	border-color: rgb(187 247 208) !important;
+	color: rgb(21 128 61) !important;
+}
+.dark .cmd-bar-zone > :is(button, a)[class*='text-green-'] {
+	background-color: rgb(5 46 22) !important;
+	color: rgb(134 239 172) !important;
+	border-color: rgb(20 83 45) !important;
+}
+.dark .cmd-bar-zone > :is(button, a)[class*='text-green-']:hover:not(:disabled) {
+	background-color: rgb(20 83 45) !important;
+	border-color: rgb(22 101 52) !important;
+	color: rgb(187 247 208) !important;
+}
