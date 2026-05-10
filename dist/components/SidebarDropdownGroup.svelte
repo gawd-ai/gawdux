@@ -9,6 +9,7 @@
 		expanded: boolean;
 		isOpen: boolean;
 		flyoutActive: boolean;
+		activeUrl?: string;
 		onCollapsedTriggerClick?: (event: MouseEvent) => void;
 		onCollapsedMouseEnter?: (event: MouseEvent) => void;
 		onCollapsedMouseLeave?: () => void;
@@ -19,6 +20,7 @@
 		expanded,
 		isOpen = $bindable(false),
 		flyoutActive = false,
+		activeUrl,
 		onCollapsedTriggerClick,
 		onCollapsedMouseEnter,
 		onCollapsedMouseLeave
@@ -35,6 +37,18 @@
 	// Sort items by order
 	let sortedItems = $derived(
 		[...group.items].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+	);
+
+	// True when the active page belongs to this group — drives the
+	// `has-active-child` wrapper class so the consuming app can highlight
+	// the parent icon/label. Matches either an exact URL OR a path prefix
+	// (so detail pages like `/app/equipment/inventory/123` still light up
+	// their parent group).
+	let hasActiveChild = $derived(
+		!!activeUrl &&
+			sortedItems.some(
+				(item) => item.href === activeUrl || activeUrl.startsWith(item.href + '/')
+			)
 	);
 
 	// Prevent dropdown toggle when sidebar is collapsed - use capture phase
@@ -68,17 +82,22 @@
 	class:collapsed={!expanded}
 	class:flyout-active={flyoutActive}
 	class:open={isOpen}
+	class:has-active-child={hasActiveChild}
 	onmouseenter={handleMouseEnter}
 	onmouseleave={handleMouseLeave}
 	onclickcapture={handleClickCapture}
 >
-	<SidebarDropdownWrapper label={group.label} bind:isOpen>
+	<SidebarDropdownWrapper label={group.label} bind:isOpen transitionParams={{ duration: 200 }}>
 		<svelte:fragment slot="icon">
 			{@const GroupIcon = group.icon}
 			<GroupIcon class="w-8 h-8" />
 		</svelte:fragment>
 		{#each sortedItems as item}
-			<SidebarDropdownItem href={item.href} label={item.label} />
+			<SidebarDropdownItem
+				href={item.href}
+				label={item.label}
+				active={!!activeUrl && (item.href === activeUrl || activeUrl.startsWith(item.href + '/'))}
+			/>
 		{/each}
 	</SidebarDropdownWrapper>
 	<!-- Persistent chevron — flowbite swaps its built-in chevron between
@@ -91,14 +110,13 @@
 </div>
 
 <style>
-	/* Dropdown wrapper - fade labels when collapsed */
-	.dropdown-wrapper :global(span) {
-		transition: opacity 0.2s ease-in-out;
-	}
-
-	.dropdown-wrapper.collapsed :global(button > span) {
-		opacity: 0;
-	}
+	/* Label opacity is owned by the consuming app (SIMS controls the
+	   fade timing globally on .app-sidebar). Don't apply our own
+	   opacity/transition here — they compete with the consumer's rules
+	   and flip on a different class (.dropdown-wrapper.collapsed,
+	   driven by the `expanded` prop) than the consumer's selector
+	   (.app-sidebar.collapsed), which races and causes some labels to
+	   skip the fade. */
 
 	/* Let button height come from its padding + content so root items
 	   (links) and dropdown items (buttons) share the exact same metrics —

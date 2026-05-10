@@ -4,6 +4,7 @@ interface Props {
     expanded: boolean;
     isOpen: boolean;
     flyoutActive: boolean;
+    activeUrl?: string;
     onCollapsedTriggerClick?: (event: MouseEvent) => void;
     onCollapsedMouseEnter?: (event: MouseEvent) => void;
     onCollapsedMouseLeave?: () => void;
