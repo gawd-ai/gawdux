@@ -2,6 +2,7 @@ export { default as BreadcrumbTrail } from './BreadcrumbTrail.svelte';
 export { default as CardContainer } from './CardContainer.svelte';
 export { default as ClearableInput } from './ClearableInput.svelte';
 export { default as ConfirmModal } from './ConfirmModal.svelte';
+export { default as DarkModeToggle } from './DarkModeToggle.svelte';
 export { default as DateCell } from './DateCell.svelte';
 export { default as EditablePageScaffold } from './EditablePageScaffold.svelte';
 export { default as EmptyStateRow } from './EmptyStateRow.svelte';
