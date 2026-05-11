@@ -39,3 +39,21 @@ export type { ListStateField, ListStateConfig, ListState } from './list-state';
 
 export { createHistoryTab } from './history-tab.svelte';
 export type { HistoryFetcher, HistoryTabSnapshot, HistoryTabApi } from './history-tab.svelte';
+
+export { createBreadcrumbBuilder } from './url-breadcrumb';
+export type {
+	BreadcrumbCrumb,
+	BreadcrumbBuilder,
+	BreadcrumbBuilderOptions
+} from './url-breadcrumb';
+
+export { slideFadeIn, slideFadeOut } from './transitions';
+
+export { createActiveSubitemStylesheet, DEFAULT_PALETTE } from './active-subitem-stylesheet';
+export type {
+	ActiveSubitemPalette,
+	ActiveSubitemStylesheetOptions,
+	ActiveSubitemStylesheetController
+} from './active-subitem-stylesheet';
+
+export { resolveActiveItemHref } from './resolve-active-nav';

@@ -36,7 +36,23 @@ export {
 	isBrowser,
 	getStorageItem,
 	setStorageItem,
-	removeStorageItem
+	removeStorageItem,
+	// Layout / chrome utilities (Phase K)
+	createBreadcrumbBuilder,
+	slideFadeIn,
+	slideFadeOut,
+	createActiveSubitemStylesheet,
+	DEFAULT_PALETTE,
+	resolveActiveItemHref
 } from './utils';
 
-export type { ConfigBuilderOptions, GroupDefinition } from './utils';
+export type {
+	ConfigBuilderOptions,
+	GroupDefinition,
+	BreadcrumbCrumb,
+	BreadcrumbBuilder,
+	BreadcrumbBuilderOptions,
+	ActiveSubitemPalette,
+	ActiveSubitemStylesheetOptions,
+	ActiveSubitemStylesheetController
+} from './utils';

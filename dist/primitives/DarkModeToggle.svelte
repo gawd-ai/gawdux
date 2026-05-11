@@ -7,32 +7,60 @@
 	 * passes via `cookieName`. The cookie path is hardcoded to `/` and
 	 * lifetime to one year.
 	 *
-	 * The component intentionally does NOTHING on mount — it only
-	 * mutates on user click. The initial dark class must be resolved
-	 * by the consumer's app shell (typically an inline script in the
-	 * HTML template that reads cookie → localStorage → OS preference)
-	 * to avoid a wrong-color → right-color flash on hydration.
+	 * On mount the component installs a MutationObserver on the
+	 * <html> element that mirrors any `dark` class flip back to the
+	 * cookie. This means flips originating from devtools, an inline
+	 * script, another tab, or any third-party toggle stay in sync
+	 * with the SSR cookie — there's no wrong-color flash on next
+	 * reload. Without the observer, only clicks on this button would
+	 * persist.
+	 *
+	 * The initial dark class must still be resolved by the consumer's
+	 * app shell (typically an inline script in the HTML template that
+	 * reads cookie → localStorage → OS preference) to avoid a flash
+	 * on first hydration.
 	 *
 	 * The consumer's server-side cookie reader (e.g. SvelteKit
 	 * +layout.server.ts) is responsible for reading the same
 	 * `cookieName` to inject the right class on first paint.
 	 */
+	import { onMount } from 'svelte';
 	export let cookieName: string;
 	export let ariaLabel = 'Toggle dark mode';
 
 	let className = '';
 	export { className as class };
 
+	function writeCookie(isDark: boolean) {
+		try {
+			document.cookie = `${cookieName}=${isDark ? 'dark' : 'light'}; path=/; max-age=${365 * 86400}; SameSite=Lax`;
+		} catch {
+			// Cookies disabled — non-fatal.
+		}
+	}
+
 	function toggleTheme() {
 		const html = document.documentElement;
 		const isDark = html.classList.toggle('dark');
 		try {
 			localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
-			document.cookie = `${cookieName}=${isDark ? 'dark' : 'light'}; path=/; max-age=${365 * 86400}; SameSite=Lax`;
 		} catch {
-			// Storage / cookies disabled — non-fatal.
+			// localStorage disabled — non-fatal.
 		}
+		writeCookie(isDark);
 	}
+
+	onMount(() => {
+		const html = document.documentElement;
+		const sync = () => writeCookie(html.classList.contains('dark'));
+		// Sync once on mount in case the inline script in app.html didn't
+		// run (JS-disabled fallback) or another tab changed the class
+		// since last visit.
+		sync();
+		const observer = new MutationObserver(sync);
+		observer.observe(html, { attributes: true, attributeFilter: ['class'] });
+		return () => observer.disconnect();
+	});
 </script>
 
 <button

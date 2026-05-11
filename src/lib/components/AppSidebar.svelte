@@ -169,8 +169,44 @@
 			resetDropdowns();
 			activeFlyout = null;
 		}
+		// One-shot label fade animation. Static opacity (set by the .collapsed
+		// class on the sidebar) handles the resting state; the animation only
+		// runs during the toggle so we don't rely on transition-property swaps
+		// mid-frame, which were dropping the fade for some labels.
+		runLabelToggleAnim(sidebarOpen ? 'in' : 'out');
 		ontoggle?.(!sidebarOpen);
 	}
+
+	let labelAnimTimer: ReturnType<typeof setTimeout> | null = null;
+	function runLabelToggleAnim(dir: 'in' | 'out') {
+		if (!isBrowser() || !sidebarEl) return;
+		if (labelAnimTimer) {
+			clearTimeout(labelAnimTimer);
+			labelAnimTimer = null;
+		}
+		// Synchronously: clear, force reflow, re-set. Setting via rAF would
+		// queue the animation for the *next* frame, by which time the
+		// .collapsed class flip has already triggered the static opacity
+		// rule for one paint — causing a snap that the animation then has
+		// to undo (visible as a flash). Setting synchronously puts the
+		// animation rule in effect at the SAME paint as the class flip, so
+		// the animation overrides the static rule with no intermediate snap.
+		sidebarEl.removeAttribute('data-label-anim');
+		void sidebarEl.offsetWidth;
+		sidebarEl.setAttribute('data-label-anim', dir);
+		const ms = dir === 'in' ? 700 : 200;
+		labelAnimTimer = setTimeout(() => {
+			labelAnimTimer = null;
+			sidebarEl?.removeAttribute('data-label-anim');
+		}, ms + 50);
+	}
+
+	onDestroy(() => {
+		if (labelAnimTimer) {
+			clearTimeout(labelAnimTimer);
+			labelAnimTimer = null;
+		}
+	});
 
 	async function toggleAllSubMenus(): Promise<void> {
 		await tick();
