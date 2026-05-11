@@ -6,7 +6,7 @@
 	export let contentClass = '';
 </script>
 
-<Card class={`max-w-none !p-0 overflow-hidden ${className} ${invalid ? 'card-invalid' : ''}`}>
+<Card class={`context-surface max-w-none !p-0 overflow-hidden ${className} ${invalid ? 'card-invalid' : ''}`}>
 	<div
 		class={`px-6 py-3 text-left ${invalid ? 'bg-red-50 dark:bg-red-950/40' : 'bg-gray-50 dark:bg-gray-700'}`}
 	>

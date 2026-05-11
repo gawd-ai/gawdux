@@ -26,7 +26,7 @@ export const DEFAULT_PALETTE = {
     darkTopFg: 'rgb(96 165 250)' // blue-400
 };
 export function createActiveSubitemStylesheet(options = {}) {
-    if (!isBrowser()) {
+    if (!isBrowser) {
         return { setActiveUrl: () => { }, destroy: () => { } };
     }
     const palette = { ...DEFAULT_PALETTE, ...(options.palette ?? {}) };

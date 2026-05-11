@@ -179,7 +179,7 @@
 
 	let labelAnimTimer: ReturnType<typeof setTimeout> | null = null;
 	function runLabelToggleAnim(dir: 'in' | 'out') {
-		if (!isBrowser() || !sidebarEl) return;
+		if (!isBrowser || !sidebarEl) return;
 		if (labelAnimTimer) {
 			clearTimeout(labelAnimTimer);
 			labelAnimTimer = null;

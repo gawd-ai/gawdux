@@ -68,7 +68,7 @@ export type ActiveSubitemStylesheetController = {
 export function createActiveSubitemStylesheet(
 	options: ActiveSubitemStylesheetOptions = {}
 ): ActiveSubitemStylesheetController {
-	if (!isBrowser()) {
+	if (!isBrowser) {
 		return { setActiveUrl: () => {}, destroy: () => {} };
 	}
 

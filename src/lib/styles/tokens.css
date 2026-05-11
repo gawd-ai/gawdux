@@ -462,14 +462,20 @@ div.inline-flex.items-center.justify-center.font-medium {
    `flex: 1` lets the surface stretch to fill available vertical space
    so its bottom edge is always flush against the bar (otherwise the
    bar's `mt-auto` would leave a gap on short pages). */
-main:has(.page-command-bar) .context-surface {
+/* Two layouts supported:
+   (A) bar inside <main> alongside the surface — SIMS legacy
+   (B) bar sibling of <main> in a `.page-shell` wrapper — fleet & new
+       consumers wanting a sticky-at-viewport-bottom bar */
+main:has(.page-command-bar) .context-surface,
+.page-shell:has(> .page-command-bar) > main .context-surface {
 	border-bottom-left-radius: 0 !important;
 	border-bottom-right-radius: 0 !important;
 	border-bottom-width: 0 !important;
 	flex: 1 1 auto;
 	min-height: 0;
 }
-main:has(.context-surface) .page-command-bar {
+main:has(.context-surface) .page-command-bar,
+.page-shell:has(> main .context-surface) > .page-command-bar {
 	border-top-left-radius: 0;
 	border-top-right-radius: 0;
 	border-top-width: 0;
