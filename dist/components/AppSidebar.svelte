@@ -477,4 +477,306 @@
 	:global(.dark) .app-sidebar > div::-webkit-scrollbar-thumb:hover {
 		background: rgb(107 114 128);
 	}
+
+	/* ---------- Sidebar surface chrome (lifted from SIMS app layout) ---------- */
+	/* The outer <aside> is transparent so a brand cap can sit on the body
+	   canvas. The white panel begins below with a 1px top margin and rounds
+	   only its top-right corner against whatever middle panel sits next. */
+	:global(.app-sidebar) {
+		border-right-width: 0;
+	}
+	:global(.app-sidebar > div.flex-1) {
+		margin-top: 1px;
+		background-color: rgb(255 255 255);
+		border-top-right-radius: 0.5rem;
+	}
+	:global(.app-sidebar .sidebar),
+	:global(.app-sidebar .sidebar > div) {
+		box-sizing: border-box;
+		width: 100% !important;
+		min-width: 0 !important;
+		max-width: 100% !important;
+		overflow-x: hidden !important;
+	}
+	:global(.app-sidebar .sidebar > div) {
+		padding: 0.5rem !important;
+	}
+	:global(.app-sidebar .sidebar a),
+	:global(.app-sidebar .dropdown-wrapper button) {
+		width: 100%;
+		padding-top: 7px !important;
+		padding-bottom: 7px !important;
+		margin-top: 1px;
+		margin-bottom: 1px;
+		color: rgb(107 114 128) !important; /* gray-500 — match icon */
+		/* No transition on background-color in either direction — when
+		   the sidebar is collapsed, the flyout appears instantly on
+		   hover, and a 200ms BG fade on the icon button visibly drifts
+		   out of sync with it. Color (label text) and box-shadow get
+		   a smooth fade so hover/active states ease in and out. */
+		transition:
+			background-color 0ms,
+			color 500ms ease-out,
+			box-shadow 500ms ease-out !important;
+		box-shadow: none !important;
+	}
+	:global(.dark .app-sidebar .sidebar a),
+	:global(.dark .app-sidebar .dropdown-wrapper button) {
+		color: rgb(156 163 175) !important; /* gray-400 — match icon */
+	}
+
+	/* Label spans + sub-item links: static opacity per resting state.
+	   Optional one-shot animation triggered when consumer sets the
+	   `data-label-anim='in'|'out'` attribute on .app-sidebar (SIMS does
+	   this from its layout JS on sidebar toggle). Without the attribute
+	   the spans just respect the .collapsed → opacity 0 baseline. */
+	:global(.app-sidebar .dropdown-wrapper button > span),
+	:global(.app-sidebar .sidebar a > span),
+	:global(.app-sidebar .dropdown-wrapper ul a) {
+		contain: paint;
+		opacity: 1;
+	}
+	:global(.app-sidebar.collapsed .dropdown-wrapper button > span),
+	:global(.app-sidebar.collapsed .sidebar a > span),
+	:global(.app-sidebar.collapsed .dropdown-wrapper ul a) {
+		opacity: 0;
+	}
+	:global(.app-sidebar[data-label-anim='in'] .dropdown-wrapper button > span),
+	:global(.app-sidebar[data-label-anim='in'] .sidebar a > span),
+	:global(.app-sidebar[data-label-anim='in'] .dropdown-wrapper ul a) {
+		animation: gawdux-sidebar-label-in 700ms ease-in-out forwards;
+	}
+	:global(.app-sidebar[data-label-anim='out'] .dropdown-wrapper button > span),
+	:global(.app-sidebar[data-label-anim='out'] .sidebar a > span),
+	:global(.app-sidebar[data-label-anim='out'] .dropdown-wrapper ul a) {
+		animation: gawdux-sidebar-label-out 200ms ease-in-out forwards;
+	}
+	@keyframes gawdux-sidebar-label-in {
+		0%,
+		28.5% {
+			opacity: 0;
+		}
+		100% {
+			opacity: 1;
+		}
+	}
+	@keyframes gawdux-sidebar-label-out {
+		from {
+			opacity: 1;
+		}
+		to {
+			opacity: 0;
+		}
+	}
+
+	/* Icon (svg): own color transition independent of the parent button. */
+	:global(.app-sidebar .sidebar a svg),
+	:global(.app-sidebar .sidebar button svg) {
+		color: rgb(107 114 128); /* gray-500 */
+		transition: color 500ms ease-out !important;
+	}
+	:global(.app-sidebar .sidebar a:hover),
+	:global(.app-sidebar .sidebar button:hover),
+	:global(.app-sidebar .dropdown-wrapper.flyout-active button) {
+		color: rgb(37 99 235) !important; /* blue-600 — brand */
+	}
+	:global(.app-sidebar .sidebar a:hover svg),
+	:global(.app-sidebar .sidebar button:hover svg),
+	:global(.app-sidebar .dropdown-wrapper.flyout-active button svg) {
+		color: rgb(37 99 235); /* blue-600 — brand */
+	}
+	:global(.dark .app-sidebar .sidebar a svg),
+	:global(.dark .app-sidebar .sidebar button svg) {
+		color: rgb(156 163 175); /* gray-400 */
+	}
+	:global(.dark .app-sidebar .sidebar a:hover),
+	:global(.dark .app-sidebar .sidebar button:hover),
+	:global(.dark .app-sidebar .dropdown-wrapper.flyout-active button) {
+		color: rgb(96 165 250) !important; /* blue-400 */
+	}
+	:global(.dark .app-sidebar .sidebar a:hover svg),
+	:global(.dark .app-sidebar .sidebar button:hover svg),
+	:global(.dark .app-sidebar .dropdown-wrapper.flyout-active button svg) {
+		color: rgb(96 165 250); /* blue-400 — brand, lighter for dark mode */
+	}
+
+	/* Active (selected) top-level item: 2px inset blue border (no fill),
+	   blue label + icon. AppSidebar tags the active <a> with `bg-gray-100
+	   dark:bg-gray-700`; we hijack those classes to apply the selected
+	   look in both light and dark modes. Inset box-shadow avoids the
+	   layout shift a real border would cause. */
+	:global(.app-sidebar .sidebar a.bg-gray-100) {
+		background-color: transparent !important;
+		color: rgb(37 99 235) !important; /* blue-600 */
+		box-shadow: inset 0 0 0 2px rgb(191 219 254) !important; /* blue-200 */
+	}
+	:global(.app-sidebar .sidebar a.bg-gray-100 svg) {
+		color: rgb(37 99 235) !important;
+	}
+	:global(.dark .app-sidebar .sidebar a.bg-gray-100) {
+		color: rgb(96 165 250) !important; /* blue-400 */
+		box-shadow: inset 0 0 0 2px rgb(30 58 138) !important; /* blue-900 */
+	}
+	:global(.dark .app-sidebar .sidebar a.bg-gray-100 svg) {
+		color: rgb(96 165 250) !important;
+	}
+	:global(.app-sidebar .sidebar a.bg-gray-100:hover) {
+		background-color: rgb(239 246 255) !important; /* blue-50 */
+	}
+	:global(.dark .app-sidebar .sidebar a.bg-gray-100:hover) {
+		background-color: rgb(30 58 138 / 0.25) !important; /* blue-900/25 */
+	}
+
+	/* Active-child highlight on parent group when one of its sub-items is
+	   the active page. Mirrors the rootItem active styling on the parent
+	   button + tints the chevron and vertical guide line. */
+	:global(.app-sidebar .dropdown-wrapper.has-active-child button) {
+		color: rgb(37 99 235) !important; /* blue-600 */
+		box-shadow: inset 0 0 0 2px rgb(191 219 254) !important; /* blue-200 */
+	}
+	:global(.app-sidebar .dropdown-wrapper.has-active-child button svg) {
+		color: rgb(37 99 235) !important;
+	}
+	:global(.dark .app-sidebar .dropdown-wrapper.has-active-child button) {
+		color: rgb(96 165 250) !important; /* blue-400 */
+		box-shadow: inset 0 0 0 2px rgb(30 58 138) !important; /* blue-900 */
+	}
+	:global(.dark .app-sidebar .dropdown-wrapper.has-active-child button svg) {
+		color: rgb(96 165 250) !important;
+	}
+	:global(.app-sidebar .dropdown-wrapper.has-active-child .dropdown-chevron) {
+		color: rgb(37 99 235) !important;
+	}
+	:global(.dark .app-sidebar .dropdown-wrapper.has-active-child .dropdown-chevron) {
+		color: rgb(96 165 250) !important;
+	}
+	:global(.app-sidebar .dropdown-wrapper.has-active-child::before) {
+		background: rgb(191 219 254) !important; /* blue-200 */
+	}
+	:global(.dark .app-sidebar .dropdown-wrapper.has-active-child::before) {
+		background: rgb(30 58 138) !important; /* blue-900 */
+	}
+
+	/* Hide flowbite's built-in chevron — it lives in an if-block keyed on
+	   isOpen, so its DOM node is destroyed each toggle and CSS transitions
+	   on it never play. The visible chevron is `.dropdown-chevron`,
+	   rendered persistently by SidebarDropdownGroup just outside the
+	   button. Without this CSS the persistent chevron renders as a stray
+	   row below each parent group — visible regression any consumer would
+	   hit without lifting these rules. */
+	:global(.app-sidebar .dropdown-wrapper button > svg:last-child) {
+		display: none;
+	}
+	:global(.app-sidebar .dropdown-wrapper .dropdown-chevron) {
+		position: absolute;
+		right: 12px;
+		top: 14px;
+		width: 20px;
+		height: 20px;
+		color: rgb(107 114 128); /* gray-500 */
+		pointer-events: none;
+		transition:
+			transform 200ms ease-out,
+			color 150ms ease-out,
+			opacity 200ms ease-out 250ms;
+	}
+	:global(.app-sidebar .dropdown-wrapper.open .dropdown-chevron) {
+		transform: rotate(180deg);
+	}
+	:global(.app-sidebar .dropdown-wrapper:hover .dropdown-chevron),
+	:global(.app-sidebar .dropdown-wrapper.flyout-active .dropdown-chevron) {
+		color: rgb(17 24 39); /* gray-900 */
+	}
+	:global(.dark .app-sidebar .dropdown-wrapper .dropdown-chevron) {
+		color: rgb(156 163 175); /* gray-400 */
+	}
+	:global(.dark .app-sidebar .dropdown-wrapper:hover .dropdown-chevron),
+	:global(.dark .app-sidebar .dropdown-wrapper.flyout-active .dropdown-chevron) {
+		color: rgb(255 255 255);
+	}
+	:global(.app-sidebar.collapsed .dropdown-wrapper .dropdown-chevron) {
+		opacity: 0;
+		pointer-events: none;
+		transition:
+			transform 200ms ease-out,
+			color 150ms ease-out,
+			opacity 0ms;
+	}
+
+	/* Flowbite's default dropdown UL has py-2; the slide transition would
+	   animate that 8px on each side — visible as inner items shifting
+	   vertically while the panel opens/closes. Zero-out the animated
+	   padding so items stay anchored. */
+	:global(.app-sidebar .dropdown-wrapper ul) {
+		padding-top: 0 !important;
+		padding-bottom: 0 !important;
+	}
+	:global(.app-sidebar .dropdown-wrapper ul > li + li) {
+		margin-top: -5px !important;
+	}
+
+	/* Sub-item links: shifted right of the vertical guide line, tightened
+	   vertical rhythm, left corners squared so the 4px hover tab sits
+	   flush. */
+	:global(.app-sidebar .dropdown-wrapper ul a) {
+		position: relative;
+		margin-left: 24px;
+		width: calc(100% - 24px);
+		padding-left: 1.75rem !important;
+		padding-top: 6px !important;
+		padding-bottom: 6px !important;
+		margin-top: 0 !important;
+		margin-bottom: 0 !important;
+		font-size: 0.875rem;
+		line-height: 1.2 !important;
+		border-top-left-radius: 0 !important;
+		border-bottom-left-radius: 0 !important;
+	}
+	:global(.app-sidebar .dropdown-wrapper ul a::before) {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		width: 4px;
+		background: var(--color-gray-200);
+		opacity: 0;
+	}
+	:global(.app-sidebar .dropdown-wrapper ul a:hover::before) {
+		opacity: 1;
+	}
+	:global(.dark .app-sidebar .dropdown-wrapper ul a::before) {
+		background: var(--color-gray-600);
+	}
+
+	/* Vertical guide line from the section icon down to the bottom of the
+	   expanded section. Fades in/out with the .open class. */
+	:global(.app-sidebar .dropdown-wrapper) {
+		position: relative;
+	}
+	:global(.app-sidebar .dropdown-wrapper::before) {
+		content: '';
+		position: absolute;
+		left: 24px;
+		top: 48px;
+		bottom: 0;
+		width: 1px;
+		background: var(--color-gray-200);
+		opacity: 0;
+		transition: opacity 200ms ease-out;
+		pointer-events: none;
+	}
+	:global(.app-sidebar .dropdown-wrapper.open::before) {
+		opacity: 1;
+	}
+	:global(.dark .app-sidebar .dropdown-wrapper::before) {
+		background: var(--color-gray-700);
+	}
+	:global(.app-sidebar > div.bg-gray-50) {
+		background-color: rgb(255 255 255);
+	}
+	:global(.dark .app-sidebar > div.flex-1),
+	:global(.dark .app-sidebar > div.bg-gray-50) {
+		background-color: var(--color-gray-900);
+	}
 </style>
