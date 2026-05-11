@@ -481,6 +481,24 @@ main:has(.context-surface) .page-command-bar,
 	border-top-width: 0;
 }
 
+/* Propagate the flex stretch from <main> down through arbitrary wrapper
+   <div>s to the .context-surface, so the panel actually extends down to
+   the bar even when the page nests its surface a few levels deep
+   (common when a detail page wraps tabs in a layout div).
+   Without this, `flex: 1 1 auto` on the surface only acts inside its
+   direct flex parent — non-flex wrappers swallow the stretch and the
+   panel collapses to its natural height, leaving body bg between it
+   and the bar.
+   The SIMS pattern uses named .detail-page / .detail-tabs classes for
+   this; we promote it to a generic rule so any consumer benefits. */
+main:has(.page-command-bar) *:has(> .context-surface),
+.page-shell:has(> .page-command-bar) > main *:has(> .context-surface) {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
 
 /* ---------- Mission-control page command bar ---------- */
 /* Bottom command bar that lives inside <main> as the last child with
