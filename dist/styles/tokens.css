@@ -481,6 +481,16 @@ main:has(.context-surface) .page-command-bar,
 	border-top-width: 0;
 }
 
+/* When the page-shell IS the outer panel (cap + main + bar all inside one
+   rounded card — fleet's layout), strip nested borders/rounding/shadows
+   from .context-surface containers so TableContainer/CardContainer read
+   as inner sections of the page card rather than nested cards. */
+.page-shell > main .context-surface {
+	border-width: 0 !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+}
+
 /* ---------- Mission-control page command bar ---------- */
 /* Bottom command bar that lives inside <main> as the last child with
    mt-auto, so the panel's stretch-to-viewport behavior anchors the bar
