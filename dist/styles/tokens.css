@@ -158,7 +158,7 @@
 	}
 
 	.page-tabs-shell {
-		@apply w-full rounded-lg border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800;
+		@apply w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800;
 	}
 
 	/* ---------- Card system ---------- */
@@ -180,7 +180,7 @@
 
 	/* ---------- Table + list scaffolding ---------- */
 	.table-container {
-		@apply border rounded-lg border-gray-200 dark:border-gray-700 shadow-md bg-white dark:bg-gray-800;
+		@apply border rounded-lg overflow-hidden border-gray-200 dark:border-gray-700 shadow-md bg-white dark:bg-gray-800;
 	}
 
 	.list-page-scaffold {
@@ -471,8 +471,19 @@ main:has(.page-command-bar) .context-surface,
 	border-bottom-left-radius: 0 !important;
 	border-bottom-right-radius: 0 !important;
 	border-bottom-width: 0 !important;
+	/* display:flex + overflow:hidden is what actually constrains the panel
+	   to its computed height: without it the surface stretches but its
+	   children (sticky tab strip + content div) stack as blocks and the
+	   content grows past the viewport — panel border ends up below the
+	   fold and rounded corners reappear. The matching rule on .scroll-
+	   surface (min-h-0 flex-1 overflow-auto) then scrolls inside the
+	   panel instead of the page. SIMS used named .dashboard-* classes for
+	   this; we promote it to a generic rule so any consumer benefits. */
+	display: flex;
+	flex-direction: column;
 	flex: 1 1 auto;
 	min-height: 0;
+	overflow: hidden;
 }
 main:has(.context-surface) .page-command-bar,
 .page-shell:has(> main .context-surface) > .page-command-bar {
