@@ -32,7 +32,7 @@
 
 	// Configurable widths with defaults
 	const expandedWidth = $derived(config.expandedWidth ?? 256);
-	const collapsedWidth = $derived(config.collapsedWidth ?? 72);
+	const collapsedWidth = $derived(config.collapsedWidth ?? 64);
 
 	// When `initialOpen` is provided by the host (e.g. resolved from a
 	// server-side cookie read), we know the correct state at script-init
