@@ -7,7 +7,7 @@ export {
 	buildGroup,
 	buildRootItems,
 	buildRootGroups,
-	buildAdminSubItems,
+	buildModuleSubItems,
 	createSidebarConfig,
 	createSimpleConfig,
 	menuItem,

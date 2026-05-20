@@ -25,5 +25,6 @@ export { default as ResizableSplitter } from './ResizableSplitter.svelte';
 export { default as SortableHeadCell } from './SortableHeadCell.svelte';
 export { default as StatusBadge } from './StatusBadge.svelte';
 export { default as TableContainer } from './TableContainer.svelte';
+export { default as TabFillPanel } from './TabFillPanel.svelte';
 export { default as TabTitle } from './TabTitle.svelte';
 export { PAGE_COMMAND_BAR_CONTEXT, EMPTY_PAGE_COMMAND_BAR_SLOTS } from './page-chrome';

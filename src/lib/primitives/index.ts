@@ -27,6 +27,7 @@ export { default as SortableHeadCell } from './SortableHeadCell.svelte';
 export { default as StatusBadge } from './StatusBadge.svelte';
 export type { StatusBadgeColor } from './StatusBadge.svelte';
 export { default as TableContainer } from './TableContainer.svelte';
+export { default as TabFillPanel } from './TabFillPanel.svelte';
 export { default as TabTitle } from './TabTitle.svelte';
 
 export {

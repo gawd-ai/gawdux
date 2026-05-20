@@ -43,6 +43,12 @@ export interface GroupDefinition {
 	staticItems?: SidebarMenuItem[];
 	/** Whether the group starts expanded */
 	defaultOpen?: boolean;
+	/** Role-gated group. When true, items come from `extraConfig.adminItems`
+	    in `createSidebarConfig`, and the group is suppressed entirely unless
+	    `extraConfig.isAdmin` is also true. Apps that want a non-admin group
+	    backed by an extra-items source can extend this with a more general
+	    `itemsSource` later. */
+	adminOnly?: boolean;
 }
 
 /**
@@ -163,14 +169,19 @@ export function buildRootGroups(
 }
 
 /**
- * Build admin submodule items from a module's subModules
+ * Build sidebar menu items from a module's subModules, sorted by order.
+ * Returns an empty array if the module isn't present or has no subModules —
+ * callers don't need to null-check the return.
  */
-export function buildAdminSubItems(modules: DomainModule[]): SidebarMenuItem[] {
-	const adminModule = modules.find((m) => m?.id === 'admin');
-	if (!adminModule?.subModules) return [];
+export function buildModuleSubItems(
+	modules: DomainModule[],
+	moduleId: string
+): SidebarMenuItem[] {
+	const mod = modules.find((m) => m?.id === moduleId);
+	if (!mod?.subModules) return [];
 
 	return sortByOrder(
-		Object.entries(adminModule.subModules)
+		Object.entries(mod.subModules)
 			.map(([key, nav]) => navToMenuItem(key, nav))
 			.filter((item): item is SidebarMenuItem => item !== null)
 	);
@@ -199,8 +210,7 @@ export function createSidebarConfig(
 
 	// Build groups from definitions
 	for (const def of groupDefinitions) {
-		// Special handling for admin group
-		if (def.id === 'settings' || def.id === 'admin') {
+		if (def.adminOnly) {
 			const adminItems = extraConfig.isAdmin ? (extraConfig.adminItems ?? []) : [];
 			const group = buildGroup(def, modules, adminItems);
 			if (group) groups.push(group);

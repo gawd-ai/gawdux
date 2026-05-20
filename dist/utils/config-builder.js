@@ -94,13 +94,15 @@ export function buildRootGroups(modules, defaultIcon) {
         .filter((group) => group.items.length > 0));
 }
 /**
- * Build admin submodule items from a module's subModules
+ * Build sidebar menu items from a module's subModules, sorted by order.
+ * Returns an empty array if the module isn't present or has no subModules —
+ * callers don't need to null-check the return.
  */
-export function buildAdminSubItems(modules) {
-    const adminModule = modules.find((m) => m?.id === 'admin');
-    if (!adminModule?.subModules)
+export function buildModuleSubItems(modules, moduleId) {
+    const mod = modules.find((m) => m?.id === moduleId);
+    if (!mod?.subModules)
         return [];
-    return sortByOrder(Object.entries(adminModule.subModules)
+    return sortByOrder(Object.entries(mod.subModules)
         .map(([key, nav]) => navToMenuItem(key, nav))
         .filter((item) => item !== null));
 }
@@ -115,8 +117,7 @@ export function createSidebarConfig(modules, groupDefinitions, options = {}, ext
     }
     // Build groups from definitions
     for (const def of groupDefinitions) {
-        // Special handling for admin group
-        if (def.id === 'settings' || def.id === 'admin') {
+        if (def.adminOnly) {
             const adminItems = extraConfig.isAdmin ? (extraConfig.adminItems ?? []) : [];
             const group = buildGroup(def, modules, adminItems);
             if (group)

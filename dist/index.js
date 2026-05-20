@@ -6,7 +6,7 @@ export { default as SidebarDropdownGroup } from './components/SidebarDropdownGro
 // Utilities
 export { 
 // Config builders
-sortByOrder, moduleToMenuItem, navToMenuItem, filterModulesByGroup, buildGroupItems, buildGroup, buildRootItems, buildRootGroups, buildAdminSubItems, createSidebarConfig, createSimpleConfig, menuItem, menuGroup, 
+sortByOrder, moduleToMenuItem, navToMenuItem, filterModulesByGroup, buildGroupItems, buildGroup, buildRootItems, buildRootGroups, buildModuleSubItems, createSidebarConfig, createSimpleConfig, menuItem, menuGroup, 
 // Browser utilities
 isBrowser, getStorageItem, setStorageItem, removeStorageItem, 
 // Layout / chrome utilities (Phase K)

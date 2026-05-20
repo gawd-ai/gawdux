@@ -35,6 +35,12 @@ export interface GroupDefinition {
     staticItems?: SidebarMenuItem[];
     /** Whether the group starts expanded */
     defaultOpen?: boolean;
+    /** Role-gated group. When true, items come from `extraConfig.adminItems`
+        in `createSidebarConfig`, and the group is suppressed entirely unless
+        `extraConfig.isAdmin` is also true. Apps that want a non-admin group
+        backed by an extra-items source can extend this with a more general
+        `itemsSource` later. */
+    adminOnly?: boolean;
 }
 /**
  * Sort items by order property
@@ -71,9 +77,11 @@ export declare function buildRootItems(modules: DomainModule[]): SidebarMenuItem
  */
 export declare function buildRootGroups(modules: DomainModule[], defaultIcon: Component): SidebarMenuGroup[];
 /**
- * Build admin submodule items from a module's subModules
+ * Build sidebar menu items from a module's subModules, sorted by order.
+ * Returns an empty array if the module isn't present or has no subModules —
+ * callers don't need to null-check the return.
  */
-export declare function buildAdminSubItems(modules: DomainModule[]): SidebarMenuItem[];
+export declare function buildModuleSubItems(modules: DomainModule[], moduleId: string): SidebarMenuItem[];
 /**
  * Create a complete sidebar configuration from modules and group definitions
  */

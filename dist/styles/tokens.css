@@ -158,7 +158,50 @@
 	}
 
 	.page-tabs-shell {
-		@apply w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800;
+		@apply w-full rounded-lg border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800;
+	}
+
+	/* Fill-mode propagation. When the active tab's content uses TabFillPanel
+	   (.tab-fill-panel), the shell + flowbite's tabpanel switch to a flex
+	   column that fills its parent. <main> is already `flex-1 min-h-0
+	   flex-col` (and .context-surface adds the same constraint when paired
+	   with a page-command-bar), so the chain has a real height to share.
+
+	   `flex: 1 1 0%` (zero basis) — Tailwind's flex-1 default — is important:
+	   `flex: 1 1 auto` combined with `height: 100%` further down creates a
+	   circular percentage-height resolution and the chain collapses to 0.
+
+	   flowbite's <Tabs> renders <ul> and <div role="tabpanel"> as direct
+	   siblings under our wrapper — there is NO outer flowbite div. So we
+	   target the tabpanel directly rather than via `> div`.
+
+	   Selector-based (not a prop) so sibling tabs in the same PageTabs that
+	   don't use TabFillPanel keep scrolling normally. */
+	.page-tabs-shell:has(.tab-fill-panel) {
+		display: flex;
+		flex-direction: column;
+		flex: 1 1 0%;
+		min-height: 0;
+		overflow: hidden;
+	}
+	.page-tabs-shell:has(.tab-fill-panel) [role='tabpanel'] {
+		display: flex;
+		flex-direction: column;
+		flex: 1 1 0%;
+		min-height: 0;
+		overflow: hidden;
+	}
+	/* flowbite-svelte's TabItem wraps the slot in an extra <div class={divClass}>
+	   (empty class by default) and uses replaceChildren() to portal it into the
+	   tabpanel at runtime. That intermediate div is a plain block element, so
+	   flex children inside it (.tab-fill-panel) don't grow. Bridge the gap
+	   with a sibling rule that turns that div into a flex column whenever it
+	   wraps a .tab-fill-panel. */
+	.page-tabs-shell:has(.tab-fill-panel) [role='tabpanel'] > div:has(.tab-fill-panel) {
+		display: flex;
+		flex-direction: column;
+		flex: 1 1 0%;
+		min-height: 0;
 	}
 
 	/* ---------- Card system ---------- */
@@ -180,7 +223,7 @@
 
 	/* ---------- Table + list scaffolding ---------- */
 	.table-container {
-		@apply border rounded-lg overflow-hidden border-gray-200 dark:border-gray-700 shadow-md bg-white dark:bg-gray-800;
+		@apply border rounded-lg border-gray-200 dark:border-gray-700 shadow-md bg-white dark:bg-gray-800;
 	}
 
 	.list-page-scaffold {
