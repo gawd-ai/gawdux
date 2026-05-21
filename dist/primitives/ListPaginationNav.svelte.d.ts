@@ -23,6 +23,7 @@ declare const ListPaginationNav: $$__sveltets_2_IsomorphicComponent<{
             scrolls this container to top. Defaults to `.list-table-scroll` (the
             convention used by gawdux ListSurface and SIMS list pages). Set to null
             to disable auto-scroll. */ scrollTargetSelector?: string | null;
+    className?: string;
 }, {
     [evt: string]: CustomEvent<any>;
 }, {}, {}, string>;

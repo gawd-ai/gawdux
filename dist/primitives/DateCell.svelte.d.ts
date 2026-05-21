@@ -13,6 +13,7 @@ interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> =
 }
 declare const DateCell: $$__sveltets_2_IsomorphicComponent<{
     value: string | Date | null | undefined;
+    className?: string;
 }, {
     [evt: string]: CustomEvent<any>;
 }, {}, {}, string>;

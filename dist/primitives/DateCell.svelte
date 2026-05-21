@@ -1,5 +1,6 @@
 <script lang="ts">
 	export let value: string | Date | null | undefined;
+	export let className = '';
 
 	function formatDate(v: string | Date | null | undefined): string {
 		if (!v) return '';
@@ -12,4 +13,4 @@
 	}
 </script>
 
-<span>{formatDate(value)}</span>
+<span class={className}>{formatDate(value)}</span>

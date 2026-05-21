@@ -17,6 +17,7 @@
 	    already render their own `<PageTabs>` (which carries the wrapper)
 	    should leave this false. */
 	export let surface = false;
+	export let className = '';
 </script>
 
 <!-- The `breadcrumb` slot is declared but intentionally not rendered.
@@ -24,7 +25,7 @@
      layout; pages still pass content here for source compatibility, and
      declaring the slot keeps TypeScript happy without surfacing the
      duplicate breadcrumb. -->
-<div class="editable-page-scaffold">
+<div class="editable-page-scaffold {className}">
 	<div class="hidden" aria-hidden="true">
 		<slot name="breadcrumb" />
 	</div>

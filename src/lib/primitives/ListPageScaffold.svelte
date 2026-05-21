@@ -12,12 +12,14 @@
 		pageSize?: number;
 		onPage: (page: number) => void;
 	} | null = null;
+	export let className = '';
 </script>
 
 <ListSurface
 	mode="page"
 	{showFooter}
 	{pagination}
+	{className}
 	hasActions={!!$$slots.actions}
 	hasFooter={!!$$slots.footer}
 >

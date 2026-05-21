@@ -5,6 +5,7 @@
 	export let value: string = '';
 	export let id: string = '';
 	export let placeholder: string = '';
+	export let className = '';
 
 	const dispatch = createEventDispatcher<{ input: void; focus: void; clear: void; submit: void }>();
 
@@ -21,7 +22,7 @@
 	}
 </script>
 
-<div class="relative">
+<div class="relative {className}">
 	<input
 		{id}
 		type="text"

@@ -27,6 +27,7 @@ declare const ListPageScaffold: $$__sveltets_2_IsomorphicComponent<$$__sveltets_
         pageSize?: number;
         onPage: (page: number) => void;
     } | null;
+    className?: string;
 }, {
     actions: {};
     filters: {};

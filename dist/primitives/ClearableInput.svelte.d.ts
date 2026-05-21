@@ -15,6 +15,7 @@ declare const ClearableInput: $$__sveltets_2_IsomorphicComponent<{
     value?: string;
     id?: string;
     placeholder?: string;
+    className?: string;
 }, {
     blur: FocusEvent;
     input: CustomEvent<void>;

@@ -14,6 +14,7 @@
 	    convention used by gawdux ListSurface and SIMS list pages). Set to null
 	    to disable auto-scroll. */
 	export let scrollTargetSelector: string | null = '.list-table-scroll';
+	export let className = '';
 
 	$: effectivePageSize = pageSize > 0 ? pageSize : 50;
 	$: lastItemOnPage = Math.min(currentPage * effectivePageSize, total);
@@ -34,7 +35,7 @@
 	}
 </script>
 
-<div class="pagination-pill">
+<div class="pagination-pill {className}">
 	<button
 		type="button"
 		class="pp-btn pp-btn-prev"

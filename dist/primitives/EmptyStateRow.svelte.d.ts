@@ -14,6 +14,7 @@ interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> =
 declare const EmptyStateRow: $$__sveltets_2_IsomorphicComponent<{
     colspan?: number;
     text?: string;
+    className?: string;
 }, {
     [evt: string]: CustomEvent<any>;
 }, {}, {}, string>;

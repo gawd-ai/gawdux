@@ -21,6 +21,7 @@ declare const FormField: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_Props
     label: string;
     error?: string | null | undefined;
     required?: boolean;
+    className?: string;
 }, {
     default: {
         invalid: boolean;

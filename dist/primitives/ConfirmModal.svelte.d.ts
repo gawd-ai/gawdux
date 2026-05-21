@@ -14,6 +14,7 @@ interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> =
 declare const ConfirmModal: $$__sveltets_2_IsomorphicComponent<{
     open?: boolean;
     primaryColor?: "red" | "green" | "blue";
+    className?: string;
 }, {
     confirm: CustomEvent<any>;
     cancel: CustomEvent<any>;

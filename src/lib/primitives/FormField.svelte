@@ -6,6 +6,7 @@
 	export let label: string;
 	export let error: string | null | undefined = null;
 	export let required = false;
+	export let className = '';
 
 	$: message = error?.trim() ?? '';
 	$: invalid = message.length > 0;
@@ -16,7 +17,7 @@
 		: '';
 </script>
 
-<div class="form-field" data-field-invalid={invalid ? 'true' : undefined}>
+<div class="form-field {className}" data-field-invalid={invalid ? 'true' : undefined}>
 	<div class="mb-1 flex items-center gap-2">
 		<Label for={id} class="form-label !mb-0">{label}</Label>
 		{#if required}

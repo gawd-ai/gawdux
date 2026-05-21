@@ -17,6 +17,7 @@ declare const PageFeedback: $$__sveltets_2_IsomorphicComponent<{
     tone?: "error" | "success" | "info";
     dismissable?: boolean;
     compact?: boolean;
+    className?: string;
 }, {
     dismiss: CustomEvent<void>;
 } & {

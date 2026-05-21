@@ -12,6 +12,7 @@
 	export let tone: 'error' | 'success' | 'info' = 'error';
 	export let dismissable = true;
 	export let compact = false;
+	export let className = '';
 
 	const dispatch = createEventDispatcher<{ dismiss: void }>();
 
@@ -21,7 +22,7 @@
 
 {#if visible}
 	<div
-		class={`page-feedback-card ${tone} ${compact ? 'compact' : ''}`}
+		class={`page-feedback-card ${tone} ${compact ? 'compact' : ''} ${className}`}
 		role={tone === 'error' ? 'alert' : 'status'}
 		aria-live={tone === 'error' ? 'assertive' : 'polite'}
 	>

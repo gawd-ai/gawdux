@@ -4,11 +4,12 @@
 
 	export let open = false;
 	export let primaryColor: 'red' | 'green' | 'blue' = 'red';
+	export let className = '';
 
 	const dispatch = createEventDispatcher();
 </script>
 
-<Modal bind:open size="sm">
+<Modal bind:open size="sm" class={className}>
 	<div class="text-center">
 		<slot name="icon" />
 		<h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">

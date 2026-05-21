@@ -14,6 +14,7 @@ interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> =
 declare const ListPaginationCount: $$__sveltets_2_IsomorphicComponent<{
     total?: number;
     label?: string;
+    className?: string;
 }, {
     [evt: string]: CustomEvent<any>;
 }, {}, {}, string>;

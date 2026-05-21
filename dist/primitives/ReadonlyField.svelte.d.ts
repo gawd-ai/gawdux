@@ -15,6 +15,7 @@ declare const ReadonlyField: $$__sveltets_2_IsomorphicComponent<{
     label: string;
     value?: unknown;
     emptyText?: string;
+    className?: string;
 }, {
     [evt: string]: CustomEvent<any>;
 }, {}, {}, string>;

@@ -15,6 +15,7 @@ interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> =
 declare const TabTitle: $$__sveltets_2_IsomorphicComponent<{
     icon: Component;
     label: string;
+    className?: string;
 }, {
     [evt: string]: CustomEvent<any>;
 }, {}, {}, string>;

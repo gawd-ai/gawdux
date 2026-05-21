@@ -30,6 +30,7 @@ declare const EditablePageScaffold: $$__sveltets_2_IsomorphicComponent<$$__svelt
             + bar-merge as PageTabs / ListSurface pages. Detail pages that
             already render their own `<PageTabs>` (which carries the wrapper)
             should leave this false. */ surface?: boolean;
+    className?: string;
 }, {
     breadcrumb: {};
     actions: {};
