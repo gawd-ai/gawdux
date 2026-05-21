@@ -10,6 +10,20 @@
  *     Flowbite's badge DOM; the sidebar/list classes pair with
  *     gawdux primitives that consume them)
  *
+ * THEMING (added in gawdux 0.2.0):
+ * All hardcoded `bg-gray-X`, `text-gray-X`, `border-gray-X` etc. classes
+ * have been replaced with CSS custom properties declared below. Consumers
+ * that want a different palette (sctlin's terminal aesthetic, etc.) just
+ * redeclare any subset of these variables AFTER importing tokens.css —
+ * no fork required. Defaults reproduce the original SIMS gray palette
+ * pixel-identical so SIMS + netage-fleet are unaffected.
+ *
+ * Override pattern:
+ *   /* in consumer's app.css *\/
+ *   @import 'gawdux/styles/tokens.css';
+ *   :root { --gawdux-surface-card: oklch(0.12 0.01 240); }
+ *   .dark { --gawdux-surface-card: oklch(0.08 0.01 240); }
+ *
  * The `* { scrollbar-* }` rules below intentionally style the entire
  * page's scrollbars — any consumer of this file inherits the SIMS
  * scrollbar look. The Flowbite badge pill override is global by
@@ -21,11 +35,78 @@
  * their own dark variant. Tailwind v4 tolerates redeclaration. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* ─────────────────────────────────────────────────────────────────────
+ * Theme variables. Light defaults at :root; dark overrides on .dark.
+ * Every component class below consumes these via var(); to retheme just
+ * redeclare a subset in the consumer's app.css after the @import.
+ *
+ * Defaults intentionally reproduce the prior hardcoded palette
+ * (gray.50/200/300/700/800/900, red.700/300, green.600/400, blue.600/400)
+ * so existing consumers see no visual change. The variable layer is
+ * additive plumbing only.
+ * ─────────────────────────────────────────────────────────────────── */
+:root {
+	/* Surfaces */
+	--gawdux-surface: theme(colors.white);
+	--gawdux-surface-card: theme(colors.white);
+	--gawdux-surface-input: theme(colors.gray.50);
+	--gawdux-surface-subtle: theme(colors.gray.50); /* hovers, alt rows */
+	--gawdux-surface-card-header: theme(colors.gray.50);
+	/* Text */
+	--gawdux-text-primary: theme(colors.gray.800);
+	--gawdux-text-secondary: theme(colors.gray.600);
+	--gawdux-text-muted: theme(colors.gray.500);
+	--gawdux-text-heading: theme(colors.gray.700);
+	--gawdux-text-error: theme(colors.red.700);
+	--gawdux-text-success: theme(colors.green.600);
+	--gawdux-text-accent: theme(colors.blue.600);
+	/* Borders */
+	--gawdux-border: theme(colors.gray.200);
+	--gawdux-border-input: theme(colors.gray.300);
+	--gawdux-border-strong: theme(colors.gray.400);
+	/* Accent / focus */
+	--gawdux-focus-ring: rgb(37 99 235);
+	--gawdux-hover-shadow-rgb: 148 163 184;
+	/* Sidebar (already in use by AppSidebar.svelte) — kept stable for
+	   backward compat with consumers that target these names. */
+	--color-gray-50: theme(colors.gray.50);
+	--color-gray-100: theme(colors.gray.100);
+	--color-gray-200: theme(colors.gray.200);
+	--color-gray-300: theme(colors.gray.300);
+	--color-gray-400: theme(colors.gray.400);
+	--color-gray-500: theme(colors.gray.500);
+	--color-gray-600: theme(colors.gray.600);
+	--color-gray-700: theme(colors.gray.700);
+	--color-gray-800: theme(colors.gray.800);
+	--color-gray-900: theme(colors.gray.900);
+}
+
+.dark {
+	--gawdux-surface: theme(colors.gray.900);
+	--gawdux-surface-card: theme(colors.gray.800);
+	--gawdux-surface-input: theme(colors.gray.900);
+	--gawdux-surface-subtle: theme(colors.gray.700);
+	--gawdux-surface-card-header: theme(colors.gray.700);
+	--gawdux-text-primary: theme(colors.gray.200);
+	--gawdux-text-secondary: theme(colors.gray.400);
+	--gawdux-text-muted: theme(colors.gray.400);
+	--gawdux-text-heading: theme(colors.gray.300);
+	--gawdux-text-error: theme(colors.red.300);
+	--gawdux-text-success: theme(colors.green.400);
+	--gawdux-text-accent: theme(colors.blue.400);
+	--gawdux-border: theme(colors.gray.700);
+	--gawdux-border-input: theme(colors.gray.700);
+	--gawdux-border-strong: theme(colors.gray.500);
+	--gawdux-hover-shadow-rgb: 107 114 128;
+}
+
 @layer components {
 	/* ---------- Form input system ---------- */
 	.form-input {
-		@apply mb-0 !h-8 !py-0 px-2 rounded-lg bg-gray-50 dark:!bg-gray-900 text-gray-800
-    dark:!text-gray-200 !border !border-gray-300 dark:!border-gray-700;
+		@apply mb-0 !h-8 !py-0 px-2 rounded-lg !border;
+		background-color: var(--gawdux-surface-input) !important;
+		color: var(--gawdux-text-primary) !important;
+		border-color: var(--gawdux-border-input) !important;
 	}
 
 	/* Make native date/time picker icons visible in dark mode */
@@ -44,24 +125,29 @@
 	/* Match Select colors to Input, especially in dark mode */
 	select.form-input,
 	.form-input select {
-		@apply !bg-gray-50 dark:!bg-gray-900 !text-gray-800 dark:!text-gray-200 !border !border-gray-300 dark:!border-gray-700;
+		@apply !border;
+		background-color: var(--gawdux-surface-input) !important;
+		color: var(--gawdux-text-primary) !important;
+		border-color: var(--gawdux-border-input) !important;
 	}
 
 	.form-label {
-		@apply mb-1 text-gray-600 dark:text-gray-400 !text-xs;
+		@apply mb-1 !text-xs;
+		color: var(--gawdux-text-secondary);
 	}
 
 	.readonly-label {
-		@apply text-gray-600 dark:text-gray-400 text-xs;
+		@apply text-xs;
+		color: var(--gawdux-text-secondary);
 	}
 
 	.readonly-value {
-		@apply text-gray-800 dark:text-gray-200;
+		color: var(--gawdux-text-primary);
 	}
 
-	/* Ensure labels inside the Toggle wrapper use white text in dark mode */
+	/* Ensure labels inside the Toggle wrapper use the themed text in dark mode */
 	.form-toggle label {
-		@apply !text-gray-800 dark:!text-gray-200;
+		color: var(--gawdux-text-primary) !important;
 	}
 
 	/* Remove default end margin from the Toggle track and add minimal right padding */
@@ -108,7 +194,10 @@
 
 	/* ---------- Interactive surfaces ---------- */
 	.interactive-hover {
-		@apply cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700;
+		@apply cursor-pointer;
+	}
+	.interactive-hover:hover {
+		background-color: var(--gawdux-surface-subtle);
 	}
 
 	.interactive-surface {
@@ -120,21 +209,20 @@
 	}
 
 	.interactive-surface:hover {
-		border-color: rgb(156 163 175) !important;
+		border-color: var(--gawdux-border-strong) !important;
 		box-shadow:
-			0 0 0 1px rgb(148 163 184 / 0.28),
+			0 0 0 1px rgb(var(--gawdux-hover-shadow-rgb) / 0.28),
 			0 2px 6px rgb(15 23 42 / 0.12) !important;
 	}
 
 	.dark .interactive-surface:hover {
-		border-color: rgb(107 114 128) !important;
 		box-shadow:
-			0 0 0 1px rgb(107 114 128 / 0.35),
+			0 0 0 1px rgb(var(--gawdux-hover-shadow-rgb) / 0.35),
 			0 2px 6px rgb(0 0 0 / 0.28) !important;
 	}
 
 	.interactive-surface:focus-visible {
-		outline: 2px solid rgb(37 99 235);
+		outline: 2px solid var(--gawdux-focus-ring);
 		outline-offset: 2px;
 	}
 
@@ -148,17 +236,20 @@
 
 	.header-bar {
 		@apply flex justify-between items-center
-    sticky !p-0 !pb-2 !pt-2 !m-0 !mt-0 top-0 z-11
-    !bg-white dark:!bg-gray-900 border-none;
+    sticky !p-0 !pb-2 !pt-2 !m-0 !mt-0 top-0 z-11 border-none;
+		background-color: var(--gawdux-surface) !important;
 	}
 
 	.tabs-stick {
-		@apply sticky top-0 z-10 !m-0 rounded-t-lg border-b !border-gray-200 bg-white px-2
-    dark:!border-gray-700 dark:bg-gray-800;
+		@apply sticky top-0 z-10 !m-0 rounded-t-lg border-b px-2;
+		background-color: var(--gawdux-surface-card);
+		border-bottom-color: var(--gawdux-border) !important;
 	}
 
 	.page-tabs-shell {
-		@apply w-full rounded-lg border border-gray-200 bg-white shadow-md dark:border-gray-700 dark:bg-gray-800;
+		@apply w-full rounded-lg border shadow-md;
+		background-color: var(--gawdux-surface-card);
+		border-color: var(--gawdux-border);
 	}
 
 	/* Fill-mode propagation. When the active tab's content uses TabFillPanel
@@ -210,11 +301,13 @@
 	}
 
 	.card-header {
-		@apply bg-gray-50 dark:bg-gray-700 px-6 py-3 text-left;
+		@apply px-6 py-3 text-left;
+		background-color: var(--gawdux-surface-card-header);
 	}
 
 	.card-header-title {
-		@apply text-xs font-bold text-gray-500 dark:text-gray-400 uppercase;
+		@apply text-xs font-bold uppercase;
+		color: var(--gawdux-text-muted);
 	}
 
 	.card-content {
@@ -223,7 +316,9 @@
 
 	/* ---------- Table + list scaffolding ---------- */
 	.table-container {
-		@apply border rounded-lg border-gray-200 dark:border-gray-700 shadow-md bg-white dark:bg-gray-800;
+		@apply border rounded-lg shadow-md;
+		background-color: var(--gawdux-surface-card);
+		border-color: var(--gawdux-border);
 	}
 
 	.list-page-scaffold {
@@ -253,7 +348,9 @@
 	}
 
 	.list-surface-header {
-		@apply flex shrink-0 items-start justify-between gap-3 border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800;
+		@apply flex shrink-0 items-start justify-between gap-3 border-b px-4 py-3;
+		background-color: var(--gawdux-surface-card);
+		border-bottom-color: var(--gawdux-border);
 	}
 
 	.list-table-scroll {
@@ -273,20 +370,25 @@
 	}
 
 	.list-page-footer {
-		@apply shrink-0 border-t border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800;
+		@apply shrink-0 border-t px-4 py-3;
+		background-color: var(--gawdux-surface-card);
+		border-top-color: var(--gawdux-border);
 	}
 
 	.table-container thead {
-		@apply border-b border-gray-200 dark:border-gray-700;
+		@apply border-b;
+		border-bottom-color: var(--gawdux-border);
 	}
 
 	.table-container tbody tr {
-		@apply border-b border-gray-200 dark:border-gray-700;
+		@apply border-b;
+		border-bottom-color: var(--gawdux-border);
 	}
 
 	/* Generic scroll surface (companion to list-table-scroll for non-table surfaces) */
 	.scroll-surface {
-		@apply min-h-0 flex-1 overflow-auto bg-white pt-4 px-4 pb-1 dark:bg-gray-800;
+		@apply min-h-0 flex-1 overflow-auto pt-4 px-4 pb-1;
+		background-color: var(--gawdux-surface-card);
 	}
 
 	/* Reusable compact list table with edge padding */
@@ -294,7 +396,8 @@
 		@apply w-full;
 	}
 	.list-table-scroll .list-table thead th {
-		@apply sticky top-0 z-10 bg-gray-50 dark:bg-gray-700;
+		@apply sticky top-0 z-10;
+		background-color: var(--gawdux-surface-card-header);
 	}
 	.list-table th,
 	.list-table td {
@@ -337,15 +440,21 @@
 
 	/* ---------- Breadcrumb chrome ---------- */
 	.breadcrumb-title {
-		@apply text-lg font-semibold text-gray-700 dark:text-gray-300;
+		@apply text-lg font-semibold;
+		color: var(--gawdux-text-heading);
 	}
 
 	.breadcrumb-section-icon {
-		@apply !w-7 !h-7 mr-2 text-gray-700 dark:text-gray-400;
+		@apply !w-7 !h-7 mr-2;
+		color: var(--gawdux-text-heading);
+	}
+	.dark .breadcrumb-section-icon {
+		color: var(--gawdux-text-secondary);
 	}
 
 	.breadcrumb-chevron {
-		@apply !w-7 !h-7 mt-0.5 -mx-0.5 text-gray-500 dark:text-gray-500;
+		@apply !w-7 !h-7 mt-0.5 -mx-0.5;
+		color: var(--gawdux-text-muted);
 	}
 
 	/* ---------- Filter bar ---------- */
