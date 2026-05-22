@@ -52,6 +52,13 @@
 	--gawdux-surface-input: var(--color-gray-50);
 	--gawdux-surface-subtle: var(--color-gray-50); /* hovers, alt rows */
 	--gawdux-surface-card-header: var(--color-gray-50);
+	/* AppSidebar's inner panel. Defaults to --gawdux-surface so SIMS et al
+	   keep the carved/elevated look (panel distinct from page canvas).
+	   Themed consumers whose canvas is already dark (e.g. sctlin's hacker
+	   palette on bg-neutral-950) can override this to `transparent` so the
+	   outer aside's bg shows through and the empty sidebar area blends
+	   with the page. */
+	--gawdux-surface-sidebar: var(--gawdux-surface);
 	/* Text */
 	--gawdux-text-primary: var(--color-gray-800);
 	--gawdux-text-secondary: var(--color-gray-600);

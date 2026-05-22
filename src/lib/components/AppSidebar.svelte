@@ -527,7 +527,7 @@
 	}
 	:global(.app-sidebar > div.flex-1) {
 		margin-top: 1px;
-		background-color: var(--gawdux-surface);
+		background-color: var(--gawdux-surface-sidebar);
 		border-top-right-radius: 0.5rem;
 	}
 	:global(.app-sidebar .sidebar),
@@ -815,7 +815,7 @@
 	/* Tailwind's bg-gray-50 utility lands on a nested div on some pages;
 	   override to match the themed panel above so the two stay in sync. */
 	:global(.app-sidebar > div.bg-gray-50) {
-		background-color: var(--gawdux-surface);
+		background-color: var(--gawdux-surface-sidebar);
 	}
 	/* No .dark override needed — --gawdux-surface already swaps in dark mode
 	   (defaults to var(--color-gray-900); themed consumers override). */
