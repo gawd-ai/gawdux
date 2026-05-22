@@ -47,56 +47,51 @@
  * ─────────────────────────────────────────────────────────────────── */
 :root {
 	/* Surfaces */
-	--gawdux-surface: theme(colors.white);
-	--gawdux-surface-card: theme(colors.white);
-	--gawdux-surface-input: theme(colors.gray.50);
-	--gawdux-surface-subtle: theme(colors.gray.50); /* hovers, alt rows */
-	--gawdux-surface-card-header: theme(colors.gray.50);
+	--gawdux-surface: var(--color-white);
+	--gawdux-surface-card: var(--color-white);
+	--gawdux-surface-input: var(--color-gray-50);
+	--gawdux-surface-subtle: var(--color-gray-50); /* hovers, alt rows */
+	--gawdux-surface-card-header: var(--color-gray-50);
 	/* Text */
-	--gawdux-text-primary: theme(colors.gray.800);
-	--gawdux-text-secondary: theme(colors.gray.600);
-	--gawdux-text-muted: theme(colors.gray.500);
-	--gawdux-text-heading: theme(colors.gray.700);
-	--gawdux-text-error: theme(colors.red.700);
-	--gawdux-text-success: theme(colors.green.600);
-	--gawdux-text-accent: theme(colors.blue.600);
+	--gawdux-text-primary: var(--color-gray-800);
+	--gawdux-text-secondary: var(--color-gray-600);
+	--gawdux-text-muted: var(--color-gray-500);
+	--gawdux-text-heading: var(--color-gray-700);
+	--gawdux-text-error: var(--color-red-700);
+	--gawdux-text-success: var(--color-green-600);
+	--gawdux-text-accent: var(--color-blue-600);
 	/* Borders */
-	--gawdux-border: theme(colors.gray.200);
-	--gawdux-border-input: theme(colors.gray.300);
-	--gawdux-border-strong: theme(colors.gray.400);
+	--gawdux-border: var(--color-gray-200);
+	--gawdux-border-input: var(--color-gray-300);
+	--gawdux-border-strong: var(--color-gray-400);
 	/* Accent / focus */
 	--gawdux-focus-ring: rgb(37 99 235);
 	--gawdux-hover-shadow-rgb: 148 163 184;
-	/* Sidebar (already in use by AppSidebar.svelte) — kept stable for
-	   backward compat with consumers that target these names. */
-	--color-gray-50: theme(colors.gray.50);
-	--color-gray-100: theme(colors.gray.100);
-	--color-gray-200: theme(colors.gray.200);
-	--color-gray-300: theme(colors.gray.300);
-	--color-gray-400: theme(colors.gray.400);
-	--color-gray-500: theme(colors.gray.500);
-	--color-gray-600: theme(colors.gray.600);
-	--color-gray-700: theme(colors.gray.700);
-	--color-gray-800: theme(colors.gray.800);
-	--color-gray-900: theme(colors.gray.900);
+	/* The --color-gray-* family is intentionally NOT redeclared here.
+	   Tailwind v4 already exposes the full default palette as CSS vars
+	   via `@import 'tailwindcss'` (--color-gray-50 through --color-gray-950,
+	   --color-white, etc.). Redeclaring them in :root with var(--color-gray-X)
+	   would create a self-referential cycle and resolve to the empty string.
+	   Consumers wanting a non-default sidebar palette should override the
+	   Tailwind theme directly, or override the --gawdux-* tokens above. */
 }
 
 .dark {
-	--gawdux-surface: theme(colors.gray.900);
-	--gawdux-surface-card: theme(colors.gray.800);
-	--gawdux-surface-input: theme(colors.gray.900);
-	--gawdux-surface-subtle: theme(colors.gray.700);
-	--gawdux-surface-card-header: theme(colors.gray.700);
-	--gawdux-text-primary: theme(colors.gray.200);
-	--gawdux-text-secondary: theme(colors.gray.400);
-	--gawdux-text-muted: theme(colors.gray.400);
-	--gawdux-text-heading: theme(colors.gray.300);
-	--gawdux-text-error: theme(colors.red.300);
-	--gawdux-text-success: theme(colors.green.400);
-	--gawdux-text-accent: theme(colors.blue.400);
-	--gawdux-border: theme(colors.gray.700);
-	--gawdux-border-input: theme(colors.gray.700);
-	--gawdux-border-strong: theme(colors.gray.500);
+	--gawdux-surface: var(--color-gray-900);
+	--gawdux-surface-card: var(--color-gray-800);
+	--gawdux-surface-input: var(--color-gray-900);
+	--gawdux-surface-subtle: var(--color-gray-700);
+	--gawdux-surface-card-header: var(--color-gray-700);
+	--gawdux-text-primary: var(--color-gray-200);
+	--gawdux-text-secondary: var(--color-gray-400);
+	--gawdux-text-muted: var(--color-gray-400);
+	--gawdux-text-heading: var(--color-gray-300);
+	--gawdux-text-error: var(--color-red-300);
+	--gawdux-text-success: var(--color-green-400);
+	--gawdux-text-accent: var(--color-blue-400);
+	--gawdux-border: var(--color-gray-700);
+	--gawdux-border-input: var(--color-gray-700);
+	--gawdux-border-strong: var(--color-gray-500);
 	--gawdux-hover-shadow-rgb: 107 114 128;
 }
 
