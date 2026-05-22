@@ -516,14 +516,18 @@
 
 	/* ---------- Sidebar surface chrome (lifted from SIMS app layout) ---------- */
 	/* The outer <aside> is transparent so a brand cap can sit on the body
-	   canvas. The white panel begins below with a 1px top margin and rounds
-	   only its top-right corner against whatever middle panel sits next. */
+	   canvas. The themed panel begins below with a 1px top margin and rounds
+	   only its top-right corner against whatever middle panel sits next.
+	   Background sources --gawdux-surface so dark-mode consumers (sctlin's
+	   hacker theme, etc.) can re-skin without forking. The variable's light
+	   default is white and dark default is gray-900 — both match the prior
+	   hardcoded values, so SIMS/fleet visuals are unchanged. */
 	:global(.app-sidebar) {
 		border-right-width: 0;
 	}
 	:global(.app-sidebar > div.flex-1) {
 		margin-top: 1px;
-		background-color: rgb(255 255 255);
+		background-color: var(--gawdux-surface);
 		border-top-right-radius: 0.5rem;
 	}
 	:global(.app-sidebar .sidebar),
@@ -808,11 +812,11 @@
 	:global(.dark .app-sidebar .dropdown-wrapper::before) {
 		background: var(--color-gray-700);
 	}
+	/* Tailwind's bg-gray-50 utility lands on a nested div on some pages;
+	   override to match the themed panel above so the two stay in sync. */
 	:global(.app-sidebar > div.bg-gray-50) {
-		background-color: rgb(255 255 255);
+		background-color: var(--gawdux-surface);
 	}
-	:global(.dark .app-sidebar > div.flex-1),
-	:global(.dark .app-sidebar > div.bg-gray-50) {
-		background-color: var(--color-gray-900);
-	}
+	/* No .dark override needed — --gawdux-surface already swaps in dark mode
+	   (defaults to var(--color-gray-900); themed consumers override). */
 </style>
