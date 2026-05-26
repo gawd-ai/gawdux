@@ -639,6 +639,20 @@ main:has(.page-command-bar) .context-surface,
 	min-height: 0;
 	overflow: hidden;
 }
+/* A page may NEST surfaces — e.g. PageTabs renders its shell as
+   .context-surface and a TableContainer inside a tab is ANOTHER
+   .context-surface. The merge rule above squares every .context-surface, so
+   an inner table (esp. when empty/short) reads as un-rounded at the bottom.
+   Only the OUTERMOST panel should fuse with the command bar — restore the
+   inner panel's own bottom rounding + border here (overflow:hidden is
+   inherited from the rule above, so the table clips to the restored radius).
+   Plain descendant selector (no :not) for processor portability. */
+main:has(.page-command-bar) .context-surface .context-surface,
+.page-shell:has(> .page-command-bar) > main .context-surface .context-surface {
+	border-bottom-left-radius: 0.5rem !important;
+	border-bottom-right-radius: 0.5rem !important;
+	border-bottom-width: 1px !important;
+}
 main:has(.context-surface) .page-command-bar,
 .page-shell:has(> main .context-surface) > .page-command-bar {
 	border-top-left-radius: 0;
