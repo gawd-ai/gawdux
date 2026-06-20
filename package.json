@@ -40,7 +40,7 @@
     "dev": "vite dev",
     "build": "vite build && npm run package",
     "preview": "vite preview",
-    "package": "svelte-kit sync && svelte-package && publint",
+    "package": "svelte-kit sync && svelte-package && node scripts/compile-tokens-css.mjs && publint",
     "prepublishOnly": "npm run package",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
@@ -67,7 +67,12 @@
     "jsdom": "^25.0.0",
     "@testing-library/svelte": "^5.2.4",
     "flowbite-svelte": "^0.47.0",
-    "flowbite-svelte-icons": "^2.0.0"
+    "flowbite-svelte-icons": "^2.0.0",
+    "@tailwindcss/node": "4.0.2",
+    "@tailwindcss/oxide": "4.0.2",
+    "@tailwindcss/postcss": "4.0.2",
+    "postcss": "^8.5.15",
+    "tailwindcss": "4.0.2"
   },
   "keywords": [
     "svelte",
