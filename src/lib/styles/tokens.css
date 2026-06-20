@@ -69,6 +69,7 @@
 	--gawdux-text-accent: var(--color-blue-600);
 	/* Borders */
 	--gawdux-border: var(--color-gray-200);
+	--gawdux-table-separator: rgb(229 231 235 / 0.68);
 	--gawdux-border-input: var(--color-gray-300);
 	--gawdux-border-strong: var(--color-gray-400);
 	/* Accent / focus */
@@ -97,6 +98,7 @@
 	--gawdux-text-success: var(--color-green-400);
 	--gawdux-text-accent: var(--color-blue-400);
 	--gawdux-border: var(--color-gray-700);
+	--gawdux-table-separator: rgb(75 85 99 / 0.34);
 	--gawdux-border-input: var(--color-gray-700);
 	--gawdux-border-strong: var(--color-gray-500);
 	--gawdux-hover-shadow-rgb: 107 114 128;
@@ -379,12 +381,12 @@
 
 	.table-container thead {
 		@apply border-b;
-		border-bottom-color: var(--gawdux-border);
+		border-bottom-color: var(--gawdux-table-separator);
 	}
 
 	.table-container tbody tr {
 		@apply border-b;
-		border-bottom-color: var(--gawdux-border);
+		border-bottom-color: var(--gawdux-table-separator);
 	}
 
 	/* Generic scroll surface (companion to list-table-scroll for non-table surfaces) */
@@ -396,6 +398,12 @@
 	/* Reusable compact list table with edge padding */
 	.list-table {
 		@apply w-full;
+	}
+	.list-table :is(thead, tbody, tr, th, td) {
+		border-color: var(--gawdux-table-separator) !important;
+	}
+	.list-table :where(thead, tbody) > :not([hidden]) ~ :not([hidden]) {
+		border-color: var(--gawdux-table-separator) !important;
 	}
 	.list-table-scroll .list-table thead th {
 		@apply sticky top-0 z-10;

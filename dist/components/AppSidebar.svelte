@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { tick, onDestroy, onMount } from 'svelte';
+	import { tick, onDestroy, onMount, untrack } from 'svelte';
 	import {
 		Sidebar,
 		SidebarWrapper,
@@ -40,16 +40,8 @@
 	// paint, no flash. When `initialOpen` is undefined we fall back to the
 	// legacy onMount-localStorage path, which means a brief moment where
 	// the sidebar is hidden until ready=true.
-	let ready = $state(false);
-	let sidebarOpen = $state(false);
-	let sidebarBootstrapped = $state(false);
-
-	$effect(() => {
-		if (sidebarBootstrapped) return;
-		ready = initialOpen !== undefined;
-		sidebarOpen = initialOpen ?? !(config.defaultCollapsed ?? false);
-		sidebarBootstrapped = true;
-	});
+	let ready = $state(untrack(() => initialOpen !== undefined));
+	let sidebarOpen = $state(untrack(() => initialOpen ?? !(config.defaultCollapsed ?? false)));
 
 	onMount(() => {
 		// Legacy path: only restore from localStorage if the host did NOT
