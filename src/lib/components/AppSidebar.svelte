@@ -7,6 +7,7 @@
 		Button,
 		Badge
 	} from 'flowbite-svelte';
+	import type { ColorVariant } from 'flowbite-svelte';
 	import {
 		ChevronDoubleLeftOutline,
 		ChevronDoubleRightOutline,
@@ -33,6 +34,10 @@
 	// Configurable widths with defaults
 	const expandedWidth = $derived(config.expandedWidth ?? 256);
 	const collapsedWidth = $derived(config.collapsedWidth ?? 64);
+
+	function sidebarBadgeColor(color: SidebarMenuItem['badgeColor'] | undefined): ColorVariant {
+		return color === 'gray' ? 'dark' : (color ?? 'blue');
+	}
 
 	// When `initialOpen` is provided by the host (e.g. resolved from a
 	// server-side cookie read), we know the correct state at script-init
@@ -336,7 +341,7 @@
 									{/if}
 								</svelte:fragment>
 								{#if item.badge && sidebarOpen}
-									<Badge color={item.badgeColor ?? 'blue' as any} class="ml-auto">{item.badge}</Badge>
+									<Badge color={sidebarBadgeColor(item.badgeColor)} class="ml-auto">{item.badge}</Badge>
 								{/if}
 							</SidebarItem>
 						{:else}
