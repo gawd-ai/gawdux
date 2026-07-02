@@ -19,6 +19,7 @@ declare const CardContainer: $$__sveltets_2_IsomorphicComponent<{
 }, {
     [evt: string]: CustomEvent<any>;
 }, {
+    header: {};
     content: {};
 }, {}, string>;
 type CardContainer = InstanceType<typeof CardContainer>;

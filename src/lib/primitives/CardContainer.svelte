@@ -8,13 +8,15 @@
 
 <Card class={`max-w-none !p-0 overflow-hidden ${className} ${invalid ? 'card-invalid' : ''}`}>
 	<div
-		class={`px-6 py-3 text-left ${invalid ? 'bg-red-50 dark:bg-red-950/40' : 'bg-gray-50 dark:bg-gray-700'}`}
+		class={`flex items-center justify-between gap-3 px-6 py-3 text-left ${invalid ? 'bg-red-50 dark:bg-red-950/40' : 'bg-gray-50 dark:bg-gray-700'}`}
 	>
 		<h3
 			class={`text-xs font-bold uppercase ${invalid ? 'text-red-700 dark:text-red-300' : 'text-gray-500 dark:text-gray-400'}`}
 		>
 			{title}
 		</h3>
+		<!-- Optional right-aligned header content (metadata, hints) -->
+		<slot name="header" />
 	</div>
 	<div class={`p-3 px-6 ${contentClass}`}>
 		<slot name="content" />
