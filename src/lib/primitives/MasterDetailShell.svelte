@@ -29,9 +29,7 @@
 				class="flex min-h-0 flex-col border-b border-gray-100 bg-gray-50/70 dark:border-gray-800 dark:bg-gray-950/30 @3xl:border-b-0 @3xl:border-r"
 			>
 				{#if railHeader}
-					<div
-						class="shrink-0 border-b border-gray-200/70 bg-gray-100/70 p-2 dark:border-gray-800 dark:bg-gray-900/50"
-					>
+					<div class="shrink-0 bg-gray-100/70 p-2 dark:bg-gray-900/50">
 						{@render railHeader()}
 					</div>
 				{/if}
