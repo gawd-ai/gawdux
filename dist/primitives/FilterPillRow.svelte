@@ -28,10 +28,14 @@
 	let pillWidths = $state<number[]>([]);
 	let measureEls: HTMLElement[] = $state([]);
 
-	// Measure from the hidden copy whenever the pill set changes. Reading
-	// offsetWidth of the nowrap copy cannot feed back into its own layout.
+	// Measure from the hidden copy whenever the pill set OR the container
+	// width changes. The latter also covers mounting inside a hidden tab
+	// panel (everything measures 0 there): when the panel is revealed the
+	// ResizeObserver reports the real width and the spans get re-read.
+	// Reading offsetWidth of the nowrap copy cannot feed back into layout.
 	$effect(() => {
 		void pills;
+		void containerWidth;
 		pillWidths = measureEls.slice(0, pills.length).map((el) => el?.offsetWidth ?? 0);
 	});
 
