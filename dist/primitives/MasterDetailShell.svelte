@@ -7,7 +7,17 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 
-	let { rail, detail }: { rail: Snippet; detail: Snippet } = $props();
+	let {
+		rail,
+		detail,
+		railHeader
+	}: {
+		rail: Snippet;
+		detail: Snippet;
+		/** Optional pinned zone above the rail (search/filters): stays in view
+		 *  while the rail list scrolls underneath it. */
+		railHeader?: Snippet;
+	} = $props();
 </script>
 
 <div class="@container min-h-0 w-full flex-1">
@@ -16,9 +26,18 @@
 			class="mx-auto grid min-h-[30rem] w-full max-w-6xl grid-cols-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900 @3xl:min-h-0 @3xl:flex-1 @3xl:grid-cols-[18rem_minmax(0,1fr)] @3xl:grid-rows-[minmax(0,1fr)]"
 		>
 			<aside
-				class="border-b border-gray-100 bg-gray-50/70 p-2 dark:border-gray-800 dark:bg-gray-950/30 @3xl:min-h-0 @3xl:overflow-y-auto @3xl:border-b-0 @3xl:border-r"
+				class="flex min-h-0 flex-col border-b border-gray-100 bg-gray-50/70 dark:border-gray-800 dark:bg-gray-950/30 @3xl:border-b-0 @3xl:border-r"
 			>
-				{@render rail()}
+				{#if railHeader}
+					<div
+						class="shrink-0 border-b border-gray-200/70 bg-gray-100/70 p-2 dark:border-gray-800 dark:bg-gray-900/50"
+					>
+						{@render railHeader()}
+					</div>
+				{/if}
+				<div class="min-h-0 flex-1 p-2 @3xl:overflow-y-auto">
+					{@render rail()}
+				</div>
 			</aside>
 			<section class="min-w-0 space-y-3 p-3 @3xl:min-h-0 @3xl:overflow-y-auto">
 				{@render detail()}

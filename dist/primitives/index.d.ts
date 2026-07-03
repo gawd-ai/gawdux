@@ -21,6 +21,7 @@ export { default as PageCommandBarRight } from './PageCommandBarRight.svelte';
 export { default as PageFeedback } from './PageFeedback.svelte';
 export { default as PageTabs } from './PageTabs.svelte';
 export { default as ReadonlyField } from './ReadonlyField.svelte';
+export { default as SearchInput } from './SearchInput.svelte';
 export { default as ResizableSplitter } from './ResizableSplitter.svelte';
 export { default as SortableHeadCell } from './SortableHeadCell.svelte';
 export { default as StatusBadge } from './StatusBadge.svelte';
