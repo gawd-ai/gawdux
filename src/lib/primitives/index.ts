@@ -10,6 +10,7 @@ export { default as DateCell } from './DateCell.svelte';
 export { default as EditablePageScaffold } from './EditablePageScaffold.svelte';
 export { default as EmptyStateRow } from './EmptyStateRow.svelte';
 export { default as FilterBar } from './FilterBar.svelte';
+export { default as FilterPillRow } from './FilterPillRow.svelte';
 export { default as FormField } from './FormField.svelte';
 export { default as ListPageScaffold } from './ListPageScaffold.svelte';
 export { default as ListPaginationCount } from './ListPaginationCount.svelte';
