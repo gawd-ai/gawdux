@@ -21,6 +21,8 @@ declare const PageTabs: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_PropsW
     contentClass?: string;
     shellClass?: string;
     divider?: boolean;
+    panelId?: string | undefined;
+    panelLabelledBy?: string | undefined;
 }, {
     default: {};
 }>, {

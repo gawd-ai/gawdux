@@ -33,7 +33,7 @@
 						{@render railHeader()}
 					</div>
 				{/if}
-				<div class="min-h-0 flex-1 p-2 @3xl:overflow-y-auto">
+				<div class="max-h-80 min-h-0 flex-1 overflow-y-auto p-2 @3xl:max-h-none">
 					{@render rail()}
 				</div>
 			</aside>
