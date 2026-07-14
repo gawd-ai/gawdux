@@ -20,6 +20,7 @@
 
 <button
 	type="button"
+	data-master-detail-row
 	aria-current={selected ? 'true' : undefined}
 	{...rest}
 	class={`flex w-full items-center gap-2.5 rounded-md border px-2.5 py-2 text-left transition-colors ${
