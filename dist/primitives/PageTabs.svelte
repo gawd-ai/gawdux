@@ -25,7 +25,7 @@
 	class="context-surface {shellClass}"
 	use:wirePanel={{ id: panelId, labelledBy: panelLabelledBy }}
 >
-	<Tabs tabStyle="underline" class={className} {contentClass} {divider}>
+	<Tabs tabStyle="underline" class={`page-tabs-list ${className}`} {contentClass} {divider}>
 		<slot />
 	</Tabs>
 </div>

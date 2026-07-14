@@ -42,15 +42,23 @@
 @layer components {
   .form-input {
     margin-bottom: calc(var(--spacing) * 0);
-    height: calc(var(--spacing) * 8) !important;
     border-radius: var(--radius-lg);
     border-style: var(--tw-border-style) !important;
     border-width: 1px !important;
     padding-inline: calc(var(--spacing) * 2);
-    padding-block: calc(var(--spacing) * 0) !important;
     background-color: var(--gawdux-surface-input) !important;
     color: var(--gawdux-text-primary) !important;
     border-color: var(--gawdux-border-input) !important;
+  }
+  input.form-input,
+	select.form-input {
+    height: calc(var(--spacing) * 8) !important;
+    padding-block: calc(var(--spacing) * 0) !important;
+  }
+  textarea.form-input {
+    height: auto !important;
+    padding-block: 0.5rem !important;
+    line-height: 1.5;
   }
   .dark input[type='date']::-webkit-calendar-picker-indicator,
 	.dark input[type='datetime-local']::-webkit-calendar-picker-indicator,
@@ -104,12 +112,6 @@
   .detail-lane-two {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  @media (max-width: 640px) {
-    .detail-lane,
-		.detail-lane-two {
-      grid-template-columns: minmax(0, 1fr);
-    }
-  }
   .form-group {
     :where(& > :not(:last-child)) {
       --tw-space-y-reverse: 0;
@@ -131,6 +133,20 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: calc(var(--spacing) * 4);
+  }
+  @media (max-width: 1024px) {
+    .detail-lane {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 768px) {
+    .detail-lane,
+		.detail-lane-two,
+		.form-row,
+		.details-grid,
+		.details-subgrid {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
   .interactive-hover {
     cursor: pointer;
@@ -200,6 +216,24 @@
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
     background-color: var(--gawdux-surface-card);
     border-color: var(--gawdux-border);
+  }
+  @media (max-width: 1024px) {
+    .page-tabs-list {
+      flex-wrap: nowrap !important;
+      justify-content: flex-start;
+      overflow-x: auto;
+      overflow-y: hidden;
+      overscroll-behavior-inline: contain;
+      scroll-snap-type: inline proximity;
+      -webkit-overflow-scrolling: touch;
+    }
+    .page-tabs-list > li {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+    }
+    .page-tabs-list [role='tab'] {
+      white-space: nowrap;
+    }
   }
   .page-tabs-shell:has(.tab-fill-panel) {
     display: flex;
@@ -314,8 +348,12 @@
     flex: none;
   }
   .list-table-frame {
+    position: relative;
     min-width: 100%;
-    overflow: visible;
+    overflow-x: auto;
+    max-width: 100%;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
   }
   .list-page-footer {
     flex-shrink: 0;
@@ -633,6 +671,30 @@ main:has(.page-command-bar) *:has(> .context-surface),
 .cmd-bar-right {
   justify-content: flex-end;
 }
+@media (max-width: 1024px) {
+  .page-command-bar {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+  .page-command-bar:has(.cmd-bar-zone > *) {
+    padding: 0.5rem;
+  }
+  .cmd-bar-zone {
+    max-width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  .cmd-bar-zone:not(:has(> *)) {
+    display: none;
+  }
+  .cmd-bar-zone > * {
+    flex: 0 0 auto;
+  }
+}
 .cmd-bar-zone > :is(button, a) {
   background-color: rgb(239 246 255) !important;
   color: rgb(29 78 216) !important;
@@ -698,6 +760,29 @@ main:has(.page-command-bar) *:has(> .context-surface),
   background-color: rgb(20 83 45) !important;
   border-color: rgb(22 101 52) !important;
   color: rgb(187 247 208) !important;
+}
+@media (max-width: 1024px) and (pointer: coarse) {
+  button,
+	[role='button'],
+	[role='tab'],
+	input:not([type='hidden']):not([type='checkbox']):not([type='radio']),
+	select,
+	textarea,
+	.cmd-bar-zone > a {
+    min-block-size: 44px;
+    touch-action: manipulation;
+  }
+  button,
+	[role='button'],
+	[role='tab'],
+	.cmd-bar-zone > a {
+    min-inline-size: 44px;
+  }
+  input.form-input,
+	select.form-input {
+    height: 44px !important;
+    line-height: 44px !important;
+  }
 }
 @property --tw-border-style {
   syntax: "*";

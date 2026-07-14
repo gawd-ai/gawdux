@@ -107,10 +107,21 @@
 @layer components {
 	/* ---------- Form input system ---------- */
 	.form-input {
-		@apply mb-0 !h-8 !py-0 px-2 rounded-lg !border;
+		@apply mb-0 px-2 rounded-lg !border;
 		background-color: var(--gawdux-surface-input) !important;
 		color: var(--gawdux-text-primary) !important;
 		border-color: var(--gawdux-border-input) !important;
+	}
+
+	input.form-input,
+	select.form-input {
+		@apply !h-8 !py-0;
+	}
+
+	textarea.form-input {
+		height: auto !important;
+		padding-block: 0.5rem !important;
+		line-height: 1.5;
 	}
 
 	/* Make native date/time picker icons visible in dark mode */
@@ -174,12 +185,6 @@
 	.detail-lane-two {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
-	@media (max-width: 640px) {
-		.detail-lane,
-		.detail-lane-two {
-			grid-template-columns: minmax(0, 1fr);
-		}
-	}
 
 	.form-group {
 		@apply space-y-4;
@@ -194,6 +199,21 @@
 	}
 	.details-subgrid {
 		@apply grid grid-cols-2 gap-4;
+	}
+
+	@media (max-width: 1024px) {
+		.detail-lane {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+	@media (max-width: 768px) {
+		.detail-lane,
+		.detail-lane-two,
+		.form-row,
+		.details-grid,
+		.details-subgrid {
+			grid-template-columns: minmax(0, 1fr);
+		}
 	}
 
 	/* ---------- Interactive surfaces ---------- */
@@ -254,6 +274,25 @@
 		@apply w-full rounded-lg border shadow-md;
 		background-color: var(--gawdux-surface-card);
 		border-color: var(--gawdux-border);
+	}
+
+	@media (max-width: 1024px) {
+		.page-tabs-list {
+			flex-wrap: nowrap !important;
+			justify-content: flex-start;
+			overflow-x: auto;
+			overflow-y: hidden;
+			overscroll-behavior-inline: contain;
+			scroll-snap-type: inline proximity;
+			-webkit-overflow-scrolling: touch;
+		}
+		.page-tabs-list > li {
+			flex: 0 0 auto;
+			scroll-snap-align: start;
+		}
+		.page-tabs-list [role='tab'] {
+			white-space: nowrap;
+		}
 	}
 
 	/* Fill-mode propagation. When the active tab's content uses TabFillPanel
@@ -370,7 +409,10 @@
 	}
 
 	.list-table-frame {
-		@apply min-w-full overflow-visible;
+		@apply relative min-w-full overflow-x-auto;
+		max-width: 100%;
+		overscroll-behavior-inline: contain;
+		-webkit-overflow-scrolling: touch;
 	}
 
 	.list-page-footer {
@@ -745,6 +787,33 @@ main:has(.page-command-bar) *:has(> .context-surface),
 	justify-content: flex-end;
 }
 
+/* Narrow layouts stack occupied zones and let each zone pan independently.
+   The desktop three-zone mission-control layout remains unchanged. */
+@media (max-width: 1024px) {
+	.page-command-bar {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 0.5rem;
+	}
+	.page-command-bar:has(.cmd-bar-zone > *) {
+		padding: 0.5rem;
+	}
+	.cmd-bar-zone {
+		max-width: 100%;
+		justify-content: flex-start;
+		overflow-x: auto;
+		overflow-y: hidden;
+		overscroll-behavior-inline: contain;
+		white-space: nowrap;
+		-webkit-overflow-scrolling: touch;
+	}
+	.cmd-bar-zone:not(:has(> *)) {
+		display: none;
+	}
+	.cmd-bar-zone > * {
+		flex: 0 0 auto;
+	}
+}
+
 /* Bar button skin — borrows the sidenav active-sub-item grammar
    (soft-filled badge: blue-50 bg, blue-700 text, blue-100 hover)
    and extends the same tone to red (Retire/Cancel) and green (Save).
@@ -823,4 +892,33 @@ main:has(.page-command-bar) *:has(> .context-surface),
 	background-color: rgb(20 83 45) !important;
 	border-color: rgb(22 101 52) !important;
 	color: rgb(187 247 208) !important;
+}
+
+/* Touch devices need forgiving targets without changing pointer-driven
+   desktop density. Native checkbox/radio controls keep their label-driven
+   sizing; text fields and command links receive the same minimum height. */
+@media (max-width: 1024px) and (pointer: coarse) {
+	button,
+	[role='button'],
+	[role='tab'],
+	input:not([type='hidden']):not([type='checkbox']):not([type='radio']),
+	select,
+	textarea,
+	.cmd-bar-zone > a {
+		min-block-size: 44px;
+		touch-action: manipulation;
+	}
+
+	button,
+	[role='button'],
+	[role='tab'],
+	.cmd-bar-zone > a {
+		min-inline-size: 44px;
+	}
+
+	input.form-input,
+	select.form-input {
+		height: 44px !important;
+		line-height: 44px !important;
+	}
 }
