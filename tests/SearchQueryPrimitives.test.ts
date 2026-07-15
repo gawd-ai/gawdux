@@ -70,12 +70,15 @@ describe('ListQueryBar', () => {
 		});
 
 		expect(screen.getByTestId('quick-filters')).toBeTruthy();
-		expect(screen.getByRole('button', { name: 'Sort records' })).toBeTruthy();
+		expect(screen.queryByRole('button', { name: 'Sort records' })).toBeNull();
 		expect(screen.getByText('12 results')).toBeTruthy();
+		expect(screen.getAllByRole('status')).toHaveLength(1);
 		expect(screen.queryByRole('region', { name: 'Filters' })).toBeNull();
 
 		await fireEvent.click(screen.getByRole('button', { name: 'Filters, 1 active filter' }));
 		expect(screen.getByRole('region', { name: 'Filters' })).toBeTruthy();
+		expect(screen.getByLabelText('Owner').closest('.list-query-advanced-grid')).toBeTruthy();
+		expect(screen.getByRole('button', { name: 'Sort records' })).toBeTruthy();
 
 		await fireEvent.click(screen.getByRole('button', { name: 'Remove Status: Open filter' }));
 		expect(onRemoveFilter).toHaveBeenCalledWith({
@@ -110,6 +113,19 @@ describe('ListQueryBar', () => {
 		expect(screen.queryByRole('region', { name: 'Filters' })).toBeNull();
 		expect(document.activeElement).toBe(input);
 		outside.remove();
+	});
+
+	it('marks a mobile-sort-only disclosure as tablet-only', async () => {
+		render(ListQueryBar, { props: { mobileSort } });
+
+		const disclosure = screen.getByRole('button', { name: 'Filters' });
+		expect(disclosure.classList.contains('list-query-sort-only')).toBe(true);
+		expect(screen.queryByRole('button', { name: 'Sort records' })).toBeNull();
+
+		await fireEvent.click(disclosure);
+		const panel = screen.getByRole('region', { name: 'Filters' });
+		expect(panel.classList.contains('list-query-sort-only')).toBe(true);
+		expect(screen.getByRole('button', { name: 'Sort records' })).toBeTruthy();
 	});
 
 	it('assigns the slash shortcut to only the first visible mounted bar', async () => {

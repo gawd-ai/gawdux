@@ -105,6 +105,8 @@
 
 	const panelId = $derived(filterPanelId ?? `${instanceId}-filters`);
 	const filterCount = $derived(Math.max(0, activeFilterCount ?? activeFilters.length));
+	const hasFilterPanel = $derived(Boolean(advancedFilters || mobileSort));
+	const isSortOnlyPanel = $derived(Boolean(mobileSort && !advancedFilters));
 	const pluralNoun = $derived(resultNounPlural ?? `${resultNoun}s`);
 	const resolvedSummary = $derived(
 		resultSummary ??
@@ -119,7 +121,7 @@
 	);
 
 	$effect(() => {
-		if (!advancedFilters && filtersOpen) filtersOpen = false;
+		if (!hasFilterPanel && filtersOpen) filtersOpen = false;
 	});
 
 	function clearQuery() {
@@ -170,11 +172,11 @@
 
 <section
 	bind:this={rootElement}
-	class={`list-query-bar min-w-0 flex-1 space-y-2 ${className}`}
+	class={`list-query-bar col-span-full w-full min-w-0 flex-1 space-y-2 ${className}`}
 	data-gawdux-list-query-bar
 	aria-busy={busy}
 >
-	<div class="flex min-w-0 items-center gap-2">
+	<div class="flex min-w-0 flex-wrap items-center gap-2">
 		<div class="min-w-0 flex-1">
 			<SearchInput
 				id={searchId}
@@ -191,9 +193,10 @@
 			/>
 		</div>
 
-		{#if advancedFilters}
+		{#if hasFilterPanel}
 			<button
 				type="button"
+				class:list-query-sort-only={isSortOnlyPanel}
 				class="list-query-filter-button inline-flex h-10 shrink-0 items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
 				aria-label={filterButtonLabel}
 				aria-controls={panelId}
@@ -218,10 +221,15 @@
 			</button>
 		{/if}
 
-		{#if mobileSort}
-			<div class="list-query-mobile-sort shrink-0">
-				{@render mobileSort()}
-			</div>
+		{#if resolvedSummary}
+			<p
+				class="ml-auto w-full shrink-0 text-right text-xs text-gray-500 sm:w-auto dark:text-gray-400"
+				role="status"
+				aria-live="polite"
+				aria-busy={busy}
+			>
+				{resolvedSummary}
+			</p>
 		{/if}
 	</div>
 
@@ -229,53 +237,56 @@
 		<div class="min-w-0">{@render quickFilters()}</div>
 	{/if}
 
-	{#if advancedFilters && filtersOpen}
+	{#if hasFilterPanel && filtersOpen}
 		<div
 			id={panelId}
+			class:list-query-sort-only={isSortOnlyPanel}
 			class="border-t border-gray-200 pt-2 dark:border-gray-700"
 			role="region"
 			aria-label={filtersLabel}
 		>
-			{@render advancedFilters()}
+			{#if advancedFilters}
+				<div class="list-query-advanced-grid">
+					{@render advancedFilters()}
+				</div>
+			{/if}
+			{#if mobileSort}
+				<div class="list-query-mobile-sort mt-2 border-t border-gray-100 pt-2 dark:border-gray-800">
+					{@render mobileSort()}
+				</div>
+			{/if}
 		</div>
 	{/if}
 
-	{#if activeFilters.length > 0 || filterCount > 0 || resolvedSummary}
+	{#if activeFilters.length > 0 || (filterCount > 0 && onResetFilters)}
 		<div
-			class="flex min-w-0 flex-col gap-2 border-t border-gray-100 pt-2 sm:flex-row sm:items-center sm:justify-between dark:border-gray-800"
+			class="flex min-w-0 flex-wrap items-center gap-1.5 border-t border-gray-100 pt-2 dark:border-gray-800"
 		>
-			{#if activeFilters.length > 0 || (filterCount > 0 && onResetFilters)}
-				<div class="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
-					{#each activeFilters as filter (filter.id)}
-						<ActiveFilterChip {filter} onRemove={onRemoveFilter} {disabled} />
-					{/each}
-					{#if filterCount > 0 && onResetFilters}
-						<button
-							type="button"
-							class="list-query-reset inline-flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
-							{disabled}
-							onclick={onResetFilters}
-						>
-							Reset filters
-						</button>
-					{/if}
-				</div>
-			{/if}
-			{#if resolvedSummary}
-				<p
-					class="shrink-0 text-xs text-gray-500 dark:text-gray-400"
-					role="status"
-					aria-live="polite"
-					aria-busy={busy}
+			{#each activeFilters as filter (filter.id)}
+				<ActiveFilterChip {filter} onRemove={onRemoveFilter} {disabled} />
+			{/each}
+			{#if filterCount > 0 && onResetFilters}
+				<button
+					type="button"
+					class="list-query-reset inline-flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+					{disabled}
+					onclick={onResetFilters}
 				>
-					{resolvedSummary}
-				</p>
+					Reset filters
+				</button>
 			{/if}
 		</div>
 	{/if}
 </section>
 
 <style>
+	.list-query-advanced-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 16rem));
+		align-items: end;
+		gap: 0.75rem;
+	}
+
 	.list-query-mobile-sort {
 		display: none;
 	}
@@ -288,10 +299,28 @@
 		}
 	}
 
-	@media (max-width: 768px) {
+	@media (max-width: 1024px) {
 		.list-query-mobile-sort {
 			display: flex;
 			align-items: center;
+		}
+	}
+
+	@media (min-width: 641px) and (max-width: 1024px) {
+		.list-query-advanced-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@media (max-width: 640px) {
+		.list-query-advanced-grid {
+			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+
+	@media (min-width: 1025px) {
+		.list-query-sort-only {
+			display: none;
 		}
 	}
 </style>
