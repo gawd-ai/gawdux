@@ -13,6 +13,9 @@
 
 import { goto } from '$app/navigation';
 import { redirect, type Page } from '@sveltejs/kit';
+import { createNavigationFocusRestorer } from './navigation-focus';
+
+const listStateFocusRestorer = createNavigationFocusRestorer();
 
 export interface ListStateField {
 	/** URL param name (e.g. "q", "status") */
@@ -169,7 +172,9 @@ export function initListState<K extends string>(
 				u.searchParams.delete(field.param);
 			}
 		}
-		goto(u.toString(), { replaceState: true, keepFocus: true, noScroll: true });
+		void listStateFocusRestorer.navigate(() =>
+			goto(u.toString(), { replaceState: true, keepFocus: true, noScroll: true })
+		);
 	}
 
 	// If values came from session (not URL) and differ from defaults,

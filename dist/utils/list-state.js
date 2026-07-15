@@ -12,6 +12,8 @@
  */
 import { goto } from '$app/navigation';
 import { redirect } from '@sveltejs/kit';
+import { createNavigationFocusRestorer } from './navigation-focus';
+const listStateFocusRestorer = createNavigationFocusRestorer();
 /**
  * Cookie/storage key scoped to a user so logging out + logging in as a
  * different user on the same browser doesn't carry the prior user's
@@ -132,7 +134,7 @@ export function initListState(page, config, userId) {
                 u.searchParams.delete(field.param);
             }
         }
-        goto(u.toString(), { replaceState: true, keepFocus: true, noScroll: true });
+        void listStateFocusRestorer.navigate(() => goto(u.toString(), { replaceState: true, keepFocus: true, noScroll: true }));
     }
     // If values came from session (not URL) and differ from defaults,
     // sync the URL immediately so the address bar is always shareable.
