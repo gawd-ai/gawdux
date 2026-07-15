@@ -67,7 +67,7 @@
 </script>
 
 <script lang="ts">
-	import { ChevronDownOutline, FilterOutline } from 'flowbite-svelte-icons';
+	import { ChevronDownOutline, FilterOutline, SortOutline } from 'flowbite-svelte-icons';
 	import ActiveFilterChip from './ActiveFilterChip.svelte';
 	import SearchInput from './SearchInput.svelte';
 
@@ -107,6 +107,7 @@
 	const filterCount = $derived(Math.max(0, activeFilterCount ?? activeFilters.length));
 	const hasFilterPanel = $derived(Boolean(advancedFilters || mobileSort));
 	const isSortOnlyPanel = $derived(Boolean(mobileSort && !advancedFilters));
+	const disclosureLabel = $derived(isSortOnlyPanel ? 'Sort' : filtersLabel);
 	const pluralNoun = $derived(resultNounPlural ?? `${resultNoun}s`);
 	const resolvedSummary = $derived(
 		resultSummary ??
@@ -116,8 +117,8 @@
 	);
 	const filterButtonLabel = $derived(
 		filterCount > 0
-			? `${filtersLabel}, ${filterCount} active ${filterCount === 1 ? 'filter' : 'filters'}`
-			: filtersLabel
+			? `${disclosureLabel}, ${filterCount} active ${filterCount === 1 ? 'filter' : 'filters'}`
+			: disclosureLabel
 	);
 
 	$effect(() => {
@@ -129,6 +130,16 @@
 		value = '';
 		onclear?.();
 		inputEl?.focus({ preventScroll: true });
+	}
+
+	function handleRemoveFilter(filter: ActiveFilterDescriptor) {
+		inputEl?.focus({ preventScroll: true });
+		onRemoveFilter?.(filter);
+	}
+
+	function handleResetFilters() {
+		inputEl?.focus({ preventScroll: true });
+		onResetFilters?.();
 	}
 
 	function handleWindowKeydown(event: KeyboardEvent) {
@@ -199,31 +210,38 @@
 				class:list-query-sort-only={isSortOnlyPanel}
 				class="list-query-filter-button inline-flex h-10 shrink-0 items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
 				aria-label={filterButtonLabel}
+				title={filterButtonLabel}
 				aria-controls={panelId}
 				aria-expanded={filtersOpen}
 				{disabled}
 				onclick={() => (filtersOpen = !filtersOpen)}
 			>
-				<FilterOutline class="h-4 w-4" aria-hidden="true" />
-				<span>{filtersLabel}</span>
+				{#if isSortOnlyPanel}
+					<SortOutline class="h-4 w-4" aria-hidden="true" />
+				{:else}
+					<FilterOutline class="h-4 w-4" aria-hidden="true" />
+				{/if}
+				<span class="list-query-filter-text">{disclosureLabel}</span>
 				{#if filterCount > 0}
 					<span
-						class="inline-flex min-w-5 items-center justify-center rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-900 dark:text-blue-200"
+						class="list-query-filter-count inline-flex min-w-5 items-center justify-center rounded-full bg-blue-100 px-1.5 py-0.5 text-[10px] font-semibold text-blue-700 dark:bg-blue-900 dark:text-blue-200"
 						aria-hidden="true"
 					>
 						{filterCount}
 					</span>
 				{/if}
-				<ChevronDownOutline
-					class={`h-3 w-3 transition-transform ${filtersOpen ? 'rotate-180' : ''}`}
+				<span
+					class={`list-query-filter-chevron inline-flex transition-transform ${filtersOpen ? 'rotate-180' : ''}`}
 					aria-hidden="true"
-				/>
+				>
+					<ChevronDownOutline class="h-3 w-3" />
+				</span>
 			</button>
 		{/if}
 
 		{#if resolvedSummary}
 			<p
-				class="ml-auto w-full shrink-0 text-right text-xs text-gray-500 sm:w-auto dark:text-gray-400"
+				class="list-query-result-summary ml-auto w-full shrink-0 text-right text-xs text-gray-500 sm:w-auto dark:text-gray-400"
 				role="status"
 				aria-live="polite"
 				aria-busy={busy}
@@ -243,7 +261,7 @@
 			class:list-query-sort-only={isSortOnlyPanel}
 			class="border-t border-gray-200 pt-2 dark:border-gray-700"
 			role="region"
-			aria-label={filtersLabel}
+			aria-label={disclosureLabel}
 		>
 			{#if advancedFilters}
 				<div class="list-query-advanced-grid">
@@ -263,14 +281,18 @@
 			class="flex min-w-0 flex-wrap items-center gap-1.5 border-t border-gray-100 pt-2 dark:border-gray-800"
 		>
 			{#each activeFilters as filter (filter.id)}
-				<ActiveFilterChip {filter} onRemove={onRemoveFilter} {disabled} />
+				<ActiveFilterChip
+					{filter}
+					onRemove={onRemoveFilter ? handleRemoveFilter : undefined}
+					{disabled}
+				/>
 			{/each}
 			{#if filterCount > 0 && onResetFilters}
 				<button
 					type="button"
 					class="list-query-reset inline-flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
 					{disabled}
-					onclick={onResetFilters}
+					onclick={handleResetFilters}
 				>
 					Reset filters
 				</button>
@@ -282,7 +304,7 @@
 <style>
 	.list-query-advanced-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 16rem));
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
 		align-items: end;
 		gap: 0.75rem;
 	}
@@ -315,6 +337,40 @@
 	@media (max-width: 640px) {
 		.list-query-advanced-grid {
 			grid-template-columns: minmax(0, 1fr);
+		}
+	}
+
+	@media (max-width: 480px) {
+		.list-query-filter-button {
+			position: relative;
+			width: 44px;
+			height: 44px;
+			padding: 0;
+			justify-content: center;
+		}
+
+		.list-query-filter-text,
+		.list-query-filter-chevron {
+			display: none;
+		}
+
+		.list-query-filter-count {
+			position: absolute;
+			top: 2px;
+			right: 2px;
+			min-width: 1rem;
+			height: 1rem;
+			padding: 0 0.25rem;
+			font-size: 0.5625rem;
+			line-height: 1;
+		}
+
+		.list-query-result-summary {
+			margin-left: 0;
+			width: 100%;
+			text-align: left;
+			font-size: 0.6875rem;
+			line-height: 1rem;
 		}
 	}
 

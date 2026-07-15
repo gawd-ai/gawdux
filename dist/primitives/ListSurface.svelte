@@ -22,7 +22,7 @@
 
 	$: isPage = mode === 'page';
 	$: renderActions = isPage && (hasActions ?? !!$$slots.actions);
-	$: renderPagination = isPage && showFooter && pagination !== null;
+	$: renderPagination = isPage && showFooter && pagination !== null && pagination.total > 0;
 	$: renderFooterSlot =
 		isPage && showFooter && !renderPagination && (hasFooter ?? !!$$slots.footer);
 	$: renderFooter = renderPagination || renderFooterSlot;

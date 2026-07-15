@@ -46,17 +46,50 @@ describe('SearchInput', () => {
 
 		const input = screen.getByRole('textbox', { name: 'Search' });
 		expect(input.getAttribute('aria-busy')).toBe('true');
-		expect(screen.getByRole('status', { name: 'Loading records' })).toBeTruthy();
+		expect(screen.getByRole('status').textContent).toBe('Loading records');
 
 		await fireEvent.keyDown(input, { key: 'Enter' });
 		expect(onsubmit).toHaveBeenCalledWith('release');
+	});
+
+	it('puts autocomplete semantics on the input and lets callers own handled keys', async () => {
+		const onsubmit = vi.fn();
+		const onkeydown = vi.fn((event: KeyboardEvent) => event.preventDefault());
+		render(SearchInput, {
+			props: {
+				value: 'tenant',
+				role: 'combobox',
+				ariaControls: 'tenant-options',
+				ariaExpanded: true,
+				ariaAutocomplete: 'list',
+				ariaActiveDescendant: 'tenant-option-2',
+				autocomplete: 'organization',
+				clearLabel: 'Clear tenant search',
+				onkeydown,
+				onsubmit
+			}
+		});
+
+		const input = screen.getByRole('combobox', { name: 'Search' });
+		expect(input.getAttribute('aria-controls')).toBe('tenant-options');
+		expect(input.getAttribute('aria-expanded')).toBe('true');
+		expect(input.getAttribute('aria-autocomplete')).toBe('list');
+		expect(input.getAttribute('aria-activedescendant')).toBe('tenant-option-2');
+		expect(input.getAttribute('autocomplete')).toBe('organization');
+		expect(screen.getByRole('button', { name: 'Clear tenant search' })).toBeTruthy();
+
+		await fireEvent.keyDown(input, { key: 'Enter' });
+		expect(onkeydown).toHaveBeenCalledOnce();
+		expect(onsubmit).not.toHaveBeenCalled();
 	});
 });
 
 describe('ListQueryBar', () => {
 	it('discloses advanced filters and renders active-filter controls and summary', async () => {
-		const onRemoveFilter = vi.fn();
-		const onResetFilters = vi.fn();
+		let focusWhenRemoved: Element | null = null;
+		let focusWhenReset: Element | null = null;
+		const onRemoveFilter = vi.fn(() => (focusWhenRemoved = document.activeElement));
+		const onResetFilters = vi.fn(() => (focusWhenReset = document.activeElement));
 		render(ListQueryBar, {
 			props: {
 				advancedFilters,
@@ -80,15 +113,18 @@ describe('ListQueryBar', () => {
 		expect(screen.getByLabelText('Owner').closest('.list-query-advanced-grid')).toBeTruthy();
 		expect(screen.getByRole('button', { name: 'Sort records' })).toBeTruthy();
 
+		const input = screen.getByRole('textbox', { name: 'Search' });
 		await fireEvent.click(screen.getByRole('button', { name: 'Remove Status: Open filter' }));
 		expect(onRemoveFilter).toHaveBeenCalledWith({
 			id: 'status',
 			label: 'Status',
 			value: 'Open'
 		});
+		expect(focusWhenRemoved).toBe(input);
 
 		await fireEvent.click(screen.getByRole('button', { name: 'Reset filters' }));
 		expect(onResetFilters).toHaveBeenCalledOnce();
+		expect(focusWhenReset).toBe(input);
 	});
 
 	it('focuses with slash and handles Escape as query-first then panel-close', async () => {
@@ -118,12 +154,13 @@ describe('ListQueryBar', () => {
 	it('marks a mobile-sort-only disclosure as tablet-only', async () => {
 		render(ListQueryBar, { props: { mobileSort } });
 
-		const disclosure = screen.getByRole('button', { name: 'Filters' });
+		const disclosure = screen.getByRole('button', { name: 'Sort' });
 		expect(disclosure.classList.contains('list-query-sort-only')).toBe(true);
+		expect(disclosure.getAttribute('title')).toBe('Sort');
 		expect(screen.queryByRole('button', { name: 'Sort records' })).toBeNull();
 
 		await fireEvent.click(disclosure);
-		const panel = screen.getByRole('region', { name: 'Filters' });
+		const panel = screen.getByRole('region', { name: 'Sort' });
 		expect(panel.classList.contains('list-query-sort-only')).toBe(true);
 		expect(screen.getByRole('button', { name: 'Sort records' })).toBeTruthy();
 	});

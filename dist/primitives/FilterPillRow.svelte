@@ -9,6 +9,8 @@
 </script>
 
 <script lang="ts">
+	import { onMount } from 'svelte';
+
 	let {
 		pills,
 		selected,
@@ -23,38 +25,110 @@
 		className?: string;
 	} = $props();
 
+	let viewportEl: HTMLDivElement | null = null;
+	let trackEl: HTMLDivElement | null = null;
+	let canScrollBackward = $state(false);
+	let canScrollForward = $state(false);
+
+	function updateOverflow() {
+		if (!viewportEl) return;
+		const maxScrollLeft = Math.max(0, viewportEl.scrollWidth - viewportEl.clientWidth);
+		canScrollBackward = viewportEl.scrollLeft > 1;
+		canScrollForward = viewportEl.scrollLeft < maxScrollLeft - 1;
+	}
+
+	onMount(() => {
+		updateOverflow();
+		const resizeObserver =
+			typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updateOverflow);
+		if (viewportEl) resizeObserver?.observe(viewportEl);
+		if (trackEl) resizeObserver?.observe(trackEl);
+		window.addEventListener('resize', updateOverflow);
+		return () => {
+			resizeObserver?.disconnect();
+			window.removeEventListener('resize', updateOverflow);
+		};
+	});
+
 	function pillClass(active: boolean): string {
-		return `filter-pill shrink-0 whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 ${
+		return `filter-pill shrink-0 whitespace-nowrap rounded border px-2.5 py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-blue-500 ${
 			active
-				? 'border-blue-300 bg-white text-blue-700 shadow-sm dark:border-blue-800 dark:bg-gray-900 dark:text-blue-300'
-				: 'border-transparent text-gray-500 hover:border-gray-200 hover:bg-white dark:text-gray-400 dark:hover:border-gray-800 dark:hover:bg-gray-900'
+				? 'border-gray-200 bg-white text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100'
+				: 'border-transparent text-gray-600 hover:bg-white hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100'
 		}`;
 	}
 </script>
 
 <div
-	class={`filter-pill-viewport w-full overflow-x-auto overscroll-x-contain ${className}`}
-	role="group"
-	aria-label={ariaLabel}
+	class={`filter-pill-shell relative min-w-0 ${className}`}
+	class:filter-pill-can-scroll-backward={canScrollBackward}
+	class:filter-pill-can-scroll-forward={canScrollForward}
 >
-	<div class="flex w-max min-w-full flex-nowrap justify-center gap-1">
-		{#each pills as pill (pill.id)}
-			<button
-				type="button"
-				class={pillClass(selected === pill.id)}
-				aria-pressed={selected === pill.id}
-				onclick={() => onSelect(pill.id)}
-			>
-				{pill.label}{#if pill.count != null}<span class="ml-0.5 opacity-60">{pill.count}</span>{/if}
-			</button>
-		{/each}
+	<div
+		bind:this={viewportEl}
+		class="filter-pill-viewport w-full overflow-x-auto overscroll-x-contain"
+		role="group"
+		aria-label={ariaLabel}
+		onscroll={updateOverflow}
+	>
+		<div
+			bind:this={trackEl}
+			class="filter-pill-track inline-flex w-max min-w-max flex-nowrap items-stretch gap-px rounded-md border border-gray-200 bg-gray-50 p-px dark:border-gray-700 dark:bg-gray-900"
+		>
+			{#each pills as pill (pill.id)}
+				<button
+					type="button"
+					class={pillClass(selected === pill.id)}
+					aria-pressed={selected === pill.id}
+					onclick={() => onSelect(pill.id)}
+				>
+					{pill.label}{#if pill.count != null}<span class="ml-1 opacity-60">{pill.count}</span>{/if}
+				</button>
+			{/each}
+		</div>
 	</div>
 </div>
 
 <style>
 	.filter-pill-viewport {
 		-webkit-overflow-scrolling: touch;
-		scrollbar-width: thin;
+		scrollbar-width: none;
+	}
+
+	.filter-pill-viewport::-webkit-scrollbar {
+		display: none;
+	}
+
+	.filter-pill-shell::before,
+	.filter-pill-shell::after {
+		content: '';
+		position: absolute;
+		top: 25%;
+		bottom: 25%;
+		z-index: 1;
+		display: none;
+		width: 1px;
+		border-radius: 9999px;
+		background: rgb(156 163 175);
+		pointer-events: none;
+	}
+
+	.filter-pill-shell::before {
+		left: 0;
+	}
+
+	.filter-pill-shell::after {
+		right: 0;
+	}
+
+	.filter-pill-can-scroll-backward::before,
+	.filter-pill-can-scroll-forward::after {
+		display: block;
+	}
+
+	:global(.dark) .filter-pill-shell::before,
+	:global(.dark) .filter-pill-shell::after {
+		background: rgb(107 114 128);
 	}
 
 	@media (max-width: 1024px) {

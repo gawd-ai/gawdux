@@ -10,21 +10,45 @@
 
 type SlideFadeProgress = (t: number) => { slideT: number; fadeT: number };
 
+function finiteNumber(value: string | number, fallback = 0): number {
+	const parsed = typeof value === 'number' ? value : Number.parseFloat(value);
+	return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function unitInterval(value: number): number {
+	return Math.max(0, Math.min(1, finiteNumber(value)));
+}
+
+function transitionDuration(value: number | undefined, fallback: number): number {
+	if (value === undefined) return fallback;
+	return Math.max(0, finiteNumber(value, fallback));
+}
+
 function makeSlideFade(node: Element, getProgress: SlideFadeProgress, total: number) {
 	const style = getComputedStyle(node);
-	const opacity = +style.opacity;
-	const height = parseFloat(style.height);
-	const paddingTop = parseFloat(style.paddingTop);
-	const paddingBottom = parseFloat(style.paddingBottom);
-	const marginTop = parseFloat(style.marginTop);
-	const marginBottom = parseFloat(style.marginBottom);
-	const borderTopWidth = parseFloat(style.borderTopWidth);
-	const borderBottomWidth = parseFloat(style.borderBottomWidth);
+	const opacity = finiteNumber(style.opacity, 1);
+	const paddingTop = finiteNumber(style.paddingTop);
+	const paddingBottom = finiteNumber(style.paddingBottom);
+	const marginTop = finiteNumber(style.marginTop);
+	const marginBottom = finiteNumber(style.marginBottom);
+	const borderTopWidth = finiteNumber(style.borderTopWidth);
+	const borderBottomWidth = finiteNumber(style.borderBottomWidth);
+	const measuredHeight = Math.max(
+		0,
+		finiteNumber(node.getBoundingClientRect().height) -
+			paddingTop -
+			paddingBottom -
+			borderTopWidth -
+			borderBottomWidth
+	);
+	const height = Math.max(0, finiteNumber(style.height, measuredHeight));
 	return {
-		duration: total,
+		duration: Math.max(0, finiteNumber(total)),
 		easing: (x: number) => x,
 		css: (t: number) => {
-			const { slideT, fadeT } = getProgress(t);
+			const progress = getProgress(unitInterval(t));
+			const slideT = unitInterval(progress.slideT);
+			const fadeT = unitInterval(progress.fadeT);
 			return (
 				`overflow: hidden;` +
 				`opacity: ${fadeT * opacity};` +
@@ -41,7 +65,10 @@ function makeSlideFade(node: Element, getProgress: SlideFadeProgress, total: num
 }
 
 export function slideFadeIn(node: Element, params: { duration?: number } = {}) {
-	const dur = params.duration ?? 180;
+	const dur = transitionDuration(params.duration, 180);
+	if (dur === 0) {
+		return makeSlideFade(node, (t) => ({ slideT: t, fadeT: t }), 0);
+	}
 	const fadeDelay = 80;
 	const fadeDur = dur + 30;
 	const total = Math.max(dur, fadeDelay + fadeDur);
@@ -59,7 +86,10 @@ export function slideFadeIn(node: Element, params: { duration?: number } = {}) {
 }
 
 export function slideFadeOut(node: Element, params: { duration?: number } = {}) {
-	const dur = params.duration ?? 180;
+	const dur = transitionDuration(params.duration, 180);
+	if (dur === 0) {
+		return makeSlideFade(node, (t) => ({ slideT: t, fadeT: t }), 0);
+	}
 	const slideDelay = 50;
 	const total = dur + slideDelay;
 	return makeSlideFade(

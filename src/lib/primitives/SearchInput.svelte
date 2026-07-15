@@ -7,6 +7,7 @@
 
 <script lang="ts">
 	import { CloseOutline, SearchOutline } from 'flowbite-svelte-icons';
+	import type { HTMLInputAttributes } from 'svelte/elements';
 
 	let {
 		value = $bindable(''),
@@ -18,7 +19,15 @@
 		busyLabel = 'Searching',
 		disabled = false,
 		className = '',
+		role,
+		ariaControls,
+		ariaExpanded,
+		ariaAutocomplete,
+		ariaActiveDescendant,
+		autocomplete = 'off',
+		clearLabel = 'Clear search',
 		oninput,
+		onkeydown,
 		onclear,
 		onsubmit,
 		onfocus,
@@ -34,8 +43,16 @@
 		busyLabel?: string;
 		disabled?: boolean;
 		className?: string;
+		role?: 'searchbox' | 'combobox';
+		ariaControls?: string;
+		ariaExpanded?: boolean;
+		ariaAutocomplete?: 'none' | 'inline' | 'list' | 'both';
+		ariaActiveDescendant?: string | undefined;
+		autocomplete?: HTMLInputAttributes['autocomplete'];
+		clearLabel?: string;
 		/** Fires on typed input (not on clear; wire `onclear` for that). */
 		oninput?: () => void;
+		onkeydown?: (event: KeyboardEvent) => void;
 		/** Fires when the clear button or Escape clears the field. */
 		onclear?: () => void;
 		/** Fires on Enter. Native form submission is preserved when omitted. */
@@ -59,6 +76,9 @@
 	}
 
 	function handleKeydown(event: KeyboardEvent) {
+		onkeydown?.(event);
+		if (event.defaultPrevented) return;
+
 		if (event.key === 'Escape' && value) {
 			event.preventDefault();
 			clear();
@@ -71,12 +91,14 @@
 	}
 </script>
 
-<div class={`gawdux-search-input relative w-full ${className}`}>
+<div
+	class={`gawdux-search-input relative w-full ${className}`}
+	class:search-input-compact={size === 'compact'}
+>
 	{#if busy}
 		<span
 			class={`search-input-icon pointer-events-none absolute top-1/2 -translate-y-1/2 text-blue-500 ${iconPositionClass}`}
-			role="status"
-			aria-label={busyLabel}
+			aria-hidden="true"
 		>
 			<svg class="h-full w-full animate-spin" viewBox="0 0 24 24" aria-hidden="true">
 				<circle
@@ -90,8 +112,8 @@
 				/>
 				<path class="opacity-80" fill="currentColor" d="M12 3a9 9 0 0 1 9 9h-3a6 6 0 0 0-6-6V3Z" />
 			</svg>
-			<span class="sr-only">{busyLabel}</span>
 		</span>
+		<span class="sr-only" role="status">{busyLabel}</span>
 	{:else}
 		<SearchOutline
 			class={`search-input-icon pointer-events-none absolute top-1/2 -translate-y-1/2 text-gray-400 ${iconPositionClass}`}
@@ -105,8 +127,14 @@
 		bind:this={inputEl}
 		{placeholder}
 		{disabled}
+		{role}
+		autocomplete={autocomplete}
 		aria-label={ariaLabel ?? placeholder}
 		aria-busy={busy}
+		aria-controls={ariaControls}
+		aria-expanded={ariaExpanded}
+		aria-autocomplete={ariaAutocomplete}
+		aria-activedescendant={ariaActiveDescendant}
 		enterkeyhint="search"
 		class={`search-input-control w-full rounded border border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 ${inputSizeClass}`}
 		oninput={() => oninput?.()}
@@ -118,7 +146,7 @@
 		<button
 			type="button"
 			class={`search-input-clear absolute right-0 top-1/2 inline-flex -translate-y-1/2 items-center justify-center rounded text-gray-400 hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 dark:hover:text-gray-300 ${clearSizeClass}`}
-			aria-label="Clear search"
+			aria-label={clearLabel}
 			onclick={() => clear({ restoreFocus: true })}
 		>
 			<CloseOutline class="h-3.5 w-3.5" aria-hidden="true" />
@@ -144,6 +172,18 @@
 			left: 0.75rem;
 			width: 1rem;
 			height: 1rem;
+		}
+
+		.search-input-compact .search-input-control {
+			font-size: 0.875rem;
+		}
+
+		.search-input-compact .search-input-control::placeholder {
+			color: rgb(107 114 128);
+		}
+
+		:global(.dark) .search-input-compact .search-input-control::placeholder {
+			color: rgb(156 163 175);
 		}
 	}
 </style>
