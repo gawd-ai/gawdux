@@ -511,14 +511,14 @@
 		background: rgb(107 114 128);
 	}
 
-	/* ---------- Sidebar surface chrome (lifted from SIMS app layout) ---------- */
+	/* ---------- Sidebar surface chrome (the app-shell navigation surface) ---------- */
 	/* The outer <aside> is transparent so a brand cap can sit on the body
 	   canvas. The themed panel begins below with a 1px top margin and rounds
 	   only its top-right corner against whatever middle panel sits next.
 	   Background sources --gawdux-surface so dark-mode consumers (sctlin's
 	   hacker theme, etc.) can re-skin without forking. The variable's light
 	   default is white and dark default is gray-900 — both match the prior
-	   hardcoded values, so SIMS/fleet visuals are unchanged. */
+	   hardcoded values, so consumer visuals are unchanged. */
 	:global(.app-sidebar) {
 		border-right-width: 0;
 	}
@@ -564,7 +564,7 @@
 
 	/* Label spans + sub-item links: static opacity per resting state.
 	   Optional one-shot animation triggered when consumer sets the
-	   `data-label-anim='in'|'out'` attribute on .app-sidebar (SIMS does
+	   `data-label-anim='in'|'out'` attribute on .app-sidebar (the consuming app does
 	   this from its layout JS on sidebar toggle). Without the attribute
 	   the spans just respect the .collapsed → opacity 0 baseline. */
 	:global(.app-sidebar .dropdown-wrapper button > span),

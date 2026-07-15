@@ -110,7 +110,7 @@
 </div>
 
 <style>
-	/* Label opacity is owned by the consuming app (SIMS controls the
+	/* Label opacity is owned by the consuming app (which controls the
 	   fade timing globally on .app-sidebar). Don't apply our own
 	   opacity/transition here — they compete with the consumer's rules
 	   and flip on a different class (.dropdown-wrapper.collapsed,

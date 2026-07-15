@@ -21,7 +21,7 @@ declare const ListPaginationNav: $$__sveltets_2_IsomorphicComponent<{
     onPage?: ((page: number) => void) | undefined;
     /** CSS selector for the page's scroll region. After navigation, the nav
             scrolls this container to top. Defaults to `.list-table-scroll` (the
-            convention used by gawdux ListSurface and SIMS list pages). Set to null
+            convention used by gawdux ListSurface and consumer list pages). Set to null
             to disable auto-scroll. */ scrollTargetSelector?: string | null;
     className?: string;
 }, {

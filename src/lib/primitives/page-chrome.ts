@@ -5,7 +5,7 @@ export type AppBreadcrumbItem = {
 	href?: string;
 	/** Free-form key — consumer apps map this to an icon component in their layout.
 	    Kept as a plain string so each app can define its own taxonomy
-	    (e.g. SIMS uses 'analysis'/'stability'/'transactions'; fleet uses its own). */
+	    (e.g. one consumer uses 'analysis'/'stability'/'transactions'; another uses its own). */
 	iconKey?: string;
 };
 

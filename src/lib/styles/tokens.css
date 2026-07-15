@@ -1,6 +1,6 @@
 /* gawdux/styles/tokens.css — shared design tokens for operator-grade
- * SIMS-style apps. Lifted from SIMS src/app.css after the primitive lift
- * (Stages 0–5). Consumers (SIMS, fleet, future projects) import this once
+ * operator-style apps. Lifted from a host app's app.css after the primitive lift
+ * (Stages 0–5). Consumers (multiple apps) import this once
  * from their own app.css; Tailwind utilities and consumer-specific layout
  * rules layer on top.
  *
@@ -15,8 +15,8 @@
  * have been replaced with CSS custom properties declared below. Consumers
  * that want a different palette (sctlin's terminal aesthetic, etc.) just
  * redeclare any subset of these variables AFTER importing tokens.css —
- * no fork required. Defaults reproduce the original SIMS gray palette
- * pixel-identical so SIMS + netage-fleet are unaffected.
+ * no fork required. Defaults reproduce the original host gray palette
+ * pixel-identical so existing consumers are unaffected.
  *
  * Override pattern:
  *   /* in consumer's app.css *\/
@@ -25,7 +25,7 @@
  *   .dark { --gawdux-surface-card: oklch(0.08 0.01 240); }
  *
  * The `* { scrollbar-* }` rules below intentionally style the entire
- * page's scrollbars — any consumer of this file inherits the SIMS
+ * page's scrollbars — any consumer of this file inherits the shared
  * scrollbar look. The Flowbite badge pill override is global by
  * tag/class and therefore couples this stylesheet to flowbite-svelte's
  * badge DOM shape.
@@ -52,7 +52,7 @@
 	--gawdux-surface-input: var(--color-gray-50);
 	--gawdux-surface-subtle: var(--color-gray-50); /* hovers, alt rows */
 	--gawdux-surface-card-header: var(--color-gray-50);
-	/* AppSidebar's inner panel. Defaults to --gawdux-surface so SIMS et al
+	/* AppSidebar's inner panel. Defaults to --gawdux-surface so consumers
 	   keep the carved/elevated look (panel distinct from page canvas).
 	   Themed consumers whose canvas is already dark (e.g. sctlin's hacker
 	   palette on bg-neutral-950) can override this to `transparent` so the
@@ -667,7 +667,7 @@ div.inline-flex.items-center.justify-center.font-medium {
    so its bottom edge is always flush against the bar (otherwise the
    bar's `mt-auto` would leave a gap on short pages). */
 /* Two layouts supported:
-   (A) bar inside <main> alongside the surface — SIMS legacy
+   (A) bar inside <main> alongside the surface — legacy
    (B) bar sibling of <main> in a `.page-shell` wrapper — fleet & new
        consumers wanting a sticky-at-viewport-bottom bar */
 main:has(.page-command-bar) .context-surface,
@@ -681,7 +681,7 @@ main:has(.page-command-bar) .context-surface,
 	   content grows past the viewport — panel border ends up below the
 	   fold and rounded corners reappear. The matching rule on .scroll-
 	   surface (min-h-0 flex-1 overflow-auto) then scrolls inside the
-	   panel instead of the page. SIMS used named .dashboard-* classes for
+	   panel instead of the page. some consumers use named .dashboard-* classes for
 	   this; we promote it to a generic rule so any consumer benefits. */
 	display: flex;
 	flex-direction: column;
@@ -718,7 +718,7 @@ main:has(.context-surface) .page-command-bar,
    direct flex parent — non-flex wrappers swallow the stretch and the
    panel collapses to its natural height, leaving body bg between it
    and the bar.
-   The SIMS pattern uses named .detail-page / .detail-tabs classes for
+   The pattern uses named .detail-page / .detail-tabs classes for
    this; we promote it to a generic rule so any consumer benefits. */
 main:has(.page-command-bar) *:has(> .context-surface),
 .page-shell:has(> .page-command-bar) > main *:has(> .context-surface) {
