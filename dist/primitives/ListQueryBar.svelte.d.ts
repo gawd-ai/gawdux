@@ -1,0 +1,33 @@
+import type { Snippet } from 'svelte';
+import type { ActiveFilterDescriptor } from './list-query';
+export interface ListQueryBarProps {
+    value?: string;
+    filtersOpen?: boolean;
+    inputEl?: HTMLInputElement | null;
+    placeholder?: string;
+    ariaLabel?: string;
+    busy?: boolean;
+    disabled?: boolean;
+    className?: string;
+    searchId?: string;
+    filtersLabel?: string;
+    filterPanelId?: string;
+    activeFilters?: readonly ActiveFilterDescriptor[];
+    activeFilterCount?: number;
+    resultCount?: number | null;
+    resultNoun?: string;
+    resultNounPlural?: string;
+    resultSummary?: string | null;
+    keyboardShortcuts?: boolean;
+    oninput?: () => void;
+    onclear?: () => void;
+    onsubmit?: (value: string) => void;
+    onRemoveFilter?: (filter: ActiveFilterDescriptor) => void;
+    onResetFilters?: () => void;
+    quickFilters?: Snippet;
+    advancedFilters?: Snippet;
+    mobileSort?: Snippet;
+}
+declare const ListQueryBar: import("svelte").Component<ListQueryBarProps, {}, "value" | "inputEl" | "filtersOpen">;
+type ListQueryBar = ReturnType<typeof ListQueryBar>;
+export default ListQueryBar;

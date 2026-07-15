@@ -15,3 +15,5 @@ export { slideFadeIn, slideFadeOut } from './transitions';
 export { createActiveSubitemStylesheet, DEFAULT_PALETTE } from './active-subitem-stylesheet';
 export type { ActiveSubitemPalette, ActiveSubitemStylesheetOptions, ActiveSubitemStylesheetController } from './active-subitem-stylesheet';
 export { resolveActiveItemHref } from './resolve-active-nav';
+export { createCancellableScheduler, DEFAULT_SCHEDULE_DELAY_MS } from './cancellable-scheduler';
+export type { CancellableScheduler } from './cancellable-scheduler';

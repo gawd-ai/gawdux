@@ -43,7 +43,9 @@ export {
 	slideFadeOut,
 	createActiveSubitemStylesheet,
 	DEFAULT_PALETTE,
-	resolveActiveItemHref
+	resolveActiveItemHref,
+	createCancellableScheduler,
+	DEFAULT_SCHEDULE_DELAY_MS
 } from './utils';
 
 export type {
@@ -54,5 +56,6 @@ export type {
 	BreadcrumbBuilderOptions,
 	ActiveSubitemPalette,
 	ActiveSubitemStylesheetOptions,
-	ActiveSubitemStylesheetController
+	ActiveSubitemStylesheetController,
+	CancellableScheduler
 } from './utils';

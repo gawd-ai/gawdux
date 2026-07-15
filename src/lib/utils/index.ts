@@ -57,3 +57,6 @@ export type {
 } from './active-subitem-stylesheet';
 
 export { resolveActiveItemHref } from './resolve-active-nav';
+
+export { createCancellableScheduler, DEFAULT_SCHEDULE_DELAY_MS } from './cancellable-scheduler';
+export type { CancellableScheduler } from './cancellable-scheduler';

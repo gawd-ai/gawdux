@@ -3,6 +3,7 @@
 export { default as BreadcrumbTrail } from './BreadcrumbTrail.svelte';
 export { default as CardContainer } from './CardContainer.svelte';
 export { default as ClearableInput } from './ClearableInput.svelte';
+export { default as ActiveFilterChip } from './ActiveFilterChip.svelte';
 export { default as ConfirmModal } from './ConfirmModal.svelte';
 export { default as DarkModeToggle } from './DarkModeToggle.svelte';
 export { default as DateCell } from './DateCell.svelte';
@@ -12,6 +13,7 @@ export { default as FilterBar } from './FilterBar.svelte';
 export { default as FilterPillRow } from './FilterPillRow.svelte';
 export { default as FormField } from './FormField.svelte';
 export { default as ListPageScaffold } from './ListPageScaffold.svelte';
+export { default as ListQueryBar } from './ListQueryBar.svelte';
 export { default as ListPaginationCount } from './ListPaginationCount.svelte';
 export { default as ListPaginationNav } from './ListPaginationNav.svelte';
 export { default as ListSurface } from './ListSurface.svelte';

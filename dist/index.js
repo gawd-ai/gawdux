@@ -10,4 +10,4 @@ sortByOrder, moduleToMenuItem, navToMenuItem, filterModulesByGroup, buildGroupIt
 // Browser utilities
 isBrowser, getStorageItem, setStorageItem, removeStorageItem, 
 // Layout / chrome utilities (Phase K)
-createBreadcrumbBuilder, slideFadeIn, slideFadeOut, createActiveSubitemStylesheet, DEFAULT_PALETTE, resolveActiveItemHref } from './utils';
+createBreadcrumbBuilder, slideFadeIn, slideFadeOut, createActiveSubitemStylesheet, DEFAULT_PALETTE, resolveActiveItemHref, createCancellableScheduler, DEFAULT_SCHEDULE_DELAY_MS } from './utils';
