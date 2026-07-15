@@ -39,11 +39,11 @@ Supported package subpaths:
 
 - **components** — `AppSidebar`, `SidebarDropdownGroup`, `SidebarFlyout`: the collapsible app navigation shell.
 - **primitives** — list and page building blocks: `ListSurface`, `ListQueryBar`, `ListPaginationNav`, `FilterBar`/`FilterPillRow`, `MasterDetailShell`, `ListPageScaffold`/`EditablePageScaffold`, `PageCommandBar`, `PageTabs`, `FormField`, `ReadonlyField`, `CardContainer`, and more.
-- **styles/tokens.css** — the shared design tokens (color, spacing, density) that give consuming apps a common visual language.
+- **styles/tokens.css** — the shared design tokens (color, spacing, density) that give host applications a common visual language.
 
 ## Host Contract
 
-gawdux is presentation and interaction only. The consuming app owns routing, data, and business logic, and passes model objects (nav modules, list rows, page state) into these components. Where a component's behavior is owned by the host — sidebar label animation, list selection, command-bar actions — the source comments refer to "the consuming app" generically; gawdux is not tied to any particular product.
+gawdux is presentation and interaction only. The host application owns routing, data, and business logic, and passes model objects (nav modules, list rows, page state) into these components. Where a component's behavior is owned by the host — sidebar label animation, list selection, command-bar actions — the source comments say so generically; gawdux is not tied to any particular product.
 
 ## Development Workflow
 
