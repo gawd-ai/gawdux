@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import FilterPillRow from '../src/lib/primitives/FilterPillRow.svelte';
 import ListQueryBar from '../src/lib/primitives/ListQueryBar.svelte';
 import SearchInput from '../src/lib/primitives/SearchInput.svelte';
+import StatusBadge from '../src/lib/primitives/StatusBadge.svelte';
 
 const advancedFilters = createRawSnippet(() => ({
 	render: () =>
@@ -85,6 +86,22 @@ describe('SearchInput', () => {
 		await fireEvent.keyDown(input, { key: 'Enter' });
 		expect(onkeydown).toHaveBeenCalledOnce();
 		expect(onsubmit).not.toHaveBeenCalled();
+	});
+});
+
+	describe('StatusBadge', () => {
+	it('renders its presentation directly while preserving caller classes', () => {
+		render(StatusBadge, {
+			props: { color: 'green', label: 'Ready', rounded: false, class: 'px-1 !py-0' }
+		});
+
+		const badge = screen.getByText('Ready');
+		expect(badge.tagName).toBe('SPAN');
+		expect(badge.classList.contains('bg-green-100')).toBe(true);
+		expect(badge.classList.contains('rounded')).toBe(true);
+		expect(badge.classList.contains('px-1')).toBe(true);
+		expect(badge.classList.contains('px-2.5')).toBe(false);
+		expect(badge.classList.contains('!py-0')).toBe(true);
 	});
 });
 
