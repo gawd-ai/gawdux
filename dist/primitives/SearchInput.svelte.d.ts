@@ -15,6 +15,8 @@ type $$ComponentProps = {
     ariaExpanded?: boolean;
     ariaAutocomplete?: 'none' | 'inline' | 'list' | 'both';
     ariaActiveDescendant?: string | undefined;
+    ariaInvalid?: HTMLInputAttributes['aria-invalid'];
+    ariaDescribedby?: string | undefined;
     autocomplete?: HTMLInputAttributes['autocomplete'];
     clearLabel?: string;
     /** Fires on typed input (not on clear; wire `onclear` for that). */

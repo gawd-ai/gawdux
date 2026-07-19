@@ -63,6 +63,8 @@ describe('SearchInput', () => {
 				ariaExpanded: true,
 				ariaAutocomplete: 'list',
 				ariaActiveDescendant: 'tenant-option-2',
+				ariaInvalid: true,
+				ariaDescribedby: 'tenant-error',
 				autocomplete: 'organization',
 				clearLabel: 'Clear tenant search',
 				onkeydown,
@@ -75,6 +77,8 @@ describe('SearchInput', () => {
 		expect(input.getAttribute('aria-expanded')).toBe('true');
 		expect(input.getAttribute('aria-autocomplete')).toBe('list');
 		expect(input.getAttribute('aria-activedescendant')).toBe('tenant-option-2');
+		expect(input.getAttribute('aria-invalid')).toBe('true');
+		expect(input.getAttribute('aria-describedby')).toBe('tenant-error');
 		expect(input.getAttribute('autocomplete')).toBe('organization');
 		expect(screen.getByRole('button', { name: 'Clear tenant search' })).toBeTruthy();
 

@@ -58,5 +58,10 @@ export type {
 
 export { resolveActiveItemHref } from './resolve-active-nav';
 
-export { createCancellableScheduler, DEFAULT_SCHEDULE_DELAY_MS } from './cancellable-scheduler';
+export {
+	createCancellableScheduler,
+	createSearchScheduler,
+	DEFAULT_SCHEDULE_DELAY_MS,
+	SEARCH_SCHEDULE_DELAY_MS
+} from './cancellable-scheduler';
 export type { CancellableScheduler } from './cancellable-scheduler';

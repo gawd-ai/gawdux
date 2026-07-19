@@ -24,6 +24,8 @@
 		ariaExpanded,
 		ariaAutocomplete,
 		ariaActiveDescendant,
+		ariaInvalid,
+		ariaDescribedby,
 		autocomplete = 'off',
 		clearLabel = 'Clear search',
 		oninput,
@@ -48,6 +50,8 @@
 		ariaExpanded?: boolean;
 		ariaAutocomplete?: 'none' | 'inline' | 'list' | 'both';
 		ariaActiveDescendant?: string | undefined;
+		ariaInvalid?: HTMLInputAttributes['aria-invalid'];
+		ariaDescribedby?: string | undefined;
 		autocomplete?: HTMLInputAttributes['autocomplete'];
 		clearLabel?: string;
 		/** Fires on typed input (not on clear; wire `onclear` for that). */
@@ -135,6 +139,8 @@
 		aria-expanded={ariaExpanded}
 		aria-autocomplete={ariaAutocomplete}
 		aria-activedescendant={ariaActiveDescendant}
+		aria-invalid={ariaInvalid}
+		aria-describedby={ariaDescribedby}
 		enterkeyhint="search"
 		class={`search-input-control w-full rounded border border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 ${inputSizeClass}`}
 		oninput={() => oninput?.()}

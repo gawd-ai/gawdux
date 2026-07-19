@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
 	createCancellableScheduler,
-	DEFAULT_SCHEDULE_DELAY_MS
+	createSearchScheduler,
+	DEFAULT_SCHEDULE_DELAY_MS,
+	SEARCH_SCHEDULE_DELAY_MS
 } from '../src/lib/utils/cancellable-scheduler';
 
 describe('createCancellableScheduler', () => {
@@ -43,5 +45,22 @@ describe('createCancellableScheduler', () => {
 		expect(scheduler.pending).toBe(false);
 		vi.runAllTimers();
 		expect(flushed).toHaveBeenCalledOnce();
+	});
+
+	it('keeps search coalescing inside the interaction budget', () => {
+		vi.useFakeTimers();
+		const scheduler = createSearchScheduler();
+		const first = vi.fn();
+		const latest = vi.fn();
+
+		scheduler.schedule(first);
+		scheduler.schedule(latest);
+		vi.advanceTimersByTime(SEARCH_SCHEDULE_DELAY_MS - 1);
+		expect(latest).not.toHaveBeenCalled();
+
+		vi.advanceTimersByTime(1);
+		expect(first).not.toHaveBeenCalled();
+		expect(latest).toHaveBeenCalledOnce();
+		expect(SEARCH_SCHEDULE_DELAY_MS).toBeLessThanOrEqual(50);
 	});
 });

@@ -1,4 +1,5 @@
 export const DEFAULT_SCHEDULE_DELAY_MS = 300;
+export const SEARCH_SCHEDULE_DELAY_MS = 20;
 
 export interface CancellableScheduler {
 	/** Replace any pending work and run this task after the configured delay. */
@@ -54,4 +55,13 @@ export function createCancellableScheduler(
 			return timer !== null;
 		}
 	};
+}
+
+/**
+ * Search input only needs a short keystroke-coalescing window. Keeping that
+ * window to a small share of the interaction budget leaves time for navigation,
+ * server work, and paint instead of making every query feel late.
+ */
+export function createSearchScheduler(): CancellableScheduler {
+	return createCancellableScheduler(SEARCH_SCHEDULE_DELAY_MS);
 }

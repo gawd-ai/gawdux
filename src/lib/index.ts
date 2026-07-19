@@ -45,7 +45,9 @@ export {
 	DEFAULT_PALETTE,
 	resolveActiveItemHref,
 	createCancellableScheduler,
-	DEFAULT_SCHEDULE_DELAY_MS
+	createSearchScheduler,
+	DEFAULT_SCHEDULE_DELAY_MS,
+	SEARCH_SCHEDULE_DELAY_MS
 } from './utils';
 
 export type {
