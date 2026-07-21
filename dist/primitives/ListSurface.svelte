@@ -17,6 +17,9 @@
 
 	$: isPage = mode === 'page';
 	$: renderActions = isPage && (hasActions ?? !!$$slots.actions);
+	// Show the pagination pill whenever there are results — including on a single
+	// page (it doubles as the result-count readout that used to live in the query
+	// bar). Cursor mode shows it while there are items or another page.
 	$: renderPagination =
 		isPage &&
 		showFooter &&

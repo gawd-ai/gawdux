@@ -24,6 +24,9 @@
 
 	$: effectivePageSize = pageSize > 0 ? pageSize : 50;
 	$: lastItemOnPage = Math.min(currentPage * effectivePageSize, total);
+	// First item index on the current page, so the readout is a range
+	// ("51-100 / 199") rather than a single running count.
+	$: firstItemOnPage = total === 0 ? 0 : (currentPage - 1) * effectivePageSize + 1;
 
 	function startNavigation(navigate: () => void) {
 		// Blur the clicked button so `keepFocus: true` on the navigation
@@ -69,7 +72,7 @@
 		{#if mode === 'cursor'}
 			{visibleCount.toLocaleString()} shown
 		{:else}
-			{lastItemOnPage.toLocaleString()} / {total.toLocaleString()}
+			{firstItemOnPage.toLocaleString()}-{lastItemOnPage.toLocaleString()} / {total.toLocaleString()}
 		{/if}
 	</span>
 	<button

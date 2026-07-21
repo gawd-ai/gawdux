@@ -204,6 +204,10 @@
 			/>
 		</div>
 
+		{#if quickFilters}
+			<div class="min-w-0 shrink-0">{@render quickFilters()}</div>
+		{/if}
+
 		{#if hasFilterPanel}
 			<button
 				type="button"
@@ -250,10 +254,6 @@
 			</p>
 		{/if}
 	</div>
-
-	{#if quickFilters}
-		<div class="min-w-0">{@render quickFilters()}</div>
-	{/if}
 
 	{#if hasFilterPanel && filtersOpen}
 		<div
