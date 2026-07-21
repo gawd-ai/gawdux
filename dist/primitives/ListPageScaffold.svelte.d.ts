@@ -1,3 +1,4 @@
+import type { ListPagination } from './list-pagination';
 interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> = any, Events extends Record<string, any> = any, Slots extends Record<string, any> = any, Exports = {}, Bindings = string> {
     new (options: import('svelte').ComponentConstructorOptions<Props>): import('svelte').SvelteComponent<Props, Events, Slots> & {
         $$bindings?: Bindings;
@@ -20,13 +21,7 @@ declare const ListPageScaffold: $$__sveltets_2_IsomorphicComponent<$$__sveltets_
     showFooter?: boolean;
     /** Declarative pagination — when provided, the scaffold renders the
             pill into the bar's RIGHT zone. Pages no longer wire up `slot="footer"`
-            individually. Pass `null` (or omit) to hide pagination entirely. */ pagination?: {
-        total: number;
-        currentPage: number;
-        totalPages: number;
-        pageSize?: number;
-        onPage: (page: number) => void;
-    } | null;
+            individually. Pass `null` (or omit) to hide pagination entirely. */ pagination?: ListPagination | null;
     className?: string;
 }, {
     actions: {};

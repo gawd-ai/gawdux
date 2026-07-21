@@ -4,6 +4,7 @@
 	import TableContainer from './TableContainer.svelte';
 	import FilterBar from './FilterBar.svelte';
 	import ListPaginationNav from './ListPaginationNav.svelte';
+	import type { ListPagination } from './list-pagination';
 
 	export let mode: 'page' | 'tab' | 'embedded' = 'page';
 	export let showFooter = true;
@@ -12,17 +13,17 @@
 	export let className = '';
 	/** Declarative pagination — renders the pill in the bar's RIGHT zone.
 	    When provided, takes precedence over the legacy `footer` slot. */
-	export let pagination: {
-		total: number;
-		currentPage: number;
-		totalPages: number;
-		pageSize?: number;
-		onPage: (page: number) => void;
-	} | null = null;
+	export let pagination: ListPagination | null = null;
 
 	$: isPage = mode === 'page';
 	$: renderActions = isPage && (hasActions ?? !!$$slots.actions);
-	$: renderPagination = isPage && showFooter && pagination !== null && pagination.total > 0;
+	$: renderPagination =
+		isPage &&
+		showFooter &&
+		pagination !== null &&
+		(pagination.mode === 'cursor'
+			? pagination.visibleCount > 0 || pagination.hasPrevious || pagination.hasNext
+			: pagination.total > 0);
 	$: renderFooterSlot =
 		isPage && showFooter && !renderPagination && (hasFooter ?? !!$$slots.footer);
 	$: renderFooter = renderPagination || renderFooterSlot;
@@ -54,13 +55,24 @@
 
 	{#if renderPagination && pagination}
 		<PageCommandBarRight>
-			<ListPaginationNav
-				total={pagination.total}
-				currentPage={pagination.currentPage}
-				totalPages={pagination.totalPages}
-				pageSize={pagination.pageSize ?? 0}
-				onPage={pagination.onPage}
-			/>
+			{#if pagination.mode === 'cursor'}
+				<ListPaginationNav
+					mode="cursor"
+					visibleCount={pagination.visibleCount}
+					hasPrevious={pagination.hasPrevious}
+					hasNext={pagination.hasNext}
+					onPrevious={pagination.onPrevious}
+					onNext={pagination.onNext}
+				/>
+			{:else}
+				<ListPaginationNav
+					total={pagination.total}
+					currentPage={pagination.currentPage}
+					totalPages={pagination.totalPages}
+					pageSize={pagination.pageSize ?? 0}
+					onPage={pagination.onPage}
+				/>
+			{/if}
 		</PageCommandBarRight>
 	{:else if renderFooterSlot}
 		<PageCommandBarRight>

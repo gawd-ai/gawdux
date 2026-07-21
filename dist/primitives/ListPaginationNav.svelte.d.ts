@@ -12,6 +12,7 @@ interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> =
     z_$$bindings?: Bindings;
 }
 declare const ListPaginationNav: $$__sveltets_2_IsomorphicComponent<{
+    mode?: "exact" | "cursor";
     total?: number;
     currentPage?: number;
     totalPages?: number;
@@ -19,6 +20,11 @@ declare const ListPaginationNav: $$__sveltets_2_IsomorphicComponent<{
             Deriving from total/totalPages doesn't work because the last page is
             partial: e.g. 423 items in 9 pages of 50 → ceil(423/9) = 47, wrong. */ pageSize?: number;
     onPage?: ((page: number) => void) | undefined;
+    visibleCount?: number;
+    hasPrevious?: boolean;
+    hasNext?: boolean;
+    onPrevious?: (() => void) | undefined;
+    onNext?: (() => void) | undefined;
     /** CSS selector for the page's scroll region. After navigation, the nav
             scrolls this container to top. Defaults to `.list-table-scroll` (the
             convention used by gawdux ListSurface and consumer list pages). Set to null

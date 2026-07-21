@@ -1,3 +1,4 @@
+import type { ListPagination } from './list-pagination';
 interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> = any, Events extends Record<string, any> = any, Slots extends Record<string, any> = any, Exports = {}, Bindings = string> {
     new (options: import('svelte').ComponentConstructorOptions<Props>): import('svelte').SvelteComponent<Props, Events, Slots> & {
         $$bindings?: Bindings;
@@ -23,13 +24,7 @@ declare const ListSurface: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_Pro
     hasFooter?: boolean | undefined;
     className?: string;
     /** Declarative pagination — renders the pill in the bar's RIGHT zone.
-            When provided, takes precedence over the legacy `footer` slot. */ pagination?: {
-        total: number;
-        currentPage: number;
-        totalPages: number;
-        pageSize?: number;
-        onPage: (page: number) => void;
-    } | null;
+            When provided, takes precedence over the legacy `footer` slot. */ pagination?: ListPagination | null;
 }, {
     actions: {};
     footer: {};

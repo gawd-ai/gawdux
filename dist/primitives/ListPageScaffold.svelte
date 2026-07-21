@@ -1,17 +1,12 @@
 <script lang="ts">
 	import ListSurface from './ListSurface.svelte';
+	import type { ListPagination } from './list-pagination';
 
 	export let showFooter = true;
 	/** Declarative pagination — when provided, the scaffold renders the
 	    pill into the bar's RIGHT zone. Pages no longer wire up `slot="footer"`
 	    individually. Pass `null` (or omit) to hide pagination entirely. */
-	export let pagination: {
-		total: number;
-		currentPage: number;
-		totalPages: number;
-		pageSize?: number;
-		onPage: (page: number) => void;
-	} | null = null;
+	export let pagination: ListPagination | null = null;
 	export let className = '';
 </script>
 
