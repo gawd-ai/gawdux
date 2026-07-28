@@ -323,6 +323,18 @@
 		background: rgb(255 255 255 / 0.42);
 	}
 
+	.page-feedback-card.compact .page-feedback-action {
+		min-height: 0;
+		padding: 0.25rem 0.625rem;
+	}
+
+	.page-feedback-card.compact .page-feedback-dismiss {
+		min-height: 0;
+		width: 28px;
+		height: 28px;
+		align-self: center;
+	}
+
 	@keyframes page-feedback-spin {
 		to {
 			transform: rotate(360deg);
