@@ -9,9 +9,13 @@ const source = await fs.readFile(file, 'utf8');
 
 // The published stylesheet must be plain CSS. Consumers import it from
 // node_modules/symlinks, where Tailwind may evaluate it as its own module
-// and reject package-local @apply rules. Use @reference only at package time
-// so Tailwind can expand @apply without emitting the full utility sheet.
-const input = `@reference 'tailwindcss';\n${source}`;
+// and reject package-local @apply rules. The source now carries its own
+// @reference (so dev servers that serve the source directly can compile it
+// too); prepend one only when it is absent, so the expansion works either
+// way without a duplicate reference.
+const input = source.includes("@reference")
+	? source
+	: `@reference 'tailwindcss';\n${source}`;
 const result = await postcss([tailwindcss()]).process(input, {
 	from: file,
 	to: file
