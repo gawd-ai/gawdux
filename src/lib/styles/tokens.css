@@ -31,17 +31,6 @@
  * badge DOM shape.
  */
 
-/* The theme reference makes this file compile in EVERY evaluation context,
- * not just when inlined into a consumer's Tailwind entry. A dev server that
- * serves the source directly (the sims serve-mode alias) evaluates it as its
- * own module — Vite keeps CSS @imports as separate requests — and without
- * the reference Tailwind rejects the package-local @apply rules there
- * ("Cannot apply unknown utility class"). @reference imports definitions
- * only; it emits nothing, so inlined consumers are unaffected. The package
- * step's compile script prepends the same reference only when this line is
- * absent. */
-@reference 'tailwindcss';
-
 /* Redeclared so the file compiles even when a consumer hasn't declared
  * their own dark variant. Tailwind v4 tolerates redeclaration. */
 @custom-variant dark (&:where(.dark, .dark *));
