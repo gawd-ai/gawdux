@@ -664,6 +664,8 @@ main:has(.page-command-bar) *:has(> .context-surface),
   justify-content: flex-start;
   overflow-x: auto;
   white-space: nowrap;
+  padding-block: 4px;
+  margin-block: -4px;
 }
 .cmd-bar-center {
   justify-content: center;
@@ -687,6 +689,8 @@ main:has(.page-command-bar) *:has(> .context-surface),
     overscroll-behavior-inline: contain;
     white-space: nowrap;
     -webkit-overflow-scrolling: touch;
+    padding-block: 4px;
+    margin-block: -4px;
   }
   .cmd-bar-zone:not(:has(> *)) {
     display: none;

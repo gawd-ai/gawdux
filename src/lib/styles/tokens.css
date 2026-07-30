@@ -779,6 +779,11 @@ main:has(.page-command-bar) *:has(> .context-surface),
 	justify-content: flex-start;
 	overflow-x: auto;
 	white-space: nowrap;
+	/* A scroll container clips on BOTH axes (overflow-y computes to auto),
+	   which shaves the focus ring off h-8 buttons. Pad the clip box by the
+	   ring width and pull the margin back so the bar keeps its height. */
+	padding-block: 4px;
+	margin-block: -4px;
 }
 .cmd-bar-center {
 	justify-content: center;
@@ -805,6 +810,10 @@ main:has(.page-command-bar) *:has(> .context-surface),
 		overscroll-behavior-inline: contain;
 		white-space: nowrap;
 		-webkit-overflow-scrolling: touch;
+		/* Same ring-clearance trick as .cmd-bar-left: the pan clip would
+		   otherwise shave the top/bottom of button focus rings. */
+		padding-block: 4px;
+		margin-block: -4px;
 	}
 	.cmd-bar-zone:not(:has(> *)) {
 		display: none;
