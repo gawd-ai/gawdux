@@ -87,12 +87,7 @@
 	onmouseleave={handleMouseLeave}
 	onclickcapture={handleClickCapture}
 >
-	<SidebarDropdownWrapper
-		label={group.label}
-		bind:isOpen
-		transitionType="fade"
-		transitionParams={{ duration: 120 }}
-	>
+	<SidebarDropdownWrapper label={group.label} bind:isOpen transitionParams={{ duration: 200 }}>
 		<svelte:fragment slot="icon">
 			{@const GroupIcon = group.icon}
 			<GroupIcon class="w-8 h-8" />
