@@ -19,7 +19,7 @@ describe('ListSurface pagination', () => {
 
 		expect(screen.getByRole('button', { name: 'Independent action' })).toBeTruthy();
 		expect(screen.getByRole('button', { name: 'Previous page' })).toBeTruthy();
-		expect(screen.getByText('3 / 3')).toBeTruthy();
+		expect(screen.getByText('1-3 / 3')).toBeTruthy();
 		expect(screen.queryByText('Independent footer')).toBeNull();
 	});
 
