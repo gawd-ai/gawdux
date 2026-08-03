@@ -65,3 +65,48 @@ export {
 	SEARCH_SCHEDULE_DELAY_MS
 } from './cancellable-scheduler';
 export type { CancellableScheduler } from './cancellable-scheduler';
+
+// Feedback: message center (transient toasts + persistent conditions)
+export {
+	createDocumentVisibilitySource,
+	createMessageCenter,
+	createStorageHiddenConditionPersistence,
+	MessageCenter,
+	DEFAULT_MESSAGE_LIFETIMES_MS
+} from './message-center';
+export type {
+	DocumentVisibilityLike,
+	KeyValueStorageLike,
+	MessageAction,
+	MessageActionInput,
+	MessageCenterClock,
+	MessageCenterHiddenConditionPersistence,
+	MessageCenterItem,
+	MessageCenterOptions,
+	MessageCenterSnapshot,
+	MessageCenterVisibilitySource,
+	MessageInput,
+	MessageKind,
+	MessageRevision,
+	MessageTone,
+	PersistentConditionInput,
+	PublishOutcome,
+	PublishResult,
+	TransientMessageInput
+} from './message-center';
+export { APP_MESSAGE_CENTER_CONTEXT, getAppMessageCenter } from './message-center-context';
+
+// Discard-on-navigate guard (pairs with primitives/DiscardNavigationCommandSurface)
+export {
+	DiscardNavigationController,
+	DISCARD_NAVIGATION_CONTEXT,
+	navigationTargets,
+	useGuardedGoto
+} from './discard-navigation.svelte';
+export type {
+	DiscardGuardRegistration,
+	DiscardNavigationRequest,
+	DiscardNavigationRuntime,
+	GuardedGoto,
+	RequestDiscardNavigation
+} from './discard-navigation.svelte';

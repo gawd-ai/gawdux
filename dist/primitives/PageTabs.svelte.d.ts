@@ -25,10 +25,12 @@ declare const PageTabs: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_PropsW
     panelLabelledBy?: string | undefined;
 }, {
     default: {};
+    below: {};
 }>, {
     [evt: string]: CustomEvent<any>;
 }, {
     default: {};
+    below: {};
 }, {}, string>;
 type PageTabs = InstanceType<typeof PageTabs>;
 export default PageTabs;

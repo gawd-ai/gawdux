@@ -17,3 +17,8 @@ export type { ActiveSubitemPalette, ActiveSubitemStylesheetOptions, ActiveSubite
 export { resolveActiveItemHref } from './resolve-active-nav';
 export { createCancellableScheduler, createSearchScheduler, DEFAULT_SCHEDULE_DELAY_MS, SEARCH_SCHEDULE_DELAY_MS } from './cancellable-scheduler';
 export type { CancellableScheduler } from './cancellable-scheduler';
+export { createDocumentVisibilitySource, createMessageCenter, createStorageHiddenConditionPersistence, MessageCenter, DEFAULT_MESSAGE_LIFETIMES_MS } from './message-center';
+export type { DocumentVisibilityLike, KeyValueStorageLike, MessageAction, MessageActionInput, MessageCenterClock, MessageCenterHiddenConditionPersistence, MessageCenterItem, MessageCenterOptions, MessageCenterSnapshot, MessageCenterVisibilitySource, MessageInput, MessageKind, MessageRevision, MessageTone, PersistentConditionInput, PublishOutcome, PublishResult, TransientMessageInput } from './message-center';
+export { APP_MESSAGE_CENTER_CONTEXT, getAppMessageCenter } from './message-center-context';
+export { DiscardNavigationController, DISCARD_NAVIGATION_CONTEXT, navigationTargets, useGuardedGoto } from './discard-navigation.svelte';
+export type { DiscardGuardRegistration, DiscardNavigationRequest, DiscardNavigationRuntime, GuardedGoto, RequestDiscardNavigation } from './discard-navigation.svelte';

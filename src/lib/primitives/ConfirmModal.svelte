@@ -1,3 +1,10 @@
+<!--
+    @deprecated for NEW surfaces since 0.3.0 — the platform's confirmation
+    mechanism is the command-surface family (ConfirmationCommandSurface +
+    DiscardNavigationCommandSurface), which confirms in the persistent bottom
+    command bar instead of occluding the screen. Existing call sites keep
+    working; removal only happens when consumers reach zero uses.
+-->
 <script lang="ts">
 	import { Modal, Button } from 'flowbite-svelte';
 	import { createEventDispatcher } from 'svelte';

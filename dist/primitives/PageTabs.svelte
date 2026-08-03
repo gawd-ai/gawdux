@@ -21,6 +21,9 @@
 	}
 </script>
 
+<!-- The `below` slot lets a page render persistent content (e.g. a streaming
+     console) inside the same panel chrome, surviving tab switches. Pair it
+     with contentClass="hidden" on the active tab to swap which body shows. -->
 <div
 	class="context-surface {shellClass}"
 	use:wirePanel={{ id: panelId, labelledBy: panelLabelledBy }}
@@ -28,4 +31,5 @@
 	<Tabs tabStyle="underline" class={`page-tabs-list ${className}`} {contentClass} {divider}>
 		<slot />
 	</Tabs>
+	<slot name="below" />
 </div>
