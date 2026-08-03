@@ -50,6 +50,21 @@ export interface AlertOpsSilence {
     createdBy: string;
     comment: string;
 }
+/**
+ * Lifecycle of a host-performed silence mutation. Purely prop-driven: the
+ * components own no mutation state machine, run no request and keep no
+ * optimistic copy of the data. They emit intent (onexpire/onsilence), the
+ * host confirms (ConfirmationCommandSurface), performs the call, and feeds
+ * the outcome back down through this shape.
+ */
+export type AlertOpsMutationPhase = 'idle' | 'pending' | 'failed';
+export interface AlertOpsMutationState {
+    state: AlertOpsMutationPhase;
+    /** Silence the in-flight/failed mutation targets, when it targets one. */
+    silenceId?: string;
+    /** Host-sanitized, displayable failure description. Rendered as text. */
+    error?: string;
+}
 export interface AlertOpsFilters {
     environmentId?: string;
     planeId?: string;
@@ -171,6 +186,14 @@ export interface AlertOpsCopy {
     regexMarkerLabel: string;
     silencesEmptyTitle: string;
     silencesEmptyMessage: string;
+    silenceColumnActions: string;
+    expireSilence: string;
+    /** Templated aria-label: `{matchers}` distinguishes one row from the next. */
+    expireSilenceAccessibleLabel: string;
+    expireDisabledExpired: string;
+    silenceAlert: string;
+    mutationPending: string;
+    mutationFailed: string;
 }
 export declare const DEFAULT_ALERT_OPS_COPY: Readonly<AlertOpsCopy>;
 /** Merges host copy overrides over the English defaults. */

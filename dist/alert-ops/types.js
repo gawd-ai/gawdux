@@ -97,7 +97,14 @@ export const DEFAULT_ALERT_OPS_COPY = Object.freeze({
     silenceStateExpired: 'Expired',
     regexMarkerLabel: 'regex',
     silencesEmptyTitle: 'No silences',
-    silencesEmptyMessage: 'There are no silences in this scope.'
+    silencesEmptyMessage: 'There are no silences in this scope.',
+    silenceColumnActions: 'Actions',
+    expireSilence: 'Expire silence',
+    expireSilenceAccessibleLabel: 'Expire silence for {matchers}',
+    expireDisabledExpired: 'Already expired',
+    silenceAlert: 'Silence this alert',
+    mutationPending: 'Working…',
+    mutationFailed: 'The action could not be completed.'
 });
 /** Merges host copy overrides over the English defaults. */
 export function resolveAlertOpsCopy(overrides) {

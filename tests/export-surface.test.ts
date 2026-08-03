@@ -150,3 +150,181 @@ describe('gawdux 0.4.0 export surface (alert-ops)', () => {
 		);
 	});
 });
+
+describe('gawdux 0.5.0 export surface (opt-in silence mutation)', () => {
+	const COPY_KEYS_0_4_0 = [
+		'alertsTab',
+		'silencesTab',
+		'providerHealthLabel',
+		'environmentLabel',
+		'planeLabel',
+		'allEnvironmentsLabel',
+		'allPlanesLabel',
+		'refreshLabel',
+		'lastRefreshLabel',
+		'lastRefreshNever',
+		'refreshedJustNow',
+		'refreshedMinutesAgo',
+		'refreshedHoursAgo',
+		'refreshedDaysAgo',
+		'providerStateOk',
+		'providerStateStale',
+		'providerStateUnavailable',
+		'providerStatePartial',
+		'providerStateLoading',
+		'providerStateDenied',
+		'filtersLabel',
+		'filterEnvironmentLabel',
+		'filterPlaneLabel',
+		'filterStateLabel',
+		'filterSeverityLabel',
+		'filterServiceLabel',
+		'filterServicePlaceholder',
+		'filterTextLabel',
+		'filterTextPlaceholder',
+		'filterAnyOptionLabel',
+		'statusFiring',
+		'statusResolved',
+		'statusSuppressed',
+		'severityCritical',
+		'severityWarning',
+		'severityInfo',
+		'alertsTableCaption',
+		'columnSeverity',
+		'columnStatus',
+		'columnService',
+		'columnSummary',
+		'columnStarted',
+		'columnDuration',
+		'columnReceiver',
+		'columnFingerprint',
+		'ungroupedLabel',
+		'durationUnitDays',
+		'durationUnitHours',
+		'durationUnitMinutes',
+		'durationUnitSeconds',
+		'loadingLabel',
+		'emptyTitle',
+		'emptyMessage',
+		'noResultsTitle',
+		'noResultsMessage',
+		'unavailableTitle',
+		'unavailableMessage',
+		'retryLabel',
+		'staleBannerTitle',
+		'staleBannerMessage',
+		'partialAlertsBanner',
+		'partialSilencesBanner',
+		'deniedTitle',
+		'deniedMessage',
+		'detailHeading',
+		'detailNoSelection',
+		'detailLabelsHeading',
+		'detailAnnotationsHeading',
+		'detailLinksHeading',
+		'detailStartedLabel',
+		'detailDurationLabel',
+		'detailReceiverLabel',
+		'detailFingerprintLabel',
+		'detailGroupKeyLabel',
+		'detailNameHeader',
+		'detailValueHeader',
+		'detailNoLabels',
+		'detailNoAnnotations',
+		'detailNoLinks',
+		'blockedLinkTitle',
+		'silencesTableCaption',
+		'silenceColumnState',
+		'silenceColumnMatchers',
+		'silenceColumnWindow',
+		'silenceColumnCreatedBy',
+		'silenceColumnComment',
+		'silenceStateActive',
+		'silenceStatePending',
+		'silenceStateExpired',
+		'regexMarkerLabel',
+		'silencesEmptyTitle',
+		'silencesEmptyMessage'
+	] as const;
+
+	const COPY_KEYS_ADDED_0_5_0 = [
+		'silenceColumnActions',
+		'expireSilence',
+		'expireSilenceAccessibleLabel',
+		'expireDisabledExpired',
+		'silenceAlert',
+		'mutationPending',
+		'mutationFailed'
+	] as const;
+
+	it('adds the silence-expiry predicate while keeping every 0.4.0 alert-ops export', () => {
+		expect(alertOps.canExpireAlertOpsSilence).toBeDefined();
+		expect(alertOps.canExpireAlertOpsSilence('active')).toBe(true);
+		expect(alertOps.canExpireAlertOpsSilence('pending')).toBe(true);
+		expect(alertOps.canExpireAlertOpsSilence('expired')).toBe(false);
+		expect(alertOps.canExpireAlertOpsSilence('anything-else')).toBe(false);
+
+		for (const name of [
+			'AlertOpsConsole',
+			'AlertDetailPanel',
+			'AlertGroupTable',
+			'FilterRail',
+			'ProviderHealthBar',
+			'SilenceTable',
+			'DEFAULT_ALERT_OPS_COPY',
+			'resolveAlertOpsCopy',
+			'formatAlertOpsTemplate',
+			'resolveAlertOpsView',
+			'resolveAlertOpsCollection',
+			'hasActiveAlertOpsFilters',
+			'alertSeverityBadgeColor',
+			'providerStateBadgeColor',
+			'formatAlertOpsDuration',
+			'formatAlertOpsRelativeTime',
+			'formatAlertOpsTimestamp',
+			'shortAlertFingerprint',
+			'createAlertOpsPoller'
+		] as const) {
+			expect(alertOps[name], `alert-ops must keep exporting ${name}`).toBeDefined();
+		}
+	});
+
+	it('extends AlertOpsCopy additively: the 0.4.0 keys are untouched, the mutation strings are new', () => {
+		const copy = alertOps.DEFAULT_ALERT_OPS_COPY as unknown as Record<string, string>;
+		for (const key of COPY_KEYS_0_4_0) {
+			expect(typeof copy[key], `copy must keep ${key}`).toBe('string');
+		}
+		// Spot-check that the shipped 0.4.0 defaults are byte-identical.
+		expect(copy['silencesTableCaption']).toBe('Silences');
+		expect(copy['silenceColumnComment']).toBe('Comment');
+		expect(copy['silencesEmptyMessage']).toBe('There are no silences in this scope.');
+		expect(copy['detailNoSelection']).toBe('Select an alert to see its details.');
+
+		const added = Object.keys(copy).filter(
+			(key) => !(COPY_KEYS_0_4_0 as readonly string[]).includes(key)
+		);
+		expect(added.sort()).toEqual([...COPY_KEYS_ADDED_0_5_0].sort());
+		expect(copy['expireSilence']).toBe('Expire silence');
+		expect(copy['silenceAlert']).toBe('Silence this alert');
+		expect(copy['expireSilenceAccessibleLabel']).toContain('{matchers}');
+	});
+
+	it('ships no new package export entry — silence mutation rides the ./alert-ops subpath', () => {
+		expect(pkg.exports['./alert-ops']).toEqual({
+			types: './dist/alert-ops/index.d.ts',
+			svelte: './dist/alert-ops/index.js',
+			default: './dist/alert-ops/index.js'
+		});
+		expect(Object.keys(pkg.exports).sort()).toEqual(
+			[
+				'.',
+				'./alert-ops',
+				'./components',
+				'./primitives',
+				'./styles/tokens.css',
+				'./types',
+				'./utils'
+			].sort()
+		);
+	});
+});

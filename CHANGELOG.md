@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.5.0 — alert-ops silence mutation (opt-in)
+
+### Added
+- `gawdux/alert-ops` gains silence **mutation affordances that do not exist
+  unless a host asks for them twice**. Every control is behind a double gate
+  — a capability flag *and* a callback — so a host that upgrades and wires
+  nothing keeps byte-for-byte the 0.4.0 read-only surface. The read-only
+  default is a pinned test, not a convention.
+  - `SilenceTable` — `canMutate` + `onexpire`, adding an actions column with
+    a per-row Expire control. `AlertOpsSilence` rows that are already expired
+    render a disabled control with an explanatory title; expirability is
+    allow-listed (`active`/`pending`), never inferred from an unknown state.
+  - `AlertDetailPanel` — `canSilence` + `onsilence`, adding a "Silence this
+    alert" affordance that emits the selected alert's identity.
+  - `AlertOpsConsole` — forwards both gates and the mutation state through to
+    the surfaces that render them; owns none of it.
+  - `canExpireAlertOpsSilence(state)` — the exported allow-list predicate.
+  - `AlertOpsMutationState` / `AlertOpsMutationPhase`
+    (`idle | pending | failed`) — prop-driven, like every other console
+    state. The components run no request, keep no optimistic copy, and own no
+    mutation state machine: they emit intent, the host confirms it through
+    the ADR-029 confirmation surface, performs the call, and feeds the
+    outcome back down.
+
+### Changed
+- `AlertOpsCopy` gains seven keys (`silenceColumnActions`, `expireSilence`,
+  `expireSilenceAccessibleLabel`, `expireDisabledExpired`, `silenceAlert`,
+  `mutationPending`, `mutationFailed`). Hosts that pass copy **overrides**
+  (the documented path) are unaffected; a host constructing a complete
+  `AlertOpsCopy` literal must add the new keys.
+
 ## 0.4.0 — alert operations
 
 ### Added

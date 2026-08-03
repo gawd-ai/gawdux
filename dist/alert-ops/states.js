@@ -44,6 +44,16 @@ export function resolveAlertOpsCollection(alertCount, filtersActive) {
         return 'rows';
     return filtersActive ? 'no-results' : 'empty';
 }
+/**
+ * Expiry applies only to a silence that is still running or scheduled — an
+ * already-expired silence has nothing left to expire, so no control is
+ * rendered for it even when the host gated mutation on. Allow-list by
+ * design: an unrecognized state is never assumed expirable.
+ */
+export function canExpireAlertOpsSilence(state) {
+    const normalized = state.trim().toLowerCase();
+    return normalized === 'active' || normalized === 'pending';
+}
 // ---------- StatusBadge color mappings ----------
 export function alertSeverityBadgeColor(severity) {
     switch (severity.trim().toLowerCase()) {

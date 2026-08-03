@@ -17,6 +17,13 @@ export type AlertOpsCollectionState = 'empty' | 'no-results' | 'rows';
  */
 export declare function hasActiveAlertOpsFilters(filters: AlertOpsFilters | null | undefined): boolean;
 export declare function resolveAlertOpsCollection(alertCount: number, filtersActive: boolean): AlertOpsCollectionState;
+/**
+ * Expiry applies only to a silence that is still running or scheduled — an
+ * already-expired silence has nothing left to expire, so no control is
+ * rendered for it even when the host gated mutation on. Allow-list by
+ * design: an unrecognized state is never assumed expirable.
+ */
+export declare function canExpireAlertOpsSilence(state: string): boolean;
 export declare function alertSeverityBadgeColor(severity: string): StatusBadgeColor;
 export declare function alertStatusBadgeColor(status: AlertOpsAlertStatus): StatusBadgeColor;
 export declare function providerStateBadgeColor(state: AlertOpsProviderState): StatusBadgeColor;

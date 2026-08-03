@@ -72,6 +72,23 @@ export interface AlertOpsSilence {
 	comment: string;
 }
 
+/**
+ * Lifecycle of a host-performed silence mutation. Purely prop-driven: the
+ * components own no mutation state machine, run no request and keep no
+ * optimistic copy of the data. They emit intent (onexpire/onsilence), the
+ * host confirms (ConfirmationCommandSurface), performs the call, and feeds
+ * the outcome back down through this shape.
+ */
+export type AlertOpsMutationPhase = 'idle' | 'pending' | 'failed';
+
+export interface AlertOpsMutationState {
+	state: AlertOpsMutationPhase;
+	/** Silence the in-flight/failed mutation targets, when it targets one. */
+	silenceId?: string;
+	/** Host-sanitized, displayable failure description. Rendered as text. */
+	error?: string;
+}
+
 export interface AlertOpsFilters {
 	environmentId?: string;
 	planeId?: string;
@@ -206,6 +223,15 @@ export interface AlertOpsCopy {
 	regexMarkerLabel: string;
 	silencesEmptyTitle: string;
 	silencesEmptyMessage: string;
+	// Mutation affordances (opt-in; absent unless the host gates them on)
+	silenceColumnActions: string;
+	expireSilence: string;
+	/** Templated aria-label: `{matchers}` distinguishes one row from the next. */
+	expireSilenceAccessibleLabel: string;
+	expireDisabledExpired: string;
+	silenceAlert: string;
+	mutationPending: string;
+	mutationFailed: string;
 }
 
 export const DEFAULT_ALERT_OPS_COPY: Readonly<AlertOpsCopy> = Object.freeze({
@@ -300,7 +326,14 @@ export const DEFAULT_ALERT_OPS_COPY: Readonly<AlertOpsCopy> = Object.freeze({
 	silenceStateExpired: 'Expired',
 	regexMarkerLabel: 'regex',
 	silencesEmptyTitle: 'No silences',
-	silencesEmptyMessage: 'There are no silences in this scope.'
+	silencesEmptyMessage: 'There are no silences in this scope.',
+	silenceColumnActions: 'Actions',
+	expireSilence: 'Expire silence',
+	expireSilenceAccessibleLabel: 'Expire silence for {matchers}',
+	expireDisabledExpired: 'Already expired',
+	silenceAlert: 'Silence this alert',
+	mutationPending: 'Working…',
+	mutationFailed: 'The action could not be completed.'
 });
 
 /** Merges host copy overrides over the English defaults. */

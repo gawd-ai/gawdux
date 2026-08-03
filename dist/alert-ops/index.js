@@ -9,5 +9,5 @@ export { default as FilterRail } from './FilterRail.svelte';
 export { default as ProviderHealthBar } from './ProviderHealthBar.svelte';
 export { default as SilenceTable } from './SilenceTable.svelte';
 export { DEFAULT_ALERT_OPS_COPY, formatAlertOpsTemplate, resolveAlertOpsCopy } from './types';
-export { alertSeverityBadgeColor, alertSeverityLabel, alertStatusBadgeColor, alertStatusLabel, formatAlertOpsDuration, formatAlertOpsRelativeTime, formatAlertOpsTimestamp, hasActiveAlertOpsFilters, providerStateBadgeColor, providerStateLabel, resolveAlertOpsCollection, resolveAlertOpsView, shortAlertFingerprint, silenceStateBadgeColor, silenceStateLabel } from './states';
+export { alertSeverityBadgeColor, alertSeverityLabel, alertStatusBadgeColor, alertStatusLabel, canExpireAlertOpsSilence, formatAlertOpsDuration, formatAlertOpsRelativeTime, formatAlertOpsTimestamp, hasActiveAlertOpsFilters, providerStateBadgeColor, providerStateLabel, resolveAlertOpsCollection, resolveAlertOpsView, shortAlertFingerprint, silenceStateBadgeColor, silenceStateLabel } from './states';
 export { createAlertOpsPoller } from './polling.svelte';

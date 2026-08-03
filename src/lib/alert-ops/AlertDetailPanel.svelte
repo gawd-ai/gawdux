@@ -3,7 +3,12 @@
      Everything renders as plain text ({@html} is never used), so hostile
      label or annotation values stay inert even though the host already
      redacts server-side. Links the host marked safe:false render as inert
-     spans without an href. -->
+     spans without an href.
+
+     Mutation is OPT-IN: the "Silence this alert" affordance appears only
+     when the host both grants `canSilence` AND supplies `onsilence`, and it
+     emits INTENT ONLY — no dialog, no request, no optimistic state. The host
+     confirms (ConfirmationCommandSurface) and performs the mutation. -->
 <script lang="ts">
 	import StatusBadge from '../primitives/StatusBadge.svelte';
 	import {
@@ -13,22 +18,47 @@
 		formatAlertOpsDuration,
 		formatAlertOpsTimestamp
 	} from './states';
-	import { resolveAlertOpsCopy, type AlertOpsAlert, type AlertOpsCopy } from './types';
+	import {
+		resolveAlertOpsCopy,
+		type AlertOpsAlert,
+		type AlertOpsCopy,
+		type AlertOpsMutationState
+	} from './types';
 
 	let {
 		alert = null,
 		groupKey,
-		copy: copyOverrides
+		copy: copyOverrides,
+		canSilence = false,
+		onsilence,
+		mutation
 	}: {
 		alert?: AlertOpsAlert | null;
 		/** Group key of the selected alert, for correlation identity. */
 		groupKey?: string;
 		copy?: Partial<AlertOpsCopy>;
+		/** Opt-in: the host authorized creating silences for this viewer. */
+		canSilence?: boolean;
+		/** Intent only — the host confirms, then creates the silence. */
+		onsilence?: (alert: AlertOpsAlert) => void;
+		/** Host-owned mutation lifecycle; the panel keeps no state of its own. */
+		mutation?: AlertOpsMutationState;
 	} = $props();
 
 	const copy = $derived(resolveAlertOpsCopy(copyOverrides));
+	// Double gate: permission AND a handler. Either one missing renders the
+	// read-only panel, with no affordance in the DOM at all.
+	const canRequestSilence = $derived(canSilence === true && typeof onsilence === 'function');
+	const pending = $derived(mutation?.state === 'pending');
 	const labelEntries = $derived(alert ? Object.entries(alert.labels) : []);
 	const annotationEntries = $derived(alert ? Object.entries(alert.annotations) : []);
+
+	// Emits intent and nothing else: no dialog, no request, no optimistic
+	// state. The host confirms via ConfirmationCommandSurface and mutates.
+	function requestSilence(): void {
+		if (!alert || !onsilence || !canSilence || pending) return;
+		onsilence(alert);
+	}
 
 	const headingClass =
 		'text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400';
@@ -57,6 +87,21 @@
 			</div>
 			<h3 class="text-sm font-semibold text-gray-800 dark:text-gray-100">{alert.summary}</h3>
 		</header>
+
+		{#if canRequestSilence}
+			<div class="flex flex-wrap items-center gap-2" data-testid="alert-detail-actions">
+				<button
+					type="button"
+					class="inline-flex min-h-9 items-center rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+					data-testid="alert-silence"
+					aria-busy={pending}
+					disabled={pending}
+					onclick={requestSilence}
+				>
+					{pending ? copy.mutationPending : copy.silenceAlert}
+				</button>
+			</div>
+		{/if}
 
 		<dl class="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
 			<div>

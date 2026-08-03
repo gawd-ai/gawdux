@@ -9,7 +9,13 @@
      renders exactly the groups it is given.
 
      Seven explicit states, all prop-driven: loading, empty, no-results,
-     unavailable, stale, partial, denied (see states.ts). -->
+     unavailable, stale, partial, denied (see states.ts).
+
+     Silence mutation is OPT-IN and absent by default: the console only
+     forwards the double gates (canMutate+onexpire, canSilence+onsilence) to
+     the table and the panel, and mirrors the host's `mutation` lifecycle —
+     it owns no mutation state machine and issues no request. -->
+
 <script lang="ts">
 	import { TabItem } from 'flowbite-svelte';
 	import CollectionEmptyState from '../primitives/CollectionEmptyState.svelte';
@@ -32,6 +38,7 @@
 		type AlertOpsCopy,
 		type AlertOpsData,
 		type AlertOpsFilters,
+		type AlertOpsMutationState,
 		type AlertOpsScope
 	} from './types';
 
@@ -45,7 +52,12 @@
 		refreshing = false,
 		onrefresh,
 		onfilterschange,
-		onselect
+		onselect,
+		canMutate = false,
+		onexpire,
+		canSilence = false,
+		onsilence,
+		mutation
 	}: {
 		scope: AlertOpsScope;
 		filters?: AlertOpsFilters;
@@ -59,6 +71,21 @@
 		onrefresh?: () => void;
 		onfilterschange?: (filters: AlertOpsFilters) => void;
 		onselect?: (fingerprint: string) => void;
+		/** Opt-in: the host authorized expiring silences. Needs `onexpire` too. */
+		canMutate?: boolean;
+		/** Intent only — the host confirms, then expires the silence. */
+		onexpire?: (silenceId: string) => void;
+		/** Opt-in: the host authorized silencing alerts. Needs `onsilence` too. */
+		canSilence?: boolean;
+		/** Intent only — the host confirms, then creates the silence. */
+		onsilence?: (alert: AlertOpsAlert) => void;
+		/**
+		 * Host-owned mutation lifecycle. The console runs no mutation state
+		 * machine: it only reflects what it is handed — pending disables the
+		 * affordances and shows the busy indicator, failed shows the inline
+		 * error (already sanitized by the host, rendered as text).
+		 */
+		mutation?: AlertOpsMutationState;
 	} = $props();
 
 	const copy = $derived(resolveAlertOpsCopy(copyOverrides));
@@ -92,6 +119,10 @@
 
 	const bannerClass =
 		'rounded-md border border-yellow-300 bg-yellow-50 px-3 py-2 text-sm text-yellow-800 dark:border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200';
+	const mutationPendingClass =
+		'flex items-center gap-2 rounded-md border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-800 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-200';
+	const mutationErrorClass =
+		'space-y-0.5 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200';
 </script>
 
 <div class="alert-ops-console responsive-list-page space-y-3" data-testid="alert-ops-console">
@@ -104,6 +135,49 @@
 		{refreshing}
 		{onrefresh}
 	/>
+
+	{#if mutation && mutation.state !== 'idle'}
+		<!-- Mutation feedback is prop-driven and lives in one predictable place,
+		     above the tabs, so it is visible whichever tab raised the intent. -->
+		{#if mutation.state === 'pending'}
+			<div
+				class={mutationPendingClass}
+				role="status"
+				aria-live="polite"
+				aria-busy="true"
+				data-testid="alert-ops-mutation-pending"
+			>
+				<svg class="h-4 w-4 shrink-0 animate-spin" viewBox="0 0 24 24" aria-hidden="true">
+					<circle
+						class="opacity-25"
+						cx="12"
+						cy="12"
+						r="9"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="3"
+					/>
+					<path
+						class="opacity-80"
+						fill="currentColor"
+						d="M12 3a9 9 0 0 1 9 9h-3a6 6 0 0 0-6-6V3Z"
+					/>
+				</svg>
+				{copy.mutationPending}
+			</div>
+		{:else}
+			<div class={mutationErrorClass} role="alert" data-testid="alert-ops-mutation-error">
+				<strong class="block font-semibold">{copy.mutationFailed}</strong>
+				{#if mutation.error}
+					<!-- Host-sanitized text, rendered as text ({@html} is never used):
+					     hostile markup stays inert. -->
+					<span class="block text-xs" data-testid="alert-ops-mutation-error-detail">
+						{mutation.error}
+					</span>
+				{/if}
+			</div>
+		{/if}
+	{/if}
 
 	{#if view.kind === 'denied'}
 		<!-- Permission message only — no data skeletons behind a denial. -->
@@ -190,6 +264,9 @@
 									alert={selected?.alert ?? null}
 									groupKey={selected?.groupKey}
 									copy={copyOverrides}
+									{canSilence}
+									{onsilence}
+									{mutation}
 								/>
 							{/snippet}
 						</MasterDetailShell>
@@ -211,7 +288,13 @@
 							variant="empty"
 						/>
 					{:else}
-						<SilenceTable silences={data.silences} copy={copyOverrides} />
+						<SilenceTable
+							silences={data.silences}
+							copy={copyOverrides}
+							{canMutate}
+							{onexpire}
+							{mutation}
+						/>
 					{/if}
 				</div>
 			</TabItem>
