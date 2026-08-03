@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import pkg from '../package.json';
+import * as alertOps from '../src/lib/alert-ops/index';
 import * as primitives from '../src/lib/primitives/index';
 import * as utils from '../src/lib/utils/index';
 
@@ -73,5 +75,78 @@ describe('gawdux 0.3.0 export surface', () => {
 			warning: null,
 			error: null
 		});
+	});
+});
+
+describe('gawdux 0.4.0 export surface (alert-ops)', () => {
+	it('exports the alert-ops components and helpers', () => {
+		for (const name of [
+			'AlertOpsConsole',
+			'AlertDetailPanel',
+			'AlertGroupTable',
+			'FilterRail',
+			'ProviderHealthBar',
+			'SilenceTable',
+			'DEFAULT_ALERT_OPS_COPY',
+			'resolveAlertOpsCopy',
+			'formatAlertOpsTemplate',
+			'resolveAlertOpsView',
+			'resolveAlertOpsCollection',
+			'hasActiveAlertOpsFilters',
+			'alertSeverityBadgeColor',
+			'providerStateBadgeColor',
+			'formatAlertOpsDuration',
+			'formatAlertOpsRelativeTime',
+			'formatAlertOpsTimestamp',
+			'shortAlertFingerprint',
+			'createAlertOpsPoller'
+		] as const) {
+			expect(alertOps[name], `alert-ops must export ${name}`).toBeDefined();
+		}
+	});
+
+	it('adds the ./alert-ops subpath additively, leaving every existing export entry unchanged', () => {
+		expect(pkg.exports['./alert-ops']).toEqual({
+			types: './dist/alert-ops/index.d.ts',
+			svelte: './dist/alert-ops/index.js',
+			default: './dist/alert-ops/index.js'
+		});
+
+		// The pre-0.4.0 subpaths remain byte-identical.
+		expect(pkg.exports['.']).toEqual({
+			types: './dist/index.d.ts',
+			svelte: './dist/index.js',
+			default: './dist/index.js'
+		});
+		expect(pkg.exports['./components']).toEqual({
+			types: './dist/components/index.d.ts',
+			svelte: './dist/components/index.js',
+			default: './dist/components/index.js'
+		});
+		expect(pkg.exports['./primitives']).toEqual({
+			types: './dist/primitives/index.d.ts',
+			svelte: './dist/primitives/index.js',
+			default: './dist/primitives/index.js'
+		});
+		expect(pkg.exports['./types']).toEqual({
+			types: './dist/types/index.d.ts',
+			default: './dist/types/index.js'
+		});
+		expect(pkg.exports['./utils']).toEqual({
+			types: './dist/utils/index.d.ts',
+			default: './dist/utils/index.js'
+		});
+		expect(pkg.exports['./styles/tokens.css']).toBe('./dist/styles/tokens.css');
+		expect(Object.keys(pkg.exports).sort()).toEqual(
+			[
+				'.',
+				'./alert-ops',
+				'./components',
+				'./primitives',
+				'./styles/tokens.css',
+				'./types',
+				'./utils'
+			].sort()
+		);
 	});
 });

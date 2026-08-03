@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.4.0 — alert operations
+
+### Added
+- New `gawdux/alert-ops` subpath: reusable Alert Operations console surface
+  (presentation + UI contract only; hosts own transport, auth, tenancy and
+  the provider adapter).
+  - `AlertOpsConsole` — ProviderHealthBar + Alerts tab (FilterRail +
+    AlertGroupTable/AlertDetailPanel in a MasterDetailShell) + read-only
+    Silences tab behind PageTabs. Data down, events up; `filters` and
+    `selectedFingerprint` bindable. Seven explicit prop-driven states:
+    loading, empty, no-results, unavailable (retry), stale (banner over
+    last-good data), partial (per-section banners), denied.
+  - `AlertGroupTable` — group headers; row-click list rule (click/Enter/
+    Space, aria-selected); severity StatusBadge mapping; responsive
+    card-table with td[data-label].
+  - `AlertDetailPanel` — labels/annotations as escaped text (never
+    {@html}); correlation identity; validated links: safe → target=_blank
+    rel="noopener noreferrer", unsafe → inert span without href.
+  - `SilenceTable` — strictly read-only (zero controls); regex-marked
+    matchers, window, creator, comment.
+  - `ProviderHealthBar` — status pill, environment/plane labels, relative
+    last-refresh (injectable now), explicit Refresh.
+  - `FilterRail` — environment/plane selects, state + severity toggles,
+    service input, text search; emits AlertOpsFilters; fully labelled and
+    keyboard reachable.
+  - `createAlertOpsPoller` — interval fetch, exponential backoff to a cap
+    (reset on success), document-hidden pause, manual refresh(), stop().
+  - UI contract types + `AlertOpsCopy` — every user-facing string
+    overridable via props with English defaults ({placeholder} templates).
+
+
 ## 0.3.0 — lift wave
 
 ### Added

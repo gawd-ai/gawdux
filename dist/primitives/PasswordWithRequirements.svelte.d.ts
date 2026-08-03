@@ -36,6 +36,6 @@ interface Props {
      * current-password input on the self-serve profile page). */
     leading?: Snippet;
 }
-declare const PasswordWithRequirements: import("svelte").Component<Props, {}, "confirm" | "value">;
+declare const PasswordWithRequirements: import("svelte").Component<Props, {}, "value" | "confirm">;
 type PasswordWithRequirements = ReturnType<typeof PasswordWithRequirements>;
 export default PasswordWithRequirements;
