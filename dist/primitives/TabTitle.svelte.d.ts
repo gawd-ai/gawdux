@@ -13,7 +13,14 @@ interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> =
     z_$$bindings?: Bindings;
 }
 declare const TabTitle: $$__sveltets_2_IsomorphicComponent<{
-    icon: Component;
+    /**
+         * Optional. A tab set that carries no icons is a legitimate design, and
+         * reserving the 20×20 box for one anyway pushes every label out by
+         * `w-5` plus the flex gap — a visible indent around nothing. Rendering the
+         * wrapper only when there is something to put in it lets an icon-less tab
+         * set sit flush, while a mixed set still aligns its labels, because every
+         * icon that does exist occupies the same fixed box.
+         */ icon?: Component | null;
     label: string;
     className?: string;
 }, {

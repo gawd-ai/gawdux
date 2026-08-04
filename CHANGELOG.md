@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.5.1 — TabTitle icons are optional
+
+### Fixed
+- `TabTitle` no longer requires `icon`, and omits the icon box entirely when
+  none is given. It previously rendered the `w-5 h-5` wrapper unconditionally,
+  so a tab set that carries no icons was indented by the width of an icon that
+  was never there — a layout defect that type-checks clean and reads as
+  deliberate padding.
+
+  Mixed sets still align: the box is fixed-width and never sizes to its
+  content, so tabs that do have icons line their labels up with each other.
+
+  **Not a breaking change** — `icon` narrows from required to optional, so
+  every existing call site keeps compiling and renders identically. The
+  omission is pinned by a test rather than left to convention.
+
 ## 0.5.0 — alert-ops silence mutation (opt-in)
 
 ### Added
