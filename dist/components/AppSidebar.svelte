@@ -16,6 +16,7 @@
 	} from 'flowbite-svelte-icons';
 	import type { SidebarConfig, SidebarMenuGroup, SidebarMenuItem, SidebarContext, AppSidebarProps } from '../types/sidebar.types';
 	import { isBrowser, getStorageItem, setStorageItem } from '../utils/browser';
+	import { resolveActiveItemHref } from '../utils/resolve-active-nav';
 	import SidebarFlyout from './SidebarFlyout.svelte';
 	import SidebarDropdownGroup from './SidebarDropdownGroup.svelte';
 
@@ -81,9 +82,32 @@
 	// Initialize dropdown states with defaultOpen support
 	let dropdownStates: Record<string, boolean> = $state({});
 
+	// The current page's nav item, by longest-prefix match with a `/`
+	// boundary (so `/products/123` keeps `/products` lit, and `/products`
+	// never lights up on `/products-archive`). One resolution for the whole
+	// config: comparing each item against THE match is what prevents a root
+	// item and a group sub-item from both highlighting.
+	const activeItemHref = $derived(resolveActiveItemHref(activeUrl, config));
+
+	function groupHasActiveChild(group: SidebarMenuGroup): boolean {
+		if (!activeUrl) return false;
+		return group.items.some(
+			(item) => !!item.href && (item.href === activeUrl || activeUrl.startsWith(item.href + '/'))
+		);
+	}
+
 	$effect(() => {
 		const nextDefaults = Object.fromEntries(
-			(config.groups ?? []).map((group) => [group.id, group.defaultOpen ?? false])
+			(config.groups ?? []).map((group) => [
+				group.id,
+				// Seed the group holding the current page open on first paint;
+				// an explicit host defaultOpen wins either way. untrack() so
+				// this seeds only when the key set (re)builds — a later
+				// navigation must not reopen a group the user closed, and
+				// isOpen toggles destroy the group's DOM (see
+				// SidebarDropdownGroup's two-branch rendering note).
+				group.defaultOpen ?? untrack(() => groupHasActiveChild(group))
+			])
 		);
 		const nextKeys = new Set(Object.keys(nextDefaults));
 		const currentKeys = Object.keys(dropdownStates);
@@ -326,7 +350,7 @@
 					{#each mergedNav as entry (entry.key)}
 						{#if entry.kind === 'item'}
 							{@const item = entry.item}
-							{@const isActive = activeUrl ? item.href === activeUrl : false}
+							{@const isActive = !!activeItemHref && item.href === activeItemHref}
 							<SidebarItem
 								href={item.href}
 								label={item.label}

@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.5.2 — AppSidebar knows where you are
+
+### Fixed
+- Top-level sidebar items now highlight by **longest-prefix match with a `/`
+  boundary** (the `resolveActiveItemHref` rule the library already shipped
+  but never used here), instead of exact match. A detail page keeps its
+  parent item lit — `/products/123` stays on `/products` — while
+  `/products` never lights up on `/products-archive`. One resolution per
+  config means a root item and a group sub-item can never both claim the
+  highlight. A consumer had been papering over this with an injected CSS
+  controller; this is that fix, upstreamed.
+- The dropdown group **holding the current page opens on first paint**.
+  Open state is seeded once, when the group set builds — a later navigation
+  never reopens a group the user closed, and an explicit
+  `defaultOpen: false` still wins over the active page.
+
+  **Not a breaking change** — items and groups a host configured explicitly
+  keep behaving as configured; only the closed-on-your-own-page default and
+  the dropped-highlight-on-detail-pages defect change. Both behaviours are
+  pinned by tests that fail against the previous implementation
+  (mutation-verified).
+
 ## 0.5.1 — TabTitle icons are optional
 
 ### Fixed
