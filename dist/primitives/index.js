@@ -24,6 +24,7 @@ export { default as ListPageScaffold } from './ListPageScaffold.svelte';
 export { default as ListQueryBar } from './ListQueryBar.svelte';
 export { default as ListPaginationCount } from './ListPaginationCount.svelte';
 export { default as ListPaginationNav } from './ListPaginationNav.svelte';
+export { buildPageWindow } from './page-window';
 export { default as ListSurface } from './ListSurface.svelte';
 export { default as MasterDetailShell } from './MasterDetailShell.svelte';
 export { default as MessageHost } from './MessageHost.svelte';

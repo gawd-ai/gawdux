@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.5.3 — ListPaginationNav can show page numbers
+
+### Added
+- `ListPaginationNav` gains **`showPageNumbers`** (default `false`), which
+  renders numbered page buttons between the range readout and Next.
+
+  This exists because the component could not be adopted without a capability
+  regression. It shipped prev/range/next only, while consumers were already
+  rendering numbered pagination — so migrating to it *removed* direct
+  page-jump. Rather than ask those pages to accept less, the numbers move up
+  here behind an opt-in. Default off means every current consumer renders
+  exactly what it renders today.
+
+  Applies to `mode="exact"` only; a cursor pager has no page numbers to offer.
+  The active button carries `aria-current="page"`, and ellipses are
+  `aria-hidden` rather than being announced as content.
+- `buildPageWindow(current, total)` is exported alongside it, so a consumer
+  that wants its own markup can still share the windowing rule: all pages up
+  to seven, then first / ellipsis / current ± 1 / ellipsis / last. It clamps
+  an out-of-range `current` instead of returning a window where nothing is
+  selected.
+
+  This is not a new algorithm — it is the one consumers already shipped, and a
+  test re-implements the original and asserts agreement across every
+  `(current, total)` pair up to 60, so the move upstream cannot have quietly
+  changed the window.
+
 ## 0.5.2 — AppSidebar knows where you are
 
 ### Fixed

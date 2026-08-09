@@ -1,90 +1,90 @@
 {
-  "name": "gawdux",
-  "version": "0.5.2",
-  "description": "Shared UI component library for Svelte applications",
-  "type": "module",
-  "svelte": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "svelte": "./dist/index.js",
-      "default": "./dist/index.js"
-    },
-    "./alert-ops": {
-      "types": "./dist/alert-ops/index.d.ts",
-      "svelte": "./dist/alert-ops/index.js",
-      "default": "./dist/alert-ops/index.js"
-    },
-    "./components": {
-      "types": "./dist/components/index.d.ts",
-      "svelte": "./dist/components/index.js",
-      "default": "./dist/components/index.js"
-    },
-    "./primitives": {
-      "types": "./dist/primitives/index.d.ts",
-      "svelte": "./dist/primitives/index.js",
-      "default": "./dist/primitives/index.js"
-    },
-    "./types": {
-      "types": "./dist/types/index.d.ts",
-      "default": "./dist/types/index.js"
-    },
-    "./utils": {
-      "types": "./dist/utils/index.d.ts",
-      "default": "./dist/utils/index.js"
-    },
-    "./styles/tokens.css": "./dist/styles/tokens.css"
-  },
-  "files": [
-    "dist",
-    "!dist/**/*.test.*",
-    "!dist/**/*.spec.*"
-  ],
-  "scripts": {
-    "dev": "vite dev",
-    "build": "vite build && npm run package",
-    "preview": "vite preview",
-    "package": "svelte-kit sync && svelte-package && node scripts/compile-tokens-css.mjs && publint",
-    "prepublishOnly": "npm run package",
-    "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-    "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "test": "vitest run --passWithNoTests",
-    "test:watch": "vitest"
-  },
-  "peerDependencies": {
-    "@sveltejs/kit": "^2.0.0",
-    "flowbite-svelte": "^0.47.0",
-    "flowbite-svelte-icons": "^2.0.0",
-    "svelte": "^5.0.0"
-  },
-  "devDependencies": {
-    "@sveltejs/adapter-auto": "^3.0.0",
-    "@sveltejs/kit": "^2.0.0",
-    "@sveltejs/package": "^2.0.0",
-    "@sveltejs/vite-plugin-svelte": "^5.0.0",
-    "@tailwindcss/node": "4.0.2",
-    "@tailwindcss/oxide": "4.0.2",
-    "@tailwindcss/postcss": "4.0.2",
-    "@testing-library/svelte": "^5.2.4",
-    "flowbite-svelte": "^0.47.0",
-    "flowbite-svelte-icons": "^2.0.0",
-    "jsdom": "^25.0.0",
-    "postcss": "^8.5.15",
-    "publint": "^0.3.22",
-    "svelte": "^5.0.0",
-    "svelte-check": "^4.0.0",
-    "tailwindcss": "4.0.2",
-    "typescript": "^5.0.0",
-    "vite": "^6.0.0",
-    "vitest": "^4.1.10"
-  },
-  "keywords": [
-    "svelte",
-    "sveltekit",
-    "ui",
-    "components",
-    "sidebar"
-  ],
-  "license": "MIT"
+	"name": "gawdux",
+	"version": "0.5.3",
+	"description": "Shared UI component library for Svelte applications",
+	"type": "module",
+	"svelte": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"svelte": "./dist/index.js",
+			"default": "./dist/index.js"
+		},
+		"./alert-ops": {
+			"types": "./dist/alert-ops/index.d.ts",
+			"svelte": "./dist/alert-ops/index.js",
+			"default": "./dist/alert-ops/index.js"
+		},
+		"./components": {
+			"types": "./dist/components/index.d.ts",
+			"svelte": "./dist/components/index.js",
+			"default": "./dist/components/index.js"
+		},
+		"./primitives": {
+			"types": "./dist/primitives/index.d.ts",
+			"svelte": "./dist/primitives/index.js",
+			"default": "./dist/primitives/index.js"
+		},
+		"./types": {
+			"types": "./dist/types/index.d.ts",
+			"default": "./dist/types/index.js"
+		},
+		"./utils": {
+			"types": "./dist/utils/index.d.ts",
+			"default": "./dist/utils/index.js"
+		},
+		"./styles/tokens.css": "./dist/styles/tokens.css"
+	},
+	"files": [
+		"dist",
+		"!dist/**/*.test.*",
+		"!dist/**/*.spec.*"
+	],
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build && npm run package",
+		"preview": "vite preview",
+		"package": "svelte-kit sync && svelte-package && node scripts/compile-tokens-css.mjs && publint",
+		"prepublishOnly": "npm run package",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"test": "vitest run --passWithNoTests",
+		"test:watch": "vitest"
+	},
+	"peerDependencies": {
+		"@sveltejs/kit": "^2.0.0",
+		"flowbite-svelte": "^0.47.0",
+		"flowbite-svelte-icons": "^2.0.0",
+		"svelte": "^5.0.0"
+	},
+	"devDependencies": {
+		"@sveltejs/adapter-auto": "^3.0.0",
+		"@sveltejs/kit": "^2.0.0",
+		"@sveltejs/package": "^2.0.0",
+		"@sveltejs/vite-plugin-svelte": "^5.0.0",
+		"@tailwindcss/node": "4.0.2",
+		"@tailwindcss/oxide": "4.0.2",
+		"@tailwindcss/postcss": "4.0.2",
+		"@testing-library/svelte": "^5.2.4",
+		"flowbite-svelte": "^0.47.0",
+		"flowbite-svelte-icons": "^2.0.0",
+		"jsdom": "^25.0.0",
+		"postcss": "^8.5.15",
+		"publint": "^0.3.22",
+		"svelte": "^5.0.0",
+		"svelte-check": "^4.0.0",
+		"tailwindcss": "4.0.2",
+		"typescript": "^5.0.0",
+		"vite": "^6.0.0",
+		"vitest": "^4.1.10"
+	},
+	"keywords": [
+		"svelte",
+		"sveltekit",
+		"ui",
+		"components",
+		"sidebar"
+	],
+	"license": "MIT"
 }

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { ChevronLeftOutline, ChevronRightOutline } from 'flowbite-svelte-icons';
+	import { buildPageWindow } from './page-window.js';
 
 	export let mode: 'exact' | 'cursor' = 'exact';
 	export let total = 0;
@@ -20,8 +21,14 @@
 	    convention used by gawdux ListSurface and consumer list pages). Set to null
 	    to disable auto-scroll. */
 	export let scrollTargetSelector: string | null = '.list-table-scroll';
+	/** Render numbered page buttons between the range readout and Next, so a
+	    reader can jump directly instead of stepping. Opt-in and default OFF:
+	    every existing consumer keeps the exact nav it has today. Only applies
+	    to `mode="exact"` — a cursor pager has no page numbers to offer. */
+	export let showPageNumbers = false;
 	export let className = '';
 
+	$: pageWindow = showPageNumbers && mode === 'exact' ? buildPageWindow(currentPage, totalPages) : [];
 	$: effectivePageSize = pageSize > 0 ? pageSize : 50;
 	$: lastItemOnPage = Math.min(currentPage * effectivePageSize, total);
 	// First item index on the current page, so the readout is a range
@@ -75,6 +82,26 @@
 			{firstItemOnPage.toLocaleString()}-{lastItemOnPage.toLocaleString()} / {total.toLocaleString()}
 		{/if}
 	</span>
+	{#if pageWindow.length > 1}
+		<span class="pp-pages">
+			{#each pageWindow as item, i (`${item}-${i}`)}
+				{#if item === 'ellipsis'}
+					<span class="pp-gap" aria-hidden="true">…</span>
+				{:else}
+					<button
+						type="button"
+						class="pp-page"
+						class:pp-page-active={item === currentPage}
+						aria-label={`Page ${item}`}
+						aria-current={item === currentPage ? 'page' : undefined}
+						on:click={() => goToPage(item)}
+					>
+						{item.toLocaleString()}
+					</button>
+				{/if}
+			{/each}
+		</span>
+	{/if}
 	<button
 		type="button"
 		class="pp-btn pp-btn-next"
@@ -142,5 +169,57 @@
 		color: rgb(209 213 219);
 		border-left-color: rgb(75 85 99);
 		border-right-color: rgb(75 85 99);
+	}
+	.pp-pages {
+		display: inline-flex;
+		align-items: stretch;
+		border-right: 1px solid rgb(229 231 235);
+	}
+	:global(.dark) .pp-pages {
+		border-right-color: rgb(75 85 99);
+	}
+	.pp-page,
+	.pp-gap {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: 2rem;
+		padding: 0 0.375rem;
+		font-size: 0.8125rem;
+		font-variant-numeric: tabular-nums;
+		color: rgb(75 85 99);
+	}
+	:global(.dark) .pp-page,
+	:global(.dark) .pp-gap {
+		color: rgb(156 163 175);
+	}
+	.pp-page {
+		background: transparent;
+		border: 0;
+		cursor: pointer;
+		transition:
+			background-color 150ms ease-out,
+			color 150ms ease-out;
+	}
+	.pp-page:hover:not(.pp-page-active) {
+		background-color: rgb(243 244 246);
+		color: rgb(17 24 39);
+	}
+	:global(.dark) .pp-page:hover:not(.pp-page-active) {
+		background-color: rgb(55 65 81);
+		color: rgb(243 244 246);
+	}
+	.pp-page-active {
+		background-color: rgb(243 244 246);
+		color: rgb(17 24 39);
+		font-weight: 600;
+		cursor: default;
+	}
+	:global(.dark) .pp-page-active {
+		background-color: rgb(55 65 81);
+		color: rgb(243 244 246);
+	}
+	.pp-gap {
+		cursor: default;
 	}
 </style>

@@ -29,6 +29,10 @@ declare const ListPaginationNav: $$__sveltets_2_IsomorphicComponent<{
             scrolls this container to top. Defaults to `.list-table-scroll` (the
             convention used by gawdux ListSurface and consumer list pages). Set to null
             to disable auto-scroll. */ scrollTargetSelector?: string | null;
+    /** Render numbered page buttons between the range readout and Next, so a
+            reader can jump directly instead of stepping. Opt-in and default OFF:
+            every existing consumer keeps the exact nav it has today. Only applies
+            to `mode="exact"` — a cursor pager has no page numbers to offer. */ showPageNumbers?: boolean;
     className?: string;
 }, {
     [evt: string]: CustomEvent<any>;
