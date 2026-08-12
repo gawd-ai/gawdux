@@ -23,6 +23,25 @@ describe('ListSurface pagination', () => {
 		expect(screen.queryByText('Independent footer')).toBeNull();
 	});
 
+	// The declarative path must be able to express everything the imperative
+	// one can, or moving a hand-wired <ListPaginationNav showPageNumbers /> onto
+	// `pagination` silently drops the page numbers — a capability loss with no
+	// type error and nothing in the diff to hint at it. That was the state
+	// between 0.5.3 (which added the prop to the nav) and this change.
+	it('omits page numbers by default, so existing declarative consumers are unchanged', () => {
+		render(ListSurfaceHarness, { props: { total: 120, totalPages: 3 } });
+
+		expect(screen.getByRole('button', { name: 'Previous page' })).toBeTruthy();
+		expect(screen.queryByRole('button', { name: 'Page 2' })).toBeNull();
+	});
+
+	it('forwards showPageNumbers from the declarative pagination object', () => {
+		render(ListSurfaceHarness, { props: { total: 120, totalPages: 3, showPageNumbers: true } });
+
+		expect(screen.getByRole('button', { name: 'Page 2' })).toBeTruthy();
+		expect(screen.getByRole('button', { name: 'Page 3' })).toBeTruthy();
+	});
+
 	it('renders unknown-total cursor pagination without changing the exact-total contract', () => {
 		render(ListSurfaceHarness, { props: { total: 3, cursor: true } });
 

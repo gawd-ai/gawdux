@@ -73,6 +73,7 @@
 					currentPage={pagination.currentPage}
 					totalPages={pagination.totalPages}
 					pageSize={pagination.pageSize ?? 0}
+					showPageNumbers={pagination.showPageNumbers ?? false}
 					onPage={pagination.onPage}
 				/>
 			{/if}

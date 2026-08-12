@@ -4,6 +4,8 @@
 
 	export let total = 0;
 	export let cursor = false;
+	export let totalPages: number | undefined = undefined;
+	export let showPageNumbers: boolean | undefined = undefined;
 
 	$: pagination = (cursor
 			? {
@@ -17,8 +19,9 @@
 			: {
 					total,
 					currentPage: 1,
-					totalPages: total > 0 ? 1 : 0,
-					onPage: () => {}
+					totalPages: totalPages ?? (total > 0 ? 1 : 0),
+					onPage: () => {},
+					...(showPageNumbers === undefined ? {} : { showPageNumbers })
 				}) satisfies ListPagination;
 </script>
 

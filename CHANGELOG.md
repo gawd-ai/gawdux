@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.5.4 — the declarative pagination path can show page numbers too
+
+### Fixed
+- `ListSurface` (and therefore `ListPageScaffold`) now forwards
+  **`showPageNumbers`** from the declarative `pagination` object to
+  `ListPaginationNav`, and `ExactListPagination` gained the field.
+
+  0.5.3 added the prop to the nav so consumers would stop losing direct
+  page-jump when they adopted it — but only on the IMPERATIVE path. The
+  declarative path could not express it, which left the two paths silently
+  unequal in the one direction that matters: a page moving a hand-wired
+  `<ListPaginationNav showPageNumbers />` onto `ListPageScaffold`'s
+  `pagination` prop would lose its numbered buttons, with no type error and
+  nothing in the diff to suggest a capability had gone. Found while surveying
+  exactly that migration in a consumer.
+
+  Default stays `false`, so every existing declarative consumer renders what
+  it renders today; both directions are pinned by tests, and the forwarding
+  was mutation-checked (removing it fails the new case and only that case).
+  Cursor pagination has no page numbers to offer, so the field lives on
+  `ExactListPagination` rather than the union.
+
 ## 0.5.3 — ListPaginationNav can show page numbers
 
 ### Added
