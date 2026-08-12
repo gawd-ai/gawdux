@@ -10,6 +10,7 @@ export { default as CommandPalette } from './CommandPalette.svelte';
 export type { CommandPaletteItem } from './CommandPalette.svelte';
 /** @deprecated for new surfaces — use ConfirmationCommandSurface (ADR: confirmations are command surfaces). */
 export { default as ConfirmModal } from './ConfirmModal.svelte';
+export { default as CommandDrawer } from './CommandDrawer.svelte';
 export { default as ConfirmationCommandSurface } from './ConfirmationCommandSurface.svelte';
 export type {
 	ConfirmationCommandColor,

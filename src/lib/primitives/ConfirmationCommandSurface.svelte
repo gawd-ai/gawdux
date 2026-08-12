@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { tick } from 'svelte';
 	import { Button } from 'flowbite-svelte';
+	import CommandDrawer from './CommandDrawer.svelte';
 	import { CheckCircleOutline, ExclamationCircleOutline } from 'flowbite-svelte-icons';
 	import type { ConfirmationCommandRequest } from './confirmation-command';
 
@@ -44,6 +45,14 @@
 		return surfaceEl?.querySelector<HTMLButtonElement>('button[data-action-confirm]') ?? null;
 	}
 
+	/**
+	 * Focus restore is kept HERE rather than delegated to CommandDrawer, and the
+	 * distinction is real: the drawer restores to whatever happened to have focus
+	 * when it opened, while a confirmation restores to the request's OWN
+	 * `focusTarget`/`focusFallback`. Those differ whenever a request is raised
+	 * programmatically rather than by a click — a keyboard shortcut, or a
+	 * confirmation that replaces another.
+	 */
 	function restoreRequestFocus(requestToRestore: ConfirmationCommandRequest) {
 		if (restoredRequestId === requestToRestore.id) return;
 		restoredRequestId = requestToRestore.id;
@@ -99,38 +108,38 @@
 		onconfirm();
 	}
 
-	function onKeydown(event: KeyboardEvent) {
-		if (!request || busy || event.isComposing || event.key !== 'Escape') return;
-		event.preventDefault();
-		cancel();
-	}
 </script>
 
-<svelte:window onkeydown={onKeydown} />
-
-{#if request}
-	<section
-		bind:this={surfaceEl}
-		data-workflow-role="command-drawer"
-		data-confirmation-command
-		aria-labelledby={titleId}
-		aria-describedby={messageId}
-		aria-busy={busy}
-		class="confirmation-command-surface shrink-0 border border-gray-200 bg-gray-50/95 px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-900/95"
-	>
-		<div class="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4">
-			<StatusIcon class={`hidden h-5 w-5 shrink-0 sm:block ${iconClass}`} />
-			<div class="min-w-0 flex-1">
-				<h3 id={titleId} class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-					{request.title}
-				</h3>
-				<p id={messageId} class="text-xs text-gray-600 dark:text-gray-300">
-					{request.message}
-				</p>
-				{#if error}
-					<p class="mt-1 text-xs font-medium text-red-600 dark:text-red-400" role="alert">
-						{error}
+<CommandDrawer
+	open={request !== null}
+	{busy}
+	variant="card"
+	labelledBy={titleId}
+	describedBy={messageId}
+	class="confirmation-command-surface"
+	data-confirmation-command
+	onclose={cancel}
+>
+	<!--
+		The inner `{#if request}` is not redundant with the drawer's `open`.
+		CommandDrawer owns MOUNTING; this narrows the TYPE, which the old
+		`{#if request}` used to do as a side effect of guarding the markup.
+	-->
+	{#if request}
+		<div bind:this={surfaceEl}>
+			<div class="flex w-full flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4">
+				<StatusIcon class={`hidden h-5 w-5 shrink-0 sm:block ${iconClass}`} />
+				<div class="min-w-0 flex-1">
+					<h3 id={titleId} class="text-sm font-semibold text-gray-900 dark:text-gray-100">
+						{request.title}
+					</h3>
+					<p id={messageId} class="text-xs text-gray-600 dark:text-gray-300">
+						{request.message}
 					</p>
+					{#if error}
+						<p class="mt-1 text-xs font-medium text-red-600 dark:text-red-400" role="alert">
+							{error}
+						</p>
 				{/if}
 			</div>
 			<div class="flex shrink-0 flex-wrap items-center justify-end gap-2">
@@ -147,26 +156,8 @@
 				>
 					{busy ? (request.busyLabel ?? 'Applying…') : request.confirmLabel}
 				</Button>
+				</div>
 			</div>
 		</div>
-	</section>
-{/if}
-
-<style>
-	.confirmation-command-surface {
-		border-radius: 0.5rem;
-	}
-
-	@media (max-width: 1024px) {
-		.confirmation-command-surface {
-			max-height: min(45dvh, 20rem);
-			overflow-y: auto;
-			overscroll-behavior: contain;
-			padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
-		}
-
-		:global(.confirmation-command-surface button) {
-			min-height: 44px;
-		}
-	}
-</style>
+	{/if}
+</CommandDrawer>
