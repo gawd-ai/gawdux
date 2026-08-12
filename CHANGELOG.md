@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.6.0 — the command drawer becomes a primitive
+
+### Added
+- **`CommandDrawer`** — the strip that opens against the bottom command bar.
+
+  Five components across this library and two consuming products carried a
+  byte-identical copy of the same drawer: the same class string, the same
+  `data-workflow-role="command-drawer"` marker, the same Escape handler, the
+  same focus-in / restore-out dance, and the same narrow-viewport height cap.
+  Only the BODY ever differed, so the body is the snippet and everything else
+  now lives here.
+
+  Two variants, because both had already shipped and neither is wrong:
+  `attached` (top border, shadow cast upward — a lip on the bar) and `card`
+  (rounded, `shadow-sm` — a panel floating just above it). Confirmations are
+  cards; input drawers are attached.
+
+  **The layout contract is the part that is easy to get wrong.** This renders
+  an ordinary `shrink-0` element wherever you put it — it is NOT portaled and
+  does not position itself. It looks welded to the bar because the app shell
+  puts `.page-command-bar` last inside a flex `<main>` with `margin-top: auto`.
+  Render it inside a scrolling container and it will scroll away from the bar
+  it belongs to; fix the shell rather than reaching for a portal.
+
+  `open` is the consumer's to write and is never written here. A local write to
+  a one-way prop is reverted by the parent's next render, and the symptom is a
+  drawer that opens and then cannot be dismissed — silently, with no console
+  error. That cost a consuming app a full session before this was extracted,
+  so it is pinned by a test.
+
+### Changed
+- `ConfirmationCommandSurface` is rebuilt on `CommandDrawer` (~40 lines lighter)
+  with **no visual or behavioural change** — `variant="card"` preserves its
+  exact look, and its existing tests pass untouched. Its focus RESTORE stays
+  local on purpose: the drawer restores to whatever had focus when it opened,
+  while a confirmation restores to the request's own `focusTarget` /
+  `focusFallback`, and those differ whenever a request is raised
+  programmatically rather than by a click.
+
+  Attributes now spread onto the drawer's `<section>`, because a consumer's own
+  marker (`data-confirmation-command`) must land on the SAME element as the
+  aria wiring — a test caught them drifting onto different nodes during the
+  extraction.
+
 ## 0.5.4 — the declarative pagination path can show page numbers too
 
 ### Fixed
