@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.6.2 — compact feedback stops swallowing the message
+
+### Fixed
+- **`PageFeedback`** — `compact` no longer clamps the message to a single line.
+
+  It was applying `white-space: nowrap` + `text-overflow: ellipsis` on top of
+  the tighter spacing. Fine for "Saved."; wrong for the case the component
+  exists to serve. Measured in a consuming product: every call site passed
+  `compact`, so every error surface truncated — including a mail-delivery
+  failure whose whole value was the provider's reason, cut off exactly where
+  the reason began. An operator who cannot read the error cannot act on it,
+  and truncation makes a diagnosed failure look like an undiagnosed one.
+
+  Long messages now wrap, with `overflow-wrap: anywhere` so the unbroken
+  tokens provider errors carry (URLs, message ids) cannot widen the card past
+  its column. `compact` keeps its spacing, which is what consumers actually
+  reach for it for.
+
+  **Visual note for consumers:** a card carrying a long message is now taller
+  than one line. If you relied on compact feedback being exactly one line
+  high, check the layout around it.
+
 ## 0.6.1 — the sidebar rail's width owns group open-state
 
 ### Fixed
