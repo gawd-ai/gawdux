@@ -265,11 +265,24 @@
 		letter-spacing: 0;
 	}
 
+	/*
+	  `compact` tightens the SPACING. It must not clamp the message.
+
+	  This used to add `white-space: nowrap` + `text-overflow: ellipsis`, so
+	  every compact card showed one line and swallowed the rest. That is fine
+	  for a success line ("Invitation sent to X.") and actively harmful for the
+	  case the component exists to serve: a failure whose whole value is the
+	  reason, cut off exactly where the reason begins. An operator who cannot
+	  read the error cannot act on it, and truncation makes a diagnosed failure
+	  look like an undiagnosed one.
+
+	  Wrapping instead costs a line of vertical space in the rare long case.
+	  `overflow-wrap` is here because provider errors carry unbroken tokens —
+	  URLs, message ids — that would otherwise widen the card past its column.
+	*/
 	.page-feedback-card.compact .page-feedback-message {
 		margin-top: 0;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
+		overflow-wrap: anywhere;
 	}
 
 	.page-feedback-action,

@@ -149,4 +149,37 @@ describe('PageFeedback', () => {
 		expect(pageFeedbackSource).not.toContain('text-transform: uppercase');
 		expect(pageFeedbackSource).not.toContain('border-radius: 9999px');
 	});
+
+	/**
+	 * `compact` tightens spacing; it must never CLAMP the message.
+	 *
+	 * This is asserted against the source rather than the DOM on purpose: CSS
+	 * truncation leaves the full text in the document and only hides it
+	 * visually, so a `toHaveTextContent` check passes happily while the
+	 * operator sees one line and an ellipsis. jsdom does not lay out text, so
+	 * there is no honest render-level assertion available here — the rule
+	 * itself is the thing to pin.
+	 *
+	 * Measured before this was fixed: every consumer of PageFeedback in the
+	 * consuming product passed `compact`, so EVERY error surface truncated at
+	 * one line — including a mail-delivery failure whose entire value was the
+	 * provider's reason, cut off exactly where the reason began.
+	 */
+	it('never clamps a compact message to one line', () => {
+		const compactRule =
+			pageFeedbackSource
+				.split('.page-feedback-card.compact .page-feedback-message')[1]
+				?.split('}')[0] ?? '';
+		expect(compactRule).not.toBe('');
+		expect(compactRule).not.toContain('white-space: nowrap');
+		expect(compactRule).not.toContain('text-overflow: ellipsis');
+		expect(compactRule).not.toContain('overflow: hidden');
+	});
+
+	it('renders a long failure message in full when compact', () => {
+		const long =
+			'HTTP 400: identity mail is not configured: BREVO_API_KEY and BREVO_SENDER_EMAIL are required — the invitation exists and its token is live, only the email did not go.';
+		render(PageFeedback, { props: { message: long, tone: 'error', compact: true } });
+		expect(screen.getByRole('alert').textContent).toContain('only the email did not go.');
+	});
 });
