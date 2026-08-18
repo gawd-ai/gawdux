@@ -1,5 +1,46 @@
 # Changelog
 
+## 0.6.1 — the sidebar rail's width owns group open-state
+
+### Fixed
+- **`AppSidebar`** — a collapsed rail no longer leaves the active group open,
+  and expanding the rail now opens the group holding the current page.
+
+  The open-state seeding introduced in 0.5.2 ran exactly once, when the
+  dropdown key set was first built, and never read `sidebarOpen`. Two defects
+  followed, and both are visible to end users:
+
+  A host that resolves its collapsed state in `onMount` — the `storageKey`
+  path, where `sidebarOpen` is still nominally `true` at script init — seeded
+  the active group open and then collapsed around it. The collapsed CSS fades
+  sub-item labels to `opacity: 0`, so the leftover open group reads as
+  unexplained blank space in the rail rather than as an open group. Hosts that
+  pass `initialOpen` (the cookie pattern) never opened that window, which is
+  why this reproduced in one product and not the other.
+
+  And since the key set never changed afterwards, expanding the rail re-seeded
+  nothing: the active group stayed shut exactly when there was finally room to
+  show it.
+
+  `toggleSidebar` already called `resetDropdowns()` on the way down, so
+  collapsing *via the toggle* always looked right — the bug hid behind the
+  path most people exercise.
+
+  Open-state now follows the rail width: collapsing closes every group,
+  expanding opens the group holding the current page, and navigating into a
+  section opens that section's group (a closed group renders no sub-items at
+  all, so otherwise the active item has no element to highlight). Opening is
+  additive — only collapsing closes a group the user opened by hand.
+
+  **For consumers already working around this:** a host-side controller that
+  forces the active group open with DOM clicks is now redundant. If it guards
+  on the wrapper's `.open` class it will go inert by itself and needs no
+  coordinated change; remove it when convenient. An unguarded one would now
+  toggle the group *shut*, so check that guard before taking this bump.
+
+  No API change: no new props, no changed signatures. `defaultOpen` still wins
+  over the active page in both directions.
+
 ## 0.6.0 — the command drawer becomes a primitive
 
 ### Added
