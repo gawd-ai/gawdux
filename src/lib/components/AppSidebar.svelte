@@ -96,26 +96,67 @@
 		);
 	}
 
+	// The rail's WIDTH owns group open-state. Three rules, each of which
+	// exists because its absence was a real defect:
+	//
+	//  - COLLAPSED means every group is closed. At rail width there is no room
+	//    to show an open group; the flyout is what navigates there.
+	//  - EXPANDING opens the group holding the current page, so the rail shows
+	//    where you are the moment it is wide enough to say so.
+	//  - NAVIGATING into a section opens that section's group. A closed group
+	//    renders no sub-items at all, so otherwise the active item has no
+	//    element to highlight and the rail never participates.
+	//
+	// Opening never closes a group the user opened by hand — only collapsing
+	// does, and only because a collapsed rail cannot show one.
+	//
+	// This previously seeded ONCE, when the key set was first built, and never
+	// read `sidebarOpen`. Two consequences, both reported from the field:
+	// a host that resolves its collapsed state in onMount (the localStorage
+	// path above, where `sidebarOpen` is still nominally true at script init)
+	// seeded the active group open and then collapsed around it, leaving an
+	// open group behind a collapsed rail; and expanding the rail again
+	// re-seeded nothing, so the active group stayed shut. Consumers were left
+	// to fight this from outside with timed DOM clicks.
 	$effect(() => {
-		const nextDefaults = Object.fromEntries(
-			(config.groups ?? []).map((group) => [
-				group.id,
-				// Seed the group holding the current page open on first paint;
-				// an explicit host defaultOpen wins either way. untrack() so
-				// this seeds only when the key set (re)builds — a later
-				// navigation must not reopen a group the user closed, and
-				// isOpen toggles destroy the group's DOM (see
-				// SidebarDropdownGroup's two-branch rendering note).
-				group.defaultOpen ?? untrack(() => groupHasActiveChild(group))
-			])
-		);
-		const nextKeys = new Set(Object.keys(nextDefaults));
-		const currentKeys = Object.keys(dropdownStates);
-		const keysChanged =
-			currentKeys.length !== nextKeys.size ||
-			currentKeys.some((key) => !nextKeys.has(key));
-		if (!keysChanged) return;
-		dropdownStates = nextDefaults;
+		const open = sidebarOpen;
+		const keys = dropdownKeys;
+		// Tracked so a navigation re-runs this; the reads inside untrack()
+		// below must not become dependencies, or writing dropdownStates here
+		// would re-trigger the effect that wrote it.
+		void activeUrl;
+		untrack(() => {
+			const currentKeys = Object.keys(dropdownStates);
+			const keysChanged =
+				currentKeys.length !== keys.length || keys.some((key) => !currentKeys.includes(key));
+
+			if (keysChanged) {
+				dropdownStates = Object.fromEntries(
+					(config.groups ?? []).map((group) => [
+						group.id,
+						group.defaultOpen ?? (open && groupHasActiveChild(group))
+					])
+				);
+				return;
+			}
+
+			if (!open) {
+				if (currentKeys.some((key) => dropdownStates[key])) {
+					dropdownStates = Object.fromEntries(currentKeys.map((key) => [key, false]));
+				}
+				return;
+			}
+
+			const next = { ...dropdownStates };
+			let changed = false;
+			for (const group of config.groups ?? []) {
+				if (!next[group.id] && (group.defaultOpen ?? groupHasActiveChild(group))) {
+					next[group.id] = true;
+					changed = true;
+				}
+			}
+			if (changed) dropdownStates = next;
+		});
 	});
 
 	// Whether we have any navigation content to render
