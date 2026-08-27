@@ -41,14 +41,24 @@
 }
 @layer components {
   .form-input {
+    /*!rounded: flowbite controls carry their own rounded-lg; the house
+		   radius must win regardless of generated CSS order.*/
     margin-bottom: calc(var(--spacing) * 0);
-    border-radius: var(--radius-lg);
+    border-radius: 0.25rem !important;
     border-style: var(--tw-border-style) !important;
     border-width: 1px !important;
     padding-inline: calc(var(--spacing) * 2);
     background-color: var(--gawdux-surface-input) !important;
     color: var(--gawdux-text-primary) !important;
     border-color: var(--gawdux-border-input) !important;
+  }
+  .form-input:focus {
+    --gawdux-border-input: rgb(59 130 246);
+    outline: none;
+    box-shadow: 0 0 0 1px rgb(59 130 246);
+  }
+  .form-input[aria-invalid='true']:focus {
+    box-shadow: 0 0 0 1px rgb(248 113 113);
   }
   input.form-input,
 	select.form-input {
