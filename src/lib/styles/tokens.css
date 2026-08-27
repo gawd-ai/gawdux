@@ -107,7 +107,9 @@
 @layer components {
 	/* ---------- Form input system ---------- */
 	.form-input {
-		@apply mb-0 px-2 rounded !border;
+		/* !rounded: flowbite controls carry their own rounded-lg; the house
+		   radius must win regardless of generated CSS order. */
+		@apply mb-0 px-2 !rounded !border;
 		background-color: var(--gawdux-surface-input) !important;
 		color: var(--gawdux-text-primary) !important;
 		border-color: var(--gawdux-border-input) !important;
