@@ -6,7 +6,9 @@
 	let { children }: { children?: Snippet } = $props();
 
 	const bar = getContext<PageCommandBarContext | undefined>(PAGE_COMMAND_BAR_CONTEXT);
-	const registrationId = bar?.register('right', null);
+	// Register WITH the snippet so the bar fills in the same render batch as
+	// the page (see PageCommandBarCenter).
+	const registrationId = bar?.register('right', children ?? null);
 
 	$effect(() => {
 		if (registrationId) bar?.update(registrationId, children ?? null);

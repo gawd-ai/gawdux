@@ -6,7 +6,11 @@
 	let { children }: { children?: Snippet } = $props();
 
 	const bar = getContext<PageCommandBarContext | undefined>(PAGE_COMMAND_BAR_CONTEXT);
-	const registrationId = bar?.register('center', null);
+	// Register WITH the snippet so the bar fills in the same render batch as
+	// the page. Registering null and filling from the $effect made the bar
+	// clear on every navigation and repopulate a frame late — the command bar
+	// must never lag the content it commands.
+	const registrationId = bar?.register('center', children ?? null);
 
 	$effect(() => {
 		if (registrationId) bar?.update(registrationId, children ?? null);
