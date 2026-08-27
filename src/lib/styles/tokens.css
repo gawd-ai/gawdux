@@ -107,10 +107,25 @@
 @layer components {
 	/* ---------- Form input system ---------- */
 	.form-input {
-		@apply mb-0 px-2 rounded-lg !border;
+		@apply mb-0 px-2 rounded !border;
 		background-color: var(--gawdux-surface-input) !important;
 		color: var(--gawdux-text-primary) !important;
 		border-color: var(--gawdux-border-input) !important;
+	}
+
+	/* House focus treatment — matches SearchInput (blue-500 border + 1px ring).
+	   Without this, the base border-color !important beat flowbite's
+	   focus:border-primary-* and no ring width ever applied, so focused inputs
+	   showed only the native browser outline (the stray cyan highlight).
+	   Overriding the border VARIABLE keeps the invalid !border-red utilities
+	   dominant; invalid fields get a red ring instead. */
+	.form-input:focus {
+		--gawdux-border-input: rgb(59 130 246);
+		outline: none;
+		box-shadow: 0 0 0 1px rgb(59 130 246);
+	}
+	.form-input[aria-invalid='true']:focus {
+		box-shadow: 0 0 0 1px rgb(248 113 113);
 	}
 
 	input.form-input,
