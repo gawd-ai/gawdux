@@ -8,6 +8,7 @@
 	const bar = getContext<PageCommandBarContext | undefined>(PAGE_COMMAND_BAR_CONTEXT);
 	// Register WITH the snippet so the bar fills in the same render batch as
 	// the page (see PageCommandBarCenter).
+	// svelte-ignore state_referenced_locally -- initial value is intended; the $effect below tracks changes
 	const registrationId = bar?.register('right', children ?? null);
 
 	$effect(() => {

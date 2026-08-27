@@ -10,6 +10,7 @@
 	// the page. Registering null and filling from the $effect made the bar
 	// clear on every navigation and repopulate a frame late — the command bar
 	// must never lag the content it commands.
+	// svelte-ignore state_referenced_locally -- initial value is intended; the $effect below tracks changes
 	const registrationId = bar?.register('center', children ?? null);
 
 	$effect(() => {
