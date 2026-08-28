@@ -41,10 +41,12 @@
 }
 @layer components {
   .form-input {
-    /*!rounded: flowbite controls carry their own rounded-lg; the house
-		   radius must win regardless of generated CSS order.*/
+    /*!rounded-md: flowbite controls carry their own rounded-lg; the house
+		   radius must win regardless of generated CSS order. md is the control
+		   radius; lg is reserved for cards and panels, so a control never reads
+		   as round as the container holding it.*/
     margin-bottom: calc(var(--spacing) * 0);
-    border-radius: 0.25rem !important;
+    border-radius: var(--radius-md) !important;
     border-style: var(--tw-border-style) !important;
     border-width: 1px !important;
     padding-inline: calc(var(--spacing) * 2);
@@ -62,7 +64,7 @@
   }
   input.form-input,
 	select.form-input {
-    height: calc(var(--spacing) * 8) !important;
+    height: calc(var(--spacing) * 9) !important;
     padding-block: calc(var(--spacing) * 0) !important;
   }
   textarea.form-input {
@@ -77,8 +79,8 @@
   }
   select.form-input,
 	input.form-input {
-    --tw-leading: calc(var(--spacing) * 8) !important;
-    line-height: calc(var(--spacing) * 8) !important;
+    --tw-leading: calc(var(--spacing) * 9) !important;
+    line-height: calc(var(--spacing) * 9) !important;
   }
   select.form-input,
 	.form-input select {
@@ -477,8 +479,8 @@
       margin-block-start: calc(calc(var(--spacing) * 4) * var(--tw-space-y-reverse));
       margin-block-end: calc(calc(var(--spacing) * 4) * calc(1 - var(--tw-space-y-reverse)));
     }
-    padding: calc(var(--spacing) * 4);
-    padding-top: calc(var(--spacing) * 2);
+    padding-inline: calc(var(--spacing) * 4);
+    padding-block: calc(var(--spacing) * 2);
   }
   .filter-row {
     display: flex;
@@ -496,6 +498,16 @@
   }
   .filter-field {
     flex: none;
+  }
+  .list-query-inline-field {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: calc(var(--spacing) * 2);
+  }
+  .list-query-inline-field > .form-label {
+    margin-bottom: calc(var(--spacing) * 0);
+    white-space: nowrap;
   }
 }
 div.inline-flex.items-center.justify-center.font-medium {

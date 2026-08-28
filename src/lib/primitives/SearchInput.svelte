@@ -67,10 +67,10 @@
 	} = $props();
 
 	const inputSizeClass = $derived(
-		size === 'standard' ? 'h-10 pl-9 pr-10 text-sm' : 'h-7 pl-7 pr-7 text-xs'
+		size === 'standard' ? 'h-9 pl-9 pr-9 text-sm' : 'h-7 pl-7 pr-7 text-xs'
 	);
 	const iconPositionClass = $derived(size === 'standard' ? 'left-3 h-4 w-4' : 'left-2 h-3.5 w-3.5');
-	const clearSizeClass = $derived(size === 'standard' ? 'h-10 w-10' : 'h-7 w-7');
+	const clearSizeClass = $derived(size === 'standard' ? 'h-9 w-9' : 'h-7 w-7');
 
 	function clear(options: { restoreFocus?: boolean } = {}) {
 		if (!value || disabled) return;
@@ -142,7 +142,7 @@
 		aria-invalid={ariaInvalid}
 		aria-describedby={ariaDescribedby}
 		enterkeyhint="search"
-		class={`search-input-control w-full rounded border border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 ${inputSizeClass}`}
+		class={`search-input-control w-full rounded-md border border-gray-200 bg-white text-gray-900 placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100 ${inputSizeClass}`}
 		oninput={() => oninput?.()}
 		onkeydown={handleKeydown}
 		onfocus={(event) => onfocus?.(event)}

@@ -14,10 +14,6 @@ export interface ListQueryBarProps {
     filterPanelId?: string;
     activeFilters?: readonly ActiveFilterDescriptor[];
     activeFilterCount?: number;
-    resultCount?: number | null;
-    resultNoun?: string;
-    resultNounPlural?: string;
-    resultSummary?: string | null;
     keyboardShortcuts?: boolean;
     oninput?: () => void;
     onclear?: () => void;

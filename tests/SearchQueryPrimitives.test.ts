@@ -106,7 +106,7 @@ describe('SearchInput', () => {
 });
 
 describe('ListQueryBar', () => {
-	it('discloses advanced filters and renders active-filter controls and summary', async () => {
+	it('discloses advanced filters and renders active-filter controls', async () => {
 		let focusWhenRemoved: Element | null = null;
 		let focusWhenReset: Element | null = null;
 		const onRemoveFilter = vi.fn(() => (focusWhenRemoved = document.activeElement));
@@ -117,7 +117,6 @@ describe('ListQueryBar', () => {
 				quickFilters,
 				mobileSort,
 				activeFilters: [{ id: 'status', label: 'Status', value: 'Open' }],
-				resultCount: 12,
 				onRemoveFilter,
 				onResetFilters
 			}
@@ -125,8 +124,9 @@ describe('ListQueryBar', () => {
 
 		expect(screen.getByTestId('quick-filters')).toBeTruthy();
 		expect(screen.queryByRole('button', { name: 'Sort records' })).toBeNull();
-		expect(screen.getByText('12 results')).toBeTruthy();
-		expect(screen.getAllByRole('status')).toHaveLength(1);
+		// The result count belongs to the pagination pill alone. The query bar
+		// used to carry a duplicate of it; asserting the absence keeps it gone.
+		expect(screen.queryAllByRole('status')).toHaveLength(0);
 		expect(screen.queryByRole('region', { name: 'Filters' })).toBeNull();
 
 		await fireEvent.click(screen.getByRole('button', { name: 'Filters, 1 active filter' }));

@@ -107,9 +107,11 @@
 @layer components {
 	/* ---------- Form input system ---------- */
 	.form-input {
-		/* !rounded: flowbite controls carry their own rounded-lg; the house
-		   radius must win regardless of generated CSS order. */
-		@apply mb-0 px-2 !rounded !border;
+		/* !rounded-md: flowbite controls carry their own rounded-lg; the house
+		   radius must win regardless of generated CSS order. md is the control
+		   radius; lg is reserved for cards and panels, so a control never reads
+		   as round as the container holding it. */
+		@apply mb-0 px-2 !rounded-md !border;
 		background-color: var(--gawdux-surface-input) !important;
 		color: var(--gawdux-text-primary) !important;
 		border-color: var(--gawdux-border-input) !important;
@@ -130,9 +132,13 @@
 		box-shadow: 0 0 0 1px rgb(248 113 113);
 	}
 
+	/* h-9 is the house control height: the one number every desktop input,
+	   select, button and search field lands on. SearchInput's `standard` size
+	   and the query bar's Filters button match it. (The 44px override further
+	   down is the mobile touch target, not a second opinion about density.) */
 	input.form-input,
 	select.form-input {
-		@apply !h-8 !py-0;
+		@apply !h-9 !py-0;
 	}
 
 	textarea.form-input {
@@ -151,7 +157,7 @@
 	/* Normalize vertical centering for compact inputs/selects */
 	select.form-input,
 	input.form-input {
-		@apply !leading-8;
+		@apply !leading-9;
 	}
 
 	/* Match Select colors to Input, especially in dark mode */
@@ -527,8 +533,11 @@
 	}
 
 	/* ---------- Filter bar ---------- */
+	/* Symmetric vertical padding. The table header below contributes its own
+	   padding, so an asymmetric `pt-2 pb-4` read as roughly double the gap
+	   above the row — the bar looked as though it were sinking into the table. */
 	.filter-bar {
-		@apply p-4 pt-2 space-y-4;
+		@apply px-4 py-2 space-y-4;
 	}
 
 	.filter-row {
@@ -541,6 +550,19 @@
 
 	.filter-field {
 		@apply flex-none;
+	}
+
+	/* A filter placed directly in the query bar instead of behind the Filters
+	   disclosure. With one or two filters the disclosure hides less than it
+	   costs: at full width the search input already has room to spare, and the
+	   reader loses a click to see state that was never worth concealing.
+	   Label sits beside the control so the row keeps a single control height. */
+	.list-query-inline-field {
+		@apply flex shrink-0 items-center gap-2;
+	}
+
+	.list-query-inline-field > .form-label {
+		@apply mb-0 whitespace-nowrap;
 	}
 }
 

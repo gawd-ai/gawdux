@@ -16,10 +16,6 @@
 		filterPanelId?: string;
 		activeFilters?: readonly ActiveFilterDescriptor[];
 		activeFilterCount?: number;
-		resultCount?: number | null;
-		resultNoun?: string;
-		resultNounPlural?: string;
-		resultSummary?: string | null;
 		keyboardShortcuts?: boolean;
 		oninput?: () => void;
 		onclear?: () => void;
@@ -85,10 +81,6 @@
 		filterPanelId,
 		activeFilters = [],
 		activeFilterCount,
-		resultCount = null,
-		resultNoun = 'result',
-		resultNounPlural,
-		resultSummary = null,
 		keyboardShortcuts = true,
 		oninput,
 		onclear,
@@ -108,13 +100,6 @@
 	const hasFilterPanel = $derived(Boolean(advancedFilters || mobileSort));
 	const isSortOnlyPanel = $derived(Boolean(mobileSort && !advancedFilters));
 	const disclosureLabel = $derived(isSortOnlyPanel ? 'Sort' : filtersLabel);
-	const pluralNoun = $derived(resultNounPlural ?? `${resultNoun}s`);
-	const resolvedSummary = $derived(
-		resultSummary ??
-			(resultCount == null
-				? null
-				: `${resultCount.toLocaleString()} ${resultCount === 1 ? resultNoun : pluralNoun}`)
-	);
 	const filterButtonLabel = $derived(
 		filterCount > 0
 			? `${disclosureLabel}, ${filterCount} active ${filterCount === 1 ? 'filter' : 'filters'}`
@@ -205,14 +190,14 @@
 		</div>
 
 		{#if quickFilters}
-			<div class="min-w-0 shrink-0">{@render quickFilters()}</div>
+			<div class="list-query-quick-filters min-w-0 shrink-0">{@render quickFilters()}</div>
 		{/if}
 
 		{#if hasFilterPanel}
 			<button
 				type="button"
 				class:list-query-sort-only={isSortOnlyPanel}
-				class="list-query-filter-button inline-flex h-10 shrink-0 items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
+				class="list-query-filter-button inline-flex h-9 shrink-0 items-center gap-1.5 rounded-md border border-gray-200 bg-white px-3 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 dark:hover:bg-gray-800"
 				aria-label={filterButtonLabel}
 				title={filterButtonLabel}
 				aria-controls={panelId}
@@ -241,17 +226,6 @@
 					<ChevronDownOutline class="h-3 w-3" />
 				</span>
 			</button>
-		{/if}
-
-		{#if resolvedSummary}
-			<p
-				class="list-query-result-summary ml-auto w-full shrink-0 text-right text-xs text-gray-500 sm:w-auto dark:text-gray-400"
-				role="status"
-				aria-live="polite"
-				aria-busy={busy}
-			>
-				{resolvedSummary}
-			</p>
 		{/if}
 	</div>
 
@@ -338,6 +312,12 @@
 		.list-query-advanced-grid {
 			grid-template-columns: minmax(0, 1fr);
 		}
+
+		/* Inline filters get their own full-width line rather than competing
+		   with the search input for a phone-width row. */
+		.list-query-quick-filters {
+			width: 100%;
+		}
 	}
 
 	@media (max-width: 480px) {
@@ -363,14 +343,6 @@
 			padding: 0 0.25rem;
 			font-size: 0.5625rem;
 			line-height: 1;
-		}
-
-		.list-query-result-summary {
-			margin-left: 0;
-			width: 100%;
-			text-align: left;
-			font-size: 0.6875rem;
-			line-height: 1rem;
 		}
 	}
 
