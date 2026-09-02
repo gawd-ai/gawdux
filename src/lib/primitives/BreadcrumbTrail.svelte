@@ -4,6 +4,27 @@
 	type Crumb = { label: string; href?: string; icon?: Component };
 	export let items: Crumb[] = [];
 	export let className: string = 'h-12';
+
+	/* A label a consumer has ellipsized shows its full text on hover; a label
+	   that fits shows nothing. Re-checked as the label's box changes size. */
+	function hintWhenTruncated(node: HTMLElement, label: string) {
+		let current = label;
+		const update = () => {
+			node.title = node.scrollWidth > node.clientWidth ? current : '';
+		};
+		update();
+		const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(update) : null;
+		observer?.observe(node);
+		return {
+			update(next: string) {
+				current = next;
+				update();
+			},
+			destroy() {
+				observer?.disconnect();
+			}
+		};
+	}
 </script>
 
 <Breadcrumb class={className}>
@@ -25,7 +46,7 @@
 			<!-- The label is its own element so a consumer can keep the trail on
 			     one line and ellipsize a long name without clipping whatever
 			     follows it (a status chip). -->
-			<span class="breadcrumb-label">{item.label}</span>
+			<span class="breadcrumb-label" use:hintWhenTruncated={item.label}>{item.label}</span>
 			{#if i === items.length - 1}
 				<!-- Lift slot content (status badges, etc.) so they read as visually
 				     centered with the larger breadcrumb text/icons instead of sitting
