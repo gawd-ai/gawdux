@@ -15,6 +15,8 @@
 		title = null,
 		message,
 		error = null,
+		live = null,
+		kind = null,
 		cancelLabel = 'Cancel',
 		code = null,
 		confirmLabel,
@@ -27,21 +29,27 @@
 		onconfirm,
 		oncancel
 	}: {
-		title?: string | null;
+		// Optional props accept `undefined` explicitly so consumers compiled
+		// with exactOptionalPropertyTypes can forward their own optionals.
+		title?: string | null | undefined;
 		message: string;
 		/** Replaces the message, in the error tone, until the next attempt. */
-		error?: string | null;
+		error?: string | null | undefined;
+		/** `status` announces the message politely (a result to acknowledge). */
+		live?: 'status' | null | undefined;
+		/** Free-form tag for the decision (`data-kind`), for tests and styling hooks. */
+		kind?: string | null | undefined;
 		/** null hides Cancel: a result the operator only acknowledges. */
-		cancelLabel?: string | null;
+		cancelLabel?: string | null | undefined;
 		/** A value to hand over (an access code), shown selectable beside the message. */
-		code?: string | null;
+		code?: string | null | undefined;
 		confirmLabel: string;
-		busyLabel?: string;
-		confirmColor?: 'red' | 'green' | 'blue';
-		busy?: boolean;
-		disabled?: boolean;
-		focusTarget?: HTMLElement | null;
-		focusFallback?: () => HTMLElement | null;
+		busyLabel?: string | undefined;
+		confirmColor?: 'red' | 'green' | 'blue' | undefined;
+		busy?: boolean | undefined;
+		disabled?: boolean | undefined;
+		focusTarget?: HTMLElement | null | undefined;
+		focusFallback?: (() => HTMLElement | null) | undefined;
 		onconfirm: () => void;
 		oncancel: () => void;
 	} = $props();
@@ -86,7 +94,10 @@
 		priorError = currentError;
 	});
 
+	let focusRestored = false;
 	function restoreFocus() {
+		if (focusRestored) return;
+		focusRestored = true;
 		const target = focusTarget?.isConnected ? focusTarget : focusFallback?.();
 		if (target?.isConnected && !target.matches(':disabled')) {
 			target.focus({ preventScroll: true });
@@ -101,6 +112,9 @@
 	function cancel() {
 		if (busy) return;
 		oncancel();
+		// The invoking control gets focus back at once: the host may keep the
+		// decision mounted for a moment, and the operator should not wait.
+		void tick().then(restoreFocus);
 	}
 
 	function confirm() {
@@ -125,6 +139,7 @@
 		role="group"
 		data-workflow-role="command-drawer"
 		data-confirmation-command
+		data-kind={kind ?? undefined}
 		aria-labelledby={title ? titleId : undefined}
 		aria-describedby={messageId}
 		aria-busy={busy}
@@ -137,12 +152,12 @@
 				id={messageId}
 				class="cmd-bar-confirm-message"
 				class:is-error={Boolean(error)}
-				role={error ? 'alert' : undefined}
+				role={error ? 'alert' : (live ?? undefined)}
 			>
 				{error ?? message}
 			</span>
 			{#if code}
-				<code class="cmd-bar-confirm-code" data-access-code>{code}</code>
+				<code class="cmd-bar-confirm-code select-all" data-access-code>{code}</code>
 			{/if}
 		</div>
 		{#if cancelLabel}
