@@ -768,35 +768,26 @@ main:has(.page-command-bar) *:has(> .context-surface),
 }
 
 
-/* ---------- Surface feedback band / context-surface merge ---------- */
-/* The page scaffolds render feedback (a failed action, a panel that could
-   not load) in ONE place: a full-width strip fused to the top edge of the
-   content surface, the mirror of the command bar fused to its bottom edge.
-   The wrapper owns the border and the top rounding; the bands inside are
-   flat (PageFeedback layout="band"); the surface keeps its own top border
-   as the separator and loses its top rounding, exactly as it loses the
-   bottom rounding to the bar. Nested surfaces (a table inside a tab) get
-   their rounding back, same as the bar rule. */
+/* ---------- Surface feedback strip ---------- */
+/* The shells render feedback (a failed action, a panel that could not
+   load) in ONE place: a full-width strip INSIDE the content panel, directly
+   under the panel's header chrome (tab strip, filter bar) or under its top
+   edge when there is none. The content below moves down; nothing above it
+   does. The strip is flat (PageFeedback layout="band"): the tint is the
+   tone, the panel's border is its frame, one rule for its lower edge. */
 .surface-feedback {
-	@apply shadow-md;
 	flex-shrink: 0;
 	width: 100%;
-	overflow: hidden;
-	border: 1px solid var(--gawdux-border);
-	border-bottom-width: 0;
-	border-radius: 0.5rem 0.5rem 0 0;
-	background-color: var(--gawdux-surface-card);
+	border-bottom: 1px solid var(--gawdux-border);
 }
 .surface-feedback > * + * {
 	border-top: 1px solid var(--gawdux-border);
 }
-main:has(.surface-feedback) .context-surface {
-	border-top-left-radius: 0 !important;
-	border-top-right-radius: 0 !important;
-}
-main:has(.surface-feedback) .context-surface .context-surface {
-	border-top-left-radius: 0.5rem !important;
-	border-top-right-radius: 0.5rem !important;
+/* First thing in a rounded panel: follow the corner. */
+.context-surface > .surface-feedback:first-child {
+	overflow: hidden;
+	border-top-left-radius: calc(0.5rem - 1px);
+	border-top-right-radius: calc(0.5rem - 1px);
 }
 
 /* ---------- Mission-control page command bar ---------- */

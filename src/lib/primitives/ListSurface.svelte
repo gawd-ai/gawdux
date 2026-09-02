@@ -4,9 +4,10 @@
 	import TableContainer from './TableContainer.svelte';
 	import FilterBar from './FilterBar.svelte';
 	import ListPaginationNav from './ListPaginationNav.svelte';
-	import PageFeedback from './PageFeedback.svelte';
+	import SurfaceFeedback from './SurfaceFeedback.svelte';
 	import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
 	import type { ListPagination } from './list-pagination';
+	import { createEventDispatcher } from 'svelte';
 
 	export let mode: 'page' | 'tab' | 'embedded' = 'page';
 	export let showFooter = true;
@@ -17,13 +18,16 @@
 	    When provided, takes precedence over the legacy `footer` slot. */
 	export let pagination: ListPagination | null = null;
 	/** A failed action on the list (a restore, an archive, a refresh after
-	    one). One band fused to the top of the surface, dismissable; forward
-	    `on:dismiss` to clear it. Same shape as EditablePageScaffold. */
+	    one). The one feedback strip, inside the panel under the filter bar,
+	    dismissable; forward `on:dismiss` to clear it. Same shape as
+	    EditablePageScaffold. */
 	export let actionError: string | null | undefined = null;
-	/** The list itself could not be loaded. Same band, not dismissable. */
+	/** The list itself could not be loaded. Same strip, not dismissable. */
 	export let loadError: string | null | undefined = null;
 	export let loadErrorAction: SurfaceFeedbackAction | null = null;
 	export let dismissableFeedback = true;
+
+	const dispatch = createEventDispatcher<{ dismiss: void }>();
 
 	$: isPage = mode === 'page';
 	$: renderActions = isPage && (hasActions ?? !!$$slots.actions);
@@ -95,32 +99,6 @@
 	{/if}
 {/if}
 
-{#if loadError?.trim() || actionError?.trim()}
-	<div class="surface-feedback">
-		{#if loadError?.trim()}
-			<PageFeedback
-				layout="band"
-				message={loadError}
-				title={null}
-				tone="error"
-				dismissable={false}
-				actionLabel={loadErrorAction?.label ?? null}
-				actionHref={loadErrorAction?.href ?? null}
-			/>
-		{/if}
-		{#if actionError?.trim()}
-			<PageFeedback
-				layout="band"
-				message={actionError}
-				title={null}
-				tone="error"
-				dismissable={dismissableFeedback}
-				on:dismiss
-			/>
-		{/if}
-	</div>
-{/if}
-
 <div class={scaffoldClass}>
 	<TableContainer className={containerClass}>
 		{#if $$slots.header}
@@ -133,6 +111,14 @@
 				<slot name="filters" />
 			</FilterBar>
 		{/if}
+		<SurfaceFeedback
+			{actionError}
+			{loadError}
+			{loadErrorAction}
+			tone="error"
+			dismissable={dismissableFeedback}
+			ondismiss={() => dispatch('dismiss')}
+		/>
 		<div class={scrollClass}>
 			<slot />
 		</div>

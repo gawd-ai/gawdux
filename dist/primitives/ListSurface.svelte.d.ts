@@ -27,9 +27,10 @@ declare const ListSurface: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_Pro
     /** Declarative pagination — renders the pill in the bar's RIGHT zone.
             When provided, takes precedence over the legacy `footer` slot. */ pagination?: ListPagination | null;
     /** A failed action on the list (a restore, an archive, a refresh after
-            one). One band fused to the top of the surface, dismissable; forward
-            `on:dismiss` to clear it. Same shape as EditablePageScaffold. */ actionError?: string | null | undefined;
-    /** The list itself could not be loaded. Same band, not dismissable. */ loadError?: string | null | undefined;
+            one). The one feedback strip, inside the panel under the filter bar,
+            dismissable; forward `on:dismiss` to clear it. Same shape as
+            EditablePageScaffold. */ actionError?: string | null | undefined;
+    /** The list itself could not be loaded. Same strip, not dismissable. */ loadError?: string | null | undefined;
     loadErrorAction?: SurfaceFeedbackAction | null;
     dismissableFeedback?: boolean;
 }, {

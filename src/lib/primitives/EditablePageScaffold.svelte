@@ -1,16 +1,23 @@
 <script lang="ts">
+	import { createEventDispatcher, setContext } from 'svelte';
+	import { get, writable } from 'svelte/store';
 	import PageCommandBarCenter from './PageCommandBarCenter.svelte';
 	import PageActionBar from './PageActionBar.svelte';
+	import SurfaceFeedback from './SurfaceFeedback.svelte';
 	import type { EditModeProps, LifecycleAction, LifecycleKindRenderers } from './PageActionBar.svelte';
-	import PageFeedback from './PageFeedback.svelte';
 	import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
+	import {
+		SURFACE_FEEDBACK_CONTEXT,
+		type SurfaceFeedbackHost,
+		type SurfaceFeedbackState
+	} from './surface-feedback-context';
 
-	/** A failed action on this page. One band fused to the top of the
-	    surface, dismissable; forward `on:dismiss` to clear it. */
+	/** A failed action on this page. Rendered as the one feedback strip
+	    inside the panel; forward `on:dismiss` to clear it. */
 	export let actionError: string | null | undefined = null;
 	export let feedbackTone: 'error' | 'success' | 'info' = 'error';
 	export let dismissableFeedback = true;
-	/** The page, or a panel in it, could not be loaded. Same band, not
+	/** The page, or a panel in it, could not be loaded. Same strip, not
 	    dismissable; `loadErrorAction` is the way back (a list). */
 	export let loadError: string | null | undefined = null;
 	export let loadErrorAction: SurfaceFeedbackAction | null = null;
@@ -24,6 +31,38 @@
 	    should leave this false. */
 	export let surface = false;
 	export let className = '';
+
+	const dispatch = createEventDispatcher<{ dismiss: void }>();
+	const feedback = writable<SurfaceFeedbackState>({
+		actionError: null,
+		loadError: null,
+		loadErrorAction: null,
+		tone: 'error',
+		dismissable: true,
+		ondismiss: () => dispatch('dismiss')
+	});
+	$: feedback.set({
+		actionError: actionError ?? null,
+		loadError: loadError ?? null,
+		loadErrorAction,
+		tone: feedbackTone,
+		dismissable: dismissableFeedback,
+		ondismiss: () => dispatch('dismiss')
+	});
+
+	/* When the page renders its own panel (PageTabs), that shell claims the
+	   strip and renders it under its tab strip, so the messages sit inside
+	   the panel and nothing above them moves. Until a shell claims it, the
+	   scaffold renders the strip itself. */
+	const claimed = writable(false);
+	setContext<SurfaceFeedbackHost>(SURFACE_FEEDBACK_CONTEXT, {
+		state: feedback,
+		claim() {
+			if (surface || get(claimed)) return null;
+			claimed.set(true);
+			return () => claimed.set(false);
+		}
+	});
 </script>
 
 <!-- The `breadcrumb` slot is declared but intentionally not rendered.
@@ -43,37 +82,17 @@
 		</PageCommandBarCenter>
 	{/if}
 
-	{#if loadError?.trim() || actionError?.trim()}
-		<div class="surface-feedback">
-			{#if loadError?.trim()}
-				<PageFeedback
-					layout="band"
-					message={loadError}
-					title={null}
-					tone="error"
-					dismissable={false}
-					actionLabel={loadErrorAction?.label ?? null}
-					actionHref={loadErrorAction?.href ?? null}
-				/>
-			{/if}
-			{#if actionError?.trim()}
-				<PageFeedback
-					layout="band"
-					message={actionError}
-					title={null}
-					tone={feedbackTone}
-					dismissable={dismissableFeedback}
-					on:dismiss
-				/>
-			{/if}
-		</div>
-	{/if}
-
 	{#if surface}
 		<div class="context-surface page-tabs-shell editable-page-surface">
-			<slot />
+			<SurfaceFeedback {...$feedback} />
+			<div class="editable-page-body">
+				<slot />
+			</div>
 		</div>
 	{:else}
+		{#if !$claimed}
+			<SurfaceFeedback {...$feedback} />
+		{/if}
 		<slot />
 	{/if}
 </div>
@@ -85,15 +104,27 @@
 		width: 100%;
 	}
 
+	.editable-page-surface {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+	}
+
 	/* The house page inset: 1rem sides and top, 0.25rem above the command
 	   bar, the same values .scroll-surface and the list chrome use. Every
-	   surface reads the same because none of them chooses. */
-	.editable-page-surface {
+	   surface reads the same because none of them chooses. The inset is on
+	   the body, not the panel, so the feedback strip above it runs edge to
+	   edge like the tab strip and the filter bar do. */
+	.editable-page-body {
+		display: flex;
+		flex-direction: column;
+		flex: 1 1 auto;
+		min-height: 0;
 		padding: 1rem 1rem 0.25rem;
 	}
 	/* A two-pane shell brings its own inset (so it also works inside a tab
 	   panel); a surface that hosts one directly must not add a second. */
-	.editable-page-surface:has(> :global(.master-detail-shell)) {
+	.editable-page-body:has(> :global(.master-detail-shell)) {
 		padding: 0;
 	}
 </style>

@@ -35,6 +35,8 @@ export { default as PageCommandBar } from './PageCommandBar.svelte';
 export { default as PageCommandBarCenter } from './PageCommandBarCenter.svelte';
 export { default as PageCommandBarRight } from './PageCommandBarRight.svelte';
 export { default as PageFeedback } from './PageFeedback.svelte';
+export { default as SurfaceFeedback } from './SurfaceFeedback.svelte';
+export { SURFACE_FEEDBACK_CONTEXT } from './surface-feedback-context';
 export { default as PageTabs } from './PageTabs.svelte';
 export { default as RailRowButton } from './RailRowButton.svelte';
 export { default as ReadonlyField } from './ReadonlyField.svelte';

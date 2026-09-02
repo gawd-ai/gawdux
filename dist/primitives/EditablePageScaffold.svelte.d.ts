@@ -19,11 +19,11 @@ type $$__sveltets_2_PropsWithChildren<Props, Slots> = Props & (Slots extends {
     children?: any;
 } : {});
 declare const EditablePageScaffold: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_PropsWithChildren<{
-    /** A failed action on this page. One band fused to the top of the
-            surface, dismissable; forward `on:dismiss` to clear it. */ actionError?: string | null | undefined;
+    /** A failed action on this page. Rendered as the one feedback strip
+            inside the panel; forward `on:dismiss` to clear it. */ actionError?: string | null | undefined;
     feedbackTone?: "error" | "success" | "info";
     dismissableFeedback?: boolean;
-    /** The page, or a panel in it, could not be loaded. Same band, not
+    /** The page, or a panel in it, could not be loaded. Same strip, not
             dismissable; `loadErrorAction` is the way back (a list). */ loadError?: string | null | undefined;
     loadErrorAction?: SurfaceFeedbackAction | null;
     editMode?: EditModeProps | null;

@@ -656,26 +656,17 @@ main:has(.page-command-bar) *:has(> .context-surface),
   min-height: 0;
 }
 .surface-feedback {
-  --tw-shadow: 0 4px 6px -1px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 2px 4px -2px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
-  box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   flex-shrink: 0;
   width: 100%;
-  overflow: hidden;
-  border: 1px solid var(--gawdux-border);
-  border-bottom-width: 0;
-  border-radius: 0.5rem 0.5rem 0 0;
-  background-color: var(--gawdux-surface-card);
+  border-bottom: 1px solid var(--gawdux-border);
 }
 .surface-feedback > * + * {
   border-top: 1px solid var(--gawdux-border);
 }
-main:has(.surface-feedback) .context-surface {
-  border-top-left-radius: 0 !important;
-  border-top-right-radius: 0 !important;
-}
-main:has(.surface-feedback) .context-surface .context-surface {
-  border-top-left-radius: 0.5rem !important;
-  border-top-right-radius: 0.5rem !important;
+.context-surface > .surface-feedback:first-child {
+  overflow: hidden;
+  border-top-left-radius: calc(0.5rem - 1px);
+  border-top-right-radius: calc(0.5rem - 1px);
 }
 .page-command-bar {
   margin-top: auto;
