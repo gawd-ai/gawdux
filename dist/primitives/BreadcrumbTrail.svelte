@@ -22,12 +22,15 @@
 					/>
 				{/if}
 			</svelte:fragment>
-			{item.label}
+			<!-- The label is its own element so a consumer can keep the trail on
+			     one line and ellipsize a long name without clipping whatever
+			     follows it (a status chip). -->
+			<span class="breadcrumb-label">{item.label}</span>
 			{#if i === items.length - 1}
 				<!-- Lift slot content (status badges, etc.) so they read as visually
 				     centered with the larger breadcrumb text/icons instead of sitting
 				     on the text baseline. -->
-				<span class="inline-flex -translate-y-[3px] items-center">
+				<span class="breadcrumb-after-last inline-flex -translate-y-[3px] items-center">
 					<slot name="afterLast" />
 				</span>
 			{/if}
