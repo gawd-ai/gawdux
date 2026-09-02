@@ -1,6 +1,7 @@
 <script lang="ts">
 	import ListSurface from './ListSurface.svelte';
 	import type { ListPagination } from './list-pagination';
+	import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
 
 	export let showFooter = true;
 	/** Declarative pagination — when provided, the scaffold renders the
@@ -10,9 +11,8 @@
 	export let className = '';
 	/** Feedback props mirror EditablePageScaffold; see ListSurface. */
 	export let actionError: string | null | undefined = null;
-	export let actionErrorTitle = 'Needs attention';
 	export let loadError: string | null | undefined = null;
-	export let loadErrorTitle = 'Needs attention';
+	export let loadErrorAction: SurfaceFeedbackAction | null = null;
 	export let dismissableFeedback = true;
 </script>
 
@@ -22,9 +22,8 @@
 	{pagination}
 	{className}
 	{actionError}
-	{actionErrorTitle}
 	{loadError}
-	{loadErrorTitle}
+	{loadErrorAction}
 	{dismissableFeedback}
 	on:dismiss
 	hasActions={!!$$slots.actions}

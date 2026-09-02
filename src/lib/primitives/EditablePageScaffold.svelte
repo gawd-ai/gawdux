@@ -3,11 +3,17 @@
 	import PageActionBar from './PageActionBar.svelte';
 	import type { EditModeProps, LifecycleAction, LifecycleKindRenderers } from './PageActionBar.svelte';
 	import PageFeedback from './PageFeedback.svelte';
+	import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
 
+	/** A failed action on this page. One band fused to the top of the
+	    surface, dismissable; forward `on:dismiss` to clear it. */
 	export let actionError: string | null | undefined = null;
-	export let actionErrorTitle = 'Needs attention';
 	export let feedbackTone: 'error' | 'success' | 'info' = 'error';
 	export let dismissableFeedback = true;
+	/** The page, or a panel in it, could not be loaded. Same band, not
+	    dismissable; `loadErrorAction` is the way back (a list). */
+	export let loadError: string | null | undefined = null;
+	export let loadErrorAction: SurfaceFeedbackAction | null = null;
 	export let editMode: EditModeProps | null = null;
 	export let lifecycle: LifecycleAction[] = [];
 	export let kindRenderers: LifecycleKindRenderers = {};
@@ -37,15 +43,29 @@
 		</PageCommandBarCenter>
 	{/if}
 
-	{#if actionError?.trim()}
-		<div class="editable-page-feedback">
-			<PageFeedback
-				message={actionError}
-				title={actionErrorTitle}
-				tone={feedbackTone}
-				dismissable={dismissableFeedback}
-				on:dismiss
-			/>
+	{#if loadError?.trim() || actionError?.trim()}
+		<div class="surface-feedback">
+			{#if loadError?.trim()}
+				<PageFeedback
+					layout="band"
+					message={loadError}
+					title={null}
+					tone="error"
+					dismissable={false}
+					actionLabel={loadErrorAction?.label ?? null}
+					actionHref={loadErrorAction?.href ?? null}
+				/>
+			{/if}
+			{#if actionError?.trim()}
+				<PageFeedback
+					layout="band"
+					message={actionError}
+					title={null}
+					tone={feedbackTone}
+					dismissable={dismissableFeedback}
+					on:dismiss
+				/>
+			{/if}
 		</div>
 	{/if}
 
@@ -62,11 +82,6 @@
 	.editable-page-scaffold {
 		display: contents;
 		min-width: 0;
-		width: 100%;
-	}
-
-	.editable-page-feedback {
-		margin-bottom: 0.5rem;
 		width: 100%;
 	}
 

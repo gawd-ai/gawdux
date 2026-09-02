@@ -45,8 +45,10 @@ export { default as PageCommandBarCenter } from './PageCommandBarCenter.svelte';
 export { default as PageCommandBarRight } from './PageCommandBarRight.svelte';
 export { default as PageFeedback } from './PageFeedback.svelte';
 export type {
+	PageFeedbackLayout,
 	PageFeedbackLive,
 	PageFeedbackProps,
+	SurfaceFeedbackAction,
 	PageFeedbackRole,
 	PageFeedbackTone
 } from './PageFeedback.svelte';

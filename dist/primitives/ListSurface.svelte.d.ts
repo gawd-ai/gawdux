@@ -1,3 +1,4 @@
+import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
 import type { ListPagination } from './list-pagination';
 interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> = any, Events extends Record<string, any> = any, Slots extends Record<string, any> = any, Exports = {}, Bindings = string> {
     new (options: import('svelte').ComponentConstructorOptions<Props>): import('svelte').SvelteComponent<Props, Events, Slots> & {
@@ -26,12 +27,10 @@ declare const ListSurface: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_Pro
     /** Declarative pagination — renders the pill in the bar's RIGHT zone.
             When provided, takes precedence over the legacy `footer` slot. */ pagination?: ListPagination | null;
     /** A failed action on the list (a restore, an archive, a refresh after
-            one). Renders PageFeedback above the surface, dismissable; forward
+            one). One band fused to the top of the surface, dismissable; forward
             `on:dismiss` to clear it. Same shape as EditablePageScaffold. */ actionError?: string | null | undefined;
-    actionErrorTitle?: string;
-    /** The list itself could not be loaded. Not dismissable: there is
-            nothing under it to go back to. */ loadError?: string | null | undefined;
-    loadErrorTitle?: string;
+    /** The list itself could not be loaded. Same band, not dismissable. */ loadError?: string | null | undefined;
+    loadErrorAction?: SurfaceFeedbackAction | null;
     dismissableFeedback?: boolean;
 }, {
     actions: {};

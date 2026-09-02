@@ -2,6 +2,15 @@ import type { Component, Snippet } from 'svelte';
 export type PageFeedbackTone = 'error' | 'success' | 'warning' | 'info' | 'pending';
 export type PageFeedbackRole = 'alert' | 'status' | null;
 export type PageFeedbackLive = 'assertive' | 'polite' | 'off' | null;
+/** `card`: a bounded card (app messages, overlays). `band`: a flat,
+    full-width strip meant to sit inside `.surface-feedback`, the slot
+    the page scaffolds fuse to the top of the content surface. */
+export type PageFeedbackLayout = 'card' | 'band';
+/** The one action a feedback line may carry (the way back to a list). */
+export interface SurfaceFeedbackAction {
+    label: string;
+    href: string;
+}
 export interface PageFeedbackProps {
     /** Plain-text feedback. Rich `children` content takes precedence when provided. */
     message?: string | null;
@@ -9,6 +18,7 @@ export interface PageFeedbackProps {
     tone?: PageFeedbackTone;
     dismissable?: boolean;
     compact?: boolean;
+    layout?: PageFeedbackLayout;
     className?: string;
     children?: Snippet;
     icon?: Component<{

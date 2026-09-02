@@ -4,6 +4,15 @@
 	export type PageFeedbackTone = 'error' | 'success' | 'warning' | 'info' | 'pending';
 	export type PageFeedbackRole = 'alert' | 'status' | null;
 	export type PageFeedbackLive = 'assertive' | 'polite' | 'off' | null;
+	/** `card`: a bounded card (app messages, overlays). `band`: a flat,
+	    full-width strip meant to sit inside `.surface-feedback`, the slot
+	    the page scaffolds fuse to the top of the content surface. */
+	export type PageFeedbackLayout = 'card' | 'band';
+	/** The one action a feedback line may carry (the way back to a list). */
+	export interface SurfaceFeedbackAction {
+		label: string;
+		href: string;
+	}
 
 	export interface PageFeedbackProps {
 		/** Plain-text feedback. Rich `children` content takes precedence when provided. */
@@ -12,6 +21,7 @@
 		tone?: PageFeedbackTone;
 		dismissable?: boolean;
 		compact?: boolean;
+		layout?: PageFeedbackLayout;
 		className?: string;
 		children?: Snippet;
 		icon?: Component<{ class?: string }>;
@@ -46,6 +56,7 @@
 		tone = 'error',
 		dismissable = true,
 		compact = false,
+		layout = 'card',
 		className = '',
 		children,
 		icon,
@@ -103,7 +114,7 @@
 
 {#if visible}
 	<div
-		class={`page-feedback-card ${tone} ${compact ? 'compact' : ''} ${className}`}
+		class={`page-feedback-card ${tone} ${layout} ${compact ? 'compact' : ''} ${className}`}
 		role={resolvedRole}
 		aria-live={resolvedLive}
 		aria-atomic={resolvedLive ? ariaAtomic : undefined}
@@ -285,6 +296,31 @@
 		overflow-wrap: anywhere;
 	}
 
+	/* Band: no box of its own. The .surface-feedback wrapper (tokens.css)
+	   carries the border and the top rounding so several bands stack as
+	   one strip, and the surface below keeps its top border as the
+	   separator. Width is the surface's width; the tint is the tone. */
+	.page-feedback-card.band {
+		width: 100%;
+		max-width: none;
+		min-height: 2.75rem;
+		align-items: center;
+		gap: 0.625rem;
+		padding: 0.5rem 1rem;
+		border: 0;
+		border-radius: 0;
+		box-shadow: none;
+	}
+
+	.page-feedback-card.band .page-feedback-icon {
+		margin-top: 0;
+	}
+
+	.page-feedback-card.band .page-feedback-message {
+		margin-top: 0;
+		overflow-wrap: anywhere;
+	}
+
 	.page-feedback-action,
 	.page-feedback-dismiss {
 		display: inline-flex;
@@ -336,12 +372,18 @@
 		background: rgb(255 255 255 / 0.42);
 	}
 
-	.page-feedback-card.compact .page-feedback-action {
+	.page-feedback-card.compact .page-feedback-action,
+	.page-feedback-card.band .page-feedback-action {
 		min-height: 0;
 		padding: 0.25rem 0.625rem;
 	}
 
-	.page-feedback-card.compact .page-feedback-dismiss {
+	.page-feedback-card.band .page-feedback-action {
+		border-color: color-mix(in srgb, currentColor 45%, transparent);
+	}
+
+	.page-feedback-card.compact .page-feedback-dismiss,
+	.page-feedback-card.band .page-feedback-dismiss {
 		min-height: 0;
 		width: 28px;
 		height: 28px;

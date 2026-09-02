@@ -1,4 +1,5 @@
 import type { EditModeProps, LifecycleAction, LifecycleKindRenderers } from './PageActionBar.svelte';
+import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
 interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> = any, Events extends Record<string, any> = any, Slots extends Record<string, any> = any, Exports = {}, Bindings = string> {
     new (options: import('svelte').ComponentConstructorOptions<Props>): import('svelte').SvelteComponent<Props, Events, Slots> & {
         $$bindings?: Bindings;
@@ -18,10 +19,13 @@ type $$__sveltets_2_PropsWithChildren<Props, Slots> = Props & (Slots extends {
     children?: any;
 } : {});
 declare const EditablePageScaffold: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_PropsWithChildren<{
-    actionError?: string | null | undefined;
-    actionErrorTitle?: string;
+    /** A failed action on this page. One band fused to the top of the
+            surface, dismissable; forward `on:dismiss` to clear it. */ actionError?: string | null | undefined;
     feedbackTone?: "error" | "success" | "info";
     dismissableFeedback?: boolean;
+    /** The page, or a panel in it, could not be loaded. Same band, not
+            dismissable; `loadErrorAction` is the way back (a list). */ loadError?: string | null | undefined;
+    loadErrorAction?: SurfaceFeedbackAction | null;
     editMode?: EditModeProps | null;
     lifecycle?: LifecycleAction[];
     kindRenderers?: LifecycleKindRenderers;

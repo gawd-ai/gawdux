@@ -1,4 +1,5 @@
 import type { ListPagination } from './list-pagination';
+import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
 interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> = any, Events extends Record<string, any> = any, Slots extends Record<string, any> = any, Exports = {}, Bindings = string> {
     new (options: import('svelte').ComponentConstructorOptions<Props>): import('svelte').SvelteComponent<Props, Events, Slots> & {
         $$bindings?: Bindings;
@@ -24,9 +25,8 @@ declare const ListPageScaffold: $$__sveltets_2_IsomorphicComponent<$$__sveltets_
             individually. Pass `null` (or omit) to hide pagination entirely. */ pagination?: ListPagination | null;
     className?: string;
     /** Feedback props mirror EditablePageScaffold; see ListSurface. */ actionError?: string | null | undefined;
-    actionErrorTitle?: string;
     loadError?: string | null | undefined;
-    loadErrorTitle?: string;
+    loadErrorAction?: SurfaceFeedbackAction | null;
     dismissableFeedback?: boolean;
 }, {
     actions: {};
