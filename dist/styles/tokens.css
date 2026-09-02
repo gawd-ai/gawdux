@@ -716,7 +716,7 @@ main:has(.page-command-bar) *:has(> .context-surface),
   background-color: rgb(249 250 251);
   border: 1px solid rgb(229 231 235);
   border-bottom-width: 0;
-  border-radius: 0.5rem 0.5rem 0 0;
+  border-radius: 0;
 }
 .dark .page-command-drawer {
   background-color: rgb(28 37 51);
