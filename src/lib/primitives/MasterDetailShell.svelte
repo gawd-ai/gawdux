@@ -91,8 +91,12 @@
 	});
 </script>
 
-<div class="@container min-h-0 w-full flex-1">
-	<div class="h-full min-h-0 overflow-auto p-3 @3xl:flex @3xl:flex-col @3xl:overflow-hidden">
+<div class="master-detail-shell @container min-h-0 w-full flex-1">
+	<!-- House page inset (1rem sides and top, 0.25rem bottom): the same
+	     values the scroll surface, the list chrome, and the page surface use. -->
+	<div
+		class="h-full min-h-0 overflow-auto px-4 pt-4 pb-1 @3xl:flex @3xl:flex-col @3xl:overflow-hidden"
+	>
 		<div
 			class="mx-auto grid min-h-[30rem] w-full max-w-6xl grid-cols-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900 @3xl:min-h-0 @3xl:flex-1 @3xl:grid-cols-[18rem_minmax(0,1fr)] @3xl:grid-rows-[minmax(0,1fr)]"
 		>

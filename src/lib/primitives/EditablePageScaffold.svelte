@@ -70,7 +70,15 @@
 		width: 100%;
 	}
 
+	/* The house page inset: 1rem sides and top, 0.25rem above the command
+	   bar, the same values .scroll-surface and the list chrome use. Every
+	   surface reads the same because none of them chooses. */
 	.editable-page-surface {
-		padding: 1.25rem 1.25rem 0.25rem;
+		padding: 1rem 1rem 0.25rem;
+	}
+	/* A two-pane shell brings its own inset (so it also works inside a tab
+	   panel); a surface that hosts one directly must not add a second. */
+	.editable-page-surface:has(> :global(.master-detail-shell)) {
+		padding: 0;
 	}
 </style>
