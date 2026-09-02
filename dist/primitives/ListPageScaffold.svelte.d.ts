@@ -25,6 +25,7 @@ declare const ListPageScaffold: $$__sveltets_2_IsomorphicComponent<$$__sveltets_
             individually. Pass `null` (or omit) to hide pagination entirely. */ pagination?: ListPagination | null;
     className?: string;
     /** Feedback props mirror EditablePageScaffold; see ListSurface. */ actionError?: string | null | undefined;
+    feedbackTone?: "error" | "success" | "info";
     loadError?: string | null | undefined;
     loadErrorAction?: SurfaceFeedbackAction | null;
     dismissableFeedback?: boolean;

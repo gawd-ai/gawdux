@@ -11,6 +11,7 @@
 	export let className = '';
 	/** Feedback props mirror EditablePageScaffold; see ListSurface. */
 	export let actionError: string | null | undefined = null;
+	export let feedbackTone: 'error' | 'success' | 'info' = 'error';
 	export let loadError: string | null | undefined = null;
 	export let loadErrorAction: SurfaceFeedbackAction | null = null;
 	export let dismissableFeedback = true;
@@ -22,6 +23,7 @@
 	{pagination}
 	{className}
 	{actionError}
+	{feedbackTone}
 	{loadError}
 	{loadErrorAction}
 	{dismissableFeedback}

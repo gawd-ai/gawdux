@@ -22,6 +22,9 @@
 	    dismissable; forward `on:dismiss` to clear it. Same shape as
 	    EditablePageScaffold. */
 	export let actionError: string | null | undefined = null;
+	/** Tone of the action line: a success line ("Updated 3 tests.") rides
+	    the same strip. Load failures are always errors. */
+	export let feedbackTone: 'error' | 'success' | 'info' = 'error';
 	/** The list itself could not be loaded. Same strip, not dismissable. */
 	export let loadError: string | null | undefined = null;
 	export let loadErrorAction: SurfaceFeedbackAction | null = null;
@@ -115,7 +118,7 @@
 			{actionError}
 			{loadError}
 			{loadErrorAction}
-			tone="error"
+			tone={feedbackTone}
 			dismissable={dismissableFeedback}
 			ondismiss={() => dispatch('dismiss')}
 		/>

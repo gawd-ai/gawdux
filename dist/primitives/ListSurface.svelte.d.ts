@@ -30,6 +30,8 @@ declare const ListSurface: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_Pro
             one). The one feedback strip, inside the panel under the filter bar,
             dismissable; forward `on:dismiss` to clear it. Same shape as
             EditablePageScaffold. */ actionError?: string | null | undefined;
+    /** Tone of the action line: a success line ("Updated 3 tests.") rides
+            the same strip. Load failures are always errors. */ feedbackTone?: "error" | "success" | "info";
     /** The list itself could not be loaded. Same strip, not dismissable. */ loadError?: string | null | undefined;
     loadErrorAction?: SurfaceFeedbackAction | null;
     dismissableFeedback?: boolean;
