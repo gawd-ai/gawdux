@@ -9,7 +9,8 @@
 	import {
 		SURFACE_FEEDBACK_CONTEXT,
 		type SurfaceFeedbackHost,
-		type SurfaceFeedbackState
+		type SurfaceFeedbackState,
+		type SurfaceNoticeTone
 	} from './surface-feedback-context';
 
 	/** A failed action on this page. Rendered as the one feedback strip
@@ -21,6 +22,10 @@
 	    dismissable; `loadErrorAction` is the way back (a list). */
 	export let loadError: string | null | undefined = null;
 	export let loadErrorAction: SurfaceFeedbackAction | null = null;
+	/** A standing condition of the record (archived, awaiting a password
+	    reset). Same strip, not dismissable, never an error tone. */
+	export let notice: string | null | undefined = null;
+	export let noticeTone: SurfaceNoticeTone = 'warning';
 	export let editMode: EditModeProps | null = null;
 	export let lifecycle: LifecycleAction[] = [];
 	export let kindRenderers: LifecycleKindRenderers = {};
@@ -39,6 +44,8 @@
 		loadErrorAction: null,
 		tone: 'error',
 		dismissable: true,
+		notice: null,
+		noticeTone: 'warning',
 		ondismiss: () => dispatch('dismiss')
 	});
 	$: feedback.set({
@@ -47,6 +54,8 @@
 		loadErrorAction,
 		tone: feedbackTone,
 		dismissable: dismissableFeedback,
+		notice: notice ?? null,
+		noticeTone,
 		ondismiss: () => dispatch('dismiss')
 	});
 

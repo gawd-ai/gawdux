@@ -1,5 +1,6 @@
 import type { EditModeProps, LifecycleAction, LifecycleKindRenderers } from './PageActionBar.svelte';
 import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
+import { type SurfaceNoticeTone } from './surface-feedback-context';
 interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> = any, Events extends Record<string, any> = any, Slots extends Record<string, any> = any, Exports = {}, Bindings = string> {
     new (options: import('svelte').ComponentConstructorOptions<Props>): import('svelte').SvelteComponent<Props, Events, Slots> & {
         $$bindings?: Bindings;
@@ -26,6 +27,9 @@ declare const EditablePageScaffold: $$__sveltets_2_IsomorphicComponent<$$__svelt
     /** The page, or a panel in it, could not be loaded. Same strip, not
             dismissable; `loadErrorAction` is the way back (a list). */ loadError?: string | null | undefined;
     loadErrorAction?: SurfaceFeedbackAction | null;
+    /** A standing condition of the record (archived, awaiting a password
+            reset). Same strip, not dismissable, never an error tone. */ notice?: string | null | undefined;
+    noticeTone?: SurfaceNoticeTone;
     editMode?: EditModeProps | null;
     lifecycle?: LifecycleAction[];
     kindRenderers?: LifecycleKindRenderers;

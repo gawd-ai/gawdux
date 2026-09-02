@@ -1,5 +1,6 @@
 import type { ListPagination } from './list-pagination';
 import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
+import type { SurfaceNoticeTone } from './surface-feedback-context';
 interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> = any, Events extends Record<string, any> = any, Slots extends Record<string, any> = any, Exports = {}, Bindings = string> {
     new (options: import('svelte').ComponentConstructorOptions<Props>): import('svelte').SvelteComponent<Props, Events, Slots> & {
         $$bindings?: Bindings;
@@ -29,6 +30,8 @@ declare const ListPageScaffold: $$__sveltets_2_IsomorphicComponent<$$__sveltets_
     loadError?: string | null | undefined;
     loadErrorAction?: SurfaceFeedbackAction | null;
     dismissableFeedback?: boolean;
+    notice?: string | null | undefined;
+    noticeTone?: SurfaceNoticeTone;
 }, {
     actions: {};
     filters: {};

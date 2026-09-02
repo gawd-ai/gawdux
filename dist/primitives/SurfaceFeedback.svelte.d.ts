@@ -5,6 +5,8 @@ type $$ComponentProps = {
     loadErrorAction?: SurfaceFeedbackAction | null;
     tone?: 'error' | 'success' | 'info';
     dismissable?: boolean;
+    notice?: string | null;
+    noticeTone?: 'warning' | 'info' | 'success';
     ondismiss?: () => void;
 };
 declare const SurfaceFeedback: import("svelte").Component<$$ComponentProps, {}, "">;

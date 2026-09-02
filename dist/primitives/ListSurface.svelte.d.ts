@@ -1,4 +1,5 @@
 import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
+import type { SurfaceNoticeTone } from './surface-feedback-context';
 import type { ListPagination } from './list-pagination';
 interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> = any, Events extends Record<string, any> = any, Slots extends Record<string, any> = any, Exports = {}, Bindings = string> {
     new (options: import('svelte').ComponentConstructorOptions<Props>): import('svelte').SvelteComponent<Props, Events, Slots> & {
@@ -35,6 +36,9 @@ declare const ListSurface: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_Pro
     /** The list itself could not be loaded. Same strip, not dismissable. */ loadError?: string | null | undefined;
     loadErrorAction?: SurfaceFeedbackAction | null;
     dismissableFeedback?: boolean;
+    /** A standing condition of the list (a read-only scope). Same strip,
+            not dismissable. */ notice?: string | null | undefined;
+    noticeTone?: SurfaceNoticeTone;
 }, {
     actions: {};
     footer: {};

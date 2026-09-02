@@ -8,6 +8,8 @@
 		loadErrorAction = null,
 		tone = 'error',
 		dismissable = true,
+		notice = null,
+		noticeTone = 'warning',
 		ondismiss
 	}: {
 		actionError?: string | null;
@@ -15,18 +17,22 @@
 		loadErrorAction?: SurfaceFeedbackAction | null;
 		tone?: 'error' | 'success' | 'info';
 		dismissable?: boolean;
+		notice?: string | null;
+		noticeTone?: 'warning' | 'info' | 'success';
 		ondismiss?: () => void;
 	} = $props();
 
 	const hasLoad = $derived(Boolean(loadError?.trim()));
 	const hasAction = $derived(Boolean(actionError?.trim()));
+	const hasNotice = $derived(Boolean(notice?.trim()));
 </script>
 
 <!-- The strip the shells render inside the panel. A failed load comes first
      and is not dismissable (its action is the way back); a failed action is
-     dismissable. Styling lives in tokens.css (.surface-feedback) and in
-     PageFeedback's band layout, so every shell reads the same. -->
-{#if hasLoad || hasAction}
+     dismissable; a standing notice (archived, awaiting a password reset)
+     comes last and stays. Styling lives in tokens.css (.surface-feedback)
+     and in PageFeedback's band layout, so every shell reads the same. -->
+{#if hasLoad || hasAction || hasNotice}
 	<div class="surface-feedback">
 		{#if hasLoad}
 			<PageFeedback
@@ -48,6 +54,9 @@
 				{dismissable}
 				{ondismiss}
 			/>
+		{/if}
+		{#if hasNotice}
+			<PageFeedback layout="band" message={notice} title={null} tone={noticeTone} dismissable={false} />
 		{/if}
 	</div>
 {/if}

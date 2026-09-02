@@ -2,6 +2,7 @@
 	import ListSurface from './ListSurface.svelte';
 	import type { ListPagination } from './list-pagination';
 	import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
+	import type { SurfaceNoticeTone } from './surface-feedback-context';
 
 	export let showFooter = true;
 	/** Declarative pagination — when provided, the scaffold renders the
@@ -15,6 +16,8 @@
 	export let loadError: string | null | undefined = null;
 	export let loadErrorAction: SurfaceFeedbackAction | null = null;
 	export let dismissableFeedback = true;
+	export let notice: string | null | undefined = null;
+	export let noticeTone: SurfaceNoticeTone = 'warning';
 </script>
 
 <ListSurface
@@ -27,6 +30,8 @@
 	{loadError}
 	{loadErrorAction}
 	{dismissableFeedback}
+	{notice}
+	{noticeTone}
 	on:dismiss
 	hasActions={!!$$slots.actions}
 	hasFooter={!!$$slots.footer}

@@ -6,6 +6,7 @@
 	import ListPaginationNav from './ListPaginationNav.svelte';
 	import SurfaceFeedback from './SurfaceFeedback.svelte';
 	import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
+	import type { SurfaceNoticeTone } from './surface-feedback-context';
 	import type { ListPagination } from './list-pagination';
 	import { createEventDispatcher } from 'svelte';
 
@@ -29,6 +30,10 @@
 	export let loadError: string | null | undefined = null;
 	export let loadErrorAction: SurfaceFeedbackAction | null = null;
 	export let dismissableFeedback = true;
+	/** A standing condition of the list (a read-only scope). Same strip,
+	    not dismissable. */
+	export let notice: string | null | undefined = null;
+	export let noticeTone: SurfaceNoticeTone = 'warning';
 
 	const dispatch = createEventDispatcher<{ dismiss: void }>();
 
@@ -120,6 +125,8 @@
 			{loadErrorAction}
 			tone={feedbackTone}
 			dismissable={dismissableFeedback}
+			{notice}
+			{noticeTone}
 			ondismiss={() => dispatch('dismiss')}
 		/>
 		<div class={scrollClass}>
