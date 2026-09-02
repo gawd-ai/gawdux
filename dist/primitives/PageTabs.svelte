@@ -22,7 +22,9 @@
 	const release = host?.claim() ?? null;
 	const feedback = release && host ? host.state : readable<SurfaceFeedbackState | null>(null);
 	onDestroy(() => release?.());
-	$: hasFeedback = Boolean($feedback?.loadError?.trim() || $feedback?.actionError?.trim());
+	$: hasFeedback = Boolean(
+		$feedback?.loadError?.trim() || $feedback?.actionError?.trim() || $feedback?.notice?.trim()
+	);
 
 	function wirePanel(node: HTMLElement, options: { id?: string; labelledBy?: string }) {
 		async function apply(next: { id?: string; labelledBy?: string }) {
