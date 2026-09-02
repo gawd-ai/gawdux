@@ -33,6 +33,7 @@ export { default as PageActionBar } from './PageActionBar.svelte';
 export { default as PasswordWithRequirements } from './PasswordWithRequirements.svelte';
 export { default as PageCommandBar } from './PageCommandBar.svelte';
 export { default as PageCommandBarCenter } from './PageCommandBarCenter.svelte';
+export { default as PageCommandBarConfirm } from './PageCommandBarConfirm.svelte';
 export { default as PageCommandBarRight } from './PageCommandBarRight.svelte';
 export { default as PageFeedback } from './PageFeedback.svelte';
 export { default as SurfaceFeedback } from './SurfaceFeedback.svelte';

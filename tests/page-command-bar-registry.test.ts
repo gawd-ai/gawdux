@@ -1,21 +1,22 @@
 import { describe, it, expect } from 'vitest';
 import type { Snippet } from 'svelte';
 import { createPageCommandBarRegistry } from '../src/lib/primitives/page-command-bar-registry';
+import type { PageCommandBarZone } from '../src/lib/primitives/page-chrome';
 
 // Snippets are opaque to the registry — use labeled sentinels we can assert on.
 const snip = (label: string): Snippet => ({ label }) as unknown as Snippet;
 
 /** Mirror of the three reactive zone slots the layout drives via `apply`. */
 function makeHarness() {
-	const zones: Record<'left' | 'center' | 'right', Snippet | null> = {
+	const zones: Record<PageCommandBarZone, Snippet | null> = {
 		left: null,
 		center: null,
-		right: null
+		right: null, confirm: null
 	};
 	const registry = createPageCommandBarRegistry((zone, snippet) => {
 		zones[zone] = snippet;
 	});
-	const labelOf = (z: 'left' | 'center' | 'right') =>
+	const labelOf = (z: PageCommandBarZone) =>
 		(zones[z] as unknown as { label: string } | null)?.label ?? null;
 	return { registry, zones, labelOf };
 }

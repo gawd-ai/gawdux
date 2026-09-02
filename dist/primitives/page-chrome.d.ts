@@ -11,11 +11,14 @@ export type AppBreadcrumbData = {
     items: AppBreadcrumbItem[];
     status?: string | null;
 };
-export type PageCommandBarZone = 'left' | 'center' | 'right';
+/** `confirm` is the take-over zone: while a confirmation is registered the
+    bar shows it alone, centered, in place of the three action zones. */
+export type PageCommandBarZone = 'left' | 'center' | 'right' | 'confirm';
 export type PageCommandBarSlots = {
     left: Snippet | null;
     center: Snippet | null;
     right: Snippet | null;
+    confirm: Snippet | null;
 };
 export type PageCommandBarContext = {
     register(zone: PageCommandBarZone, snippet: Snippet | null | undefined): symbol;
