@@ -4,6 +4,7 @@
 	import TableContainer from './TableContainer.svelte';
 	import FilterBar from './FilterBar.svelte';
 	import ListPaginationNav from './ListPaginationNav.svelte';
+	import PageFeedback from './PageFeedback.svelte';
 	import type { ListPagination } from './list-pagination';
 
 	export let mode: 'page' | 'tab' | 'embedded' = 'page';
@@ -14,6 +15,16 @@
 	/** Declarative pagination — renders the pill in the bar's RIGHT zone.
 	    When provided, takes precedence over the legacy `footer` slot. */
 	export let pagination: ListPagination | null = null;
+	/** A failed action on the list (a restore, an archive, a refresh after
+	    one). Renders PageFeedback above the surface, dismissable; forward
+	    `on:dismiss` to clear it. Same shape as EditablePageScaffold. */
+	export let actionError: string | null | undefined = null;
+	export let actionErrorTitle = 'Needs attention';
+	/** The list itself could not be loaded. Not dismissable: there is
+	    nothing under it to go back to. */
+	export let loadError: string | null | undefined = null;
+	export let loadErrorTitle = 'Needs attention';
+	export let dismissableFeedback = true;
 
 	$: isPage = mode === 'page';
 	$: renderActions = isPage && (hasActions ?? !!$$slots.actions);
@@ -85,6 +96,23 @@
 	{/if}
 {/if}
 
+{#if loadError?.trim() || actionError?.trim()}
+	<div class="list-surface-feedback">
+		{#if loadError?.trim()}
+			<PageFeedback message={loadError} title={loadErrorTitle} tone="error" dismissable={false} />
+		{/if}
+		{#if actionError?.trim()}
+			<PageFeedback
+				message={actionError}
+				title={actionErrorTitle}
+				tone="error"
+				dismissable={dismissableFeedback}
+				on:dismiss
+			/>
+		{/if}
+	</div>
+{/if}
+
 <div class={scaffoldClass}>
 	<TableContainer className={containerClass}>
 		{#if $$slots.header}
@@ -107,3 +135,13 @@
 		{/if}
 	</TableContainer>
 </div>
+
+<style>
+	/* Same slot as .editable-page-feedback: above the surface, one gap. */
+	.list-surface-feedback {
+		display: grid;
+		gap: 0.5rem;
+		margin-bottom: 0.5rem;
+		width: 100%;
+	}
+</style>

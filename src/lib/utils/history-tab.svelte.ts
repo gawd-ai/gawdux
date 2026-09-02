@@ -47,7 +47,10 @@ export function createHistoryTab<E>(fetchFn: HistoryFetcher<E>): HistoryTabApi<E
 				const entries = await fetchFn(id);
 				patch({ entries, loading: false });
 			} catch {
-				patch({ entries: [], error: 'Failed to load history', loading: false });
+				// Entries stay as they were: undefined on a first load (so the tab
+				// shows the failure alone, not an empty history), the previous
+				// list on a refresh.
+				patch({ error: 'The history could not be loaded.', loading: false });
 			}
 		}
 	};

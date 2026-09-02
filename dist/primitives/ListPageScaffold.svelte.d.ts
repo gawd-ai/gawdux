@@ -23,12 +23,19 @@ declare const ListPageScaffold: $$__sveltets_2_IsomorphicComponent<$$__sveltets_
             pill into the bar's RIGHT zone. Pages no longer wire up `slot="footer"`
             individually. Pass `null` (or omit) to hide pagination entirely. */ pagination?: ListPagination | null;
     className?: string;
+    /** Feedback props mirror EditablePageScaffold; see ListSurface. */ actionError?: string | null | undefined;
+    actionErrorTitle?: string;
+    loadError?: string | null | undefined;
+    loadErrorTitle?: string;
+    dismissableFeedback?: boolean;
 }, {
     actions: {};
     filters: {};
     default: {};
     footer: {};
 }>, {
+    dismiss: CustomEvent<void>;
+} & {
     [evt: string]: CustomEvent<any>;
 }, {
     actions: {};

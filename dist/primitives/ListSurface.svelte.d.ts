@@ -25,6 +25,14 @@ declare const ListSurface: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_Pro
     className?: string;
     /** Declarative pagination — renders the pill in the bar's RIGHT zone.
             When provided, takes precedence over the legacy `footer` slot. */ pagination?: ListPagination | null;
+    /** A failed action on the list (a restore, an archive, a refresh after
+            one). Renders PageFeedback above the surface, dismissable; forward
+            `on:dismiss` to clear it. Same shape as EditablePageScaffold. */ actionError?: string | null | undefined;
+    actionErrorTitle?: string;
+    /** The list itself could not be loaded. Not dismissable: there is
+            nothing under it to go back to. */ loadError?: string | null | undefined;
+    loadErrorTitle?: string;
+    dismissableFeedback?: boolean;
 }, {
     actions: {};
     footer: {};
@@ -32,6 +40,8 @@ declare const ListSurface: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_Pro
     filters: {};
     default: {};
 }>, {
+    dismiss: CustomEvent<void>;
+} & {
     [evt: string]: CustomEvent<any>;
 }, {
     actions: {};
