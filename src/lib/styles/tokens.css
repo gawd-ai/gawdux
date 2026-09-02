@@ -419,8 +419,13 @@
 		border-bottom-color: var(--gawdux-border);
 	}
 
+	/* The ONE scroller of a list panel, both axes. The sticky column headers
+	   (.list-table thead th, below) stick to its top edge, so nothing between
+	   it and the table may scroll on its own. */
 	.list-table-scroll {
 		@apply min-h-0 flex-1 overflow-auto pb-1;
+		overscroll-behavior-inline: contain;
+		-webkit-overflow-scrolling: touch;
 	}
 
 	.list-tab-scroll {
@@ -431,11 +436,20 @@
 		@apply flex-none max-h-[28rem];
 	}
 
+	/* On its own (a detail-page TableContainer, no panel scroller) the frame
+	   is the horizontal scroller of a wide table. */
 	.list-table-frame {
 		@apply relative min-w-full overflow-x-auto;
 		max-width: 100%;
 		overscroll-behavior-inline: contain;
 		-webkit-overflow-scrolling: touch;
+	}
+	/* Inside the panel scroller it is a plain block. A wrapper with
+	   overflow-x: auto is its own scrollport (overflow-y computes to auto with
+	   it), the sticky header sticks to THAT box, which never scrolls, and rides
+	   away with the rows. */
+	.list-table-scroll .list-table-frame {
+		overflow: visible;
 	}
 
 	.list-page-footer {

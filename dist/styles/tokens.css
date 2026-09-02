@@ -350,6 +350,8 @@
     flex: 1;
     overflow: auto;
     padding-bottom: calc(var(--spacing) * 1);
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
   }
   .list-tab-scroll {
     min-height: calc(var(--spacing) * 0);
@@ -366,6 +368,9 @@
     max-width: 100%;
     overscroll-behavior-inline: contain;
     -webkit-overflow-scrolling: touch;
+  }
+  .list-table-scroll .list-table-frame {
+    overflow: visible;
   }
   .list-page-footer {
     flex-shrink: 0;
