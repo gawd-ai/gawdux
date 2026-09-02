@@ -159,7 +159,16 @@
 					/>{action.label}
 				</Button>
 			{:else if action.kind === 'pdf'}
-				<Button outline color="blue" href={action.href} disabled={action.disabled}>
+				<!-- A PDF is a document, not a page of the app: it opens in a new
+				     tab so the operator keeps their place. -->
+				<Button
+					outline
+					color="blue"
+					href={action.href}
+					target="_blank"
+					rel="noopener"
+					disabled={action.disabled}
+				>
 					<FileLinesOutline class="top-action-icons" />{action.label ?? 'PDF'}
 				</Button>
 			{:else if action.kind === 'archive' && kindRenderers.archive}
