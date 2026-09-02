@@ -11,7 +11,7 @@ function makeHarness() {
 	const zones: Record<PageCommandBarZone, Snippet | null> = {
 		left: null,
 		center: null,
-		right: null, confirm: null
+		right: null
 	};
 	const registry = createPageCommandBarRegistry((zone, snippet) => {
 		zones[zone] = snippet;

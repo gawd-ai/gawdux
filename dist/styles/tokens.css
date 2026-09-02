@@ -708,31 +708,59 @@ main:has(.page-command-bar) *:has(> .context-surface),
 .cmd-bar-right {
   justify-content: flex-end;
 }
-.cmd-bar-confirm {
-  grid-column: 1 / -1;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-}
-.cmd-bar-confirm-text {
-  min-width: 0;
+.page-command-drawer {
+  margin-top: auto;
+  flex-shrink: 0;
+  padding: 0.75rem 1rem;
   text-align: center;
+  background-color: rgb(249 250 251);
+  border: 1px solid rgb(229 231 235);
+  border-bottom-width: 0;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+.dark .page-command-drawer {
+  background-color: rgb(28 37 51);
+  border-color: rgb(55 65 81);
+}
+main:has(.page-command-drawer) .page-command-bar,
+.page-shell:has(> main .page-command-drawer) > .page-command-bar {
+  margin-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top-width: 0;
+}
+.page-command-drawer-title {
+  margin: 0;
   font-size: 0.875rem;
+  font-weight: 600;
   line-height: 1.25;
   color: var(--gawdux-text-primary);
 }
-.cmd-bar-confirm-title {
-  font-weight: 600;
-  margin-right: 0.375rem;
-}
-.cmd-bar-confirm-message {
+.page-command-drawer-message {
+  margin: 0.125rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.35;
   color: var(--gawdux-text-muted);
 }
-.cmd-bar-confirm-message.is-error {
-  color: rgb(185 28 28);
-  font-weight: 500;
+.page-command-drawer-code {
+  display: inline-block;
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--gawdux-border);
+  border-radius: 0.375rem;
+  background-color: var(--gawdux-surface-card);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 1.125rem;
+  font-weight: 600;
+  user-select: all;
 }
-.dark .cmd-bar-confirm-message.is-error {
+.page-command-drawer-error {
+  margin: 0.375rem 0 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: rgb(185 28 28);
+}
+.dark .page-command-drawer-error {
   color: rgb(252 165 165);
 }
 @media (max-width: 1024px) {

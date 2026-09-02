@@ -1,7 +1,7 @@
 type $$ComponentProps = {
     title?: string | null | undefined;
     message: string;
-    /** Replaces the message, in the error tone, until the next attempt. */
+    /** Shown under the message, in the error tone, until the next attempt. */
     error?: string | null | undefined;
     /** `status` announces the message politely (a result to acknowledge). */
     live?: 'status' | null | undefined;
@@ -9,7 +9,7 @@ type $$ComponentProps = {
     kind?: string | null | undefined;
     /** null hides Cancel: a result the operator only acknowledges. */
     cancelLabel?: string | null | undefined;
-    /** A value to hand over (an access code), shown selectable beside the message. */
+    /** A value to hand over (an access code), shown selectable under the message. */
     code?: string | null | undefined;
     confirmLabel: string;
     busyLabel?: string | undefined;
