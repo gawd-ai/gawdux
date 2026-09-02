@@ -1,5 +1,5 @@
-import type { Readable } from 'svelte/store';
-import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
+import type { Readable } from "svelte/store";
+import type { SurfaceFeedbackAction } from "./PageFeedback.svelte";
 
 /**
  * The one place a page reports a failed action or a failed load: a
@@ -9,20 +9,20 @@ import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
  * panel renders the strip (the scaffold itself when it owns the surface,
  * PageTabs when the page renders its own tabbed panel).
  */
-export const SURFACE_FEEDBACK_CONTEXT = Symbol('gawdux.surface-feedback');
+export const SURFACE_FEEDBACK_CONTEXT = Symbol("gawdux.surface-feedback");
 
 export interface SurfaceFeedbackState {
-	actionError: string | null;
-	loadError: string | null;
-	loadErrorAction: SurfaceFeedbackAction | null;
-	tone: 'error' | 'success' | 'info';
-	dismissable: boolean;
-	ondismiss: () => void;
+  actionError: string | null;
+  loadError: string | null;
+  loadErrorAction: SurfaceFeedbackAction | null;
+  tone: "error" | "success" | "info";
+  dismissable: boolean;
+  ondismiss: () => void;
 }
 
 export interface SurfaceFeedbackHost {
-	state: Readable<SurfaceFeedbackState>;
-	/** Take over rendering the strip. Returns a release function, or null when
+  state: Readable<SurfaceFeedbackState>;
+  /** Take over rendering the strip. Returns a release function, or null when
 	    the scaffold owns the surface itself or another shell already claimed it. */
-	claim(): (() => void) | null;
+  claim(): (() => void) | null;
 }

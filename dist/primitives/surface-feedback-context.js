@@ -6,4 +6,4 @@
  * panel renders the strip (the scaffold itself when it owns the surface,
  * PageTabs when the page renders its own tabbed panel).
  */
-export const SURFACE_FEEDBACK_CONTEXT = Symbol('gawdux.surface-feedback');
+export const SURFACE_FEEDBACK_CONTEXT = Symbol("gawdux.surface-feedback");

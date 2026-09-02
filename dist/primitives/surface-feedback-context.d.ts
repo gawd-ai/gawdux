@@ -1,5 +1,5 @@
-import type { Readable } from 'svelte/store';
-import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
+import type { Readable } from "svelte/store";
+import type { SurfaceFeedbackAction } from "./PageFeedback.svelte";
 /**
  * The one place a page reports a failed action or a failed load: a
  * full-width strip INSIDE the content panel, directly under the panel's
@@ -13,13 +13,13 @@ export interface SurfaceFeedbackState {
     actionError: string | null;
     loadError: string | null;
     loadErrorAction: SurfaceFeedbackAction | null;
-    tone: 'error' | 'success' | 'info';
+    tone: "error" | "success" | "info";
     dismissable: boolean;
     ondismiss: () => void;
 }
 export interface SurfaceFeedbackHost {
     state: Readable<SurfaceFeedbackState>;
     /** Take over rendering the strip. Returns a release function, or null when
-        the scaffold owns the surface itself or another shell already claimed it. */
+          the scaffold owns the surface itself or another shell already claimed it. */
     claim(): (() => void) | null;
 }
