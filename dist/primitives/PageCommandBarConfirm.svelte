@@ -121,6 +121,9 @@
 		if (busy || disabled || dispatched) return;
 		dispatched = true;
 		onconfirm();
+		// An acknowledgement (no Cancel offered) closes on Confirm, so the
+		// invoking control gets focus back exactly as a cancel would give it.
+		if (!cancelLabel) void tick().then(restoreFocus);
 	}
 
 	function onKeydown(event: KeyboardEvent) {
