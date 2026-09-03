@@ -63,11 +63,27 @@ export function createEditMode<T, F extends string = string, D = Partial<T>>(
 		store.update((s) => ({ ...s, edited: { ...s.edited } }));
 	}
 
+	// Only plain objects and arrays are wrapped: a Date, Map, Set or File
+	// reached through a Proxy loses its internal slots, so Date.prototype.toJSON
+	// throws "this is not a Date object" the moment the edited record is
+	// serialised for a save (found by the SIMS qualification run on a
+	// requisition that carries a Date).
+	function isPlainContainer(value: object): boolean {
+		if (Array.isArray(value)) return true;
+		const proto = Object.getPrototypeOf(value);
+		return proto === Object.prototype || proto === null;
+	}
+
 	function deepProxy<V extends object>(target: V): V {
 		return new Proxy(target, {
 			get(t, prop, receiver) {
 				const value = Reflect.get(t, prop, receiver);
-				if (value && typeof value === 'object' && !Object.isFrozen(value)) {
+				if (
+					value &&
+					typeof value === 'object' &&
+					!Object.isFrozen(value) &&
+					isPlainContainer(value)
+				) {
 					return deepProxy(value);
 				}
 				return value;
