@@ -74,6 +74,15 @@
 		return () => element.removeEventListener('click', handleRailClick);
 	});
 
+	// The detail pane is the scroll container above 48rem, so a navigation
+	// that swaps the detail leaves the pane where the previous detail was
+	// scrolled to; the window's own scroll restoration never sees it. A new
+	// detail starts at its top.
+	async function resetDetailScroll() {
+		await tick();
+		if (detailElement) detailElement.scrollTop = 0;
+	}
+
 	$effect(() => {
 		const nextDetailKey = detailKey;
 		if (!initialized) {
@@ -86,6 +95,7 @@
 
 		previousDetailKey = nextDetailKey;
 		mobilePane = nextDetailKey == null ? 'rail' : 'detail';
+		void resetDetailScroll();
 		if (nextDetailKey == null) void showRail();
 		else void focusDetail();
 	});
