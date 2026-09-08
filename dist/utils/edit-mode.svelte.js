@@ -24,8 +24,8 @@ export function createEditMode(opts = {}) {
     // Only plain objects and arrays are wrapped: a Date, Map, Set or File
     // reached through a Proxy loses its internal slots, so Date.prototype.toJSON
     // throws "this is not a Date object" the moment the edited record is
-    // serialised for a save (found by the SIMS qualification run on a
-    // requisition that carries a Date).
+    // serialised for a save (found by a consumer's qualification run on a
+    // record that carries a Date).
     function isPlainContainer(value) {
         if (Array.isArray(value))
             return true;
