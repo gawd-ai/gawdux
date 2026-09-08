@@ -32,6 +32,7 @@ Supported package subpaths:
 
 - `gawdux` (root) / `gawdux/components` / `gawdux/primitives`
 - `gawdux/alert-ops`
+- `gawdux/validation`
 - `gawdux/types`
 - `gawdux/utils`
 - `gawdux/styles/tokens.css`
@@ -77,3 +78,15 @@ and layout notes in [CHANGELOG.md](CHANGELOG.md).
 ## License
 
 MIT (see [LICENSE](LICENSE)).
+
+## Validation presentation
+
+`gawdux/validation` exports `ValidationRunReport`, `SignatureHistory`, and
+`ManualObservationForm`. Hosts pass authorized view models and own all writes,
+credential checks, review policy and evidence links. The form requires an explicit
+pass/fail result, sends the retained revision with the observation and prevents
+concurrent submissions. Historical signature verification can be unavailable; the
+history component distinguishes that from verified or failed content.
+
+A runnable synthetic protocol preview is provided by the platform reference app.
+The components do not infer permission from a displayed status or sign a record.

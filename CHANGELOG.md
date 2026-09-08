@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.0 — 2026-09-08
+
+- Add the `gawdux/validation` subpath with execution reports, requirement coverage, signature history and a revision-bound manual observation form.
+- Preserve failed checks, pending manual work and withdrawn or unverifiable historical signatures as distinct states. Evidence disclosure and writes remain host policy; unsafe capture URLs render as text.
+- Existing component contracts are unchanged. Verified with 245 component/contract tests, type checks, package/publint and desktop/mobile reference-app inspection.
+
 ## 0.7.1 — focus restoration after command dismissal
 
 ### Fixed

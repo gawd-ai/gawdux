@@ -117,7 +117,7 @@ describe('gawdux 0.4.0 export surface (alert-ops)', () => {
 		}
 	});
 
-	it('adds the ./alert-ops subpath additively, leaving every existing export entry unchanged', () => {
+	it('preserves the alert-ops entry alongside current additive subpaths', () => {
 		expect(pkg.exports['./alert-ops']).toEqual({
 			types: './dist/alert-ops/index.d.ts',
 			svelte: './dist/alert-ops/index.js',
@@ -157,7 +157,8 @@ describe('gawdux 0.4.0 export surface (alert-ops)', () => {
 				'./primitives',
 				'./styles/tokens.css',
 				'./types',
-				'./utils'
+				'./utils',
+				'./validation'
 			].sort()
 		);
 	});
@@ -321,7 +322,7 @@ describe('gawdux 0.5.0 export surface (opt-in silence mutation)', () => {
 		expect(copy['expireSilenceAccessibleLabel']).toContain('{matchers}');
 	});
 
-	it('ships no new package export entry — silence mutation rides the ./alert-ops subpath', () => {
+	it('retains silence mutation in the alert-ops subpath', () => {
 		expect(pkg.exports['./alert-ops']).toEqual({
 			types: './dist/alert-ops/index.d.ts',
 			svelte: './dist/alert-ops/index.js',
@@ -335,7 +336,8 @@ describe('gawdux 0.5.0 export surface (opt-in silence mutation)', () => {
 				'./primitives',
 				'./styles/tokens.css',
 				'./types',
-				'./utils'
+				'./utils',
+				'./validation'
 			].sort()
 		);
 	});
