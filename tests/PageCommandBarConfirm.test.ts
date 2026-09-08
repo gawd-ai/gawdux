@@ -7,10 +7,47 @@ import {
 } from '@testing-library/svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import PageCommandBarConfirm from '../src/lib/primitives/PageCommandBarConfirm.svelte';
+import PageCommandBarConfirmDismissHarness from './fixtures/PageCommandBarConfirmDismissHarness.svelte';
 
 afterEach(() => cleanup());
 
 describe('PageCommandBarConfirm', () => {
+	it.each(['Cancel', 'Done', 'Close from host'])(
+		'restores focus after %s clears the host request',
+		async (action) => {
+			const focusTarget = document.createElement('button');
+			document.body.append(focusTarget);
+			const view = render(PageCommandBarConfirmDismissHarness, {
+				props: { focusTarget, acknowledgement: action === 'Done' }
+			});
+			await waitFor(() =>
+				expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Done' }))
+			);
+			await fireEvent.click(screen.getByRole('button', { name: action }));
+			await waitFor(() => expect(screen.queryByRole('group')).toBeNull());
+			await waitFor(() => expect(document.activeElement).toBe(focusTarget));
+			view.unmount();
+			focusTarget.remove();
+		}
+	);
+
+	it('uses the captured fallback when the request and invoking control are removed', async () => {
+		const focusTarget = document.createElement('button');
+		const fallback = document.createElement('button');
+		document.body.append(focusTarget, fallback);
+		const view = render(PageCommandBarConfirmDismissHarness, {
+			props: { focusTarget, focusFallback: () => fallback }
+		});
+		await waitFor(() =>
+			expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Done' }))
+		);
+		focusTarget.remove();
+		await fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+		await waitFor(() => expect(document.activeElement).toBe(fallback));
+		view.unmount();
+		fallback.remove();
+	});
+
 	it('focuses Confirm, dispatches once, and permits retry after a failed attempt', async () => {
 		const onconfirm = vi.fn();
 		const view = render(PageCommandBarConfirm, {

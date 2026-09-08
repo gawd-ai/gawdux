@@ -63,6 +63,15 @@
 	let priorBusy = false;
 	let priorError: string | null = null;
 	let focusRestored = false;
+	let restoreTarget: HTMLElement | null | undefined;
+	let restoreFallback: (() => HTMLElement | null) | undefined;
+
+	// A host can clear its request before the deferred unmount callback runs.
+	// Retain these inputs while mounted instead of reading its dead prop getters.
+	$effect(() => {
+		restoreTarget = focusTarget;
+		restoreFallback = focusFallback;
+	});
 
 	function confirmButton(): HTMLButtonElement | null {
 		return document.querySelector<HTMLButtonElement>(
@@ -92,7 +101,7 @@
 	function restoreFocus() {
 		if (focusRestored) return;
 		focusRestored = true;
-		const target = focusTarget?.isConnected ? focusTarget : focusFallback?.();
+		const target = restoreTarget?.isConnected ? restoreTarget : restoreFallback?.();
 		if (target?.isConnected && !target.matches(':disabled')) {
 			target.focus({ preventScroll: true });
 		}
@@ -113,10 +122,11 @@
 	function confirm() {
 		if (busy || disabled || dispatched) return;
 		dispatched = true;
+		const acknowledgement = !cancelLabel;
 		onconfirm();
 		// An acknowledgement (no Cancel offered) closes on Confirm, so the
 		// invoking control gets focus back exactly as a cancel would give it.
-		if (!cancelLabel) void tick().then(restoreFocus);
+		if (acknowledgement) void tick().then(restoreFocus);
 	}
 
 	function onKeydown(event: KeyboardEvent) {

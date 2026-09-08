@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.1 — focus restoration after command dismissal
+
+### Fixed
+- `PageCommandBarConfirm` retains its focus target and fallback while mounted.
+  A host can now clear its request on cancel, acknowledgement, or external
+  dismissal without a deferred callback reading removed state. Focus returns
+  to the invoking control, or its fallback when that control is gone.
+- Acknowledgement handling reads its mode before calling the host, which may
+  synchronously remove the command. Public props and appearance are unchanged.
+
 ## 0.7.0 — shared feedback and command-bar decisions
 
 ### Added
