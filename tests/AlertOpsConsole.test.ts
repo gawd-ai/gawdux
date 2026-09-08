@@ -77,6 +77,16 @@ describe('AlertOpsConsole seven surface states', () => {
 });
 
 describe('AlertOpsConsole selection wiring', () => {
+	it('lets a host omit the health strip without removing alert content', async () => {
+		const view = render(AlertOpsConsole, {
+			props: { ...baseProps, data: makeData('ok', [makeGroup()]) }
+		});
+		expect(screen.getByTestId('alert-ops-provider-health')).toBeTruthy();
+		await view.rerender({ healthBar: false });
+		expect(screen.queryByTestId('alert-ops-provider-health')).toBeNull();
+		expect(screen.getAllByTestId('alert-row').length).toBeGreaterThan(0);
+	});
+
 	it('selecting a row surfaces the detail panel content and calls onselect', async () => {
 		const onselect = vi.fn();
 		render(AlertOpsConsole, {

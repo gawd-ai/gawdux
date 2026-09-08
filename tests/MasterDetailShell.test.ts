@@ -77,4 +77,16 @@ describe('MasterDetailShell compact navigation', () => {
 			screen.getByRole('button', { name: 'Alpha' }).hasAttribute('data-master-detail-row')
 		).toBe(true);
 	});
+
+	it('resets the detail scroll only when the selected identity changes', async () => {
+		const view = render(MasterDetailShell, {
+			props: { rail, detail, detailKey: 'alpha', detailLabel: 'Item details' }
+		});
+		const region = screen.getByRole('region', { name: 'Item details' });
+		region.scrollTop = 240;
+		await view.rerender({ detailKey: 'alpha' });
+		expect(region.scrollTop).toBe(240);
+		await view.rerender({ detailKey: 'beta' });
+		await waitFor(() => expect(region.scrollTop).toBe(0));
+	});
 });

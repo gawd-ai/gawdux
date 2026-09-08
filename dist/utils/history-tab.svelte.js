@@ -5,6 +5,7 @@ export function createHistoryTab(fetchFn) {
         loading: false,
         error: null
     });
+    let recordId = null;
     function patch(updates) {
         store.update((s) => ({ ...s, ...updates }));
     }
@@ -23,7 +24,10 @@ export function createHistoryTab(fetchFn) {
             const snap = get(store);
             if (snap.loading || !canView || id == null || id === '')
                 return;
-            patch({ loading: true, error: null });
+            // Keep last-good entries only for a refresh of the same record.
+            // A different record must never inherit the preceding one's history.
+            patch({ loading: true, error: null, ...(recordId !== id ? { entries: undefined } : {}) });
+            recordId = id;
             try {
                 const entries = await fetchFn(id);
                 patch({ entries, loading: false });

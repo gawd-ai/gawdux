@@ -1,5 +1,54 @@
 # Changelog
 
+## 0.7.0 — shared feedback and command-bar decisions
+
+### Added
+- `PageCommandBarConfirm` places the question in a drawer and its actions in
+  the command bar. It supports pending/error states, single dispatch, retry,
+  acknowledgement-only results, selectable codes, and focus restoration.
+- `SurfaceFeedback` and its public context/types give page scaffolds one
+  strip for load errors, action feedback, and standing notices. `PageTabs`
+  can own that strip inside its panel. `PageFeedback` gains a `band` layout;
+  its standalone `card` layout remains the default.
+- `AlertOpsConsole.healthBar` lets a host render provider status elsewhere;
+  the existing health strip remains enabled by default.
+
+### Changed — consumer migration
+- `ListQueryBar` removes `resultCount`, `resultNoun`, `resultNounPlural`, and
+  `resultSummary`. Remove those props and use the range/count already shown
+  by `ListPaginationNav` or the scaffold's `pagination` contract. A list
+  without pagination can render its own summary outside the query bar.
+- `EditablePageScaffold` removes `actionErrorTitle`. Pass the complete message
+  through `actionError`; the integrated strip does not render a separate title.
+  List scaffolds now also accept `actionError`, `loadError`, and `feedbackTone`.
+- Page surfaces share a 1rem top/side inset and 0.25rem bottom inset. Search
+  and command controls use the existing 2.25rem height and medium radius;
+  form inputs receive a visible focus treatment. Hosts with local spacing or
+  control overrides should review those overrides when upgrading.
+- PDF actions open in a new tab. Command drawers meet their bar with a flat
+  edge. These are intentional interaction/layout changes in this minor release.
+
+### Fixed
+- Command-bar snippets register immediately, avoiding an empty frame when
+  page actions change. The previous page's actions return when a confirmation closes.
+- List tables use the panel's scroller so sticky headers remain attached.
+  Selecting a different detail resets that pane's scroll position.
+- Breadcrumb labels expose a tooltip only when clipped and keep trailing
+  status content separate from the label.
+- Edited drafts preserve native objects such as `Date` instead of proxying
+  their internal slots. The regression tests now respect partial draft types.
+- A failed history refresh retains the same record's last-good entries;
+  switching records clears them so a failed load cannot show another record's history.
+- The dependency lock updates `nanoid` to 3.3.18.
+
+### Release verification
+- Built from the 28 source commits after v0.6.2 through `42f6c3b`, plus the
+  release fixes and regression coverage described above. Tracked `dist/` is
+  regenerated from this release's source with `npm run package`, including
+  compiled plain CSS and TypeScript declarations.
+- Consumer imports and peer ranges remain unchanged. This release is not
+  source-compatible with the removed props listed above.
+
 ## 0.6.2 — compact feedback stops swallowing the message
 
 ### Fixed

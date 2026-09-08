@@ -27,6 +27,13 @@ type $$ComponentProps = {
      * error (already sanitized by the host, rendered as text).
      */
     mutation?: AlertOpsMutationState;
+    /**
+     * Render the provider health strip above the tabs. A host whose page
+     * grammar keeps status and actions elsewhere (a breadcrumb badge, a
+     * bottom command bar) passes false and shows `data.status` itself; the
+     * console then opens directly on its tabs, like any other list surface.
+     */
+    healthBar?: boolean;
 };
 declare const AlertOpsConsole: import("svelte").Component<$$ComponentProps, {}, "selectedFingerprint" | "filters">;
 type AlertOpsConsole = ReturnType<typeof AlertOpsConsole>;

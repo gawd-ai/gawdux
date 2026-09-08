@@ -7,7 +7,7 @@ describe('createEditMode deep proxy', () => {
 		const editMode = createEditMode<{ receivedAt: Date; items: { n: number }[] }>();
 		editMode.edited = { receivedAt: new Date('2026-09-03T00:00:00Z'), items: [{ n: 1 }] };
 		const edited = editMode.edited;
-		expect(edited.receivedAt.toISOString()).toBe('2026-09-03T00:00:00.000Z');
+		expect(edited.receivedAt?.toISOString()).toBe('2026-09-03T00:00:00.000Z');
 		expect(() => JSON.stringify(edited)).not.toThrow();
 		expect(JSON.parse(JSON.stringify(edited)).receivedAt).toBe('2026-09-03T00:00:00.000Z');
 	});
@@ -19,8 +19,10 @@ describe('createEditMode deep proxy', () => {
 		editMode.subscribe(() => {
 			seen += 1;
 		});
-		editMode.edited.items[0].n = 2;
+		const items = editMode.edited.items;
+		if (!items) throw new Error('The assigned draft must contain its items.');
+		items[0].n = 2;
 		expect(seen).toBeGreaterThan(1);
-		expect(editMode.edited.items[0].n).toBe(2);
+		expect(editMode.edited.items?.[0].n).toBe(2);
 	});
 });

@@ -57,7 +57,8 @@
 		onexpire,
 		canSilence = false,
 		onsilence,
-		mutation
+		mutation,
+		healthBar = true
 	}: {
 		scope: AlertOpsScope;
 		filters?: AlertOpsFilters;
@@ -86,6 +87,13 @@
 		 * error (already sanitized by the host, rendered as text).
 		 */
 		mutation?: AlertOpsMutationState;
+		/**
+		 * Render the provider health strip above the tabs. A host whose page
+		 * grammar keeps status and actions elsewhere (a breadcrumb badge, a
+		 * bottom command bar) passes false and shows `data.status` itself; the
+		 * console then opens directly on its tabs, like any other list surface.
+		 */
+		healthBar?: boolean;
 	} = $props();
 
 	const copy = $derived(resolveAlertOpsCopy(copyOverrides));
@@ -126,15 +134,17 @@
 </script>
 
 <div class="alert-ops-console responsive-list-page space-y-3" data-testid="alert-ops-console">
-	<ProviderHealthBar
-		status={data.status}
-		{environmentLabel}
-		{planeLabel}
-		copy={copyOverrides}
-		{now}
-		{refreshing}
-		{onrefresh}
-	/>
+	{#if healthBar}
+		<ProviderHealthBar
+			status={data.status}
+			{environmentLabel}
+			{planeLabel}
+			copy={copyOverrides}
+			{now}
+			{refreshing}
+			{onrefresh}
+		/>
+	{/if}
 
 	{#if mutation && mutation.state !== 'idle'}
 		<!-- Mutation feedback is prop-driven and lives in one predictable place,

@@ -31,6 +31,7 @@ import { /* helpers */ } from 'gawdux/utils';
 Supported package subpaths:
 
 - `gawdux` (root) / `gawdux/components` / `gawdux/primitives`
+- `gawdux/alert-ops`
 - `gawdux/types`
 - `gawdux/utils`
 - `gawdux/styles/tokens.css`
@@ -56,6 +57,22 @@ npm run package   # build dist/ for consumers
 ```
 
 Rebuild the package (`npm run package`) before a consumer's build depends on a source change. Routine source/type changes are picked up through the host's Vite/HMR loop without a rebuild; reinstall in the host only when `dependencies` or the `exports` map change.
+
+## Releases
+
+Releases use an annotated `v<version>` Git tag. The tagged commit includes
+the version in `package.json` and `package-lock.json`, consumer migration
+notes in `CHANGELOG.md`, and regenerated `dist/` files. A Git tag is separate
+from publishing to the npm registry.
+
+After `npm ci`, run `npm run check`, `npm test`, and `npm run package`.
+Inspect `npm pack --dry-run` to confirm the package includes its declared
+entry points and excludes tests. Repeating `npm run package` should leave
+the tracked distribution unchanged. Commit those reviewed files, create
+the annotated tag, and push the commit and tag together.
+
+Consumers moving from 0.6.x to 0.7.0 should read the removed-prop migrations
+and layout notes in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 

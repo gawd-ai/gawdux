@@ -4,6 +4,18 @@ import * as alertOps from '../src/lib/alert-ops/index';
 import * as primitives from '../src/lib/primitives/index';
 import * as utils from '../src/lib/utils/index';
 
+describe('gawdux 0.7.0 export surface', () => {
+	it('exports the confirmation drawer and surface-feedback contracts', () => {
+		for (const name of [
+			'PageCommandBarConfirm',
+			'SurfaceFeedback',
+			'SURFACE_FEEDBACK_CONTEXT'
+		] as const) {
+			expect(primitives[name], `primitives must export ${name}`).toBeDefined();
+		}
+	});
+});
+
 describe('gawdux 0.3.0 export surface', () => {
 	it('exports the lifted primitives without dropping any pre-0.3.0 export', () => {
 		// New in 0.3.0
