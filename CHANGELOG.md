@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.8.1 — filter pills that fit a narrow column
+
+### Added
+- `FilterPillRow` takes an opt-in `wrap`. The row flows onto further lines
+  instead of scrolling sideways, and its overflow affordances are suppressed
+  because there is nothing left to scroll to. Off by default, so every existing
+  surface keeps the single scrolling line it was designed with.
+
+  The scroller is right for a full-width register and wrong for a narrow
+  master-detail rail: a filter set wider than its column is technically
+  reachable and practically invisible, because half of it sits behind a
+  horizontal gesture nobody thinks to make, and filters are the first thing a
+  reader of that rail needs. Measured on a consumer: 502px of pills in a 271px
+  rail.
+
 ## 0.8.0 — 2026-09-08
 
 - Add the `gawdux/validation` subpath with execution reports, requirement coverage, signature history and a revision-bound manual observation form.

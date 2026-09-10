@@ -16,13 +16,26 @@
 		selected,
 		onSelect,
 		ariaLabel = 'Quick filters',
-		className = ''
+		className = '',
+		wrap = false
 	}: {
 		pills: FilterPill[];
 		selected: string;
 		onSelect: (id: string) => void;
 		ariaLabel?: string;
 		className?: string;
+		/**
+		 * Let the pills flow onto further lines instead of scrolling sideways.
+		 *
+		 * Off by default, so every existing surface keeps the single scrolling
+		 * line it was designed with. Turn it on where the row lives in a NARROW
+		 * column — a master-detail rail, say — because there the scroller is
+		 * technically correct and practically wrong: the filters are the first
+		 * thing a reader needs, and half of them are off-screen behind a
+		 * horizontal gesture nobody thinks to make. The overflow affordances are
+		 * suppressed when wrapping, since there is nothing left to scroll to.
+		 */
+		wrap?: boolean;
 	} = $props();
 
 	let viewportEl: HTMLDivElement | null = null;
@@ -32,6 +45,11 @@
 
 	function updateOverflow() {
 		if (!viewportEl) return;
+		if (wrap) {
+			canScrollBackward = false;
+			canScrollForward = false;
+			return;
+		}
 		const maxScrollLeft = Math.max(0, viewportEl.scrollWidth - viewportEl.clientWidth);
 		canScrollBackward = viewportEl.scrollLeft > 1;
 		canScrollForward = viewportEl.scrollLeft < maxScrollLeft - 1;
@@ -66,14 +84,16 @@
 >
 	<div
 		bind:this={viewportEl}
-		class="filter-pill-viewport w-full overflow-x-auto overscroll-x-contain"
+		class={`filter-pill-viewport w-full ${wrap ? '' : 'overflow-x-auto overscroll-x-contain'}`}
 		role="group"
 		aria-label={ariaLabel}
 		onscroll={updateOverflow}
 	>
 		<div
 			bind:this={trackEl}
-			class="filter-pill-track inline-flex w-max min-w-max flex-nowrap items-stretch gap-px rounded-md border border-gray-200 bg-gray-50 p-px dark:border-gray-700 dark:bg-gray-900"
+			class={`filter-pill-track items-stretch gap-px rounded-md border border-gray-200 bg-gray-50 p-px dark:border-gray-700 dark:bg-gray-900 ${
+				wrap ? 'flex w-full flex-wrap' : 'inline-flex w-max min-w-max flex-nowrap'
+			}`}
 		>
 			{#each pills as pill (pill.id)}
 				<button
