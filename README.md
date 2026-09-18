@@ -39,9 +39,9 @@ Supported package subpaths:
 
 ## What's Inside
 
-- **components** — `AppSidebar`, `SidebarDropdownGroup`, `SidebarFlyout`: the collapsible app navigation shell.
-- **primitives** — list and page building blocks: `ListSurface`, `ListQueryBar`, `ListPaginationNav`, `FilterBar`/`FilterPillRow`, `MasterDetailShell`, `ListPageScaffold`/`EditablePageScaffold`, `PageCommandBar`, `PageTabs`, `FormField`, `ReadonlyField`, `CardContainer`, and more.
-- **styles/tokens.css** — the shared design tokens (color, spacing, density) that give host applications a common visual language.
+- **components**: `AppSidebar`, `SidebarDropdownGroup`, `SidebarFlyout`: the collapsible app navigation shell.
+- **primitives**: list and page building blocks: `ListSurface`, `ListQueryBar`, `ListPaginationNav`, `FilterBar`/`FilterPillRow`, `SavedViewsRail`, `MasterDetailShell`, `ListPageScaffold`/`EditablePageScaffold`, `PageCommandBar`, `PageTabs`, `FormField`, `ReadonlyField`, `CardContainer`, and more.
+- **styles/tokens.css**: the shared design tokens (color, spacing, density) that give host applications a common visual language.
 
 ## Host Contract
 

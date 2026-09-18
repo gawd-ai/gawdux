@@ -9,6 +9,11 @@
  * On every apply / sort change the state is written to the URL
  * (replaceState, keeps Back button clean), sessionStorage, and a cookie
  * so the server load can read saved filters without a second round-trip.
+ *
+ * The same field registry also projects the applied state into a plain
+ * `{ param: value }` query (defaults and ephemeral fields omitted) and
+ * back. That projection is what a saved view stores: the page's own URL
+ * query, portable across the registry, unknown keys ignored on read.
  */
 import { goto } from '$app/navigation';
 import { redirect } from '@sveltejs/kit';
@@ -17,12 +22,48 @@ const listStateFocusRestorer = createNavigationFocusRestorer();
 /**
  * Cookie/storage key scoped to a user so logging out + logging in as a
  * different user on the same browser doesn't carry the prior user's
- * filters across (real privacy issue — some filter values reveal what
+ * filters across (real privacy issue: some filter values reveal what
  * the prior user was investigating). Same user across sessions keeps
  * their saved views.
  */
 function scopedKey(userId, key) {
     return `ls.${userId ?? '_anon'}.${key}`;
+}
+/**
+ * Project applied values into the page's URL query: one entry per field
+ * whose value is set and differs from its default, keyed by the URL param
+ * name. Ephemeral fields (the page number) never appear. The result is
+ * what `persist` writes to the address bar and what a saved view stores.
+ */
+export function listStateQuery(values, config) {
+    const query = {};
+    for (const [name, field] of Object.entries(config.fields)) {
+        if (field.ephemeral)
+            continue;
+        const val = values[name];
+        if (val && val !== field.default)
+            query[field.param] = val;
+    }
+    return query;
+}
+/**
+ * Inverse of `listStateQuery`: resolve a query (a stored view or the URL's
+ * search params) into a full set of applied values. Unknown keys are
+ * ignored, missing keys take the field default, and an empty value reads
+ * as the default. Ephemeral fields resolve the same way, so a URL's page
+ * number still comes through while a stored view (which never carries one)
+ * lands on the default.
+ */
+export function listStateValuesFrom(query, config) {
+    const read = query instanceof URLSearchParams
+        ? (param) => query.get(param)
+        : (param) => Object.prototype.hasOwnProperty.call(query, param) ? query[param] : null;
+    const values = {};
+    for (const [name, field] of Object.entries(config.fields)) {
+        const raw = read(field.param);
+        values[name] = raw == null || raw === '' ? field.default : String(raw);
+    }
+    return values;
 }
 /**
  * Server-side helper: if the URL has no list-state params, apply saved
@@ -61,17 +102,18 @@ export function applySessionFilters(url, cookies, config, userId) {
     }
 }
 /**
- * Resolve initial list state and return a persist function.
+ * Resolve initial list state and return persist and projection functions.
  *
  * Usage in a Svelte component:
  * ```ts
- * const { values, persist } = initListState($page, {
+ * const { values, persist, query, fromQuery } = initListState($page, {
  *   key: 'admin.users',
  *   fields: {
  *     search: { param: 'q', default: '' },
  *     status: { param: 'status', default: 'active' },
+ *     page: { param: 'page', default: '1', ephemeral: true },
  *   }
- * });
+ * }, $page.data.user?.id);
  * let searchTerm = values.search;
  * let statusFilter = values.status;
  * ```
@@ -92,17 +134,20 @@ export function initListState(page, config, userId) {
             // SSR or storage unavailable
         }
     }
-    // Resolve: URL → session → default
-    const values = {};
-    for (const [name, field] of Object.entries(config.fields)) {
-        if (hasUrlParams) {
-            values[name] = urlParams.get(field.param) ?? field.default;
-        }
-        else if (session && name in session) {
-            values[name] = session[name] ?? field.default;
-        }
-        else {
-            values[name] = field.default;
+    // Resolve: URL -> session -> default
+    let values;
+    if (hasUrlParams) {
+        values = listStateValuesFrom(urlParams, config);
+    }
+    else {
+        values = {};
+        for (const [name, field] of Object.entries(config.fields)) {
+            if (session && name in session) {
+                values[name] = session[name] ?? field.default;
+            }
+            else {
+                values[name] = field.default;
+            }
         }
     }
     function writeCookie(data) {
@@ -147,5 +192,10 @@ export function initListState(page, config, userId) {
             queueMicrotask(() => persist(values, page));
         }
     }
-    return { values, persist };
+    return {
+        values,
+        persist,
+        query: (current) => listStateQuery(current, config),
+        fromQuery: (query) => listStateValuesFrom(query, config)
+    };
 }

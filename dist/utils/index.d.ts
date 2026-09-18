@@ -5,8 +5,8 @@ export { fieldError, hasFieldErrors, clearFieldError, firstFieldError, focusFirs
 export type { FieldErrors } from './form-errors';
 export { createEditMode } from './edit-mode.svelte';
 export type { EditModeOptions, EditModeSnapshot, EditModeApi } from './edit-mode.svelte';
-export { applySessionFilters, initListState } from './list-state';
-export type { ListStateField, ListStateConfig, ListState } from './list-state';
+export { applySessionFilters, initListState, listStateQuery, listStateValuesFrom } from './list-state';
+export type { ListStateField, ListStateConfig, ListState, ListStateQuery, ListStateUserId } from './list-state';
 export { createHistoryTab } from './history-tab.svelte';
 export type { HistoryFetcher, HistoryTabSnapshot, HistoryTabApi } from './history-tab.svelte';
 export { createBreadcrumbBuilder } from './url-breadcrumb';

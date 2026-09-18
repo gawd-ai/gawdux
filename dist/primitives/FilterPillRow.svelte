@@ -1,27 +1,50 @@
 <!-- One-line quick-filter strip. It stays compact when the pills fit and
-     becomes an internally scrollable rail when they do not. -->
+     becomes an internally scrollable rail when they do not. The pressed
+     pill can carry a remove control, and the track accepts trailing content
+     (SavedViewsRail puts its inline save control there). -->
 <script module lang="ts">
 	export interface FilterPill {
 		id: string;
 		label: string;
 		count?: number;
 	}
+
+	/** The pill recipe, shared with controls that must read as one of the pills. */
+	export function filterPillClass(active: boolean): string {
+		return `filter-pill shrink-0 whitespace-nowrap rounded border px-2.5 py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-blue-500 ${
+			active
+				? 'border-gray-200 bg-white text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100'
+				: 'border-transparent text-gray-600 hover:bg-white hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100'
+		}`;
+	}
 </script>
 
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, type Snippet } from 'svelte';
+	import { CloseOutline } from 'flowbite-svelte-icons';
 
 	let {
 		pills,
 		selected,
 		onSelect,
+		onRemove,
+		removeLabel = (pill: FilterPill) => `Remove ${pill.label}`,
+		trailing,
+		disabled = false,
 		ariaLabel = 'Quick filters',
 		className = '',
 		wrap = false
 	}: {
 		pills: FilterPill[];
-		selected: string;
+		/** The pressed pill's id; null presses nothing. */
+		selected: string | null;
 		onSelect: (id: string) => void;
+		/** When given, the pressed pill carries a remove control. */
+		onRemove?: (pill: FilterPill) => void;
+		removeLabel?: (pill: FilterPill) => string;
+		/** Rendered inside the track after the last pill. */
+		trailing?: Snippet;
+		disabled?: boolean;
 		ariaLabel?: string;
 		className?: string;
 		/**
@@ -68,13 +91,16 @@
 		};
 	});
 
-	function pillClass(active: boolean): string {
-		return `filter-pill shrink-0 whitespace-nowrap rounded border px-2.5 py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-blue-500 ${
-			active
-				? 'border-gray-200 bg-white text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100'
-				: 'border-transparent text-gray-600 hover:bg-white hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100'
-		}`;
-	}
+	// Keep the pressed pill in view when the selection changes under a
+	// scrolled rail (a view applied from the URL, a deep link).
+	$effect(() => {
+		const id = selected;
+		if (id === null || !trackEl) return;
+		const pressed = trackEl.querySelector<HTMLElement>('[aria-pressed="true"]');
+		if (pressed && typeof pressed.scrollIntoView === 'function') {
+			pressed.scrollIntoView({ inline: 'nearest', block: 'nearest' });
+		}
+	});
 </script>
 
 <div
@@ -96,15 +122,41 @@
 			}`}
 		>
 			{#each pills as pill (pill.id)}
-				<button
-					type="button"
-					class={pillClass(selected === pill.id)}
-					aria-pressed={selected === pill.id}
-					onclick={() => onSelect(pill.id)}
-				>
-					{pill.label}{#if pill.count != null}<span class="ml-1 opacity-60">{pill.count}</span>{/if}
-				</button>
+				{@const active = selected === pill.id}
+				{#if active && onRemove}
+					<span class="group inline-flex shrink-0 items-stretch">
+						<button
+							type="button"
+							class={`${filterPillClass(true)} rounded-r-none`}
+							aria-pressed="true"
+							{disabled}
+							onclick={() => onSelect(pill.id)}
+						>
+							{pill.label}{#if pill.count != null}<span class="ml-1 opacity-60">{pill.count}</span>{/if}
+						</button>
+						<button
+							type="button"
+							class={`${filterPillClass(true)} filter-pill-remove inline-flex items-center rounded-l-none border-l-0 px-1.5 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100`}
+							aria-label={removeLabel(pill)}
+							{disabled}
+							onclick={() => onRemove(pill)}
+						>
+							<CloseOutline class="h-3 w-3" />
+						</button>
+					</span>
+				{:else}
+					<button
+						type="button"
+						class={filterPillClass(active)}
+						aria-pressed={active}
+						{disabled}
+						onclick={() => onSelect(pill.id)}
+					>
+						{pill.label}{#if pill.count != null}<span class="ml-1 opacity-60">{pill.count}</span>{/if}
+					</button>
+				{/if}
 			{/each}
+			{#if trailing}{@render trailing()}{/if}
 		</div>
 	</div>
 </div>
@@ -152,9 +204,13 @@
 	}
 
 	@media (max-width: 1024px) {
-		.filter-pill {
+		.filter-pill-track :global(.filter-pill) {
 			min-width: 44px;
 			min-height: 44px;
+		}
+
+		.filter-pill-track :global(.filter-pill-remove) {
+			opacity: 1;
 		}
 	}
 </style>

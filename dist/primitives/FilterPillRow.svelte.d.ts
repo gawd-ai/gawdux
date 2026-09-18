@@ -3,10 +3,20 @@ export interface FilterPill {
     label: string;
     count?: number;
 }
+/** The pill recipe, shared with controls that must read as one of the pills. */
+export declare function filterPillClass(active: boolean): string;
+import { type Snippet } from 'svelte';
 type $$ComponentProps = {
     pills: FilterPill[];
-    selected: string;
+    /** The pressed pill's id; null presses nothing. */
+    selected: string | null;
     onSelect: (id: string) => void;
+    /** When given, the pressed pill carries a remove control. */
+    onRemove?: (pill: FilterPill) => void;
+    removeLabel?: (pill: FilterPill) => string;
+    /** Rendered inside the track after the last pill. */
+    trailing?: Snippet;
+    disabled?: boolean;
     ariaLabel?: string;
     className?: string;
     /**

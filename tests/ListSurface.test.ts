@@ -2,6 +2,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import ListPaginationNav from '../src/lib/primitives/ListPaginationNav.svelte';
 import ListSurfaceHarness from './fixtures/ListSurfaceHarness.svelte';
+import ListSurfaceRailHarness from './fixtures/ListSurfaceRailHarness.svelte';
 
 afterEach(() => cleanup());
 
@@ -72,5 +73,44 @@ describe('ListSurface pagination', () => {
 
 		expect(onPrevious).toHaveBeenCalledOnce();
 		expect(onNext).not.toHaveBeenCalled();
+	});
+});
+
+describe('ListSurface rail slot', () => {
+	function railPrecedesFilters(container: HTMLElement) {
+		const rail = container.querySelector('.filter-bar-rail');
+		const row = container.querySelector('.filter-row');
+		expect(rail, 'rail block').toBeTruthy();
+		expect(row, 'filter row').toBeTruthy();
+		expect(rail?.querySelector('[data-rail]')).toBeTruthy();
+		expect(
+			rail!.compareDocumentPosition(row!) & Node.DOCUMENT_POSITION_FOLLOWING,
+			'rail renders before the filter row'
+		).toBeTruthy();
+	}
+
+	it('renders the rail as its own block before the filter row in page mode', () => {
+		const { container } = render(ListSurfaceRailHarness, { props: { mode: 'page' } });
+		railPrecedesFilters(container);
+	});
+
+	it('renders the rail in tab mode too', () => {
+		const { container } = render(ListSurfaceRailHarness, { props: { mode: 'tab' } });
+		railPrecedesFilters(container);
+	});
+
+	it('forwards the rail through ListPageScaffold', () => {
+		const { container } = render(ListSurfaceRailHarness, { props: { mode: 'scaffold' } });
+		railPrecedesFilters(container);
+	});
+
+	it('omits the rail block when the slot is unfilled, including through the scaffold', () => {
+		for (const mode of ['page', 'tab', 'scaffold'] as const) {
+			const { container, unmount } = render(ListSurfaceRailHarness, {
+				props: { mode, withRail: false }
+			});
+			expect(container.querySelector('.filter-bar-rail')).toBeNull();
+			unmount();
+		}
 	});
 });

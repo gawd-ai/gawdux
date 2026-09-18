@@ -35,9 +35,13 @@
 	on:dismiss
 	hasActions={!!$$slots.actions}
 	hasFooter={!!$$slots.footer}
+	hasRail={!!$$slots.rail}
 >
 	<svelte:fragment slot="actions">
 		<slot name="actions" />
+	</svelte:fragment>
+	<svelte:fragment slot="rail">
+		<slot name="rail" />
 	</svelte:fragment>
 	<svelte:fragment slot="filters">
 		<slot name="filters" />

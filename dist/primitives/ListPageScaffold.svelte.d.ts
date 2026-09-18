@@ -34,6 +34,7 @@ declare const ListPageScaffold: $$__sveltets_2_IsomorphicComponent<$$__sveltets_
     noticeTone?: SurfaceNoticeTone;
 }, {
     actions: {};
+    rail: {};
     filters: {};
     default: {};
     footer: {};
@@ -43,6 +44,7 @@ declare const ListPageScaffold: $$__sveltets_2_IsomorphicComponent<$$__sveltets_
     [evt: string]: CustomEvent<any>;
 }, {
     actions: {};
+    rail: {};
     filters: {};
     default: {};
     footer: {};

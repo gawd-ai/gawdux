@@ -24,6 +24,8 @@ declare const ListSurface: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_Pro
     showFooter?: boolean;
     hasActions?: boolean | undefined;
     hasFooter?: boolean | undefined;
+    /** The `rail` slot: one pill row above the filter fields (saved views).
+            Parents that forward the slot pass this, as with `hasActions`. */ hasRail?: boolean | undefined;
     className?: string;
     /** Declarative pagination — renders the pill in the bar's RIGHT zone.
             When provided, takes precedence over the legacy `footer` slot. */ pagination?: ListPagination | null;
@@ -43,6 +45,7 @@ declare const ListSurface: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_Pro
     actions: {};
     footer: {};
     header: {};
+    rail: {};
     filters: {};
     default: {};
 }>, {
@@ -53,6 +56,7 @@ declare const ListSurface: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_Pro
     actions: {};
     footer: {};
     header: {};
+    rail: {};
     filters: {};
     default: {};
 }, {}, string>;

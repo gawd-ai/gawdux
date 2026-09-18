@@ -14,6 +14,9 @@
 	export let showFooter = true;
 	export let hasActions: boolean | undefined = undefined;
 	export let hasFooter: boolean | undefined = undefined;
+	/** The `rail` slot: one pill row above the filter fields (saved views).
+	    Parents that forward the slot pass this, as with `hasActions`. */
+	export let hasRail: boolean | undefined = undefined;
 	export let className = '';
 	/** Declarative pagination — renders the pill in the bar's RIGHT zone.
 	    When provided, takes precedence over the legacy `footer` slot. */
@@ -53,7 +56,8 @@
 		isPage && showFooter && !renderPagination && (hasFooter ?? !!$$slots.footer);
 	$: renderFooter = renderPagination || renderFooterSlot;
 	$: hasHeader = !!$$slots.header;
-	$: hasFilters = isPage || !!$$slots.filters;
+	$: renderRail = hasRail ?? !!$$slots.rail;
+	$: hasFilters = isPage || !!$$slots.filters || renderRail;
 	$: surfaceModifiers = [
 		hasHeader ? 'list-surface-has-header' : '',
 		hasFilters ? 'list-surface-has-filters' : '',
@@ -114,8 +118,11 @@
 				<slot name="header" />
 			</div>
 		{/if}
-		{#if isPage || $$slots.filters}
-			<FilterBar>
+		{#if hasFilters}
+			<FilterBar hasRail={renderRail}>
+				<svelte:fragment slot="rail">
+					<slot name="rail" />
+				</svelte:fragment>
 				<slot name="filters" />
 			</FilterBar>
 		{/if}

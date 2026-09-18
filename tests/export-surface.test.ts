@@ -4,6 +4,32 @@ import * as alertOps from '../src/lib/alert-ops/index';
 import * as primitives from '../src/lib/primitives/index';
 import * as utils from '../src/lib/utils/index';
 
+describe('gawdux 0.9.0 export surface', () => {
+	it('exports the saved views rail, its match helpers and the pill recipe', () => {
+		for (const name of [
+			'SavedViewsRail',
+			'savedViewMatch',
+			'sameQuery',
+			'normalizeQuery',
+			'filterPillClass',
+			'FilterPillRow'
+		] as const) {
+			expect(primitives[name], `primitives must export ${name}`).toBeDefined();
+		}
+	});
+
+	it('exports the list-state query projection next to initListState', () => {
+		for (const name of [
+			'listStateQuery',
+			'listStateValuesFrom',
+			'initListState',
+			'applySessionFilters'
+		] as const) {
+			expect(utils[name], `utils must export ${name}`).toBeDefined();
+		}
+	});
+});
+
 describe('gawdux 0.7.0 export surface', () => {
 	it('exports the confirmation drawer and surface-feedback contracts', () => {
 		for (const name of [

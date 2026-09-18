@@ -2,7 +2,7 @@ export { sortByOrder, moduleToMenuItem, navToMenuItem, filterModulesByGroup, bui
 export { isBrowser, getStorageItem, setStorageItem, removeStorageItem } from './browser';
 export { fieldError, hasFieldErrors, clearFieldError, firstFieldError, focusFirstFieldError } from './form-errors';
 export { createEditMode } from './edit-mode.svelte';
-export { applySessionFilters, initListState } from './list-state';
+export { applySessionFilters, initListState, listStateQuery, listStateValuesFrom } from './list-state';
 export { createHistoryTab } from './history-tab.svelte';
 export { createBreadcrumbBuilder } from './url-breadcrumb';
 export { slideFadeIn, slideFadeOut } from './transitions';

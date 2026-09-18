@@ -18,11 +18,15 @@ type $$__sveltets_2_PropsWithChildren<Props, Slots> = Props & (Slots extends {
 } : {});
 declare const FilterBar: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_PropsWithChildren<{
     className?: string;
+    /** Set by a parent that forwards the `rail` slot (a forwarded fragment
+            makes `$$slots.rail` true even when the host left it empty). */ hasRail?: boolean | undefined;
 }, {
+    rail: {};
     default: {};
 }>, {
     [evt: string]: CustomEvent<any>;
 }, {
+    rail: {};
     default: {};
 }, {}, string>;
 type FilterBar = InstanceType<typeof FilterBar>;

@@ -78,3 +78,9 @@ describe('tokens.css 0.3.0 additions', () => {
 		}
 	});
 });
+
+describe('tokens.css 0.9.0 additions', () => {
+	it('ships the filter-bar rail block', () => {
+		expect(tokens).toContain('.filter-bar-rail {');
+	});
+});

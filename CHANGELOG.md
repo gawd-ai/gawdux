@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.9.0 - saved views rail and list-state query projection
+
+### Added
+- `SavedViewsRail`: one pill row for a list surface, `[All] [view] ... [Save view]`.
+  Selecting a pill applies its query, the trailing pill becomes an inline name
+  field while the current query is unsaved (Enter saves, Escape cancels and
+  stays local), and the pressed saved pill carries an immediate delete. It is
+  presentation only: `onSave` and `onDelete` return promises the host settles.
+- `savedViewMatch`, `sameQuery` and `normalizeQuery` (primitives): decide which
+  saved view matches an applied query and whether it is worth saving.
+- `listStateQuery` and `listStateValuesFrom` (utils), plus `ListStateField.ephemeral`
+  and the bound `query`/`fromQuery` on the `initListState` result: project applied
+  list state into its URL query (defaults and ephemeral fields omitted) and back.
+  `initListState` and `applySessionFilters` accept a string user id.
+- The `rail` slot on `FilterBar`, `ListSurface` and `ListPageScaffold`, rendered as
+  its own `.filter-bar-rail` block before the filter row, in page and tab mode.
+  Parents that forward the slot pass `hasRail`, as with `hasActions`.
+- `FilterPillRow`: `selected` accepts `null`, `onRemove`/`removeLabel` put a remove
+  control on the pressed pill, `trailing` renders after the last pill, `disabled`,
+  and the exported `filterPillClass` recipe.
+
+### Changed
+- `initListState` resolves an empty URL value (`?q=`) to the field default instead
+  of the empty string.
+
 ## 0.8.1 — filter pills that fit a narrow column
 
 ### Added
@@ -15,6 +40,7 @@
   reader of that rail needs. Measured on a consumer: 502px of pills in a 271px
   rail.
 
+||||||| parent of 700fcfb (0.9.0: saved views rail and list-state query projection)
 ## 0.8.0 — 2026-09-08
 
 - Add the `gawdux/validation` subpath with execution reports, requirement coverage, signature history and a revision-bound manual observation form.
