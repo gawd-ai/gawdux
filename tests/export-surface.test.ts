@@ -178,6 +178,7 @@ describe('gawdux 0.4.0 export surface (alert-ops)', () => {
 		expect(Object.keys(pkg.exports).sort()).toEqual(
 			[
 				'.',
+				'./admin',
 				'./alert-ops',
 				'./components',
 				'./primitives',
@@ -357,6 +358,7 @@ describe('gawdux 0.5.0 export surface (opt-in silence mutation)', () => {
 		expect(Object.keys(pkg.exports).sort()).toEqual(
 			[
 				'.',
+				'./admin',
 				'./alert-ops',
 				'./components',
 				'./primitives',
@@ -365,6 +367,20 @@ describe('gawdux 0.5.0 export surface (opt-in silence mutation)', () => {
 				'./utils',
 				'./validation'
 			].sort()
+		);
+	});
+});
+
+describe('gawdux 0.10.0 export surface (admin blocks)', () => {
+	it('adds the admin subpath and its two blocks', async () => {
+		expect(pkg.exports['./admin']).toEqual({
+			types: './dist/admin/index.d.ts',
+			svelte: './dist/admin/index.js',
+			default: './dist/admin/index.js'
+		});
+		const admin = await import('../src/lib/admin/index');
+		expect(Object.keys(admin).sort()).toEqual(
+			['DEFAULT_MEMBER_ACCESS_COPY', 'MemberAccessCard', 'SecurityActivityList'].sort()
 		);
 	});
 });

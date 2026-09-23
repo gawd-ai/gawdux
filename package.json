@@ -11,6 +11,11 @@
 			"svelte": "./dist/index.js",
 			"default": "./dist/index.js"
 		},
+		"./admin": {
+			"types": "./dist/admin/index.d.ts",
+			"svelte": "./dist/admin/index.js",
+			"default": "./dist/admin/index.js"
+		},
 		"./alert-ops": {
 			"types": "./dist/alert-ops/index.d.ts",
 			"svelte": "./dist/alert-ops/index.js",
