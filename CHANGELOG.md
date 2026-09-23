@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.10.0 - admin blocks
+
+### Added
+- `gawdux/admin` subpath: shared tenant-administration blocks. Presentation
+  only; hosts load, authorize and perform every mutation.
+- `MemberAccessCard`: the Roles a member holds and what they allow, grouped by
+  area. Add and remove are intents, rendered only when the host grants
+  `canEdit` and supplies the handler; a platform-managed Role is never
+  removable. `capabilityNote` replaces the list for a grade that holds
+  everything. Copy is overridable through `copy`.
+- `SecurityActivityList`: sign-in and account events as a card, newest first,
+  with a host-supplied `formatTime`.
+
 ## 0.9.0 - saved views rail and list-state query projection
 
 ### Added
