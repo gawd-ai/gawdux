@@ -1,4 +1,4 @@
-// gawdux/admin — shared tenant-administration blocks.
+// gawdux/admin: shared tenant-administration blocks.
 //
 // Presentation only: hosts load the data, authorize, and perform every
 // mutation. A block renders what it is given and raises intents.

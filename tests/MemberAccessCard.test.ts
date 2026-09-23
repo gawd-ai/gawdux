@@ -59,3 +59,47 @@ describe('SecurityActivityList', () => {
 		expect(screen.getByText('No sign-in activity recorded.')).toBeTruthy();
 	});
 });
+
+import BotToolAccess from '../src/lib/admin/BotToolAccess.svelte';
+import BotConfigFields from '../src/lib/admin/BotConfigFields.svelte';
+
+describe('BotToolAccess', () => {
+	const GROUPS = [
+		{
+			id: 'devices',
+			label: 'Devices',
+			tools: [
+				{ id: 'list_devices', label: 'List devices', allowed: true },
+				{ id: 'reboot_device', label: 'Reboot device', mutating: true, allowed: false }
+			]
+		}
+	];
+
+	it('is read-only without a handler, showing On and Off', () => {
+		render(BotToolAccess, { props: { groups: GROUPS, canEdit: true } });
+		expect(screen.queryAllByRole('button')).toHaveLength(0);
+		expect(screen.getByText('On')).toBeTruthy();
+		expect(screen.getByText('Off')).toBeTruthy();
+	});
+
+	it('raises the opposite of the current state', async () => {
+		const ontoggle = vi.fn();
+		render(BotToolAccess, { props: { groups: GROUPS, canEdit: true, ontoggle } });
+		await fireEvent.click(screen.getByRole('button', { name: 'Turn on Reboot device' }));
+		expect(ontoggle).toHaveBeenCalledWith('reboot_device', true);
+	});
+});
+
+describe('BotConfigFields', () => {
+	it('renders the fixed field names a host action reads', () => {
+		const { container } = render(BotConfigFields, {
+			props: {
+				draft: { name: 'Tone', body: 'Be brief.', enabled: true, botIds: ['ops'] },
+				bots: [{ id: 'ops', name: 'Ops' }]
+			}
+		});
+		for (const name of ['name', 'body', 'enabled', 'botIds'])
+			expect(container.querySelector(`[name="${name}"]`), name).not.toBeNull();
+		expect(screen.getByText('3991 characters left')).toBeTruthy();
+	});
+});

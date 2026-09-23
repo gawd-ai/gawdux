@@ -37,3 +37,30 @@ export interface MemberAccessCopy {
     system: string;
 }
 export declare const DEFAULT_MEMBER_ACCESS_COPY: MemberAccessCopy;
+/** One host action a bot may be allowed to use. */
+export interface BotTool {
+    id: string;
+    label: string;
+    description?: string | null;
+    /** Changes something (vs reads): shown so an admin knows what they allow. */
+    mutating?: boolean;
+    allowed: boolean;
+}
+/** Tools grouped by the area that owns them. */
+export interface BotToolGroup {
+    id: string;
+    label: string;
+    tools: BotTool[];
+}
+/** A bot a config can apply to. */
+export interface BotOption {
+    id: string;
+    name: string;
+}
+/** The editable fields of one tenant config. */
+export interface BotConfigDraft {
+    name: string;
+    body: string;
+    enabled: boolean;
+    botIds: string[];
+}
