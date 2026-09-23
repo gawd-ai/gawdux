@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.11.0 - bot administration blocks
+
+### Added
+- `BotToolAccess` (`gawdux/admin`): the tools one bot may use, grouped by area.
+  A switch is an intent the host confirms; without `canEdit` and `ontoggle`
+  the list is read-only. Writing tools carry a badge (`changesLabel`).
+- `BotConfigFields` (`gawdux/admin`): the fields of one tenant-written bot
+  config for the host's own form, with fixed field names (`name`, `body`,
+  `enabled`, `botIds`) and a bindable `draft`.
+
 ## 0.10.0 - admin blocks
 
 ### Added
