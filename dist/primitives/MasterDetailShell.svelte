@@ -120,8 +120,12 @@
 						{@render railHeader()}
 					</div>
 				{/if}
+				<!-- `relative` on both scroll panes: an absolutely positioned child
+				     (flowbite's Toggle hides its checkbox that way) is otherwise
+				     placed against the page, so a long list stretched the document
+				     and the whole page scrolled as well as the pane. -->
 				<div
-					class="max-h-80 min-h-0 flex-1 overflow-y-auto p-2 max-[769px]:max-h-none @3xl:max-h-none"
+					class="relative max-h-80 min-h-0 flex-1 overflow-y-auto p-2 max-[769px]:max-h-none @3xl:max-h-none"
 				>
 					{@render rail()}
 				</div>
@@ -131,7 +135,7 @@
 				data-mobile-active={mobilePane === 'detail'}
 				tabindex="-1"
 				aria-label={detailLabel}
-				class={`min-w-0 space-y-3 p-3 focus:outline-none @3xl:min-h-0 @3xl:overflow-y-auto ${mobilePane === 'detail' ? '' : 'max-[769px]:hidden'}`}
+				class={`relative min-w-0 space-y-3 p-3 focus:outline-none @3xl:min-h-0 @3xl:overflow-y-auto ${mobilePane === 'detail' ? '' : 'max-[769px]:hidden'}`}
 			>
 				<button
 					type="button"

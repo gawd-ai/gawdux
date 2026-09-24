@@ -90,3 +90,16 @@ describe('MasterDetailShell compact navigation', () => {
 		await waitFor(() => expect(region.scrollTop).toBe(0));
 	});
 });
+
+describe('MasterDetailShell scroll panes', () => {
+	afterEach(() => cleanup());
+
+	it('positions both scroll panes, so an absolute child cannot stretch the page', () => {
+		const { container } = render(MasterDetailShell, {
+			props: { rail, detail, detailKey: null, detailLabel: 'Item details' }
+		});
+		const panes = Array.from(container.querySelectorAll<HTMLElement>('.overflow-y-auto, [class*="overflow-y-auto"]'));
+		expect(panes.length).toBeGreaterThanOrEqual(2);
+		for (const pane of panes) expect(pane.classList.contains('relative'), pane.className).toBe(true);
+	});
+});
