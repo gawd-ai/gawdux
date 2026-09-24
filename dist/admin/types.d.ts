@@ -64,3 +64,39 @@ export interface BotConfigDraft {
     enabled: boolean;
     botIds: string[];
 }
+/** The badge colours a history row may ask for. */
+export type AuditTone = 'green' | 'blue' | 'red' | 'yellow' | 'purple' | 'indigo' | 'pink' | 'dark';
+/** One field an audited action changed. `label` names it for people. */
+export interface AuditHistoryChange {
+    field: string;
+    label?: string;
+    oldValue: string;
+    newValue: string;
+}
+/**
+ * One audit entry, already labelled by the host. The table shows a summary
+ * row that always fits its column; the full entry opens beneath the row.
+ */
+export interface AuditHistoryRow {
+    id: string;
+    /** ISO instant, formatted by the table's `formatTime`. */
+    at: string | null;
+    /** The area the entry belongs to; shown only when the table has a module column. */
+    module?: {
+        label: string;
+        tone?: AuditTone;
+    } | null;
+    action: string;
+    actionTone?: AuditTone;
+    /** The one-line account of what happened; clamped to two lines in the row. */
+    comment: string;
+    user: string | null;
+    /** What the action was done to, when it is not the user. */
+    record?: string | null;
+    /** Further labelled facts for the detail (result, impact, request id...). */
+    facts?: {
+        label: string;
+        value: string;
+    }[];
+    changes: AuditHistoryChange[];
+}
