@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.12.0 - audit history table
+
+### Added
+- `AuditHistoryTable` (`gawdux/admin`): an audit history that fits its
+  container. Fixed column shares, the comment clamped to two lines, the user
+  and record truncated; a row opens its full entry beneath it (facts, the
+  whole comment, every changed field with old and new values). Below 720px
+  of container width the rows become stacked cards. Rows arrive labelled as
+  `AuditHistoryRow`; time is formatted through `formatTime`.
+
 ## 0.11.1 - one scroller in the master-detail shell
 
 ### Fixed
