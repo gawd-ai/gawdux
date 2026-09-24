@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.11.1 - one scroller in the master-detail shell
+
+### Fixed
+- `MasterDetailShell`: the rail and detail scroll panes are positioned, so an
+  absolutely positioned child (flowbite's `Toggle` checkbox) no longer
+  stretches the document and makes the whole page scroll as well as the pane.
+
 ## 0.11.0 - bot administration blocks
 
 ### Added
