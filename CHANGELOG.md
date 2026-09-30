@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.13.1 - retained changelog cleanup
+
+- Remove a historical diff3 marker from the packaged changelog. Runtime APIs,
+  components and styles are unchanged from 0.13.0.
+
 ## 0.13.0 - optional command bar confirmation
 
 ### Added
@@ -90,7 +95,6 @@
   reader of that rail needs. Measured on a consumer: 502px of pills in a 271px
   rail.
 
-||||||| parent of 700fcfb (0.9.0: saved views rail and list-state query projection)
 ## 0.8.0 — 2026-09-08
 
 - Add the `gawdux/validation` subpath with execution reports, requirement coverage, signature history and a revision-bound manual observation form.
