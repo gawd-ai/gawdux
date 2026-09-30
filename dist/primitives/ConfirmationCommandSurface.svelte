@@ -3,21 +3,19 @@
 	import { Button } from 'flowbite-svelte';
 	import CommandDrawer from './CommandDrawer.svelte';
 	import { CheckCircleOutline, ExclamationCircleOutline } from 'flowbite-svelte-icons';
-	import type { ConfirmationCommandRequest } from './confirmation-command';
+	import type {
+		ConfirmationCommandRequest,
+		ConfirmationCommandSurfaceProps
+	} from './confirmation-command';
 
 	let {
 		request,
 		busy = false,
 		error = null,
+		presentation: Presentation = undefined,
 		onconfirm,
 		oncancel
-	}: {
-		request: ConfirmationCommandRequest | null;
-		busy?: boolean;
-		error?: string | null;
-		onconfirm: () => void;
-		oncancel: () => void;
-	} = $props();
+	}: ConfirmationCommandSurfaceProps = $props();
 
 	const componentId = $props.id();
 	const titleId = `${componentId}-title`;
@@ -72,13 +70,13 @@
 			openRequest = current;
 			dispatchedRequestId = null;
 			restoredRequestId = null;
-			void tick().then(() => confirmButton()?.focus());
+			if (!Presentation) void tick().then(() => confirmButton()?.focus());
 			return;
 		}
 		if (!current && openRequest) {
 			const requestToRestore = openRequest;
 			openRequest = null;
-			restoreRequestFocus(requestToRestore);
+			if (!Presentation) restoreRequestFocus(requestToRestore);
 		}
 	});
 
@@ -88,7 +86,7 @@
 		if ((priorBusy && !currentBusy) || (currentError && currentError !== priorError)) {
 			dispatchedRequestId = null;
 		}
-		if (((priorBusy && !currentBusy) || currentError !== priorError) && request) {
+		if (!Presentation && ((priorBusy && !currentBusy) || currentError !== priorError) && request) {
 			void tick().then(() => confirmButton()?.focus());
 		}
 		priorBusy = currentBusy;
@@ -99,7 +97,7 @@
 		if (!request || busy) return;
 		const requestToRestore = request;
 		oncancel();
-		restoreRequestFocus(requestToRestore);
+		if (!Presentation) restoreRequestFocus(requestToRestore);
 	}
 
 	function confirm() {
@@ -110,6 +108,13 @@
 
 </script>
 
+{#if Presentation}
+	{#if request}
+		{#key request.id}
+			<Presentation {request} {busy} {error} onconfirm={confirm} oncancel={cancel} />
+		{/key}
+	{/if}
+{:else}
 <CommandDrawer
 	open={request !== null}
 	{busy}
@@ -161,3 +166,4 @@
 		</div>
 	{/if}
 </CommandDrawer>
+{/if}

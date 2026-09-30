@@ -12,9 +12,12 @@ export type { CommandPaletteItem } from './CommandPalette.svelte';
 export { default as ConfirmModal } from './ConfirmModal.svelte';
 export { default as CommandDrawer } from './CommandDrawer.svelte';
 export { default as ConfirmationCommandSurface } from './ConfirmationCommandSurface.svelte';
+export { default as CommandBarConfirmationPresentation } from './CommandBarConfirmationPresentation.svelte';
 export type {
 	ConfirmationCommandColor,
-	ConfirmationCommandRequest
+	ConfirmationCommandRequest,
+	ConfirmationCommandPresentationProps,
+	ConfirmationCommandSurfaceProps
 } from './confirmation-command';
 export { default as CurrencyCell } from './CurrencyCell.svelte';
 export { default as DeferredLoadingIndicator } from './DeferredLoadingIndicator.svelte';

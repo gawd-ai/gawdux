@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.13.0 - optional command bar confirmation
+
+### Added
+
+- `CommandBarConfirmationPresentation` (`gawdux/primitives`) renders the host's
+  existing confirmation state in a command bar. `ConfirmationCommandSurface`
+  keeps its existing drawer by default and permits explicit host presentation.
+- Hosts retain authorization, confirmation execution and persistence. This
+  presentation option does not approve an operation or change existing hosts.
+
 ## 0.12.0 - audit history table
 
 ### Added

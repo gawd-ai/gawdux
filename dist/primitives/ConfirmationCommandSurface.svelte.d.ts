@@ -1,11 +1,4 @@
-import type { ConfirmationCommandRequest } from './confirmation-command';
-type $$ComponentProps = {
-    request: ConfirmationCommandRequest | null;
-    busy?: boolean;
-    error?: string | null;
-    onconfirm: () => void;
-    oncancel: () => void;
-};
-declare const ConfirmationCommandSurface: import("svelte").Component<$$ComponentProps, {}, "">;
+import type { ConfirmationCommandSurfaceProps } from './confirmation-command';
+declare const ConfirmationCommandSurface: import("svelte").Component<ConfirmationCommandSurfaceProps, {}, "">;
 type ConfirmationCommandSurface = ReturnType<typeof ConfirmationCommandSurface>;
 export default ConfirmationCommandSurface;

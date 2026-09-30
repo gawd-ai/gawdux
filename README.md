@@ -47,6 +47,38 @@ Supported package subpaths:
 
 gawdux is presentation and interaction only. The host application owns routing, data, and business logic, and passes model objects (nav modules, list rows, page state) into these components. Where a component's behavior is owned by the host — sidebar label animation, list selection, command-bar actions — the source comments say so generically; gawdux is not tied to any particular product.
 
+### Confirmation presentation
+
+`ConfirmationCommandSurface` retains its existing drawer when `presentation` is
+omitted. Hosts that already use a persistent page command bar can opt into the
+same request/busy/error contract with `CommandBarConfirmationPresentation`:
+
+```svelte
+<script lang="ts">
+  import { ConfirmationCommandSurface, CommandBarConfirmationPresentation } from 'gawdux/primitives';
+  let { request, busy, error, confirm, cancel } = $props();
+</script>
+
+<ConfirmationCommandSurface
+  {request} {busy} {error}
+  presentation={CommandBarConfirmationPresentation}
+  onconfirm={confirm} oncancel={cancel}
+/>
+```
+
+The opt-in presentation uses `PageCommandBarConfirm`: the question stays at the
+content edge while Cancel/Confirm take the bar's center registration. Existing
+page actions return when the request closes. Without a bar context the buttons
+render beside the question. Both presentations block busy interaction, prevent
+duplicate dispatch, allow retry after a settled attempt and restore the request's
+invoking control or fallback. Request ids define distinct decisions and remount
+an injected presentation; hosts must give a new decision a new id.
+
+Custom presentations accept `ConfirmationCommandPresentationProps` and own
+markup, keyboard interaction and focus. The surface supplies guarded callbacks;
+the host still owns the action, authorization and outcome. `ConfirmationCommandRequest`
+and `createPageCommandBarRegistry` are shared exports, not host-local copies.
+
 ## Development Workflow
 
 A host that vendors gawdux as a local `file:` dependency resolves it either to `../<gawdux>/src/lib/...` through Vite dev aliases for HMR, or to `dist` for build/package verification.

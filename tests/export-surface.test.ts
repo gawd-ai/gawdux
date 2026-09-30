@@ -31,6 +31,11 @@ describe('gawdux 0.9.0 export surface', () => {
 });
 
 describe('gawdux 0.7.0 export surface', () => {
+	it('exports the optional command-bar confirmation presentation without replacing the surface', () => {
+		expect(primitives.CommandBarConfirmationPresentation).toBeDefined();
+		expect(primitives.ConfirmationCommandSurface).toBeDefined();
+	});
+
 	it('exports the confirmation drawer and surface-feedback contracts', () => {
 		for (const name of [
 			'PageCommandBarConfirm',
