@@ -75,6 +75,33 @@
 	/* Accent / focus */
 	--gawdux-focus-ring: rgb(37 99 235);
 	--gawdux-hover-shadow-rgb: 148 163 184;
+	/* Tab states. Hover changes the text colour only; the active tab keeps
+	   its colour and its underline, so a hovered tab never reads as a second
+	   selected one. */
+	--gawdux-tab-text: var(--color-gray-500);
+	--gawdux-tab-text-hover: var(--color-gray-700);
+	--gawdux-tab-text-active: rgb(37 99 235); /* blue-600 */
+	--gawdux-tab-indicator: rgb(191 219 254); /* blue-200 */
+	/* Density. Every default is the geometry that shipped before the knob
+	   existed, so nothing moves until a product redeclares one after the
+	   @import (see "Density knobs" below for what each one drives):
+	   - table cells: flowbite's defaults, body `px-6 py-4`, head `px-6 py-3`;
+	     the row height is unset;
+	   - CardContainer: header `px-6 py-3`, body `px-6 py-3`;
+	   - StatTile / StatTileStrip: `p-3` tiles, `p-2.5` nested tiles, `gap-3`,
+	     tiles wrap below 9rem. */
+	--gawdux-table-row-height: auto;
+	--gawdux-table-cell-px: calc(var(--spacing, 0.25rem) * 6);
+	--gawdux-table-cell-py: calc(var(--spacing, 0.25rem) * 4);
+	--gawdux-table-head-py: calc(var(--spacing, 0.25rem) * 3);
+	--gawdux-card-header-px: calc(var(--spacing, 0.25rem) * 6);
+	--gawdux-card-header-py: calc(var(--spacing, 0.25rem) * 3);
+	--gawdux-card-body-px: calc(var(--spacing, 0.25rem) * 6);
+	--gawdux-card-body-py: calc(var(--spacing, 0.25rem) * 3);
+	--gawdux-tile-padding: calc(var(--spacing, 0.25rem) * 3);
+	--gawdux-tile-padding-nested: calc(var(--spacing, 0.25rem) * 2.5);
+	--gawdux-tile-gap: calc(var(--spacing, 0.25rem) * 3);
+	--gawdux-tile-min-width: 9rem;
 	/* The --color-gray-* family is intentionally NOT redeclared here.
 	   Tailwind v4 already exposes the full default palette as CSS vars
 	   via `@import 'tailwindcss'` (--color-gray-50 through --color-gray-950,
@@ -102,6 +129,10 @@
 	--gawdux-border-input: var(--color-gray-700);
 	--gawdux-border-strong: var(--color-gray-500);
 	--gawdux-hover-shadow-rgb: 107 114 128;
+	--gawdux-tab-text: var(--color-gray-400);
+	--gawdux-tab-text-hover: var(--color-gray-200);
+	--gawdux-tab-text-active: rgb(96 165 250); /* blue-400 */
+	--gawdux-tab-indicator: rgb(30 58 138); /* blue-900 */
 }
 
 @layer components {
@@ -367,7 +398,8 @@
 	}
 
 	.card-header {
-		@apply px-6 py-3 text-left;
+		@apply text-left;
+		padding: var(--gawdux-card-header-py) var(--gawdux-card-header-px);
 		background-color: var(--gawdux-surface-card-header);
 	}
 
@@ -587,6 +619,54 @@
 	}
 }
 
+/* ---------- Density knobs: table cells ---------- */
+/* flowbite's table cells carry their padding as utilities: a body cell is
+   `px-6 py-4`, a head cell `px-6 py-3`. These rules route exactly those
+   utilities through the density knobs, inside a gawdux table (TableContainer,
+   ListSurface, DataTable), and leave every other cell alone:
+   - a cell matches only while it still carries the default utility, so a
+     cell that asked for its own padding (py-2, a p-* shorthand, a pt-/pb-/
+     pl-/pr-/ps-/pe- refinement, a responsive variant) keeps it;
+   - the whole selector sits in :where(), so it has no specificity: any
+     consumer rule that targets the cell still wins, while being unlayered
+     is what lets it replace the layered utility it stands for;
+   - !important utilities (.list-table's !px-2) still win, as before.
+   With the knob defaults the computed padding is the utility's own value, so
+   nothing moves until a product redeclares a knob. A class name merely
+   containing one of the excluded fragments opts the cell out, which only
+   ever leaves it at the default. */
+:where(
+	:is(.table-container, .data-table)
+		td.py-4:not([class*='pt-'], [class*='pb-'], [class*=':py-'], [class*=':p-'])
+) {
+	padding-block: var(--gawdux-table-cell-py);
+}
+:where(
+	:is(.table-container, .data-table)
+		:is(td, th).px-6:not(
+			[class*='pl-'],
+			[class*='pr-'],
+			[class*='ps-'],
+			[class*='pe-'],
+			[class*=':px-'],
+			[class*=':p-']
+		)
+) {
+	padding-inline: var(--gawdux-table-cell-px);
+}
+:where(
+	:is(.table-container, .data-table)
+		th.py-3:not([class*='pt-'], [class*='pb-'], [class*=':py-'], [class*=':p-'])
+) {
+	padding-block: var(--gawdux-table-head-py);
+}
+/* The row height is a minimum (a cell's height never clips its content). It
+   rides the default body cells, so a row of custom cells is never stretched;
+   a cell with its own height utility keeps it. */
+:where(:is(.table-container, .data-table) td.py-4:not([class*='h-'])) {
+	height: var(--gawdux-table-row-height);
+}
+
 /* ---------- Aesthetic globals ---------- */
 
 /* All Flowbite Badges render as rounded pills globally. Couples this
@@ -612,22 +692,27 @@ div.inline-flex.items-center.justify-center.font-medium {
 }
 
 /* ---------- Tabs underline system ---------- */
-/* Match the sidebar nav vocabulary so the whole app shares one hover
-   language: gray-500/400 idle, blue-600/400 on hover/active with the
-   same 500ms color fade. The active/hover underline is a 2px line that
-   scales from center on hover or when active — the classic Stripe/
-   Vercel grow-in indicator. Flowbite's own border-b-2 is suppressed so
-   the pseudo-element is the only visual underline.
+/* Idle tabs are muted text. Hovering a tab changes its text colour and
+   nothing else; the active tab is the one with the accent colour AND the
+   2px underline (a pseudo-element that grows from the centre when a tab
+   becomes active). The two never look alike, and hovering one tab never
+   restyles the active one: at most one tab reads as selected. Flowbite's
+   own border-b-2 is suppressed so the pseudo-element is the only
+   underline. Colours are the --gawdux-tab-* tokens above.
    NOTE: Flowbite TabItem adds a `.active` class (not aria-selected). */
 .tabs-underline [role='tab'] {
-	@apply text-gray-500 dark:text-gray-400
-    hover:text-blue-600 dark:hover:text-blue-400
-    aria-[disabled=true]:text-gray-400 aria-[disabled=true]:dark:text-gray-600
+	color: var(--gawdux-tab-text);
+	@apply aria-[disabled=true]:text-gray-400 aria-[disabled=true]:dark:text-gray-600
     aria-[disabled=true]:opacity-30 aria-[disabled=true]:cursor-not-allowed
     aria-[disabled=true]:pointer-events-none;
 	position: relative;
 	border-bottom-color: transparent !important;
 	transition: color 500ms ease-out;
+}
+@media (hover: hover) {
+	.tabs-underline [role='tab']:hover {
+		color: var(--gawdux-tab-text-hover);
+	}
 }
 .tabs-underline [role='tab']::after {
 	content: '';
@@ -636,40 +721,17 @@ div.inline-flex.items-center.justify-center.font-medium {
 	right: 0;
 	bottom: -2px; /* sits where Flowbite's border-b-2 was */
 	height: 2px;
-	background-color: rgb(191 219 254); /* blue-200 */
+	background-color: var(--gawdux-tab-indicator);
 	transform: scaleX(0);
 	transform-origin: center;
-	transition:
-		transform 200ms cubic-bezier(0.4, 0, 0.2, 1),
-		opacity 500ms ease-out;
+	transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
-.dark .tabs-underline [role='tab']::after {
-	background-color: rgb(30 58 138); /* blue-900 */
-}
-.tabs-underline [role='tab']:hover::after,
 .tabs-underline [role='tab'].active::after {
 	transform: scaleX(1);
 }
+/* After the hover rule, so a hovered active tab keeps the accent. */
 .tabs-underline [role='tab'].active {
-	color: rgb(37 99 235); /* blue-600 */
-}
-.dark .tabs-underline [role='tab'].active {
-	color: rgb(96 165 250); /* blue-400 */
-}
-
-/* When any tab is hovered, dim the non-hovered active tab's text back
-   to the idle gray so only the hovered tab is "lit". The active tab's
-   underline stays grown (.active::after) to keep showing which tab is
-   currently selected — one highlight at a time, but the selection cue
-   never disappears. */
-.tabs-underline:has([role='tab']:hover) [role='tab'].active:not(:hover) {
-	color: rgb(107 114 128); /* gray-500 */
-}
-.dark .tabs-underline:has([role='tab']:hover) [role='tab'].active:not(:hover) {
-	color: rgb(156 163 175); /* gray-400 */
-}
-.tabs-underline:has([role='tab']:hover) [role='tab'].active:not(:hover)::after {
-	opacity: 0.4;
+	color: var(--gawdux-tab-text-active);
 }
 
 /* ---------- Scrollbar styling (WebKit + Firefox) ---------- */

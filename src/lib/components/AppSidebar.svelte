@@ -785,6 +785,14 @@
 	:global(.app-sidebar .dropdown-wrapper.open .dropdown-chevron) {
 		transform: rotate(180deg);
 	}
+	/* The chevron's own column. It is positioned over the button's right edge
+	   (right: 12px, 20px wide), so the expanded button keeps that strip, plus a
+	   4px gap, out of the label's way: a long group label ends in an ellipsis
+	   (SidebarDropdownGroup's label span) before the chevron instead of running
+	   under it. The collapsed rail hides both and keeps its geometry. */
+	:global(.app-sidebar:not(.collapsed) .dropdown-wrapper button) {
+		padding-right: 2.25rem;
+	}
 	:global(.app-sidebar .dropdown-wrapper:hover .dropdown-chevron),
 	:global(.app-sidebar .dropdown-wrapper.flyout-active .dropdown-chevron) {
 		color: rgb(17 24 39); /* gray-900 */

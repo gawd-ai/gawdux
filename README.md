@@ -41,7 +41,39 @@ Supported package subpaths:
 
 - **components**: `AppSidebar`, `SidebarDropdownGroup`, `SidebarFlyout`: the collapsible app navigation shell.
 - **primitives**: list and page building blocks: `ListSurface`, `ListQueryBar`, `ListPaginationNav`, `FilterBar`/`FilterPillRow`, `SavedViewsRail`, `MasterDetailShell`, `ListPageScaffold`/`EditablePageScaffold`, `PageCommandBar`, `PageTabs`, `FormField`, `ReadonlyField`, `CardContainer`, and more.
+- **detail and table primitives**: `StatTile`/`StatTileStrip` (a detail overview's KPI tiles: label, value, meta, icon, a state tone, a small text drill-down; the strip wraps and never clips), `DataTable` (a `TableContainer` with column definitions, `SortableHeadCell` headers, cells from a snippet and the house empty row), `IconLabel` (an icon and a word, the shape of a cue), `StatusBadge` (a coloured word, optionally with an icon), `TableContainer`, `SortableHeadCell`, `EmptyStateRow`, `CollectionEmptyState`.
 - **styles/tokens.css**: the shared design tokens (color, spacing, density) that give host applications a common visual language.
+
+## Density
+
+Table cells, cards and stat tiles take their padding from `--gawdux-*` knobs
+in `styles/tokens.css`. The defaults are the geometry these surfaces always
+had; a product changes density by redeclaring knobs after the import, never
+by overriding component classes:
+
+```css
+@import 'gawdux/styles/tokens.css';
+:root {
+	--gawdux-table-cell-py: 0.3125rem; /* default py-4 */
+	--gawdux-table-row-height: 2.5rem; /* default auto; a minimum */
+	--gawdux-card-body-py: 0.5rem; /* default py-3 */
+}
+```
+
+| Knob | Default | Drives |
+| --- | --- | --- |
+| `--gawdux-table-cell-px` | `px-6` | body and head cells, inline |
+| `--gawdux-table-cell-py` | `py-4` | body cells, block |
+| `--gawdux-table-head-py` | `py-3` | head cells, block |
+| `--gawdux-table-row-height` | `auto` | minimum body row height |
+| `--gawdux-card-header-px` / `-py` | `px-6` / `py-3` | `CardContainer` header, `.card-header` |
+| `--gawdux-card-body-px` / `-py` | `px-6` / `py-3` | `CardContainer` body |
+| `--gawdux-tile-padding` / `-nested` | `p-3` / `p-2.5` | `StatTile` |
+| `--gawdux-tile-gap` / `--gawdux-tile-min-width` | `gap-3` / `9rem` | `StatTileStrip` |
+
+The table knobs apply to flowbite cells inside a `TableContainer`,
+`ListSurface` or `DataTable` that still carry flowbite's default padding; a
+cell that sets its own padding keeps it.
 
 ## Host Contract
 

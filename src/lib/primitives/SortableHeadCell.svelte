@@ -10,6 +10,8 @@
 	export let onSort: (field: string) => void;
 	export let className: string = '';
 	export let icon: Component | undefined = undefined;
+	/** Aligns the label and arrow with the column's cells. Left by default. */
+	export let align: 'left' | 'center' | 'right' = 'left';
 
 	$: isActive = sortField === field;
 	$: sortIcon = isActive
@@ -18,13 +20,15 @@
 			: ArrowDownOutline
 		: ArrowUpOutline;
 	$: iconClass = isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-50';
+	$: alignCellClass = align === 'right' ? ' text-right' : align === 'center' ? ' text-center' : '';
+	$: alignRowClass = align === 'right' ? ' justify-end' : align === 'center' ? ' justify-center' : '';
 </script>
 
 <TableHeadCell
-	class={`interactive-hover whitespace-nowrap group ${className}`}
+	class={`interactive-hover whitespace-nowrap group ${className}${alignCellClass}`}
 	on:click={() => onSort(field)}
 >
-	<div class="flex items-center gap-2">
+	<div class={`flex items-center gap-2${alignRowClass}`}>
 		{#if icon}
 			<svelte:component this={icon} class="w-4 h-4" />
 		{/if}

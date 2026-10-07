@@ -1,5 +1,82 @@
 # Changelog
 
+## 0.14.0 - density knobs, stat tiles, data table, icon label (unreleased)
+
+Nothing changes its look by default: every knob defaults to the geometry that
+shipped before it, verified as identical computed styles in a browser (tables,
+card header and body, tabs at rest, light and dark, desktop and narrow widths).
+The two visible changes are the fixes listed under Fixed.
+
+### Added
+
+- Density knobs in `styles/tokens.css`, redeclared by a product after the
+  `@import` (light and dark share them):
+  - `--gawdux-table-cell-px` (`px-6`), `--gawdux-table-cell-py` (`py-4`),
+    `--gawdux-table-head-py` (`py-3`), `--gawdux-table-row-height` (`auto`,
+    a minimum): the padding of flowbite's default table cells inside a
+    `TableContainer`, `ListSurface` or `DataTable`. Only a cell still carrying
+    the default utility is routed; a cell that sets its own padding (`py-2`,
+    `pl-3`, `md:py-2`, `!px-2`) keeps it, and the rules carry no specificity,
+    so any consumer rule on a cell still wins.
+  - `--gawdux-card-header-px`/`-py` and `--gawdux-card-body-px`/`-py`
+    (`px-6 py-3` each): `CardContainer` and the `.card-header` class. The
+    narrow-layout caps (1rem at 1024px, 0.75rem at 640px) remain ceilings, so a
+    tighter knob stays tighter there too.
+  - `--gawdux-tile-padding` (`p-3`), `--gawdux-tile-padding-nested` (`p-2.5`),
+    `--gawdux-tile-gap` (`gap-3`), `--gawdux-tile-min-width` (`9rem`): the new
+    stat tiles.
+
+  A compact table, for example (40px rows, 48px with a second line):
+
+  ```css
+  @import 'gawdux/styles/tokens.css';
+  :root {
+  	--gawdux-table-cell-py: 0.3125rem;
+  	--gawdux-table-row-height: 2.5rem;
+  }
+  ```
+- Tab colour tokens: `--gawdux-tab-text`, `--gawdux-tab-text-hover`,
+  `--gawdux-tab-text-active`, `--gawdux-tab-indicator` (light and dark).
+- `StatTile` and `StatTileStrip` (`gawdux/primitives`): the KPI tile of a
+  detail overview, lifted from a consuming product's hero tiles. A tile takes
+  `label`, `value`, `meta`, an optional `icon`, a state `tone` (`neutral`,
+  `ok`, `warn`, `bad`, `info`) with an optional `dot`/`pulse`, a `nested`
+  variant for tiles inside a card, and a drill-down that is a small text
+  button (`onclick`) or link (`href`) worded by `actionLabel`, never the whole
+  tile. `aside` and `children` snippets carry a label-row stamp and a custom
+  body. The strip is an auto-fit grid: tiles share the row and wrap onto
+  further rows, never clipped and never scrolled sideways. `statTileToneClass`
+  exposes the tints.
+- `DataTable` (`gawdux/primitives`): `TableContainer` + flowbite `Table` with
+  headers from `columns` (`key`, `label`, `sort`, `align`, `class`,
+  `headClass`, `cellClass`, `icon`; a `sort` column becomes a
+  `SortableHeadCell` when the host passes `onSort`), body cells from a `cell`
+  snippet (or a whole `row` snippet), `EmptyStateRow` when there are no rows,
+  optional `onRowClick` (a click on a control in the row stays the
+  control's), an optional card-header `title`, and `framed={false}` for a
+  table inside a card. Sorting stays the host's.
+- `IconLabel` (`gawdux/primitives`): an icon and a word, aligned; the shape
+  of a cue. `size` matches the icon to the text, `iconClass`/`labelClass`
+  carry the host's colours, `truncate` clips a long word.
+- `StatusBadge`: an optional `icon` (with `iconClass`) before the word, and an
+  `orange` colour for a severity between red and yellow. Without an icon the
+  badge renders the same class string as before.
+- `SortableHeadCell`: `align` (`left` by default) for numeric and centred
+  columns. `TableContainer`: `surface` (`true` by default); `false` keeps the
+  frame but not the page-surface role, for a table inside other content.
+
+### Fixed
+
+- Tabs: a hovered tab no longer looks like the active one. Hover changes the
+  text colour only (a stronger neutral, not the accent) and no longer grows
+  the underline; the active tab keeps its accent colour and underline while
+  another tab is hovered, where before it dimmed. The active look is
+  unchanged.
+- `AppSidebar`: a long group label ends in an ellipsis instead of running
+  under its chevron. On the expanded rail the group button keeps the
+  chevron's column clear (2.25rem of right padding); the collapsed rail is
+  unchanged.
+
 ## 0.13.1 - retained changelog cleanup
 
 - Remove a historical diff3 marker from the packaged changelog. Runtime APIs,

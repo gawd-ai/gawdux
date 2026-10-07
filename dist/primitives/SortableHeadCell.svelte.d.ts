@@ -20,6 +20,7 @@ declare const SortableHeadCell: $$__sveltets_2_IsomorphicComponent<{
     onSort: (field: string) => void;
     className?: string;
     icon?: Component | undefined;
+    /** Aligns the label and arrow with the column's cells. Left by default. */ align?: "left" | "center" | "right";
 }, {
     [evt: string]: CustomEvent<any>;
 }, {}, {}, string>;

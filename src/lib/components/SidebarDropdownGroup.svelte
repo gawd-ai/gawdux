@@ -26,6 +26,9 @@
 		onCollapsedMouseLeave
 	}: Props = $props();
 
+	/** flowbite's default label span, made shrinkable with an ellipsis. */
+	const LABEL_CLASS = 'flex-1 min-w-0 ms-3 text-left whitespace-nowrap overflow-hidden text-ellipsis';
+
 	let wrapperEl: HTMLDivElement;
 
 	// Remove tabindex from all links to prevent keyboard focus
@@ -87,7 +90,15 @@
 	onmouseleave={handleMouseLeave}
 	onclickcapture={handleClickCapture}
 >
-	<SidebarDropdownWrapper label={group.label} bind:isOpen transitionParams={{ duration: 200 }}>
+	<!-- The label is flowbite's span plus min-w-0 and an ellipsis: a long label
+	     truncates instead of running under the chevron, whose column AppSidebar
+	     reserves with the button's right padding. -->
+	<SidebarDropdownWrapper
+		label={group.label}
+		spanClass={LABEL_CLASS}
+		bind:isOpen
+		transitionParams={{ duration: 200 }}
+	>
 		<svelte:fragment slot="icon">
 			{@const GroupIcon = group.icon}
 			<GroupIcon class="w-8 h-8" />

@@ -4,6 +4,31 @@ import * as alertOps from '../src/lib/alert-ops/index';
 import * as primitives from '../src/lib/primitives/index';
 import * as utils from '../src/lib/utils/index';
 
+describe('gawdux 0.14.0 export surface', () => {
+	it('exports the stat tiles, the data table and the icon label from primitives', () => {
+		for (const name of [
+			'StatTile',
+			'StatTileStrip',
+			'statTileToneClass',
+			'DataTable',
+			'dataTableAlignClass',
+			'isRowClickTarget',
+			'IconLabel'
+		] as const) {
+			expect(primitives[name], `primitives must export ${name}`).toBeDefined();
+		}
+		// The existing table and badge primitives they build on stay exported.
+		for (const name of ['TableContainer', 'SortableHeadCell', 'StatusBadge', 'EmptyStateRow', 'CollectionEmptyState', 'TabTitle'] as const) {
+			expect(primitives[name], `primitives must keep exporting ${name}`).toBeDefined();
+		}
+	});
+
+	it('maps a stat tile tone to its tint for hosts that must match a tile', () => {
+		expect(primitives.statTileToneClass('bad')).toContain('bg-red-50');
+		expect(primitives.statTileToneClass('ok', true)).toBe('bg-emerald-50 dark:bg-emerald-950/30');
+	});
+});
+
 describe('gawdux 0.9.0 export surface', () => {
 	it('exports the saved views rail, its match helpers and the pill recipe', () => {
 		for (const name of [
