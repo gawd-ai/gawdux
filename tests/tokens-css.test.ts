@@ -84,3 +84,21 @@ describe('tokens.css 0.9.0 additions', () => {
 		expect(tokens).toContain('.filter-bar-rail {');
 	});
 });
+
+describe('menu tokens', () => {
+	it('declares the row hover, the danger text and the chip surface for light and dark', () => {
+		for (const name of [
+			'--gawdux-menu-item-hover',
+			'--gawdux-text-danger',
+			'--gawdux-chip-surface'
+		]) {
+			expect(rootBlock, `${name} must have a light (:root) value`).toContain(`${name}:`);
+			expect(darkBlock, `${name} must have a dark (.dark) value`).toContain(`${name}:`);
+		}
+	});
+
+	it('declares the account menu width as a knob shared by both themes', () => {
+		expect(rootBlock).toContain('--gawdux-user-menu-width: 272px;');
+		expect(darkBlock).not.toContain('--gawdux-user-menu-width');
+	});
+});

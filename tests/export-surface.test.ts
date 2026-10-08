@@ -1,8 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import pkg from '../package.json';
+import * as root from '../src/lib/index';
+import * as components from '../src/lib/components/index';
 import * as alertOps from '../src/lib/alert-ops/index';
 import * as primitives from '../src/lib/primitives/index';
 import * as utils from '../src/lib/utils/index';
+
+describe('UserMenu export surface (unreleased)', () => {
+	it('exports the account menu from components and the root, beside the sidebar', () => {
+		expect(components.UserMenu).toBeDefined();
+		expect(root.UserMenu).toBe(components.UserMenu);
+		for (const name of ['AppSidebar', 'SidebarFlyout', 'SidebarDropdownGroup'] as const) {
+			expect(components[name], `components must keep exporting ${name}`).toBeDefined();
+		}
+	});
+});
 
 describe('gawdux 0.14.0 export surface', () => {
 	it('exports the stat tiles, the data table and the icon label from primitives', () => {

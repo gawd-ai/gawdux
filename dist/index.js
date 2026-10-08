@@ -3,6 +3,7 @@
 export { default as AppSidebar } from './components/AppSidebar.svelte';
 export { default as SidebarFlyout } from './components/SidebarFlyout.svelte';
 export { default as SidebarDropdownGroup } from './components/SidebarDropdownGroup.svelte';
+export { default as UserMenu } from './components/UserMenu.svelte';
 // Utilities
 export { 
 // Config builders

@@ -40,7 +40,7 @@ Supported package subpaths:
 
 ## What's Inside
 
-- **components**: `AppSidebar`, `SidebarDropdownGroup`, `SidebarFlyout`: the collapsible app navigation shell.
+- **components**: `AppSidebar`, `SidebarDropdownGroup`, `SidebarFlyout`: the collapsible app navigation shell; `UserMenu`: the top bar's account menu.
 - **primitives**: list and page building blocks: `ListSurface`, `ListQueryBar`, `ListPaginationNav`, `FilterBar`/`FilterPillRow`, `SavedViewsRail`, `MasterDetailShell`, `ListPageScaffold`/`EditablePageScaffold`, `PageCommandBar`, `PageTabs`, `FormField`, `ReadonlyField`, `CardContainer`, and more.
 - **detail and table primitives**: `StatTile`/`StatTileStrip` (a detail overview's KPI tiles: label, value, meta, icon, a state tone, a go-to icon drill-down; the strip wraps and never clips), `SectionLink` (the go-to-section arrow, no words, at the top right of a card header or tile; `CardContainer` takes it as `link`), `IconButton` (an icon action named by its tooltip; `danger` turns red only on hover), `DataTable` (a `TableContainer` with column definitions, `SortableHeadCell` headers, cells from a snippet and the house empty row), `IconLabel` (an icon and a word, the shape of a cue), `StatusBadge` (a coloured word, optionally with an icon), `TableContainer`, `SortableHeadCell`, `EmptyStateRow`, `CollectionEmptyState`.
 - **alert-ops**: `AlertOpsConsole`, the Alert Operations surface (alert groups, detail, silences), transport-agnostic. Its tabs carry icons; its denied and unavailable states are the house `CollectionEmptyState` on the page surface, and with `healthBar={false}` the host's bar carries status and Refresh, so the unavailable state offers no Retry of its own.
@@ -77,6 +77,67 @@ by overriding component classes:
 The table knobs apply to flowbite cells inside a `TableContainer`,
 `ListSurface` or `DataTable` that still carry flowbite's default padding; a
 cell that sets its own padding keeps it.
+
+## Account menu
+
+`UserMenu` (`gawdux/components`) is the account menu of an app shell's top bar:
+a card showing the avatar, the name and the email on two lines, which expands
+in place over the page into the tenant and the access chips, the account's
+rows, sign-out and the product's version.
+
+```svelte
+<script lang="ts">
+  import { enhance } from '$app/forms';
+  import { UsersOutline } from 'flowbite-svelte-icons';
+  import { UserMenu, type UserMenuItem } from 'gawdux/components';
+
+  let { user, tenant, grade } = $props();
+  const items: UserMenuItem[] = [{ label: 'Members', href: '/app/members', icon: UsersOutline }];
+</script>
+
+<UserMenu
+  name={user.name}
+  email={user.email}
+  tenant={tenant.name}
+  access={[grade]}
+  {items}
+  signOutAction="/signout"
+  signOutEnhance={enhance}
+  product="Product"
+  version="v1.4 · 212"
+  versionTitle="Built from abc1234"
+>
+  {#snippet mark()}<img src="/mark.svg" alt="" width="16" height="16" />{/snippet}
+</UserMenu>
+```
+
+- **Trigger**: always the avatar (initials derived from the first and last word
+  of `name`, or `initials`, or `avatarSrc`), the name and the email. Nothing in
+  it depends on the open state, so opening never moves it. The tenant is never
+  a trigger line; it is the open menu's first row, with the `access` chips.
+- **Rows**: `items` are links (`href`) or buttons (`onclick`) with an optional
+  16px `icon`. `extraItems` renders custom rows after them; each must carry
+  `role="menuitem"`, `tabindex="-1"` and the class `gawdux-user-menu-item`.
+  Sign-out is the last row: a POST form to `signOutAction` (with
+  `signOutEnhance` applied, e.g. a SvelteKit `enhance`), or `onsignout`, or
+  absent when neither is given. It is red on its icon and its word only.
+- **Footer**: `{product} {version}` in one text run, `versionTitle` as the
+  tooltip, `mark` in a 16px box in the leading column; `footer` replaces the
+  content inside the same 32px row. No footer when none of these is given.
+- **Keyboard**: the WAI-ARIA menu button pattern. Enter, Space or ArrowDown
+  opens on the first row, ArrowUp on the last; the arrows wrap, Home and End
+  jump, Escape closes and returns the focus to the trigger, Tab closes and moves
+  on. The closed body is `inert`.
+- **Pointer**: click toggles; an outside press closes; leaving a menu the
+  pointer opened closes it after 150ms unless the pointer comes back.
+- **Geometry**: the root reserves 272 by 44 (`--gawdux-user-menu-width`), so the
+  toolbar never reflows; the panel grows to its natural height above the page
+  (z-index 60). Below `compactBelow` (768 by default, 1024, or 0 for never) the
+  closed menu is the avatar alone.
+- **Styling** is scoped CSS over the tokens (`--gawdux-surface`,
+  `--gawdux-border`, `--gawdux-menu-item-hover`, `--gawdux-chip-surface`,
+  `--gawdux-text-danger`, ...), never Tailwind utilities, so it renders styled
+  even where the host's Tailwind does not scan this package.
 
 ## Host Contract
 

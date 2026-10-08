@@ -1,5 +1,37 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `UserMenu` (`gawdux/components` and the root) with the `UserMenuItem` and
+  `UserMenuProps` types: the account menu of an app shell's top bar, one
+  component in place of a hand-written menu per product.
+  - The trigger is two lines, the name and the email, beside a 28px avatar
+    (initials derived from the name, or `initials`, or `avatarSrc`). It is the
+    same open and closed: opening never moves the avatar or the text. The
+    tenant is the open menu's first row, with the `access` chips, never a third
+    trigger line that makes the card taller than the toolbar.
+  - Left-aligned rows with icons on one grid (`items` as data, `extraItems` as
+    a snippet), one neutral hover, quiet dividers, and sign-out as the last
+    row: a POST form (`signOutAction`, `signOutEnhance`) or a handler
+    (`onsignout`), red on its icon and its word only.
+  - The footer is the product mark (`mark`, a 16px box) and
+    `{product} {version}` on one centre line in a 32px row, `versionTitle` as
+    its tooltip; `footer` replaces it.
+  - The panel takes its natural height (no max-height constant to outgrow) and
+    sits on integer pixels in a 56px toolbar. The closed body is `inert`.
+  - WAI-ARIA menu button keyboard: Enter, Space and the arrows open into the
+    rows, the arrows wrap, Home and End, Escape returns the focus to the
+    trigger, Tab closes and moves on. Outside press closes; leaving a
+    pointer-opened menu closes it after a 150ms grace.
+  - `compactBelow` (768, 1024 or 0): the avatar alone below that width.
+  - Styled with scoped CSS over tokens, never Tailwind utilities, so it renders
+    even where a host's Tailwind does not scan this package.
+- Tokens, light and dark: `--gawdux-menu-item-hover` (gray-100 / gray-800),
+  `--gawdux-text-danger` (red-600 / red-400), `--gawdux-chip-surface`
+  (gray-100 / gray-800); and the `--gawdux-user-menu-width` knob (272px).
+
 ## 0.15.0 - shared AI + Bots and Role blocks, the alert console's house states
 
 ### Added
