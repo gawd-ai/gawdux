@@ -84,3 +84,15 @@ describe('tokens.css 0.9.0 additions', () => {
 		expect(tokens).toContain('.filter-bar-rail {');
 	});
 });
+
+describe('table separators, framed or not', () => {
+	it('colours the head and row borders of an unframed DataTable with the separator token', () => {
+		// Without the frame, flowbite's row border falls back to currentColor
+		// (the text colour) unless the separator rule covers `.data-table` too.
+		for (const part of ['thead', 'tbody tr']) {
+			const rule = tokens.match(new RegExp(`:is\\(\\.table-container, \\.data-table\\) ${part} \\{([^}]*)\\}`));
+			expect(rule, `${part} separator must cover .data-table`).toBeTruthy();
+			expect(rule?.[1]).toContain('var(--gawdux-table-separator)');
+		}
+	});
+});

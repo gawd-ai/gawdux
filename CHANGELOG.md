@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- An unframed `DataTable` (`framed={false}`, inside a card) drew its head
+  and row separators in the text colour: the separator rule covered
+  `.table-container` only, so flowbite's borders fell back to currentColor.
+  The rule now covers `.data-table` as well.
+
 ## 0.15.0 - shared AI + Bots and Role blocks, the alert console's house states
 
 ### Added
