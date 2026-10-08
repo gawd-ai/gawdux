@@ -36,6 +36,14 @@
   label, in the header's colour, before the label and the sort arrow.
 - `DataTable`'s plain header is a `HeadCell`.
 
+### Fixed
+
+- A plain header with an icon no longer grows its row. The label box is
+  `vertical-align: top`: an inline-flex box whose first item is an svg has no
+  text baseline, so on the baseline it hung below the header's line (3px in
+  a text-xs head with a 14px icon, 4px with 0.17.0's 16px `DataTable` icon).
+  A sortable header, a flex row, was never affected.
+
 ### Notes
 
 - A header without an icon renders as in 0.17.0, byte for byte (the tests

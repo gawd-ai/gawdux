@@ -296,6 +296,8 @@ describe('column header icons: one shape, sized by knobs, unlayered', () => {
 		expect(label).toContain('display: inline-flex;');
 		expect(label).toContain('align-items: center;');
 		expect(label).toContain('gap: var(--gawdux-table-head-icon-gap);');
+		// On the line's top, never its baseline: the row keeps its height.
+		expect(label).toContain('vertical-align: top;');
 		const icon = topRule('.table-head-icon');
 		expect(icon).toContain('width: var(--gawdux-table-head-icon-size);');
 		expect(icon).toContain('height: var(--gawdux-table-head-icon-size);');

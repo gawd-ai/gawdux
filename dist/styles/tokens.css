@@ -591,6 +591,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--gawdux-table-head-icon-gap);
+  vertical-align: top;
 }
 .table-head-icon {
   flex: none;

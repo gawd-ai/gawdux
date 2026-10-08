@@ -730,11 +730,17 @@
    they hold when a consumer's Tailwind does not scan gawdux. The colour
    defaults to the header's own ink; nothing recolours it (hover, the active
    sort and a row's state leave it alone). A consumer that imports this file
-   into a cascade layer gives the utility the win back. */
+   into a cascade layer gives the utility the win back.
+   The label box sits on the top of its line, not on the baseline: an
+   inline-flex box whose first item is an svg has no text baseline, so a
+   baseline-aligned label hangs below the header's line and the header row
+   grows (3px in a text-xs head with a 14px icon). On the top, the box is one
+   line tall and the word sits where a bare word sits. */
 .table-head-label {
 	display: inline-flex;
 	align-items: center;
 	gap: var(--gawdux-table-head-icon-gap);
+	vertical-align: top;
 }
 .table-head-icon {
 	flex: none;
