@@ -212,6 +212,9 @@
 
 	.readonly-value {
 		color: var(--gawdux-text-primary);
+		/* A long unbroken value (an email, a MAC, a hash) wraps inside its
+		   column instead of running into the next one. */
+		overflow-wrap: anywhere;
 	}
 
 	/* Ensure labels inside the Toggle wrapper use the themed text in dark mode */

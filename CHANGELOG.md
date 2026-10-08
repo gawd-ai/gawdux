@@ -1,8 +1,44 @@
 # Changelog
 
-## Unreleased
+## 0.15.0 - shared AI + Bots and Role blocks, the alert console's house states
+
+### Added
+
+- `gawdux/admin`, AI + Bots blocks shared by every product's Admin section
+  (taken from the better of the two products' versions):
+  - `AiUsageReport`: Turns and Tokens as stat tiles (plus the host's own
+    tiles), the per-day bars in a card whose header offers the windows
+    (`windows`, `onwindow`), and one card per breakdown with each row's
+    turns, tokens and share of the window. `metric` picks what the bars
+    count, `tokenUnit` what the product calls a token ("credits"), and a
+    quiet window says so instead of drawing zeroes. Never money: a host that
+    must show an amount puts it in a row's `note`.
+  - `AiUsageBars`: the per-day bars, one keyboard-readable meter per day
+    with the exact value in a tooltip; no canvas, no chart library, both
+    themes.
+  - `BotRail`: the bots as a master-detail rail (avatar, name, role, one
+    on/off dot), with optional search and lanes; `botInitials`.
+  - `BotIdentityHeader`: the selected bot's avatar, name, role and state
+    pills, and what it does.
+  - `BotConfigView`: one config read (name, state, the bots it applies to,
+    the instructions as written), the read side of an Edit mode whose edit
+    side is `BotConfigFields`.
+  - `BotContextCard`: the composed block a bot reads, its size against the
+    budget, its parts when the host has them (the block then behind a
+    disclosure), a version, a host status line, and a go-to `link`.
+- `RoleMembersCard` (`gawdux/admin`): who holds a Role, with a quiet trash
+  icon per person that raises `onremove` for the host to confirm, and a
+  picker that hands the chosen person to `onadd`. Read-only when the Role is
+  platform-managed (`editable` false).
+- Types: `AiUsageTotals`, `AiUsageDay`, `AiUsageBreakdown`,
+  `AiUsageBreakdownRow`, `AiUsageTile`, `BotRailItem`, `BotContextPart`,
+  `BotConfigSummary`, `RoleMemberItem`.
 
 ### Changed
+
+- `MemberAccessCard`: taking a Role away is a quiet trash icon on the Role's
+  row ("Remove from <Role>", copy key `removeFrom`), confirmed by the host,
+  instead of a worded button.
 
 - `AlertOpsConsole`: the Alerts and Silences tabs carry icons (`BellOutline`,
   `VolumeMuteOutline`) beside their labels.
@@ -14,6 +50,12 @@
 - `AlertOpsConsole`: with `healthBar={false}` the unavailable state offers no
   Retry: the host that carries status and Refresh on its bar asks again from
   there. With the strip on, Retry stays and calls `onrefresh`.
+
+### Fixed
+
+- A `ReadonlyField` value that is one long token (an email, a MAC, a hash)
+  wraps inside its column instead of running into the next one
+  (`.readonly-value` takes `overflow-wrap: anywhere`).
 
 ## 0.14.2 - DataTable's link in the package
 

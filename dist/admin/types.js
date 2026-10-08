@@ -10,5 +10,6 @@ export const DEFAULT_MEMBER_ACCESS_COPY = {
     addPlaceholder: 'Add to a Role',
     add: 'Add',
     remove: 'Remove',
+    removeFrom: 'Remove from',
     system: 'system'
 };

@@ -13,7 +13,7 @@ const ROLES = [
 describe('MemberAccessCard', () => {
 	it('is read-only unless the host grants editing AND handles it', () => {
 		render(MemberAccessCard, { props: { roles: ROLES, candidates: [{ id: 2, name: 'Operators' }], canEdit: true } });
-		expect(screen.queryByRole('button', { name: 'Remove' })).toBeNull();
+		expect(screen.queryByRole('button', { name: /^Remove from/ })).toBeNull();
 		expect(screen.queryByRole('button', { name: 'Add' })).toBeNull();
 	});
 
@@ -21,13 +21,18 @@ describe('MemberAccessCard', () => {
 		render(MemberAccessCard, {
 			props: { roles: ROLES, canEdit: true, onremove: () => {} }
 		});
-		expect(screen.getAllByRole('button', { name: 'Remove' })).toHaveLength(1);
+		const trash = screen.getAllByRole('button', { name: /^Remove from/ });
+		expect(trash).toHaveLength(1);
+		// A quiet icon, named for the Role, red only on hover.
+		expect(trash[0]!.getAttribute('aria-label')).toBe('Remove from Members');
+		expect(trash[0]!.dataset.tone).toBe('danger');
+		expect(trash[0]!.textContent?.trim()).toBe('');
 	});
 
 	it('raises the Role the host is asked to remove', async () => {
 		const onremove = vi.fn();
 		render(MemberAccessCard, { props: { roles: ROLES, canEdit: true, onremove } });
-		await fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
+		await fireEvent.click(screen.getByRole('button', { name: 'Remove from Members' }));
 		expect(onremove).toHaveBeenCalledWith(1);
 	});
 

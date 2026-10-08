@@ -123,6 +123,7 @@
   }
   .readonly-value {
     color: var(--gawdux-text-primary);
+    overflow-wrap: anywhere;
   }
   .form-toggle label {
     color: var(--gawdux-text-primary) !important;

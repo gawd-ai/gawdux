@@ -410,7 +410,22 @@ describe('gawdux 0.10.0 export surface (admin blocks)', () => {
 		});
 		const admin = await import('../src/lib/admin/index');
 		expect(Object.keys(admin).sort()).toEqual(
-			['AuditHistoryTable', 'BotConfigFields', 'BotToolAccess', 'DEFAULT_MEMBER_ACCESS_COPY', 'MemberAccessCard', 'SecurityActivityList'].sort()
+			[
+				'AiUsageBars',
+				'AiUsageReport',
+				'AuditHistoryTable',
+				'BotConfigFields',
+				'BotConfigView',
+				'BotContextCard',
+				'BotIdentityHeader',
+				'BotRail',
+				'BotToolAccess',
+				'DEFAULT_MEMBER_ACCESS_COPY',
+				'MemberAccessCard',
+				'RoleMembersCard',
+				'SecurityActivityList',
+				'botInitials'
+			].sort()
 		);
 	});
 });
