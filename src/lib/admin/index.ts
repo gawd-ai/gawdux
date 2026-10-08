@@ -7,19 +7,35 @@ export { default as SecurityActivityList } from './SecurityActivityList.svelte';
 export { default as BotToolAccess } from './BotToolAccess.svelte';
 export { default as BotConfigFields } from './BotConfigFields.svelte';
 export { default as AuditHistoryTable } from './AuditHistoryTable.svelte';
+export { default as AiUsageBars } from './AiUsageBars.svelte';
+export { default as AiUsageReport } from './AiUsageReport.svelte';
+export { default as BotRail, botInitials } from './BotRail.svelte';
+export { default as BotIdentityHeader } from './BotIdentityHeader.svelte';
+export { default as BotConfigView } from './BotConfigView.svelte';
+export { default as BotContextCard } from './BotContextCard.svelte';
+export { default as RoleMembersCard } from './RoleMembersCard.svelte';
 
 export { DEFAULT_MEMBER_ACCESS_COPY } from './types';
 export type {
+	AiUsageBreakdown,
+	AiUsageBreakdownRow,
+	AiUsageDay,
+	AiUsageTile,
+	AiUsageTotals,
 	AuditHistoryChange,
 	AuditHistoryRow,
 	AuditTone,
 	BotConfigDraft,
+	BotConfigSummary,
+	BotContextPart,
 	BotOption,
+	BotRailItem,
 	BotTool,
 	BotToolGroup,
 	MemberAccessCopy,
 	MemberCapability,
 	MemberCapabilityGroup,
 	MemberRole,
+	RoleMemberItem,
 	SecurityActivityEvent
 } from './types';

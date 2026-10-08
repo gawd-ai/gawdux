@@ -2,14 +2,18 @@
 	A member's access: the Roles they hold and what those Roles let them do.
 
 	Adding and removing are INTENTS: the host performs the write and hands the
-	new state back. Controls render only when the host both grants `canEdit`
+	new state back, and confirms a removal where its confirmations go (the
+	command bar). Removal is a quiet trash icon per Role, red only on hover:
+	a destructive control does not shout from every row. Controls render only when the host both grants `canEdit`
 	and supplies the handler, so a viewer who cannot change access sees a
 	read-only card rather than buttons the server would refuse. A
 	platform-managed Role is never removable here.
 -->
 <script lang="ts">
 	import { Badge, Button, Select } from 'flowbite-svelte';
+	import { TrashBinOutline } from 'flowbite-svelte-icons';
 	import CardContainer from '../primitives/CardContainer.svelte';
+	import IconButton from '../primitives/IconButton.svelte';
 	import {
 		DEFAULT_MEMBER_ACCESS_COPY,
 		type MemberAccessCopy,
@@ -90,13 +94,13 @@
 								{/if}
 							</div>
 							{#if canRemove && !role.system}
-								<Button
-									size="xs"
-									outline
-									color="red"
+								<IconButton
+									icon={TrashBinOutline}
+									label={`${copy.removeFrom} ${role.name}`}
+									tone="danger"
 									disabled={busy}
-									onclick={() => onremove?.(role.id)}>{copy.remove}</Button
-								>
+									onclick={() => onremove?.(role.id)}
+								/>
 							{/if}
 						</div>
 					{/each}

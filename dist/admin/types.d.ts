@@ -34,6 +34,8 @@ export interface MemberAccessCopy {
     addPlaceholder: string;
     add: string;
     remove: string;
+    /** The trash icon's name, before the Role's ("Remove from Operators"). */
+    removeFrom: string;
     system: string;
 }
 export declare const DEFAULT_MEMBER_ACCESS_COPY: MemberAccessCopy;
@@ -99,4 +101,73 @@ export interface AuditHistoryRow {
         value: string;
     }[];
     changes: AuditHistoryChange[];
+}
+/** Turns and tokens over a window. No money: an activity view, not a bill. */
+export interface AiUsageTotals {
+    turns: number;
+    tokens: number;
+}
+/** One day of a usage window (`day` is `YYYY-MM-DD`, UTC). */
+export interface AiUsageDay {
+    day: string;
+    turns: number;
+    tokens: number;
+}
+/** One attributed slice of a usage window, already named by the host. */
+export interface AiUsageBreakdownRow {
+    key: string;
+    label: string;
+    turns: number;
+    tokens: number;
+    /** A host extra shown after the numbers (a billed amount, a share). */
+    note?: string | null;
+}
+/** One breakdown card: a dimension (by bot, by person...) and its rows. */
+export interface AiUsageBreakdown {
+    id: string;
+    title: string;
+    rows: AiUsageBreakdownRow[];
+    /** A qualifier in the card header ("Top 5"), so a capped list never reads as the census. */
+    caption?: string | null;
+}
+/** A tile the host adds after Turns and Tokens (bots on, a limit). */
+export interface AiUsageTile {
+    label: string;
+    value: string;
+    meta?: string | null;
+}
+/** One bot in a rail. `status` is the one state the row carries (on or off). */
+export interface BotRailItem {
+    id: string;
+    name: string;
+    /** The qualifier line under the name (its role). */
+    role?: string | null;
+    /** Two letters for the avatar; derived from the name when absent. */
+    initials?: string | null;
+    /** A background class for the avatar (`bg-sky-600`); a neutral one when absent. */
+    color?: string | null;
+    status?: {
+        on: boolean;
+        label: string;
+    } | null;
+}
+/** One part of a bot's composed context (a config, a skill...). */
+export interface BotContextPart {
+    kind: string;
+    label: string;
+    chars: number;
+}
+/** One saved tenant config, as its read view shows it. */
+export interface BotConfigSummary {
+    name: string;
+    body: string;
+    enabled: boolean;
+    botIds: readonly string[];
+}
+/** One person holding a Role, named by the host. */
+export interface RoleMemberItem {
+    ref: string;
+    label: string;
+    /** A second line (an email, a technical ref). */
+    detail?: string | null;
 }
