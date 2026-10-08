@@ -18,8 +18,14 @@ declare function $$render<T>(): {
         onSort?: (field: string) => void;
         /** A card header above the table. */
         title?: string;
-        /** Right side of the card header (a count, a link). */
+        /** Right side of the card header (a count, a freshness stamp). */
         header?: Snippet;
+        /** The section this panel leads to, as the go-to icon at the header's end. */
+        link?: {
+            label: string;
+            href?: string;
+            onclick?: (event: MouseEvent) => void;
+        } | null;
         /** Screen-reader caption. */
         caption?: string;
         emptyText?: string;

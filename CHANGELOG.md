@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.14.2 - DataTable's link in the package
+
+### Fixed
+
+- 0.14.1 shipped `DataTable`'s `link` in the source but not in `dist`: the
+  package was built before that change. Rebuilt; no other difference.
+
 ## 0.14.1 - the go-to icon, icon buttons
 
 A drill-down is an arrow icon at the top right of what it leads from, never a
