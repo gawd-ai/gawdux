@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.17.0 - one content inset, owned once by the panel that hosts it
 
 ### Added
 
