@@ -111,7 +111,7 @@
 	     `--gawdux-page-inset` on the top and sides (`pt-4 px-4`),
 	     `--gawdux-page-inset-bottom` above the command bar (`pb-1`);
 	   - the wide content column (`.panel-col-wide`, `MasterDetailShell`'s
-	     card): `max-w-6xl`. */
+	     card, `.master-detail-card`): `max-w-6xl`. */
 	--gawdux-table-row-height: auto;
 	--gawdux-table-cell-px: calc(var(--spacing, 0.25rem) * 6);
 	--gawdux-table-cell-py: calc(var(--spacing, 0.25rem) * 4);
@@ -554,14 +554,37 @@
 		padding: var(--gawdux-page-inset) var(--gawdux-page-inset) var(--gawdux-page-inset-bottom);
 	}
 
-	/* MasterDetailShell's own inset. It applies only where no host encloses
-	   the shell (a bare, unpadded panel); inside a host the host's padding is
-	   the one inset, never a second. */
+	/* MasterDetailShell's frame. Its own inset applies only where no host
+	   encloses the shell (a bare, unpadded panel); inside a host the host's
+	   padding is the one inset, never a second. The frame clips (it scrolls
+	   below a 48rem container and clips above), so inside a host it reaches
+	   a shadow's room (0.25rem, never more than the host's own inset) past
+	   the card on every side and pads that room back: the card sits on the
+	   host's inset and its shadow is drawn whole. The reach stays inside the
+	   host's padding and inside any sibling gap of 0.25rem or more, so it
+	   never covers what sits beside the shell. The height lives here, not in
+	   an h-full utility, because the reach has to add to it. */
 	.master-detail-inset {
+		height: 100%;
 		padding: var(--gawdux-page-inset) var(--gawdux-page-inset) var(--gawdux-page-inset-bottom);
 	}
 	:is(.scroll-surface, .editable-page-body, .page-inset, .tab-fill-scroll) .master-detail-inset {
-		padding: 0;
+		margin: calc(-1 * min(0.25rem, var(--gawdux-page-inset)))
+			calc(-1 * min(0.25rem, var(--gawdux-page-inset)))
+			calc(-1 * min(0.25rem, var(--gawdux-page-inset-bottom)));
+		padding: min(0.25rem, var(--gawdux-page-inset)) min(0.25rem, var(--gawdux-page-inset))
+			min(0.25rem, var(--gawdux-page-inset-bottom));
+		height: calc(
+			100% + min(0.25rem, var(--gawdux-page-inset)) + min(0.25rem, var(--gawdux-page-inset-bottom))
+		);
+	}
+
+	/* MasterDetailShell's card: the wide content column, the knob
+	   .panel-col-wide reads too. A class of its own, not an arbitrary
+	   utility, so a consumer's Tailwind never has to scan gawdux to build
+	   it, and a consumer has one stable name to reach the card by. */
+	.master-detail-card {
+		max-width: var(--gawdux-panel-wide-max-width);
 	}
 
 	/* TabFillPanel's scrolling form: a fill tab whose content scrolls. Inside

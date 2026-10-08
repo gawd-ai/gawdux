@@ -12,6 +12,9 @@
 - `--gawdux-panel-wide-max-width` (72rem): the wide content column, read by
   `.panel-col-wide` and `MasterDetailShell`'s card. `none` lets both fill
   their panel.
+- `.master-detail-card`: `MasterDetailShell`'s card, the one stable name to
+  reach it by. It reads `--gawdux-panel-wide-max-width` from `tokens.css`,
+  so the cap exists whether or not a consumer's Tailwind scans gawdux.
 - `.page-inset`: a product's own surface becomes an inset host with the same
   padding.
 - `TabFillPanel scroll`: a fill tab whose content scrolls. The panel is the
@@ -23,12 +26,24 @@
 
 - `MasterDetailShell` pads only where no host encloses it. Inside a
   `.scroll-surface`, an `EditablePageScaffold` body, a `.page-inset` surface
-  or a `TabFillPanel scroll`, its frame adds nothing; in a bare, unpadded
-  panel it keeps its own inset (the `master-detail-inset` class, read from
-  the knobs).
+  or a `TabFillPanel scroll`, its frame adds no inset: the card sits on the
+  host's inset. The frame clips (it scrolls below a 48rem container and
+  clips above), so there it reaches 0.25rem past the card (never more than
+  the host's own inset) and pads that back, and the card's shadow is drawn
+  whole. In a bare, unpadded panel it keeps its own inset (the
+  `master-detail-inset` class, read from the knobs).
+- `MasterDetailShell`'s card drops `max-w-6xl` for `master-detail-card`, and
+  the frame's height moves from `h-full` into `master-detail-inset`.
 - `EditablePageScaffold`'s body pads around a two-pane shell instead of
   dropping its padding for it.
 - `.panel-col-wide` reads `--gawdux-panel-wide-max-width`.
+
+### Fixed
+
+- `AlertOpsConsole`'s Alerts and Silences tab bodies drop `p-3`. Inside
+  PageTabs' panel they were a second inset: their content sat 28 px from the
+  tab row and the panel's sides instead of 16, and the bottom was padded
+  twice. A test now holds every gawdux tab body to the panel's inset.
 
 ### Notes
 
@@ -39,9 +54,21 @@
   becomes 16 / 16 / 4. One that hosts it in a bare, unpadded surface keeps
   the shell's own inset. A surface of its own that should count as a host
   takes the `page-inset` class.
-- Below a 48rem container width a shell inside a host scrolls inside the
-  inset instead of carrying it, so its scrollbar is one inset in from the
+- Below a 48rem container width a shell inside a host scrolls in its frame,
+  whose scrollbar sits 0.25rem outside the card instead of at the panel's
   edge.
+- Inside a host the shell's frame reaches 0.25rem past the shell's own box.
+  Keep a gap of at least 0.25rem (`space-y-*`, `gap-*`) between a hosted
+  shell and anything beside it, or let the shell be its host's only content,
+  as every current consumer does.
+- The card no longer carries `max-w-6xl`. A consumer that lifted the cap by
+  that class must use the knob instead. SIMS's Document Control page does:
+  `.document-control-page :global(.max-w-6xl) { max-width: none; }`
+  (`src/routes/t/[tenant]/app/documents/control/+page.svelte`) matches
+  nothing after this release, and its three shells (TypesPanel, FoldersPanel,
+  WorkflowsPanel) go back to a centred 72rem card. Replace that rule with
+  `.document-control-page { --gawdux-panel-wide-max-width: none; }`, which
+  the shells' cards inherit.
 
 ## 0.16.0 - the account menu for every app shell; the command bar never keeps a dead page's buttons
 

@@ -120,12 +120,24 @@ describe('MasterDetailShell content inset', () => {
 		}
 	});
 
-	it("caps the card with the wide-column knob, not a fixed width", () => {
+	it('caps the card through its own class (the wide-column knob), never a width utility', () => {
 		const { container } = render(MasterDetailShell, {
 			props: { rail, detail, detailKey: null, detailLabel: 'Item details' }
 		});
 		const card = container.querySelector<HTMLElement>('.master-detail-inset > div');
-		expect(card?.classList.contains('max-w-[var(--gawdux-panel-wide-max-width,72rem)]')).toBe(true);
-		expect(card?.classList.contains('max-w-6xl')).toBe(false);
+		expect(card?.classList.contains('master-detail-card')).toBe(true);
+		// An arbitrary utility only exists where the consumer's Tailwind scans
+		// gawdux; a class from tokens.css always does.
+		const widths = [...(card?.classList ?? [])].filter((c) => /^(?:[\w@-]+:)*max-w-/.test(c));
+		expect(widths, card?.className).toEqual([]);
+	});
+
+	it("the frame's height is in tokens.css, so the shadow room inside a host can add to it", () => {
+		const { container } = render(MasterDetailShell, {
+			props: { rail, detail, detailKey: null, detailLabel: 'Item details' }
+		});
+		const frame = container.querySelector<HTMLElement>('.master-detail-inset');
+		const heights = [...(frame?.classList ?? [])].filter((c) => /^(?:[\w@-]+:)*h-/.test(c));
+		expect(heights, frame?.className).toEqual([]);
 	});
 });

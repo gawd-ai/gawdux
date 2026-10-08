@@ -139,3 +139,33 @@ describe('AlertOpsConsole selection wiring', () => {
 		expect(screen.queryByTestId('alert-detail-empty')).toBeNull();
 	});
 });
+
+describe('AlertOpsConsole content inset', () => {
+	/** Padding or margin utilities on an element, whatever their variant prefix. */
+	const insetClasses = (element: Element | null | undefined) =>
+		[...(element?.classList ?? [])].filter((c) => /^(?:[\w@-]+:)*!?-?[pm][xytrblse]?-/.test(c));
+
+	it("opens the Alerts tab on the panel's inset: the tab body pads nothing", () => {
+		const { container } = render(AlertOpsConsole, {
+			props: { ...baseProps, data: makeData('partial', [makeGroup()], [makeSilence()]) }
+		});
+		const panel = container.querySelector<HTMLElement>('[role="tabpanel"]');
+		expect(panel?.classList.contains('scroll-surface')).toBe(true);
+		// The panel holds TabItem's wrapper, and the wrapper holds the body.
+		const body = panel?.firstElementChild?.firstElementChild;
+		expect(body?.classList.contains('space-y-3')).toBe(true);
+		expect(insetClasses(body)).toEqual([]);
+		expect(body?.querySelector('[data-testid="alert-ops-partial-alerts"]')).not.toBeNull();
+	});
+
+	it('opens the Silences tab on the same inset', async () => {
+		const { container } = render(AlertOpsConsole, {
+			props: { ...baseProps, data: makeData('partial', [makeGroup()], [makeSilence()]) }
+		});
+		await fireEvent.click(screen.getByRole('tab', { name: /Silences/ }));
+		const panel = container.querySelector<HTMLElement>('[role="tabpanel"]');
+		const body = panel?.firstElementChild?.firstElementChild;
+		expect(body?.querySelector('[data-testid="alert-ops-partial-silences"]')).not.toBeNull();
+		expect(insetClasses(body)).toEqual([]);
+	});
+});

@@ -89,7 +89,10 @@ hosts the content sets it. The hosts are `.scroll-surface` (PageTabs' panel),
 the `page-inset` class. Nothing inside a host pads itself toward the host's
 edges: a tab body opens on a plain `space-y-3` div, `MasterDetailShell` adds
 no inset inside a host (its own inset is the fallback for a shell in a bare,
-unpadded panel), and `TabFillPanel` adds none. A fill tab whose content
+unpadded panel; inside a host its frame only reaches 0.25rem past the card so
+the card's shadow is drawn whole), and `TabFillPanel` adds none. The shell's
+card is `.master-detail-card`, capped by `--gawdux-panel-wide-max-width` like
+`.panel-col-wide`. A fill tab whose content
 scrolls is `<TabFillPanel scroll>`: the panel becomes the one scroller, spans
 its host's padding box and pads itself with the same knobs, so the scrollbar
 sits at the panel's edge and a hovered tile's shadow is never clipped.

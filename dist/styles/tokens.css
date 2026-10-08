@@ -441,10 +441,21 @@
     padding: var(--gawdux-page-inset) var(--gawdux-page-inset) var(--gawdux-page-inset-bottom);
   }
   .master-detail-inset {
+    height: 100%;
     padding: var(--gawdux-page-inset) var(--gawdux-page-inset) var(--gawdux-page-inset-bottom);
   }
   :is(.scroll-surface, .editable-page-body, .page-inset, .tab-fill-scroll) .master-detail-inset {
-    padding: 0;
+    margin: calc(-1 * min(0.25rem, var(--gawdux-page-inset)))
+			calc(-1 * min(0.25rem, var(--gawdux-page-inset)))
+			calc(-1 * min(0.25rem, var(--gawdux-page-inset-bottom)));
+    padding: min(0.25rem, var(--gawdux-page-inset)) min(0.25rem, var(--gawdux-page-inset))
+			min(0.25rem, var(--gawdux-page-inset-bottom));
+    height: calc(
+			100% + min(0.25rem, var(--gawdux-page-inset)) + min(0.25rem, var(--gawdux-page-inset-bottom))
+		);
+  }
+  .master-detail-card {
+    max-width: var(--gawdux-panel-wide-max-width);
   }
   .tab-fill-scroll {
     overflow-y: auto;

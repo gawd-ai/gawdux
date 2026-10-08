@@ -248,7 +248,7 @@
 		<PageTabs>
 			<TabItem open>
 				<TabTitle slot="title" icon={BellOutline} label={copy.alertsTab} />
-				<div class="space-y-3 p-3">
+				<div class="space-y-3">
 					{#if view.partial}
 						<div class={bannerClass} role="status" data-testid="alert-ops-partial-alerts">
 							{copy.partialAlertsBanner}
@@ -299,7 +299,7 @@
 
 			<TabItem>
 				<TabTitle slot="title" icon={VolumeMuteOutline} label={copy.silencesTab} />
-				<div class="space-y-3 p-3">
+				<div class="space-y-3">
 					{#if view.partial}
 						<div class={bannerClass} role="status" data-testid="alert-ops-partial-silences">
 							{copy.partialSilencesBanner}

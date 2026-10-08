@@ -211,11 +211,26 @@ describe('content inset: one inset, owned once by the host', () => {
 		expect(ruleOf('.tab-fill-scroll')).toContain('overflow-y: auto;');
 	});
 
-	it("the shell's fallback inset is zero inside every host", () => {
+	it("inside every host the shell's frame adds no inset, only its card's shadow room", () => {
 		const body = ruleOf(
 			':is(.scroll-surface, .editable-page-body, .page-inset, .tab-fill-scroll) .master-detail-inset'
+		).replace(/\s+/g, ' ');
+		const room = 'min(0.25rem, var(--gawdux-page-inset))';
+		const roomBottom = 'min(0.25rem, var(--gawdux-page-inset-bottom))';
+		// The frame reaches the room past the card and pads it back, so the
+		// card sits on the host's inset (no second inset) and the frame's clip
+		// leaves the card's shadow whole. The room never exceeds the host's own
+		// inset, so the frame stays inside the host's padding box.
+		expect(body).toContain(
+			`margin: calc(-1 * ${room}) calc(-1 * ${room}) calc(-1 * ${roomBottom});`
 		);
-		expect(body.trim()).toBe('padding: 0;');
+		expect(body).toContain(`padding: ${room} ${room} ${roomBottom};`);
+		expect(body).toContain(`height: calc( 100% + ${room} + ${roomBottom} );`);
+		expect(ruleOf('.master-detail-inset')).toContain('height: 100%;');
+	});
+
+	it("the shell's card reads the wide-column knob", () => {
+		expect(ruleOf('.master-detail-card')).toContain('max-width: var(--gawdux-panel-wide-max-width);');
 	});
 
 	it("the scrolling fill panel spans its host's padding box", () => {
