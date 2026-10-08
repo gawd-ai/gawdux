@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ClockOutline, HeartOutline } from 'flowbite-svelte-icons';
+import { ClockOutline } from 'flowbite-svelte-icons';
+import BareIcon from './fixtures/BareIcon.svelte';
 import type { DataTableColumn } from '../src/lib/primitives/data-table';
 import SortableHeadCell from '../src/lib/primitives/SortableHeadCell.svelte';
 import TableContainer from '../src/lib/primitives/TableContainer.svelte';
@@ -194,8 +195,8 @@ describe('DataTable column icons (one header shape)', () => {
 
 	it('gives a plain and a sortable column with an icon the same label shape', () => {
 		const columns: DataTableColumn[] = [
-			{ key: 'name', label: 'Name', sort: 'name', icon: HeartOutline },
-			{ key: 'status', label: 'Status', icon: HeartOutline },
+			{ key: 'name', label: 'Name', sort: 'name', icon: BareIcon },
+			{ key: 'status', label: 'Status', icon: BareIcon },
 			{ key: 'latency', label: 'Latency', sort: 'latency', align: 'right' },
 			{ key: 'actions', label: 'Actions', align: 'center' }
 		];

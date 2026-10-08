@@ -1,6 +1,6 @@
 import { cleanup, render } from '@testing-library/svelte';
 import { afterEach, describe, expect, it } from 'vitest';
-import { ClockOutline, HeartOutline } from 'flowbite-svelte-icons';
+import BareIcon from './fixtures/BareIcon.svelte';
 import SecurityActivityList from '../src/lib/admin/SecurityActivityList.svelte';
 import type { SecurityActivityEvent } from '../src/lib/admin/types';
 
@@ -25,7 +25,7 @@ describe('SecurityActivityList column icons (headIcons)', () => {
 
 	it("puts a key's icon before that header's word and no other", () => {
 		const { container } = render(SecurityActivityList, {
-			props: { events: EVENTS, headIcons: { when: ClockOutline, result: HeartOutline } }
+			props: { events: EVENTS, headIcons: { when: BareIcon, result: BareIcon } }
 		});
 		const ths = [...container.querySelectorAll('thead th')] as HTMLElement[];
 		expect(ths.map((th) => Boolean(th.querySelector('svg')))).toEqual([true, false, true, false]);

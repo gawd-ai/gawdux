@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { HeartOutline } from 'flowbite-svelte-icons';
 import HeadCell from '../src/lib/primitives/HeadCell.svelte';
 import PlainHeadCellHarness from './fixtures/PlainHeadCellHarness.svelte';
+import BareIcon from './fixtures/BareIcon.svelte';
 
 afterEach(() => cleanup());
 
@@ -21,8 +22,15 @@ describe('HeadCell: the labelled, non-sortable header (column icons)', () => {
 		expect(markup(th)).toBe(markup(before.container.querySelector('th')!));
 	});
 
+	it('renders its stand-in icon without aria-hidden, so the header tests hold HeadLabel to it', () => {
+		const { container } = render(BareIcon);
+		const svg = container.querySelector('svg')!;
+		expect(svg.hasAttribute('aria-hidden')).toBe(false);
+		expect(svg.getAttribute('aria-label')).toBe('shield outline');
+	});
+
 	it('with an icon renders the one header shape: an aria-hidden icon before the label', () => {
-		const { container } = render(HeadCell, { props: { label: 'Status', icon: HeartOutline } });
+		const { container } = render(HeadCell, { props: { label: 'Status', icon: BareIcon } });
 		const label = container.querySelector('th > .table-head-label') as HTMLElement;
 		expect(label).toBeTruthy();
 		const [icon, word] = [...label.children] as HTMLElement[];
@@ -32,10 +40,15 @@ describe('HeadCell: the labelled, non-sortable header (column icons)', () => {
 		expect(word!.tagName.toLowerCase()).toBe('span');
 		expect(word!.textContent).toBe('Status');
 		expect(label.children).toHaveLength(2);
+	});
+
+	it("sizes the icon with the knobs' fallback, never the icon's own w-5 h-5", () => {
+		const { container } = render(HeadCell, { props: { label: 'Status', icon: HeartOutline } });
+		const icon = container.querySelector('.table-head-icon')!;
 		// The knobs size the icon; the fallback utility is the 16px it shipped at,
 		// never flowbite-svelte-icons' own w-5 h-5.
-		expect(icon!.getAttribute('class')).toContain('h-4');
-		expect(icon!.getAttribute('class')).not.toContain('w-5');
+		expect(icon.getAttribute('class')).toContain('h-4');
+		expect(icon.getAttribute('class')).not.toContain('w-5');
 	});
 
 	it('aligns with its column and passes its classes to the th', () => {

@@ -57,6 +57,13 @@
   precedence; the icon then falls back to its `h-4 w-4` utility.
 - The library carries no column vocabulary. A product decides which header
   carries which icon.
+- The header tests render a stand-in icon shaped like flowbite-svelte-icons
+  2.0.x (`tests/fixtures/BareIcon.svelte`): it names itself and sets no
+  `aria-hidden` of its own. 2.3's icons set `aria-hidden` themselves after
+  their props, so a test rendering one passed whether or not the header
+  hid its icon; with the stand-in, a header that drops `aria-hidden` fails
+  seven suites. Under 2.0.x (`^2.0.0` allows it) the header's own attribute
+  is what keeps "shield outline" out of the column's accessible name.
 
 ## 0.17.0 - one content inset, owned once by the panel that hosts it
 

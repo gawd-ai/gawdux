@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/svelte';
 import { afterEach, describe, expect, it } from 'vitest';
-import { ClockOutline, UserOutline } from 'flowbite-svelte-icons';
+import BareIcon from './fixtures/BareIcon.svelte';
 import AuditHistoryTable from '../src/lib/admin/AuditHistoryTable.svelte';
 import type { AuditHistoryRow } from '../src/lib/admin/types';
 
@@ -70,7 +70,7 @@ describe('AuditHistoryTable column icons (headIcons)', () => {
 
 	it("puts a key's icon before that header's word and no other", () => {
 		const { container } = render(AuditHistoryTable, {
-			props: { rows: ROWS, headIcons: { when: ClockOutline, user: UserOutline } }
+			props: { rows: ROWS, headIcons: { when: BareIcon, user: BareIcon } }
 		});
 		const ths = [...container.querySelectorAll('thead th')] as HTMLElement[];
 		const iconed = ths.filter((th) => th.querySelector('svg'));

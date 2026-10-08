@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ClockOutline, HeartOutline } from 'flowbite-svelte-icons';
+import BareIcon from './fixtures/BareIcon.svelte';
 import AlertGroupTable from '../src/lib/alert-ops/AlertGroupTable.svelte';
 import { makeAlert, makeGroup } from './fixtures/alert-ops';
 
@@ -92,7 +92,7 @@ describe('AlertGroupTable column icons (headIcons)', () => {
 
 	it("puts a key's icon before that header's word and no other", () => {
 		const { container } = render(AlertGroupTable, {
-			props: { groups, headIcons: { status: HeartOutline, started: ClockOutline } }
+			props: { groups, headIcons: { status: BareIcon, started: BareIcon } }
 		});
 		const ths = [...container.querySelectorAll('thead th')] as HTMLElement[];
 		const iconed = ths.filter((th) => th.querySelector('svg')).map((th) => th.textContent?.trim());

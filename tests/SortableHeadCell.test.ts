@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ClockOutline } from 'flowbite-svelte-icons';
 import SortableHeadCell from '../src/lib/primitives/SortableHeadCell.svelte';
 import SortableHeadCell0170 from './fixtures/SortableHeadCell_0_17_0.svelte';
+import BareIcon from './fixtures/BareIcon.svelte';
 
 afterEach(() => cleanup());
 
@@ -40,7 +41,7 @@ describe('SortableHeadCell: the header shape and aria-sort (column icons)', () =
 	});
 
 	it('with an icon puts the one header shape before the arrow, the icon aria-hidden', () => {
-		const { container } = render(SortableHeadCell, { props: { ...base, icon: ClockOutline } });
+		const { container } = render(SortableHeadCell, { props: { ...base, icon: BareIcon } });
 		const row = container.querySelector('th > div') as HTMLElement;
 		const [label, arrow] = [...row.children] as HTMLElement[];
 		expect(row.children).toHaveLength(2);

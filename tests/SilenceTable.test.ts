@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/svelte';
 import { afterEach, describe, expect, it } from 'vitest';
-import { HeartOutline, UserOutline } from 'flowbite-svelte-icons';
+import BareIcon from './fixtures/BareIcon.svelte';
 import SilenceTable from '../src/lib/alert-ops/SilenceTable.svelte';
 import { makeSilence } from './fixtures/alert-ops';
 
@@ -64,7 +64,7 @@ describe('SilenceTable column icons (headIcons)', () => {
 				silences: [makeSilence()],
 				canMutate: true,
 				onexpire: () => {},
-				headIcons: { silenceState: HeartOutline, silenceCreatedBy: UserOutline }
+				headIcons: { silenceState: BareIcon, silenceCreatedBy: BareIcon }
 			}
 		});
 		const ths = [...container.querySelectorAll('thead th')] as HTMLElement[];
