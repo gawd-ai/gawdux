@@ -31,7 +31,9 @@ type $$ComponentProps = {
      * Render the provider health strip above the tabs. A host whose page
      * grammar keeps status and actions elsewhere (a breadcrumb badge, a
      * bottom command bar) passes false and shows `data.status` itself; the
-     * console then opens directly on its tabs, like any other list surface.
+     * console then opens directly on its tabs, like any other list surface,
+     * and the unavailable state offers no Retry of its own: the host's
+     * Refresh is the one way to ask again.
      */
     healthBar?: boolean;
 };

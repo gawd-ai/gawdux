@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- `AlertOpsConsole`: the Alerts and Silences tabs carry icons (`BellOutline`,
+  `VolumeMuteOutline`) beside their labels.
+- `AlertOpsConsole`: the denied and unavailable states are the house
+  `CollectionEmptyState` (a lock, an exclamation) inside a `TableContainer`, so
+  they fill the page surface and weld to the command bar like every list
+  surface, instead of small bordered panels. The provider's error words follow
+  the unavailable message. Test ids and the unavailable `role="alert"` stay.
+- `AlertOpsConsole`: with `healthBar={false}` the unavailable state offers no
+  Retry: the host that carries status and Refresh on its bar asks again from
+  there. With the strip on, Retry stays and calls `onrefresh`.
+
 ## 0.14.2 - DataTable's link in the package
 
 ### Fixed

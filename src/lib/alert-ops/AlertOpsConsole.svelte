@@ -18,7 +18,15 @@
 
 <script lang="ts">
 	import { TabItem } from 'flowbite-svelte';
+	import {
+		BellOutline,
+		ExclamationCircleOutline,
+		LockOutline,
+		VolumeMuteOutline
+	} from 'flowbite-svelte-icons';
 	import CollectionEmptyState from '../primitives/CollectionEmptyState.svelte';
+	import TableContainer from '../primitives/TableContainer.svelte';
+	import TabTitle from '../primitives/TabTitle.svelte';
 	import DeferredLoadingIndicator from '../primitives/DeferredLoadingIndicator.svelte';
 	import MasterDetailShell from '../primitives/MasterDetailShell.svelte';
 	import PageTabs from '../primitives/PageTabs.svelte';
@@ -91,7 +99,9 @@
 		 * Render the provider health strip above the tabs. A host whose page
 		 * grammar keeps status and actions elsewhere (a breadcrumb badge, a
 		 * bottom command bar) passes false and shows `data.status` itself; the
-		 * console then opens directly on its tabs, like any other list surface.
+		 * console then opens directly on its tabs, like any other list surface,
+		 * and the unavailable state offers no Retry of its own: the host's
+		 * Refresh is the one way to ask again.
 		 */
 		healthBar?: boolean;
 	} = $props();
@@ -190,40 +200,42 @@
 	{/if}
 
 	{#if view.kind === 'denied'}
-		<!-- Permission message only — no data skeletons behind a denial. -->
-		<div
-			class="rounded-lg border border-gray-200 bg-white px-4 py-8 text-center dark:border-gray-800 dark:bg-gray-900"
-			role="status"
-			data-testid="alert-ops-denied"
-		>
-			<h3 class="text-sm font-semibold text-gray-700 dark:text-gray-200">{copy.deniedTitle}</h3>
-			<p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{copy.deniedMessage}</p>
-		</div>
+		<!-- Permission message only, no data skeletons behind a denial: the
+		     house empty state on the page's surface, like every list. -->
+		<TableContainer>
+			<div data-testid="alert-ops-denied">
+				<CollectionEmptyState
+					title={copy.deniedTitle}
+					message={copy.deniedMessage}
+					icon={LockOutline}
+					state="denied"
+				/>
+			</div>
+		</TableContainer>
 	{:else if view.kind === 'loading'}
 		<div data-testid="alert-ops-loading">
 			<DeferredLoadingIndicator active label={copy.loadingLabel} />
 		</div>
 	{:else if view.kind === 'unavailable'}
-		<div
-			class="space-y-3 rounded-lg border border-red-200 bg-red-50 px-4 py-6 text-center dark:border-red-900 dark:bg-red-950/30"
-			role="alert"
-			data-testid="alert-ops-unavailable"
-		>
-			<h3 class="text-sm font-semibold text-red-800 dark:text-red-200">
-				{copy.unavailableTitle}
-			</h3>
-			<p class="text-sm text-red-700 dark:text-red-300">{copy.unavailableMessage}</p>
-			{#if data.status.error}
-				<p class="text-xs text-red-600 dark:text-red-400">{data.status.error}</p>
-			{/if}
-			<button
-				type="button"
-				class="inline-flex min-h-9 items-center rounded-md border border-red-300 bg-white px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600 dark:border-red-800 dark:bg-gray-900 dark:text-red-300 dark:hover:bg-red-950"
-				onclick={() => onrefresh?.()}
-			>
-				{copy.retryLabel}
-			</button>
-		</div>
+		<!-- The house error state on the page's surface. The provider's own
+		     words, when the host passes them, follow the message. Retry only
+		     when the console carries its own health strip; otherwise the
+		     host's Refresh asks again. -->
+		<TableContainer>
+			<div role="alert" data-testid="alert-ops-unavailable">
+				<CollectionEmptyState
+					title={copy.unavailableTitle}
+					message={data.status.error
+						? `${copy.unavailableMessage} ${data.status.error}`
+						: copy.unavailableMessage}
+					icon={ExclamationCircleOutline}
+					state="error"
+					{...healthBar && onrefresh
+						? { actionLabel: copy.retryLabel, onaction: () => onrefresh?.() }
+						: {}}
+				/>
+			</div>
+		</TableContainer>
 	{:else}
 		{#if view.stale}
 			<!-- Banner over the last-good data: the content below is stale. -->
@@ -234,7 +246,8 @@
 		{/if}
 
 		<PageTabs>
-			<TabItem open title={copy.alertsTab}>
+			<TabItem open>
+				<TabTitle slot="title" icon={BellOutline} label={copy.alertsTab} />
 				<div class="space-y-3 p-3">
 					{#if view.partial}
 						<div class={bannerClass} role="status" data-testid="alert-ops-partial-alerts">
@@ -284,7 +297,8 @@
 				</div>
 			</TabItem>
 
-			<TabItem title={copy.silencesTab}>
+			<TabItem>
+				<TabTitle slot="title" icon={VolumeMuteOutline} label={copy.silencesTab} />
 				<div class="space-y-3 p-3">
 					{#if view.partial}
 						<div class={bannerClass} role="status" data-testid="alert-ops-partial-silences">

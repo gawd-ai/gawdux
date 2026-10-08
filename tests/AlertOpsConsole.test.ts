@@ -46,6 +46,44 @@ describe('AlertOpsConsole seven surface states', () => {
 		expect(onrefresh).toHaveBeenCalledOnce();
 	});
 
+	it('unavailable sits on the house error state and the page surface', () => {
+		const { container } = render(AlertOpsConsole, {
+			props: {
+				...baseProps,
+				data: { status: { state: 'unavailable', error: 'dial tcp: refused' }, groups: [], silences: [] }
+			}
+		});
+		const panel = screen.getByTestId('alert-ops-unavailable');
+		expect(panel.querySelector('[data-collection-state="error"]')).not.toBeNull();
+		expect(panel.textContent).toContain('dial tcp: refused');
+		expect(container.querySelector('.context-surface')?.contains(panel)).toBe(true);
+	});
+
+	it('unavailable offers no Retry when the host carries status and Refresh (healthBar off)', () => {
+		const onrefresh = vi.fn();
+		render(AlertOpsConsole, {
+			props: { ...baseProps, data: makeData('unavailable'), onrefresh, healthBar: false }
+		});
+		expect(screen.getByTestId('alert-ops-unavailable')).toBeTruthy();
+		expect(screen.queryByRole('button', { name: 'Retry' })).toBeNull();
+	});
+
+	it('denied is the house empty state with a lock, on the page surface', () => {
+		const { container } = render(AlertOpsConsole, {
+			props: { ...baseProps, data: makeData('denied') }
+		});
+		const denied = screen.getByTestId('alert-ops-denied');
+		expect(denied.querySelector('[data-collection-state="denied"] svg')).not.toBeNull();
+		expect(container.querySelector('.context-surface')?.contains(denied)).toBe(true);
+	});
+
+	it('every tab carries an icon beside its label', () => {
+		render(AlertOpsConsole, { props: { ...baseProps, data: makeData('ok', [makeGroup()]) } });
+		const tabs = screen.getAllByRole('tab');
+		expect(tabs.map((t) => t.textContent?.trim())).toEqual(['Alerts', 'Silences']);
+		for (const tab of tabs) expect(tab.querySelector('svg')).not.toBeNull();
+	});
+
 	it('stale renders the banner over the last-good data rows', () => {
 		render(AlertOpsConsole, {
 			props: { ...baseProps, data: makeData('stale', [makeGroup()]) }
