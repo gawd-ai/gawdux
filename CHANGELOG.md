@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.18.0 - a column header carries the icon of its meaning
 
 ### Added
 
