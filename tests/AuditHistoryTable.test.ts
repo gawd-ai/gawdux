@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/svelte';
 import { afterEach, describe, expect, it } from 'vitest';
+import { ClockOutline, UserOutline } from 'flowbite-svelte-icons';
 import AuditHistoryTable from '../src/lib/admin/AuditHistoryTable.svelte';
 import type { AuditHistoryRow } from '../src/lib/admin/types';
 
@@ -50,5 +51,36 @@ describe('AuditHistoryTable', () => {
 	it('says so when there is nothing', () => {
 		render(AuditHistoryTable, { props: { rows: [], emptyText: 'Nothing yet' } });
 		expect(screen.getByText('Nothing yet')).toBeTruthy();
+	});
+});
+
+describe('AuditHistoryTable column icons (headIcons)', () => {
+	it('draws no header icon without headIcons', () => {
+		const { container } = render(AuditHistoryTable, { props: { rows: ROWS } });
+		expect(container.querySelector('thead svg')).toBeNull();
+		expect([...container.querySelectorAll('thead th')].map((th) => th.textContent?.trim())).toEqual([
+			'When',
+			'Module',
+			'Action',
+			'Comment',
+			'User / record',
+			'Details'
+		]);
+	});
+
+	it("puts a key's icon before that header's word and no other", () => {
+		const { container } = render(AuditHistoryTable, {
+			props: { rows: ROWS, headIcons: { when: ClockOutline, user: UserOutline } }
+		});
+		const ths = [...container.querySelectorAll('thead th')] as HTMLElement[];
+		const iconed = ths.filter((th) => th.querySelector('svg'));
+		expect(iconed.map((th) => th.textContent?.trim())).toEqual(['When', 'User / record']);
+		for (const th of iconed) {
+			const label = th.querySelector('.table-head-label')!;
+			expect(label.firstElementChild?.classList.contains('table-head-icon')).toBe(true);
+			expect(label.firstElementChild?.getAttribute('aria-hidden')).toBe('true');
+		}
+		// The screen-reader Details header never takes one.
+		expect(ths.at(-1)!.querySelector('svg')).toBeNull();
 	});
 });

@@ -7,22 +7,31 @@
 <script lang="ts">
 	import { Badge } from 'flowbite-svelte';
 	import CardContainer from '../primitives/CardContainer.svelte';
-	import type { SecurityActivityEvent } from './types';
+	import HeadLabel from '../primitives/HeadLabel.svelte';
+	import type { SecurityActivityEvent, SecurityActivityHeadIcons, SecurityActivityHeadKey } from './types';
 
 	let {
 		events,
 		title = 'Sign-in activity',
 		emptyText = 'No sign-in activity recorded.',
-		formatTime = (iso: string) => iso
+		formatTime = (iso: string) => iso,
+		headIcons = {}
 	}: {
 		events: SecurityActivityEvent[];
 		title?: string;
 		emptyText?: string;
 		formatTime?: (iso: string) => string;
+		/** A column icon before a header's word, per header; none by default. */
+		headIcons?: SecurityActivityHeadIcons;
 	} = $props();
 
 	const toneColor = { success: 'green', failure: 'red', neutral: 'dark' } as const;
 </script>
+
+{#snippet head(key: SecurityActivityHeadKey, label: string)}
+	{@const icon = headIcons[key]}
+	{#if icon}<HeadLabel {label} {icon} />{:else}{label}{/if}
+{/snippet}
 
 <CardContainer {title}>
 	<span slot="header" class="text-[11px] text-gray-500 dark:text-gray-400">{events.length}</span>
@@ -36,10 +45,10 @@
 						<tr
 							class="border-b border-gray-200 text-left text-[11px] uppercase text-gray-400 dark:border-gray-700"
 						>
-							<th class="py-2 pr-3 font-semibold">When</th>
-							<th class="py-2 pr-3 font-semibold">Event</th>
-							<th class="py-2 pr-3 font-semibold">Result</th>
-							<th class="py-2 pr-3 font-semibold">Detail</th>
+							<th class="py-2 pr-3 font-semibold">{@render head('when', 'When')}</th>
+							<th class="py-2 pr-3 font-semibold">{@render head('event', 'Event')}</th>
+							<th class="py-2 pr-3 font-semibold">{@render head('result', 'Result')}</th>
+							<th class="py-2 pr-3 font-semibold">{@render head('detail', 'Detail')}</th>
 						</tr>
 					</thead>
 					<tbody class="divide-y divide-gray-100 dark:divide-gray-800">

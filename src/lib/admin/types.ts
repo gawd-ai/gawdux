@@ -3,6 +3,8 @@
 // Presentation only: hosts load the data, authorize, and perform every
 // mutation. A block renders what it is given and raises intents.
 
+import type { Component } from 'svelte';
+
 /** A Role (access group) as a member surface shows it. */
 export interface MemberRole {
 	id: number;
@@ -24,6 +26,16 @@ export interface MemberCapabilityGroup {
 	label: string;
 	capabilities: MemberCapability[];
 }
+
+/**
+ * The headers of `SecurityActivityList`, as keys of its optional `headIcons`
+ * map: a key with an icon shows it before that header's word (the one header
+ * shape, aria-hidden, sized by the head-icon knobs); the others stay words.
+ */
+export type SecurityActivityHeadKey = 'when' | 'event' | 'result' | 'detail';
+
+/** A column icon per header; the product chooses which headers carry one. */
+export type SecurityActivityHeadIcons = Partial<Record<SecurityActivityHeadKey, Component>>;
 
 /** One sign-in or account event. `tone` picks the badge colour. */
 export interface SecurityActivityEvent {
@@ -101,6 +113,15 @@ export type AuditTone =
 	| 'indigo'
 	| 'pink'
 	| 'dark';
+
+/**
+ * The labelled headers of `AuditHistoryTable`, as keys of its optional
+ * `headIcons` map (the Details header is for screen readers and takes none).
+ */
+export type AuditHistoryHeadKey = 'when' | 'module' | 'action' | 'comment' | 'user';
+
+/** A column icon per header; the product chooses which headers carry one. */
+export type AuditHistoryHeadIcons = Partial<Record<AuditHistoryHeadKey, Component>>;
 
 /** One field an audited action changed. `label` names it for people. */
 export interface AuditHistoryChange {

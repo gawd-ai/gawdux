@@ -1,7 +1,9 @@
 <!-- A table for a card, a tab body or a dashboard panel: a TableContainer
      holding flowbite's Table, with headers from the column definitions
      (SortableHeadCell where a column sorts), one body cell per column
-     rendered by the host's `cell` snippet, and the house empty row.
+     rendered by the host's `cell` snippet, and the house empty row. A plain
+     header is a HeadCell, a sortable one a SortableHeadCell; a column's
+     `icon` renders through the one header shape in both.
 
      - Sorting is the host's: pass `sortField`, `sortDirection` and `onSort`,
        and give a column `sort`; the table reorders nothing itself.
@@ -17,8 +19,9 @@
      the command bar). Cell padding is the --gawdux-table-* density knobs. -->
 <script lang="ts" generics="T">
 	import type { Snippet } from 'svelte';
-	import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
+	import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead } from 'flowbite-svelte';
 	import EmptyStateRow from './EmptyStateRow.svelte';
+	import HeadCell from './HeadCell.svelte';
 	import SectionLink from './SectionLink.svelte';
 	import SortableHeadCell from './SortableHeadCell.svelte';
 	import TableContainer from './TableContainer.svelte';
@@ -151,18 +154,12 @@
 						className={headClass(column)}
 					/>
 				{:else}
-					<TableHeadCell
-						class={`whitespace-nowrap ${dataTableAlignClass(column.align)} ${headClass(column)}`}
-					>
-						{#if column.icon}
-							{@const ColumnIcon = column.icon}
-							<span class="inline-flex items-center gap-2">
-								<ColumnIcon class="h-4 w-4" aria-hidden="true" />{column.label}
-							</span>
-						{:else}
-							{column.label}
-						{/if}
-					</TableHeadCell>
+					<HeadCell
+						label={column.label}
+						icon={column.icon}
+						align={column.align ?? 'left'}
+						className={headClass(column)}
+					/>
 				{/if}
 			{/each}
 		</TableHead>

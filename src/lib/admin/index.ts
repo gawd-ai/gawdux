@@ -23,6 +23,8 @@ export type {
 	AiUsageTile,
 	AiUsageTotals,
 	AuditHistoryChange,
+	AuditHistoryHeadIcons,
+	AuditHistoryHeadKey,
 	AuditHistoryRow,
 	AuditTone,
 	BotConfigDraft,
@@ -37,5 +39,7 @@ export type {
 	MemberCapabilityGroup,
 	MemberRole,
 	RoleMemberItem,
-	SecurityActivityEvent
+	SecurityActivityEvent,
+	SecurityActivityHeadIcons,
+	SecurityActivityHeadKey
 } from './types';

@@ -111,7 +111,10 @@
 	     `--gawdux-page-inset` on the top and sides (`pt-4 px-4`),
 	     `--gawdux-page-inset-bottom` above the command bar (`pb-1`);
 	   - the wide content column (`.panel-col-wide`, `MasterDetailShell`'s
-	     card, `.master-detail-card`): `max-w-6xl`. */
+	     card, `.master-detail-card`): `max-w-6xl`;
+	   - a column header's icon (`.table-head-icon`, in DataTable,
+	     SortableHeadCell, HeadCell and the blocks' `headIcons`): 16px
+	     (`h-4 w-4`), `gap-2` from its label, the header's own ink, shown. */
 	--gawdux-table-row-height: auto;
 	--gawdux-table-cell-px: calc(var(--spacing, 0.25rem) * 6);
 	--gawdux-table-cell-py: calc(var(--spacing, 0.25rem) * 4);
@@ -127,6 +130,10 @@
 	--gawdux-page-inset: calc(var(--spacing, 0.25rem) * 4);
 	--gawdux-page-inset-bottom: calc(var(--spacing, 0.25rem) * 1);
 	--gawdux-panel-wide-max-width: 72rem;
+	--gawdux-table-head-icon-size: 1rem;
+	--gawdux-table-head-icon-gap: 0.5rem;
+	--gawdux-table-head-icon-color: currentColor;
+	--gawdux-table-head-icon-display: block;
 	/* The --color-gray-* family is intentionally NOT redeclared here.
 	   Tailwind v4 already exposes the full default palette as CSS vars
 	   via `@import 'tailwindcss'` (--color-gray-50 through --color-gray-950,
@@ -711,6 +718,30 @@
 	.list-query-inline-field > .form-label {
 		@apply mb-0 whitespace-nowrap;
 	}
+}
+
+/* ---------- Column header icons ---------- */
+/* The one header shape: `span.table-head-label > svg.table-head-icon + span`
+   (HeadLabel, rendered by DataTable, SortableHeadCell, HeadCell and the
+   blocks' `headIcons`). The knobs size, space, colour and show the icon.
+   These rules are unlayered on purpose: flowbite-svelte-icons puts its own
+   size utility (`w-5 h-5` at `md`) on the svg through `cn()`, and a rule in
+   `@layer components` loses to that utility. Unlayered, they outrank it, and
+   they hold when a consumer's Tailwind does not scan gawdux. The colour
+   defaults to the header's own ink; nothing recolours it (hover, the active
+   sort and a row's state leave it alone). A consumer that imports this file
+   into a cascade layer gives the utility the win back. */
+.table-head-label {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--gawdux-table-head-icon-gap);
+}
+.table-head-icon {
+	flex: none;
+	width: var(--gawdux-table-head-icon-size);
+	height: var(--gawdux-table-head-icon-size);
+	color: var(--gawdux-table-head-icon-color);
+	display: var(--gawdux-table-head-icon-display);
 }
 
 /* ---------- Density knobs: table cells ---------- */

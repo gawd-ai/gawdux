@@ -1,5 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/svelte';
 import { afterEach, describe, expect, it } from 'vitest';
+import { HeartOutline, UserOutline } from 'flowbite-svelte-icons';
 import SilenceTable from '../src/lib/alert-ops/SilenceTable.svelte';
 import { makeSilence } from './fixtures/alert-ops';
 
@@ -48,5 +49,40 @@ describe('SilenceTable', () => {
 		const { container } = render(SilenceTable, { props: { silences: [] } });
 		expect(screen.getByText('No silences')).toBeTruthy();
 		expect(container.querySelectorAll('button, a')).toHaveLength(0);
+	});
+});
+
+describe('SilenceTable column icons (headIcons)', () => {
+	it('draws no header icon without headIcons', () => {
+		const { container } = render(SilenceTable, { props: { silences: [makeSilence()] } });
+		expect(container.querySelector('thead svg')).toBeNull();
+	});
+
+	it("puts a key's icon before that header's word and no other, never on Actions", () => {
+		const { container } = render(SilenceTable, {
+			props: {
+				silences: [makeSilence()],
+				canMutate: true,
+				onexpire: () => {},
+				headIcons: { silenceState: HeartOutline, silenceCreatedBy: UserOutline }
+			}
+		});
+		const ths = [...container.querySelectorAll('thead th')] as HTMLElement[];
+		expect(ths.map((th) => th.textContent?.trim())).toEqual([
+			'State',
+			'Matchers',
+			'Window',
+			'Created by',
+			'Comment',
+			'Actions'
+		]);
+		expect(ths.map((th) => Boolean(th.querySelector('svg.table-head-icon[aria-hidden="true"]')))).toEqual([
+			true,
+			false,
+			false,
+			true,
+			false,
+			false
+		]);
 	});
 });

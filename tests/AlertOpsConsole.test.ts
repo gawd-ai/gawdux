@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { HeartOutline } from 'flowbite-svelte-icons';
 import AlertOpsConsole from '../src/lib/alert-ops/AlertOpsConsole.svelte';
 import { makeData, makeGroup, makeSilence, sampleScope } from './fixtures/alert-ops';
 
@@ -167,5 +168,40 @@ describe('AlertOpsConsole content inset', () => {
 		const body = panel?.firstElementChild?.firstElementChild;
 		expect(body?.querySelector('[data-testid="alert-ops-partial-silences"]')).not.toBeNull();
 		expect(insetClasses(body)).toEqual([]);
+	});
+});
+
+describe('AlertOpsConsole column icons (headIcons)', () => {
+	it('passes headIcons to the alert groups; none by default', () => {
+		const plain = render(AlertOpsConsole, { props: { ...baseProps, data: makeData('ok', [makeGroup()]) } });
+		expect(plain.container.querySelector('thead svg')).toBeNull();
+		cleanup();
+		const { container } = render(AlertOpsConsole, {
+			props: {
+				...baseProps,
+				data: makeData('ok', [makeGroup()]),
+				headIcons: { status: HeartOutline, silenceState: HeartOutline }
+			}
+		});
+		const iconed = [...container.querySelectorAll('[data-testid="alert-group-table"] thead th')]
+			.filter((th) => th.querySelector('svg.table-head-icon'))
+			.map((th) => th.textContent?.trim());
+		expect(iconed).toEqual(['Status']);
+	});
+
+	it('passes headIcons to the silences', async () => {
+		render(AlertOpsConsole, {
+			props: {
+				...baseProps,
+				data: makeData('ok', [makeGroup()], [makeSilence()]),
+				headIcons: { silenceState: HeartOutline }
+			}
+		});
+		await fireEvent.click(screen.getByRole('tab', { name: /Silences/ }));
+		const table = await screen.findByTestId('silence-table');
+		const iconed = [...table.querySelectorAll('thead th')]
+			.filter((th) => th.querySelector('svg.table-head-icon'))
+			.map((th) => th.textContent?.trim());
+		expect(iconed).toEqual(['State']);
 	});
 });

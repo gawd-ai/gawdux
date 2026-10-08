@@ -1,5 +1,7 @@
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ClockOutline, HeartOutline } from 'flowbite-svelte-icons';
+import type { DataTableColumn } from '../src/lib/primitives/data-table';
 import SortableHeadCell from '../src/lib/primitives/SortableHeadCell.svelte';
 import TableContainer from '../src/lib/primitives/TableContainer.svelte';
 import DataTableHarness from './fixtures/DataTableHarness.svelte';
@@ -180,5 +182,56 @@ describe('TableContainer surface (additive)', () => {
 		expect(root.classList.contains('context-surface')).toBe(false);
 		expect(root.classList.contains('table-container')).toBe(true);
 		expect(root.classList.contains('border')).toBe(true);
+	});
+});
+
+describe('DataTable column icons (one header shape)', () => {
+	/** A header's label shape: the tags under `.table-head-label`, in order. */
+	const shape = (th: HTMLElement) => {
+		const label = th.querySelector('.table-head-label');
+		return label ? [...label.children].map((c) => `${c.tagName.toLowerCase()}.${c.getAttribute('class') ?? ''}`) : null;
+	};
+
+	it('gives a plain and a sortable column with an icon the same label shape', () => {
+		const columns: DataTableColumn[] = [
+			{ key: 'name', label: 'Name', sort: 'name', icon: HeartOutline },
+			{ key: 'status', label: 'Status', icon: HeartOutline },
+			{ key: 'latency', label: 'Latency', sort: 'latency', align: 'right' },
+			{ key: 'actions', label: 'Actions', align: 'center' }
+		];
+		const { container } = render(DataTableHarness, { props: { rows: ROWS, columns, onSort: vi.fn() } });
+		const [sortable, plain, bareSortable, barePlain] = headers(container);
+		expect(shape(sortable!)).toEqual(shape(plain!));
+		for (const th of [sortable!, plain!]) {
+			const icon = th.querySelector('.table-head-label > svg.table-head-icon')!;
+			expect(icon.getAttribute('aria-hidden')).toBe('true');
+			expect(icon.nextElementSibling?.tagName.toLowerCase()).toBe('span');
+		}
+		expect(sortable!.querySelector('.table-head-label > span')?.textContent).toBe('Name');
+		expect(plain!.querySelector('.table-head-label > span')?.textContent).toBe('Status');
+		// Columns without an icon render as in 0.17.0: the sortable one's span, the plain one's bare word.
+		expect(bareSortable!.querySelector('.table-head-label, .table-head-icon')).toBeNull();
+		expect(bareSortable!.querySelector('div > span')?.textContent).toBe('Latency');
+		expect(barePlain!.querySelector('svg, span')).toBeNull();
+		expect(barePlain!.textContent?.trim()).toBe('Actions');
+	});
+
+	it('renders no header icon for a product that passes none', () => {
+		const { container } = render(DataTableHarness, { props: { rows: ROWS, onSort: vi.fn() } });
+		expect(container.querySelector('thead .table-head-icon, thead .table-head-label')).toBeNull();
+		const plain = render(DataTableHarness, { props: { rows: ROWS } });
+		expect(plain.container.querySelector('thead svg')).toBeNull();
+	});
+
+	it('sets aria-sort on the active sortable column only', () => {
+		const columns: DataTableColumn[] = [
+			{ key: 'name', label: 'Name', sort: 'name', icon: ClockOutline },
+			{ key: 'latency', label: 'Latency', sort: 'latency' },
+			{ key: 'status', label: 'Status' }
+		];
+		const { container } = render(DataTableHarness, {
+			props: { rows: ROWS, columns, onSort: vi.fn(), sortField: 'latency', sortDirection: 'asc' }
+		});
+		expect(headers(container).map((th) => th.getAttribute('aria-sort'))).toEqual([null, 'ascending', null]);
 	});
 });

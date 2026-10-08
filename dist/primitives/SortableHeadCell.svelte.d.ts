@@ -19,7 +19,9 @@ declare const SortableHeadCell: $$__sveltets_2_IsomorphicComponent<{
     sortDirection?: "asc" | "desc";
     onSort: (field: string) => void;
     className?: string;
-    icon?: Component | undefined;
+    /** The column's icon, before the label: rendered through the one header
+            shape (HeadLabel), aria-hidden, sized by the head-icon knobs. It never
+            shows the sort; the arrow and aria-sort do. */ icon?: Component | undefined;
     /** Aligns the label and arrow with the column's cells. Left by default. */ align?: "left" | "center" | "right";
 }, {
     [evt: string]: CustomEvent<any>;

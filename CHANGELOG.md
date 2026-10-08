@@ -1,5 +1,52 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `HeadCell` (`gawdux/primitives`): the labelled, non-sortable header of a
+  hand-built table. Props `label` (required), `icon`, `align` (left, center,
+  right) and `className`; it renders flowbite's `TableHeadCell` with
+  `whitespace-nowrap` and, with an icon, the one header shape. Without an
+  icon it is the `th` a plain `<TableHeadCell class="whitespace-nowrap">`
+  renders. An empty or screen-reader-only header stays a `TableHeadCell`.
+- Four head-icon knobs in the `:root` density block of `styles/tokens.css`,
+  at the geometry that shipped: `--gawdux-table-head-icon-size` (1rem),
+  `--gawdux-table-head-icon-gap` (0.5rem), `--gawdux-table-head-icon-color`
+  (`currentColor`, the header's own ink) and
+  `--gawdux-table-head-icon-display` (`block`; `none` drops the icons).
+- `headIcons` on `AuditHistoryTable`, `SecurityActivityList` and
+  `AlertOpsConsole` (passed to `AlertGroupTable` and `SilenceTable`, which
+  take it too): an optional map from a header's key to its icon, `{}` by
+  default. Its key types are exported: `AuditHistoryHeadKey`,
+  `SecurityActivityHeadKey`, `AlertOpsHeadKey`, with the `*HeadIcons` maps.
+  Screen-reader-only and Actions headers have no key.
+- `aria-sort` (`ascending` or `descending`) on the `SortableHeadCell` that
+  is the active sort, and on no other. Invisible; screen readers now hear the
+  sort.
+
+### Changed
+
+- A header icon renders through one shape in `DataTable` (plain and sortable
+  columns alike) and `SortableHeadCell`:
+  `span.table-head-label > svg.table-head-icon + span`, the icon always
+  `aria-hidden`. Before, `DataTable`'s plain header wrote
+  `span.inline-flex.gap-2` and `SortableHeadCell` a bare icon without
+  `aria-hidden`. No visual change at the default knobs: 16px, 8px from the
+  label, in the header's colour, before the label and the sort arrow.
+- `DataTable`'s plain header is a `HeadCell`.
+
+### Notes
+
+- A header without an icon renders as in 0.17.0, byte for byte (the tests
+  compare `SortableHeadCell` against a copy of its 0.17.0 source).
+- The `.table-head-label` and `.table-head-icon` rules are unlayered: they
+  must outrank the `w-5 h-5` flowbite-svelte-icons puts on every icon. A
+  consumer that imports `tokens.css` into a cascade layer loses that
+  precedence; the icon then falls back to its `h-4 w-4` utility.
+- The library carries no column vocabulary. A product decides which header
+  carries which icon.
+
 ## 0.17.0 - one content inset, owned once by the panel that hosts it
 
 ### Added

@@ -15,7 +15,8 @@
 		title,
 		link = null,
 		emptyText,
-		emptyHint
+		emptyHint,
+		columns: columnsOverride
 	}: {
 		rows: Row[];
 		sortField?: string;
@@ -28,14 +29,17 @@
 		link?: { label: string; href?: string } | null;
 		emptyText?: string;
 		emptyHint?: string;
+		/** Replaces the default columns (the header-icon tests). */
+		columns?: DataTableColumn[];
 	} = $props();
 
-	const columns: DataTableColumn[] = [
+	const defaultColumns: DataTableColumn[] = [
 		{ key: 'name', label: 'Name', sort: 'name' },
 		{ key: 'status', label: 'Status', class: 'status-col' },
 		{ key: 'latency', label: 'Latency', sort: 'latency', align: 'right', cellClass: 'tabular-nums' },
 		{ key: 'actions', label: 'Actions', align: 'center' }
 	];
+	const columns = $derived(columnsOverride ?? defaultColumns);
 </script>
 
 <DataTable

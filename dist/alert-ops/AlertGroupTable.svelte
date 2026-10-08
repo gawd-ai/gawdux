@@ -5,6 +5,7 @@
      td[data-label] hook. Rows also carry data-master-detail-row so
      MasterDetailShell's compact single-pane navigation opens the detail. -->
 <script lang="ts">
+	import HeadLabel from '../primitives/HeadLabel.svelte';
 	import StatusBadge from '../primitives/StatusBadge.svelte';
 	import {
 		alertSeverityBadgeColor,
@@ -14,18 +15,27 @@
 		formatAlertOpsTimestamp,
 		shortAlertFingerprint
 	} from './states';
-	import { resolveAlertOpsCopy, type AlertOpsCopy, type AlertOpsGroup } from './types';
+	import {
+		resolveAlertOpsCopy,
+		type AlertOpsCopy,
+		type AlertOpsGroup,
+		type AlertOpsHeadIcons,
+		type AlertOpsHeadKey
+	} from './types';
 
 	let {
 		groups,
 		selectedFingerprint = null,
 		copy: copyOverrides,
-		onselect
+		onselect,
+		headIcons = {}
 	}: {
 		groups: AlertOpsGroup[];
 		selectedFingerprint?: string | null;
 		copy?: Partial<AlertOpsCopy>;
 		onselect?: (fingerprint: string) => void;
+		/** A column icon before a header's word, per header; none by default. */
+		headIcons?: AlertOpsHeadIcons;
 	} = $props();
 
 	const copy = $derived(resolveAlertOpsCopy(copyOverrides));
@@ -51,6 +61,11 @@
 	}
 </script>
 
+{#snippet head(key: AlertOpsHeadKey, label: string)}
+	{@const icon = headIcons[key]}
+	{#if icon}<HeadLabel {label} {icon} />{:else}{label}{/if}
+{/snippet}
+
 <div class="responsive-card-table overflow-x-auto" data-testid="alert-group-table">
 	<table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">
 		<caption class="sr-only">{copy.alertsTableCaption}</caption>
@@ -58,16 +73,16 @@
 			class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-700 dark:text-gray-400"
 		>
 			<tr>
-				<th scope="col" class="px-4 py-2.5">{copy.columnSeverity}</th>
-				<th scope="col" class="px-4 py-2.5">{copy.columnStatus}</th>
-				<th scope="col" class="px-4 py-2.5">{copy.columnService}</th>
-				<th scope="col" class="px-4 py-2.5">{copy.columnSummary}</th>
-				<th scope="col" class="px-4 py-2.5">{copy.columnStarted}</th>
-				<th scope="col" class="px-4 py-2.5">{copy.columnDuration}</th>
+				<th scope="col" class="px-4 py-2.5">{@render head('severity', copy.columnSeverity)}</th>
+				<th scope="col" class="px-4 py-2.5">{@render head('status', copy.columnStatus)}</th>
+				<th scope="col" class="px-4 py-2.5">{@render head('service', copy.columnService)}</th>
+				<th scope="col" class="px-4 py-2.5">{@render head('summary', copy.columnSummary)}</th>
+				<th scope="col" class="px-4 py-2.5">{@render head('started', copy.columnStarted)}</th>
+				<th scope="col" class="px-4 py-2.5">{@render head('duration', copy.columnDuration)}</th>
 				{#if showReceiver}
-					<th scope="col" class="px-4 py-2.5">{copy.columnReceiver}</th>
+					<th scope="col" class="px-4 py-2.5">{@render head('receiver', copy.columnReceiver)}</th>
 				{/if}
-				<th scope="col" class="px-4 py-2.5">{copy.columnFingerprint}</th>
+				<th scope="col" class="px-4 py-2.5">{@render head('fingerprint', copy.columnFingerprint)}</th>
 			</tr>
 		</thead>
 		<tbody>

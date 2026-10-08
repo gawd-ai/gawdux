@@ -1,4 +1,4 @@
-import { type AlertOpsAlert, type AlertOpsCopy, type AlertOpsData, type AlertOpsFilters, type AlertOpsMutationState, type AlertOpsScope } from './types';
+import { type AlertOpsAlert, type AlertOpsCopy, type AlertOpsData, type AlertOpsFilters, type AlertOpsHeadIcons, type AlertOpsMutationState, type AlertOpsScope } from './types';
 type $$ComponentProps = {
     scope: AlertOpsScope;
     filters?: AlertOpsFilters;
@@ -36,6 +36,11 @@ type $$ComponentProps = {
      * Refresh is the one way to ask again.
      */
     healthBar?: boolean;
+    /**
+     * A column icon before a header's word, per header of the alert groups
+     * and the silences; none by default. The product chooses the meanings.
+     */
+    headIcons?: AlertOpsHeadIcons;
 };
 declare const AlertOpsConsole: import("svelte").Component<$$ComponentProps, {}, "selectedFingerprint" | "filters">;
 type AlertOpsConsole = ReturnType<typeof AlertOpsConsole>;

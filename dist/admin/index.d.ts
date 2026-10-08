@@ -11,4 +11,4 @@ export { default as BotConfigView } from './BotConfigView.svelte';
 export { default as BotContextCard } from './BotContextCard.svelte';
 export { default as RoleMembersCard } from './RoleMembersCard.svelte';
 export { DEFAULT_MEMBER_ACCESS_COPY } from './types';
-export type { AiUsageBreakdown, AiUsageBreakdownRow, AiUsageDay, AiUsageTile, AiUsageTotals, AuditHistoryChange, AuditHistoryRow, AuditTone, BotConfigDraft, BotConfigSummary, BotContextPart, BotOption, BotRailItem, BotTool, BotToolGroup, MemberAccessCopy, MemberCapability, MemberCapabilityGroup, MemberRole, RoleMemberItem, SecurityActivityEvent } from './types';
+export type { AiUsageBreakdown, AiUsageBreakdownRow, AiUsageDay, AiUsageTile, AiUsageTotals, AuditHistoryChange, AuditHistoryHeadIcons, AuditHistoryHeadKey, AuditHistoryRow, AuditTone, BotConfigDraft, BotConfigSummary, BotContextPart, BotOption, BotRailItem, BotTool, BotToolGroup, MemberAccessCopy, MemberCapability, MemberCapabilityGroup, MemberRole, RoleMemberItem, SecurityActivityEvent, SecurityActivityHeadIcons, SecurityActivityHeadKey } from './types';

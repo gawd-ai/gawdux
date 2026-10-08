@@ -42,7 +42,7 @@ Supported package subpaths:
 
 - **components**: `AppSidebar`, `SidebarDropdownGroup`, `SidebarFlyout`: the collapsible app navigation shell; `UserMenu`: the top bar's account menu.
 - **primitives**: list and page building blocks: `ListSurface`, `ListQueryBar`, `ListPaginationNav`, `FilterBar`/`FilterPillRow`, `SavedViewsRail`, `MasterDetailShell`, `ListPageScaffold`/`EditablePageScaffold`, `PageCommandBar`, `PageTabs`, `FormField`, `ReadonlyField`, `CardContainer`, and more.
-- **detail and table primitives**: `StatTile`/`StatTileStrip` (a detail overview's KPI tiles: label, value, meta, icon, a state tone, a go-to icon drill-down; the strip wraps and never clips), `SectionLink` (the go-to-section arrow, no words, at the top right of a card header or tile; `CardContainer` takes it as `link`), `IconButton` (an icon action named by its tooltip; `danger` turns red only on hover), `DataTable` (a `TableContainer` with column definitions, `SortableHeadCell` headers, cells from a snippet and the house empty row), `IconLabel` (an icon and a word, the shape of a cue), `StatusBadge` (a coloured word, optionally with an icon), `TableContainer`, `SortableHeadCell`, `EmptyStateRow`, `CollectionEmptyState`.
+- **detail and table primitives**: `StatTile`/`StatTileStrip` (a detail overview's KPI tiles: label, value, meta, icon, a state tone, a go-to icon drill-down; the strip wraps and never clips), `SectionLink` (the go-to-section arrow, no words, at the top right of a card header or tile; `CardContainer` takes it as `link`), `IconButton` (an icon action named by its tooltip; `danger` turns red only on hover), `DataTable` (a `TableContainer` with column definitions, `SortableHeadCell` headers, cells from a snippet and the house empty row), `IconLabel` (an icon and a word, the shape of a cue), `StatusBadge` (a coloured word, optionally with an icon), `TableContainer`, `SortableHeadCell`, `HeadCell` (the labelled, non-sortable header of a hand-built table, with an optional column icon), `EmptyStateRow`, `CollectionEmptyState`.
 - **alert-ops**: `AlertOpsConsole`, the Alert Operations surface (alert groups, detail, silences), transport-agnostic. Its tabs carry icons; its denied and unavailable states are the house `CollectionEmptyState` on the page surface, and with `healthBar={false}` the host's bar carries status and Refresh, so the unavailable state offers no Retry of its own.
 - **admin** (`gawdux/admin`): tenant-administration blocks, presentation only (the host loads, authorizes and performs every change): `MemberAccessCard`, `SecurityActivityList`, `AuditHistoryTable`, `RoleMembersCard` (who holds a Role: a quiet trash icon raises the removal for the host to confirm, a picker adds), and the AI + Bots blocks: `AiUsageReport` (totals as tiles, `AiUsageBars` per day, one share-bar card per breakdown; turns and tokens, never money), `BotRail` (bots with avatar, role and one state, for every tab that picks a bot first), `BotIdentityHeader`, `BotConfigView` (a config read, the other half of `BotConfigFields`' edit), `BotContextCard` (the composed block a bot reads, by parts), `BotToolAccess`.
 - **styles/tokens.css**: the shared design tokens (color, spacing, density) that give host applications a common visual language.
@@ -76,10 +76,51 @@ by overriding component classes:
 | `--gawdux-page-inset` | `pt-4 px-4` (1rem) | the content inset of every host, top and sides |
 | `--gawdux-page-inset-bottom` | `pb-1` (0.25rem) | the content inset of every host, above the command bar |
 | `--gawdux-panel-wide-max-width` | `max-w-6xl` (72rem) | `.panel-col-wide`, `MasterDetailShell`'s card |
+| `--gawdux-table-head-icon-size` | `1rem` (`h-4 w-4`) | a column header's icon, square |
+| `--gawdux-table-head-icon-gap` | `0.5rem` (`gap-2`) | between a header's icon and its label |
+| `--gawdux-table-head-icon-color` | `currentColor` | the icon's colour: the header's own ink |
+| `--gawdux-table-head-icon-display` | `block` | `none` drops the icons (under a media query, say) |
 
 The table knobs apply to flowbite cells inside a `TableContainer`,
 `ListSurface` or `DataTable` that still carry flowbite's default padding; a
 cell that sets its own padding keeps it.
+
+### Column header icons
+
+A column header may carry an icon before its label, and every header path
+draws it in one shape: `span.table-head-label > svg.table-head-icon + span`.
+A `DataTable` column takes `icon`, a `SortableHeadCell` takes `icon`, and a
+hand-built table's labelled, non-sortable header is a `HeadCell`
+(`label`, `icon`, `align`, `className`); an empty or screen-reader-only
+header stays a plain `TableHeadCell`. The blocks that write their own
+headers (`AuditHistoryTable`, `SecurityActivityList`, `AlertOpsConsole` with
+`AlertGroupTable` and `SilenceTable`) take an optional `headIcons` map keyed
+by their columns, empty by default.
+
+The icon is always `aria-hidden` (the label carries the meaning) and never
+shows the sort: on a sortable header the order is icon, label, arrow, and the
+active column is told by the arrow and `aria-sort`. The four head-icon knobs
+size, space, colour and show it. Its rule in `tokens.css` is unlayered, so it
+outranks the icon's own size utility (`w-5 h-5`) and holds when a
+consumer's Tailwind does not scan gawdux; importing `tokens.css` into a
+cascade layer gives the utility the win back.
+
+The library ships the mechanism, never the meanings: which column carries
+which icon is the product's vocabulary. A product that passes no icon
+renders the headers it rendered before. For a smaller icon that disappears
+on phones:
+
+```css
+:root {
+	--gawdux-table-head-icon-size: 0.875rem; /* default 1rem */
+	--gawdux-table-head-icon-gap: 0.375rem; /* default 0.5rem */
+}
+@media (width < 48rem) {
+	:root {
+		--gawdux-table-head-icon-display: none; /* default block */
+	}
+}
+```
 
 ### Content inset
 

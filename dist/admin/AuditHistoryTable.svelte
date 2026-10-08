@@ -15,19 +15,23 @@
 <script lang="ts">
 	import { Badge } from 'flowbite-svelte';
 	import { ChevronDownOutline, ChevronUpOutline } from 'flowbite-svelte-icons';
-	import type { AuditHistoryRow } from './types';
+	import HeadLabel from '../primitives/HeadLabel.svelte';
+	import type { AuditHistoryHeadIcons, AuditHistoryHeadKey, AuditHistoryRow } from './types';
 
 	let {
 		rows,
 		showModule = true,
 		emptyText = 'No history recorded.',
-		formatTime = (iso: string) => ({ date: iso.slice(0, 10), time: iso.slice(11, 19) })
+		formatTime = (iso: string) => ({ date: iso.slice(0, 10), time: iso.slice(11, 19) }),
+		headIcons = {}
 	}: {
 		rows: AuditHistoryRow[];
 		/** A column for the area; off where every row belongs to one record. */
 		showModule?: boolean;
 		emptyText?: string;
 		formatTime?: (iso: string) => { date: string; time: string };
+		/** A column icon before a header's word, per header; none by default. */
+		headIcons?: AuditHistoryHeadIcons;
 	} = $props();
 
 	let openId = $state<string | null>(null);
@@ -69,6 +73,11 @@
 	</div>
 {/snippet}
 
+{#snippet head(key: AuditHistoryHeadKey, label: string)}
+	{@const icon = headIcons[key]}
+	{#if icon}<HeadLabel {label} {icon} />{:else}{label}{/if}
+{/snippet}
+
 {#snippet when(row: AuditHistoryRow)}
 	{#if row.at}
 		{@const stamp = formatTime(row.at)}
@@ -94,11 +103,11 @@
 			</colgroup>
 			<thead>
 				<tr>
-					<th>When</th>
-					{#if showModule}<th>Module</th>{/if}
-					<th>Action</th>
-					<th>Comment</th>
-					<th>User / record</th>
+					<th>{@render head('when', 'When')}</th>
+					{#if showModule}<th>{@render head('module', 'Module')}</th>{/if}
+					<th>{@render head('action', 'Action')}</th>
+					<th>{@render head('comment', 'Comment')}</th>
+					<th>{@render head('user', 'User / record')}</th>
 					<th><span class="sr-only">Details</span></th>
 				</tr>
 			</thead>

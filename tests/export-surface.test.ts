@@ -441,3 +441,12 @@ describe('gawdux 0.10.0 export surface (admin blocks)', () => {
 		);
 	});
 });
+
+describe('column icons export surface (unreleased)', () => {
+	it('exports HeadCell beside SortableHeadCell, and keeps HeadLabel internal', () => {
+		expect(primitives.HeadCell).toBeDefined();
+		expect(primitives.SortableHeadCell).toBeDefined();
+		expect((primitives as Record<string, unknown>).HeadLabel).toBeUndefined();
+		expect((root as Record<string, unknown>).HeadLabel).toBeUndefined();
+	});
+});

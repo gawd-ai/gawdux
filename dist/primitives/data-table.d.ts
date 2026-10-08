@@ -14,7 +14,10 @@ export interface DataTableColumn {
     headClass?: string;
     /** Classes on the body cells only. */
     cellClass?: string;
-    /** Optional icon in the header, before the label. */
+    /** Optional icon in the header, before the label. It renders through the
+        one header shape (`.table-head-label > .table-head-icon`), aria-hidden,
+        sized and spaced by the --gawdux-table-head-icon-* knobs, on a plain
+        and a sortable header alike. */
     icon?: Component;
 }
 export type DataTableSortDirection = 'asc' | 'desc';

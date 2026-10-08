@@ -46,6 +46,7 @@
 		type AlertOpsCopy,
 		type AlertOpsData,
 		type AlertOpsFilters,
+		type AlertOpsHeadIcons,
 		type AlertOpsMutationState,
 		type AlertOpsScope
 	} from './types';
@@ -66,7 +67,8 @@
 		canSilence = false,
 		onsilence,
 		mutation,
-		healthBar = true
+		healthBar = true,
+		headIcons = {}
 	}: {
 		scope: AlertOpsScope;
 		filters?: AlertOpsFilters;
@@ -104,6 +106,11 @@
 		 * Refresh is the one way to ask again.
 		 */
 		healthBar?: boolean;
+		/**
+		 * A column icon before a header's word, per header of the alert groups
+		 * and the silences; none by default. The product chooses the meanings.
+		 */
+		headIcons?: AlertOpsHeadIcons;
 	} = $props();
 
 	const copy = $derived(resolveAlertOpsCopy(copyOverrides));
@@ -280,6 +287,7 @@
 									{selectedFingerprint}
 									copy={copyOverrides}
 									onselect={handleSelect}
+									{headIcons}
 								/>
 							{/snippet}
 							{#snippet detail()}
@@ -318,6 +326,7 @@
 							{canMutate}
 							{onexpire}
 							{mutation}
+							{headIcons}
 						/>
 					{/if}
 				</div>

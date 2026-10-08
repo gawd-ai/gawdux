@@ -6,6 +6,8 @@
 // no data fetching, and treats every value below as display-ready (already
 // authorized, sanitized and redacted by the host).
 
+import type { Component } from 'svelte';
+
 export type AlertOpsProviderState =
 	| 'ok'
 	| 'stale'
@@ -114,6 +116,31 @@ export interface AlertOpsData {
 	groups: AlertOpsGroup[];
 	silences: AlertOpsSilence[];
 }
+
+/**
+ * The headers of the console's two tables, as keys of its optional
+ * `headIcons` map (AlertOpsConsole passes it to AlertGroupTable and
+ * SilenceTable). A key with an icon shows it before that header's word (the
+ * one header shape, aria-hidden, sized by the head-icon knobs); the others
+ * stay words. The silences' Actions header takes none.
+ */
+export type AlertOpsHeadKey =
+	| 'severity'
+	| 'status'
+	| 'service'
+	| 'summary'
+	| 'started'
+	| 'duration'
+	| 'receiver'
+	| 'fingerprint'
+	| 'silenceState'
+	| 'silenceMatchers'
+	| 'silenceWindow'
+	| 'silenceCreatedBy'
+	| 'silenceComment';
+
+/** A column icon per header; the product chooses which headers carry one. */
+export type AlertOpsHeadIcons = Partial<Record<AlertOpsHeadKey, Component>>;
 
 /**
  * Every user-facing string in the alert-ops components. Hosts localize by

@@ -1,5 +1,6 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { ClockOutline, HeartOutline } from 'flowbite-svelte-icons';
 import AlertGroupTable from '../src/lib/alert-ops/AlertGroupTable.svelte';
 import { makeAlert, makeGroup } from './fixtures/alert-ops';
 
@@ -80,5 +81,27 @@ describe('AlertGroupTable', () => {
 			props: { groups: [makeGroup({ key: '{}', labels: {}, alerts: [makeAlert()] })] }
 		});
 		expect(screen.getByTestId('alert-group-header').textContent).toContain('Ungrouped');
+	});
+});
+
+describe('AlertGroupTable column icons (headIcons)', () => {
+	it('draws no header icon without headIcons', () => {
+		const { container } = render(AlertGroupTable, { props: { groups } });
+		expect(container.querySelector('thead svg')).toBeNull();
+	});
+
+	it("puts a key's icon before that header's word and no other", () => {
+		const { container } = render(AlertGroupTable, {
+			props: { groups, headIcons: { status: HeartOutline, started: ClockOutline } }
+		});
+		const ths = [...container.querySelectorAll('thead th')] as HTMLElement[];
+		const iconed = ths.filter((th) => th.querySelector('svg')).map((th) => th.textContent?.trim());
+		expect(iconed).toEqual(['Status', 'Started']);
+		for (const th of ths.filter((th) => th.querySelector('svg'))) {
+			expect(th.querySelector('.table-head-label > svg.table-head-icon')?.getAttribute('aria-hidden')).toBe('true');
+		}
+		// The stacked narrow layout's labels stay words.
+		const firstRow = screen.getAllByTestId('alert-row')[0]!;
+		expect(firstRow.querySelector('td')?.getAttribute('data-label')).toBe('Severity');
 	});
 });

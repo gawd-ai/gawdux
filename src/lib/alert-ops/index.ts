@@ -22,6 +22,8 @@ export type {
 	AlertOpsData,
 	AlertOpsFilters,
 	AlertOpsGroup,
+	AlertOpsHeadIcons,
+	AlertOpsHeadKey,
 	AlertOpsLink,
 	AlertOpsMutationPhase,
 	AlertOpsMutationState,

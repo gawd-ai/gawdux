@@ -256,3 +256,57 @@ describe('content inset: one inset, owned once by the host', () => {
 		expect(ruleOf('.panel-col-wide')).toContain('max-width: var(--gawdux-panel-wide-max-width);');
 	});
 });
+
+describe('column header icons: one shape, sized by knobs, unlayered', () => {
+	/** Brace depth at an offset of tokens.css: 0 is top level, outside any @layer. */
+	function depthAt(offset: number): number {
+		let depth = 0;
+		const source = tokens.replace(/\/\*[\s\S]*?\*\//g, (c) => ' '.repeat(c.length));
+		for (let i = 0; i < offset; i++) {
+			if (source[i] === '{') depth++;
+			else if (source[i] === '}') depth--;
+		}
+		return depth;
+	}
+
+	/** The body of a top-level rule, found by its exact selector line. */
+	function topRule(selector: string): string {
+		const start = tokens.indexOf(`\n${selector} {`);
+		expect(start, `tokens.css must declare ${selector} at the top level`).toBeGreaterThan(-1);
+		expect(depthAt(start + 1), `${selector} must sit outside any @layer`).toBe(0);
+		return tokens.slice(tokens.indexOf('{', start) + 1, tokens.indexOf('}', start));
+	}
+
+	it('declares the four head-icon knobs in :root at the geometry that shipped', () => {
+		// 16px (h-4 w-4), gap-2, the header's own ink, shown.
+		const expected: Record<string, string> = {
+			'--gawdux-table-head-icon-size': '1rem',
+			'--gawdux-table-head-icon-gap': '0.5rem',
+			'--gawdux-table-head-icon-color': 'currentColor',
+			'--gawdux-table-head-icon-display': 'block'
+		};
+		for (const [name, value] of Object.entries(expected)) {
+			expect(tokenValue(rootBlock, name), name).toBe(value);
+			expect(darkBlock, `${name} is theme-independent`).not.toContain(`${name}:`);
+		}
+	});
+
+	it('the label and the icon read the knobs, outside any layer', () => {
+		const label = topRule('.table-head-label');
+		expect(label).toContain('display: inline-flex;');
+		expect(label).toContain('align-items: center;');
+		expect(label).toContain('gap: var(--gawdux-table-head-icon-gap);');
+		const icon = topRule('.table-head-icon');
+		expect(icon).toContain('width: var(--gawdux-table-head-icon-size);');
+		expect(icon).toContain('height: var(--gawdux-table-head-icon-size);');
+		expect(icon).toContain('color: var(--gawdux-table-head-icon-color);');
+		expect(icon).toContain('display: var(--gawdux-table-head-icon-display);');
+		expect(icon).toContain('flex: none;');
+	});
+
+	it('nothing recolours the icon: no hover, active or state rule names it', () => {
+		const rules = tokens.replace(/\/\*[\s\S]*?\*\//g, '');
+		const naming = [...rules.matchAll(/([^{}]*\.table-head-icon[^{}]*)\{/g)].map((m) => (m[1] ?? '').trim());
+		expect(naming).toEqual(['.table-head-icon']);
+	});
+});

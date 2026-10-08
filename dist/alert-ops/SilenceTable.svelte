@@ -6,6 +6,7 @@
      and performs the call, feeding progress back through `mutation`.
      Uses the responsive-card-table pattern for narrow viewports. -->
 <script lang="ts">
+	import HeadLabel from '../primitives/HeadLabel.svelte';
 	import StatusBadge from '../primitives/StatusBadge.svelte';
 	import {
 		canExpireAlertOpsSilence,
@@ -17,6 +18,8 @@
 		formatAlertOpsTemplate,
 		resolveAlertOpsCopy,
 		type AlertOpsCopy,
+		type AlertOpsHeadIcons,
+		type AlertOpsHeadKey,
 		type AlertOpsMutationState,
 		type AlertOpsSilence
 	} from './types';
@@ -26,7 +29,8 @@
 		copy: copyOverrides,
 		canMutate = false,
 		onexpire,
-		mutation
+		mutation,
+		headIcons = {}
 	}: {
 		silences: AlertOpsSilence[];
 		copy?: Partial<AlertOpsCopy>;
@@ -36,6 +40,8 @@
 		onexpire?: (silenceId: string) => void;
 		/** Host-owned mutation lifecycle; the table keeps no state of its own. */
 		mutation?: AlertOpsMutationState;
+		/** A column icon before a header's word, per header; none by default. */
+		headIcons?: AlertOpsHeadIcons;
 	} = $props();
 
 	const copy = $derived(resolveAlertOpsCopy(copyOverrides));
@@ -69,6 +75,11 @@
 	}
 </script>
 
+{#snippet head(key: AlertOpsHeadKey, label: string)}
+	{@const icon = headIcons[key]}
+	{#if icon}<HeadLabel {label} {icon} />{:else}{label}{/if}
+{/snippet}
+
 <div class="responsive-card-table overflow-x-auto" data-testid="silence-table">
 	<table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">
 		<caption class="sr-only">{copy.silencesTableCaption}</caption>
@@ -76,11 +87,11 @@
 			class="bg-gray-50 text-xs uppercase text-gray-500 dark:bg-gray-700 dark:text-gray-400"
 		>
 			<tr>
-				<th scope="col" class="px-4 py-2.5">{copy.silenceColumnState}</th>
-				<th scope="col" class="px-4 py-2.5">{copy.silenceColumnMatchers}</th>
-				<th scope="col" class="px-4 py-2.5">{copy.silenceColumnWindow}</th>
-				<th scope="col" class="px-4 py-2.5">{copy.silenceColumnCreatedBy}</th>
-				<th scope="col" class="px-4 py-2.5">{copy.silenceColumnComment}</th>
+				<th scope="col" class="px-4 py-2.5">{@render head('silenceState', copy.silenceColumnState)}</th>
+				<th scope="col" class="px-4 py-2.5">{@render head('silenceMatchers', copy.silenceColumnMatchers)}</th>
+				<th scope="col" class="px-4 py-2.5">{@render head('silenceWindow', copy.silenceColumnWindow)}</th>
+				<th scope="col" class="px-4 py-2.5">{@render head('silenceCreatedBy', copy.silenceColumnCreatedBy)}</th>
+				<th scope="col" class="px-4 py-2.5">{@render head('silenceComment', copy.silenceColumnComment)}</th>
 				{#if mutable}
 					<th scope="col" class="px-4 py-2.5">{copy.silenceColumnActions}</th>
 				{/if}

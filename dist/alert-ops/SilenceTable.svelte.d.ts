@@ -1,4 +1,4 @@
-import { type AlertOpsCopy, type AlertOpsMutationState, type AlertOpsSilence } from './types';
+import { type AlertOpsCopy, type AlertOpsHeadIcons, type AlertOpsMutationState, type AlertOpsSilence } from './types';
 type $$ComponentProps = {
     silences: AlertOpsSilence[];
     copy?: Partial<AlertOpsCopy>;
@@ -8,6 +8,8 @@ type $$ComponentProps = {
     onexpire?: (silenceId: string) => void;
     /** Host-owned mutation lifecycle; the table keeps no state of its own. */
     mutation?: AlertOpsMutationState;
+    /** A column icon before a header's word, per header; none by default. */
+    headIcons?: AlertOpsHeadIcons;
 };
 declare const SilenceTable: import("svelte").Component<$$ComponentProps, {}, "">;
 type SilenceTable = ReturnType<typeof SilenceTable>;
