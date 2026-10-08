@@ -17,5 +17,5 @@
 <PageCommandBarCenter><button data-page-edit>Edit item</button></PageCommandBarCenter>
 <ConfirmationCommandSurface {...props} presentation={CommandBarConfirmationPresentation} />
 <footer data-command-bar>
-	{#if slots.center}{@render slots.center()}{/if}
+	{@render slots.center?.()}
 </footer>

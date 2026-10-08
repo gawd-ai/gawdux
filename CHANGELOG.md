@@ -1,5 +1,27 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- `PageCommandBar`, `PageCommandBarCenter` and `PageCommandBarRight` release
+  their registration from a teardown that exists from the moment they
+  register (`$effect.pre`), instead of `onDestroy`. A registrant destroyed in
+  the flush that created it (an earlier effect closed its block) never ran its
+  deferred effects, so its registration stayed live and its dead buttons came
+  back to the bar whenever it was the newest: a decision opened and closed in
+  one flush left its Cancel and Confirm on every later page.
+  `PageCommandBarConfirm` and every surface built on these inherit the fix.
+
+### Hosts
+
+- Render each zone as `{@render zone?.()}`, never
+  `{#if zone}{@render zone()}{/if}`. After server rendering, Svelte hydrates
+  the `{#if}` branch with the snippet's first node as its start; a swap to
+  another snippet removes that node, and when the zone later empties the
+  branch removes nothing, so the current buttons stay in the bar beside every
+  later page's until a full reload. The registry's header says why.
+
 ## 0.15.0 - shared AI + Bots and Role blocks, the alert console's house states
 
 ### Added

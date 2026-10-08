@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getContext, onDestroy } from 'svelte';
+	import { getContext } from 'svelte';
 	import type { Snippet } from 'svelte';
 	import { PAGE_COMMAND_BAR_CONTEXT, type PageCommandBarContext } from './page-chrome';
 
@@ -13,12 +13,18 @@
 	// svelte-ignore state_referenced_locally -- initial value is intended; the $effect below tracks changes
 	const registrationId = bar?.register('center', children ?? null);
 
-	$effect(() => {
-		if (registrationId) bar?.update(registrationId, children ?? null);
+	// Released by a teardown that exists from the moment of registering:
+	// `$effect.pre` runs while the component initializes, so its teardown runs
+	// on every destroy. `onDestroy` is a deferred effect's teardown, and a
+	// component destroyed in the flush that created it (an earlier effect
+	// closed its block) never ran that effect: the registration stayed live
+	// and its dead snippet came back to the bar whenever it was the newest.
+	$effect.pre(() => () => {
+		if (registrationId) bar?.clear(registrationId);
 	});
 
-	onDestroy(() => {
-		if (registrationId) bar?.clear(registrationId);
+	$effect(() => {
+		if (registrationId) bar?.update(registrationId, children ?? null);
 	});
 </script>
 
