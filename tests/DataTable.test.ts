@@ -135,6 +135,18 @@ describe('DataTable', () => {
 	});
 });
 
+describe('DataTable go-to link', () => {
+	it('ends the card header with the go-to icon', () => {
+		const { container } = render(DataTableHarness, {
+			props: { rows: ROWS, title: 'Interfaces', link: { label: 'Open Network', href: '/net' } }
+		});
+		const header = container.querySelector('.card-header') as HTMLElement;
+		const link = screen.getByRole('link', { name: 'Open Network' });
+		expect(header.contains(link)).toBe(true);
+		expect(link.textContent?.trim()).toBe('');
+	});
+});
+
 describe('SortableHeadCell alignment (additive)', () => {
 	it('renders exactly as before by default', () => {
 		const { container } = render(SortableHeadCell, {

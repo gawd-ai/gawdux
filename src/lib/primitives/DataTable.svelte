@@ -8,7 +8,8 @@
      - `onRowClick` makes rows clickable (whole-row target, pointer, hover
        tint); a click on a control inside the row stays the control's.
      - `title` (and the `header` snippet beside it) gives the panel a card
-       header. `framed={false}` drops the container's border and shadow for
+       header; `link` ends that header with the go-to icon (SectionLink), the
+       one place the panel leads to another section. `framed={false}` drops the container's border and shadow for
        a table that already sits inside a card.
      - `row` replaces the per-column cells for a row the host lays out
        itself (cells it writes are still TableBodyCell).
@@ -18,6 +19,7 @@
 	import type { Snippet } from 'svelte';
 	import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead, TableHeadCell } from 'flowbite-svelte';
 	import EmptyStateRow from './EmptyStateRow.svelte';
+	import SectionLink from './SectionLink.svelte';
 	import SortableHeadCell from './SortableHeadCell.svelte';
 	import TableContainer from './TableContainer.svelte';
 	import {
@@ -40,6 +42,7 @@
 		onSort,
 		title,
 		header,
+		link = null,
 		caption,
 		emptyText = 'No results found',
 		emptyHint = '',
@@ -64,8 +67,10 @@
 		onSort?: (field: string) => void;
 		/** A card header above the table. */
 		title?: string;
-		/** Right side of the card header (a count, a link). */
+		/** Right side of the card header (a count, a freshness stamp). */
 		header?: Snippet;
+		/** The section this panel leads to, as the go-to icon at the header's end. */
+		link?: { label: string; href?: string; onclick?: (event: MouseEvent) => void } | null;
 		/** Screen-reader caption. */
 		caption?: string;
 		emptyText?: string;
@@ -79,7 +84,7 @@
 
 	const clickable = $derived(Boolean(onRowClick));
 	const hover = $derived(hoverable ?? clickable);
-	const hasHeader = $derived(Boolean(title) || Boolean(header));
+	const hasHeader = $derived(Boolean(title) || Boolean(header) || Boolean(link));
 
 	function keyOf(item: T, index: number): string | number {
 		return rowKey ? rowKey(item, index) : index;
@@ -113,8 +118,18 @@
 			{#if title}
 				<h3 class="card-header-title">{title}</h3>
 			{/if}
-			{#if header}
-				<div class="ml-auto flex min-w-0 items-center gap-2">{@render header()}</div>
+			{#if header || link}
+				<div class="ml-auto flex min-w-0 items-center gap-2">
+					{#if header}{@render header()}{/if}
+					{#if link}
+						<SectionLink
+							label={link.label}
+							{...link.href ? { href: link.href } : {}}
+							{...link.onclick ? { onclick: link.onclick } : {}}
+							className="-my-1"
+						/>
+					{/if}
+				</div>
 			{/if}
 		</div>
 	{/if}

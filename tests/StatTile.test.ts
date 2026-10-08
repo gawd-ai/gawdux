@@ -64,7 +64,7 @@ describe('StatTile', () => {
 		expect(ping?.className).toContain('motion-safe:animate-ping');
 	});
 
-	it('drills down through a small text button, never the whole tile', async () => {
+	it('drills down through the go-to icon, never the whole tile and never a text link', async () => {
 		const onclick = vi.fn();
 		const { container } = render(StatTile, {
 			props: { label: 'Systems', value: '4/5', meta: '1 down', onclick }
@@ -72,8 +72,12 @@ describe('StatTile', () => {
 		const root = tile(container);
 		expect(root.tagName).toBe('DIV');
 		expect(root.getAttribute('role')).toBeNull();
-		const button = screen.getByRole('button', { name: /View details/ });
-		expect(button.className).toContain('text-[10px]');
+		const button = screen.getByRole('button', { name: 'View details' });
+		expect(button.hasAttribute('data-section-link')).toBe(true);
+		expect(button.getAttribute('title')).toBe('View details');
+		// An icon, no words: the arrow is the whole visible content.
+		expect(button.textContent?.trim()).toBe('');
+		expect(root.textContent).not.toMatch(/→/);
 		await fireEvent.click(button);
 		expect(onclick).toHaveBeenCalledTimes(1);
 		// Clicking the tile body does nothing.
@@ -81,11 +85,19 @@ describe('StatTile', () => {
 		expect(onclick).toHaveBeenCalledTimes(1);
 	});
 
+	it('puts the go-to icon in the label row, after the aside', () => {
+		const { container } = render(StatTile, {
+			props: { label: 'Alerts', value: 3, href: '/alerts?open', actionLabel: 'Open alerts' }
+		});
+		const labelRow = tile(container).firstElementChild as HTMLElement;
+		expect(labelRow.querySelector('[data-section-link]')).toBeTruthy();
+	});
+
 	it('drills down through a link when given an href, with the host wording', () => {
 		render(StatTile, {
 			props: { label: 'Alerts', value: 3, href: '/alerts?open', actionLabel: 'Open alerts' }
 		});
-		const link = screen.getByRole('link', { name: /Open alerts/ });
+		const link = screen.getByRole('link', { name: 'Open alerts' });
 		expect(link.getAttribute('href')).toBe('/alerts?open');
 		expect(screen.queryByRole('button')).toBeNull();
 	});

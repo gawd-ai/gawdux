@@ -1,6 +1,31 @@
 # Changelog
 
-## 0.14.0 - density knobs, stat tiles, data table, icon label (unreleased)
+## 0.14.1 - the go-to icon, icon buttons
+
+A drill-down is an arrow icon at the top right of what it leads from, never a
+text link with an arrow under the content.
+
+### Added
+
+- `SectionLink` (`gawdux/primitives`): the go-to-section affordance, one arrow
+  icon with no words. Its `label` names the destination ("Open Network") and is
+  the accessible name and the tooltip. A link with `href`, a button with
+  `onclick`, nothing with neither.
+- `CardContainer` and `DataTable` `link` (`{ label, href?, onclick? }`): the
+  go-to icon at the right end of the card header, after the header slot or
+  snippet.
+- `IconButton` (`gawdux/primitives`): an icon action named by its `label`
+  (accessible name and tooltip). `tone="danger"` is grey at rest and red only
+  on hover and focus, for a Remove that should not shout from every row.
+
+### Changed
+
+- `StatTile`'s drill-down (`href` or `onclick`) is the go-to icon at the right
+  of the label row, after `aside`, instead of the small "View details →" text
+  under the content. `actionLabel` keeps its meaning and becomes the tooltip
+  and accessible name; consumers need no change.
+
+## 0.14.0 - density knobs, stat tiles, data table, icon label
 
 Nothing changes its look by default: every knob defaults to the geometry that
 shipped before it, verified as identical computed styles in a browser (tables,

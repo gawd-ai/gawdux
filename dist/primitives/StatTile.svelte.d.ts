@@ -22,10 +22,11 @@ type $$ComponentProps = {
     valueTitle?: string;
     /** Tooltip for the meta line (an absolute time behind a relative one). */
     metaTitle?: string;
-    /** Drill-down handler, rendered as the small text button. */
+    /** Drill-down handler, rendered as the go-to icon button. */
     onclick?: (event: MouseEvent) => void;
-    /** Drill-down target, rendered as the small text link. */
+    /** Drill-down target, rendered as the go-to icon link. */
     href?: string;
+    /** Where the drill-down goes: its tooltip and accessible name. */
     actionLabel?: string;
     aside?: Snippet;
     children?: Snippet;

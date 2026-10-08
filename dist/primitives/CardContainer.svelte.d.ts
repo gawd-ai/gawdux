@@ -13,6 +13,11 @@ interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> =
 }
 declare const CardContainer: $$__sveltets_2_IsomorphicComponent<{
     title: string;
+    /** The section this card leads to: `label` names it ("Open Network"). */ link?: {
+        label: string;
+        href?: string;
+        onclick?: (event: MouseEvent) => void;
+    } | null;
     invalid?: boolean;
     className?: string;
     contentClass?: string;

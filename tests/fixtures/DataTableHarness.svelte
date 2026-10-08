@@ -13,6 +13,7 @@
 		onAction,
 		framed = true,
 		title,
+		link = null,
 		emptyText,
 		emptyHint
 	}: {
@@ -24,6 +25,7 @@
 		onAction?: (row: Row) => void;
 		framed?: boolean;
 		title?: string;
+		link?: { label: string; href?: string } | null;
 		emptyText?: string;
 		emptyHint?: string;
 	} = $props();
@@ -37,6 +39,7 @@
 </script>
 
 <DataTable
+	{link}
 	{columns}
 	{rows}
 	{sortField}

@@ -4,13 +4,14 @@
      - `tone` tints the tile with a state (ok, warn, bad, info); a strip
        usually tints one. `dot` adds the tone's status dot before the value,
        and `pulse` makes it ping (honouring reduced motion).
-     - The drill-down is a small text button (or link) under the content,
-       never the whole tile: `onclick` or `href`, worded by `actionLabel`.
+     - The drill-down is the go-to icon (SectionLink) at the right of the
+       label row, never the whole tile and never a text link: `onclick` or
+       `href`, named by `actionLabel` (the tooltip and accessible name).
      - `nested` is the variant for tiles inside a card: no border, the
        subtle surface, tighter padding, a smaller value.
      - `children` renders after the meta line, for a body the value cannot
        express (two link states, a short list); `aside` sits at the right of
-       the label row (a freshness stamp, a count).
+       the label row (a freshness stamp, a count), before the go-to icon.
      Padding is the --gawdux-tile-padding knobs (tokens.css). Lifted from a
      consuming product's detail-page hero tiles. -->
 <script module lang="ts">
@@ -49,6 +50,7 @@
 <script lang="ts">
 	import type { Component, Snippet } from 'svelte';
 	import { twMerge } from 'tailwind-merge';
+	import SectionLink from './SectionLink.svelte';
 
 	let {
 		label,
@@ -88,10 +90,11 @@
 		valueTitle?: string;
 		/** Tooltip for the meta line (an absolute time behind a relative one). */
 		metaTitle?: string;
-		/** Drill-down handler, rendered as the small text button. */
+		/** Drill-down handler, rendered as the go-to icon button. */
 		onclick?: (event: MouseEvent) => void;
-		/** Drill-down target, rendered as the small text link. */
+		/** Drill-down target, rendered as the go-to icon link. */
 		href?: string;
+		/** Where the drill-down goes: its tooltip and accessible name. */
 		actionLabel?: string;
 		aside?: Snippet;
 		children?: Snippet;
@@ -117,8 +120,6 @@
 			valueClass
 		)
 	);
-	const actionClass =
-		'mt-1.5 inline-block text-[10px] font-medium text-blue-600 hover:underline focus:outline-none focus-visible:underline dark:text-blue-400';
 </script>
 
 <div class={rootClass} data-tone={tone}>
@@ -131,8 +132,15 @@
 				>{label}</span
 			>
 		</div>
-		{#if aside}
-			<div class="shrink-0">{@render aside()}</div>
+		{#if aside || href || onclick}
+			<div class="-my-1 flex shrink-0 items-center gap-1">
+				{#if aside}{@render aside()}{/if}
+				{#if href}
+					<SectionLink label={actionLabel} {href} />
+				{:else if onclick}
+					<SectionLink label={actionLabel} {onclick} />
+				{/if}
+			</div>
 		{/if}
 	</div>
 	{#if hasValue}
@@ -159,10 +167,5 @@
 	{/if}
 	{#if children}
 		<div class="mt-1 min-w-0">{@render children()}</div>
-	{/if}
-	{#if href}
-		<a class={actionClass} {href}>{actionLabel} &rarr;</a>
-	{:else if onclick}
-		<button type="button" class={actionClass} {onclick}>{actionLabel} &rarr;</button>
 	{/if}
 </div>
