@@ -16,16 +16,22 @@ export interface UserMenuItem {
 export interface UserMenuProps {
     /** The signed-in person's name: the trigger's first line. */
     name: string;
-    /** The trigger's second line, shown open and closed. */
+    /** The trigger's second line, shown open and closed; left out when it repeats `name`. */
     email?: string;
     /** Overrides the initials derived from `name` (first and last word). */
     initials?: string;
     /** A 28px image in place of the initials; the initials return if it fails to load. */
     avatarSrc?: string;
-    /** The tenant this session acts in: the first row of the open menu, never the trigger. */
+    /**
+     * The tenant this session acts in: the open menu's first line, on the text
+     * column with the access chips after it, never the trigger. It describes
+     * the menu (`aria-describedby`), so a person who opens into the rows hears it.
+     */
     tenant?: string;
-    /** Chips beside the tenant: a grade, or one per role. */
+    /** Chips right after the tenant: a grade, or one per role. */
     access?: string[];
+    /** A caption before the chips ("Roles"), for a host whose chips need naming. */
+    accessLabel?: string;
     /** The menu's rows, in order, above sign-out. */
     items?: UserMenuItem[];
     /**
@@ -56,10 +62,17 @@ export interface UserMenuProps {
     footer?: Snippet;
     /** The trigger's accessible name; defaults to "Account menu for {name}". */
     label?: string;
-    /** Below this viewport width the closed menu is the avatar alone (44 by 44); 0 never. */
+    /**
+     * Below this viewport width the closed menu is the avatar alone (44 by 44);
+     * open, the panel grows to the left and the avatar stays put. 0 never.
+     */
     compactBelow?: 0 | 768 | 1024;
-    /** Prefix of the element ids (trigger, body, menu); unique per page. */
+    /** Prefix of the element ids (trigger, body, context, menu); unique per page. */
     id?: string;
+    /**
+     * Bindable. A host closes the menu on its own navigations by binding this
+     * (`bind:open`) and setting it false; the menu closes itself on popstate.
+     */
     open?: boolean;
     onopenchange?: (open: boolean) => void;
 }

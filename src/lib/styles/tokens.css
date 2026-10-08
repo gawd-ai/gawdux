@@ -82,12 +82,20 @@
 	--gawdux-tab-text-hover: var(--color-gray-700);
 	--gawdux-tab-text-active: rgb(37 99 235); /* blue-600 */
 	--gawdux-tab-indicator: rgb(191 219 254); /* blue-200 */
-	/* Menus (UserMenu). One hover for every row; a destructive row is red on
-	   its icon and its word only; a chip is a quiet filled label. The menu's
-	   width is a knob like the density ones below. */
+	/* Menus (UserMenu). The open menu is a raised surface (lighter than the
+	   page in dark, where a shadow does not show); one highlight for every row;
+	   one quiet divider; a destructive row is red on its icon and its word
+	   only; a chip is a quiet filled label; the avatar keeps its colour open
+	   and closed. The menu's widths are knobs like the density ones below: the
+	   card is as wide as its trigger's content between the two. */
+	--gawdux-menu-surface: var(--color-white);
 	--gawdux-menu-item-hover: var(--color-gray-100);
+	--gawdux-menu-divider: var(--color-gray-100);
 	--gawdux-text-danger: var(--color-red-600);
 	--gawdux-chip-surface: var(--color-gray-100);
+	--gawdux-avatar-surface: var(--color-blue-600);
+	--gawdux-avatar-text: var(--color-white);
+	--gawdux-user-menu-min-width: 208px;
 	--gawdux-user-menu-width: 272px;
 	/* Density. Every default is the geometry that shipped before the knob
 	   existed, so nothing moves until a product redeclares one after the
@@ -140,9 +148,13 @@
 	--gawdux-tab-text-hover: var(--color-gray-200);
 	--gawdux-tab-text-active: rgb(96 165 250); /* blue-400 */
 	--gawdux-tab-indicator: rgb(30 58 138); /* blue-900 */
-	--gawdux-menu-item-hover: var(--color-gray-800);
+	--gawdux-menu-surface: var(--color-gray-800);
+	--gawdux-menu-item-hover: var(--color-gray-700);
+	--gawdux-menu-divider: var(--color-gray-700);
 	--gawdux-text-danger: var(--color-red-400);
-	--gawdux-chip-surface: var(--color-gray-800);
+	--gawdux-chip-surface: var(--color-gray-700);
+	--gawdux-avatar-surface: var(--color-blue-600);
+	--gawdux-avatar-text: var(--color-white);
 }
 
 @layer components {

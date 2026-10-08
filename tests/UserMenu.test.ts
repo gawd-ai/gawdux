@@ -3,6 +3,7 @@ import { tick } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LockOutline, UsersOutline } from 'flowbite-svelte-icons';
 import UserMenu from '../src/lib/components/UserMenu.svelte';
+import userMenuSource from '../src/lib/components/UserMenu.svelte?raw';
 import UserMenuHarness from './fixtures/UserMenuHarness.svelte';
 import type { UserMenuItem } from '../src/lib/types/user-menu.types';
 
@@ -63,11 +64,27 @@ describe('UserMenu trigger', () => {
 		expect(trigger.textContent).not.toContain('Analytical Engines');
 	});
 
-	it('is a menu button that names the person and controls the body', () => {
-		const { trigger, body } = renderMenu();
+	it('is a menu button that names the person and controls the menu', () => {
+		const { trigger } = renderMenu();
 		expect(trigger.getAttribute('aria-haspopup')).toBe('menu');
 		expect(trigger.getAttribute('aria-expanded')).toBe('false');
+		const menu = screen.getByRole('menu', { hidden: true });
+		expect(trigger.getAttribute('aria-controls')).toBe(menu.id);
+	});
+
+	it('controls the body when there is no menu to open into', () => {
+		const { trigger, body } = renderMenu({ items: [], signOutAction: undefined });
+		expect(screen.queryByRole('menu', { hidden: true })).toBeNull();
 		expect(trigger.getAttribute('aria-controls')).toBe(body.id);
+	});
+
+	it('shows the email once: no second line when it repeats the name', () => {
+		const { container } = render(UserMenu, {
+			props: { name: 'ada@example.test', email: 'ada@example.test' }
+		});
+		const trigger = container.querySelector('.trigger') as HTMLElement;
+		expect(trigger.querySelector('.name')?.textContent).toBe('ada@example.test');
+		expect(trigger.querySelector('.email')).toBeNull();
 	});
 
 	it('derives the initials from the first and last word, or takes them from the host', () => {
@@ -120,6 +137,38 @@ describe('UserMenu body', () => {
 			'Billing'
 		]);
 		expect(context.closest('[role="menu"]')).toBeNull();
+	});
+
+	it('is a statement, not a row: no icon, no menu item, the chips right after the tenant', () => {
+		const { body } = renderMenu();
+		const context = body.querySelector('[data-user-menu-context]') as HTMLElement;
+		expect(context.querySelector('svg')).toBeNull();
+		expect(context.querySelector('[role="menuitem"], a, button')).toBeNull();
+		const visible = Array.from(context.children).filter(
+			(child) => !child.classList.contains('visually-hidden')
+		);
+		expect(visible.map((child) => child.className.split(' ')[0])).toEqual(['tenant', 'access']);
+	});
+
+	it('describes the menu with the tenant and the access, so a person opening into the rows hears them', () => {
+		const { body } = renderMenu();
+		const context = body.querySelector('[data-user-menu-context]') as HTMLElement;
+		const menu = screen.getByRole('menu', { hidden: true });
+		expect(menu.getAttribute('aria-describedby')).toBe(context.id);
+		expect(context.textContent?.replace(/\s+/g, ' ').trim()).toBe('Analytical Engines, Owner');
+	});
+
+	it('names the chips with a caption when the host gives one', () => {
+		const { body } = renderMenu({ access: ['Ops', 'Viewer'], accessLabel: 'Roles' });
+		const access = body.querySelector('[data-user-menu-context] .access') as HTMLElement;
+		expect(access.querySelector('.access-label')?.textContent).toBe('Roles');
+		expect(access.textContent?.replace(/\s+/g, ' ').trim()).toBe('Roles Ops Viewer');
+	});
+
+	it('leaves the description out when there is no context', () => {
+		renderMenu({ tenant: undefined, access: [] });
+		const menu = screen.getByRole('menu', { hidden: true });
+		expect(menu.hasAttribute('aria-describedby')).toBe(false);
 	});
 
 	it('leaves the context row out when there is neither a tenant nor access', () => {
@@ -418,5 +467,210 @@ describe('UserMenu compact', () => {
 		b.unmount();
 		const c = renderMenu({ compactBelow: 0 });
 		expect(c.root.className).not.toMatch(/compact-/);
+	});
+});
+
+describe('UserMenu one highlighted row', () => {
+	it('moves the focus to the row under the pointer, so hover and focus are one row', async () => {
+		const { container, trigger } = renderMenu();
+		await pointerClick(trigger);
+		const rows = menuItems(container);
+		const menu = screen.getByRole('menu', { hidden: true });
+		await fireEvent.pointerMove(rows[1] as HTMLElement);
+		expect(document.activeElement).toBe(rows[1]);
+		expect(menu.dataset.input).toBe('pointer');
+		await fireEvent.pointerMove(rows[0]?.querySelector('.gawdux-user-menu-label') as HTMLElement);
+		expect(document.activeElement).toBe(rows[0]);
+	});
+
+	it('hands the focus to the menu between rows and when the pointer leaves the rows', async () => {
+		const { container, trigger } = renderMenu();
+		await pointerClick(trigger);
+		const rows = menuItems(container);
+		const menu = screen.getByRole('menu', { hidden: true });
+		await fireEvent.pointerMove(rows[0] as HTMLElement);
+		await fireEvent.pointerMove(container.querySelector('[role="separator"]') as HTMLElement);
+		expect(document.activeElement).toBe(menu);
+		await fireEvent.pointerMove(rows[1] as HTMLElement);
+		await fireEvent.pointerLeave(menu);
+		expect(document.activeElement).toBe(menu);
+	});
+
+	it('gives the ring back to the keyboard: a key after the pointer moves from the hovered row', async () => {
+		const { container, trigger } = renderMenu();
+		await pointerClick(trigger);
+		const rows = menuItems(container);
+		const menu = screen.getByRole('menu', { hidden: true });
+		await fireEvent.pointerMove(rows[0] as HTMLElement);
+		await fireEvent.keyDown(rows[0] as HTMLElement, { key: 'ArrowDown' });
+		expect(document.activeElement).toBe(rows[1]);
+		expect(menu.dataset.input).toBe('keyboard');
+	});
+
+	it('ignores touch: a tap does not move the focus', async () => {
+		const { container, trigger } = renderMenu();
+		await pointerClick(trigger);
+		const rows = menuItems(container);
+		// jsdom has no PointerEvent: a pointermove carrying the touch pointer type.
+		const touch = new MouseEvent('pointermove', { bubbles: true });
+		Object.defineProperty(touch, 'pointerType', { value: 'touch' });
+		(rows[1] as HTMLElement).dispatchEvent(touch);
+		await tick();
+		expect(document.activeElement).not.toBe(rows[1]);
+	});
+
+	it('styles one highlight, on the focused row, and the ring for the keyboard only', () => {
+		expect(userMenuSource).not.toMatch(/gawdux-user-menu-item:hover/);
+		expect(userMenuSource).toMatch(
+			/\.menu :global\(\.gawdux-user-menu-item:focus\) \{[^}]*background-color: var\(--gawdux-menu-item-hover\)/
+		);
+		expect(userMenuSource).toMatch(
+			/\.menu\[data-input='keyboard'\] :global\(\.gawdux-user-menu-item:focus-visible\) \{[^}]*outline: 2px solid/
+		);
+	});
+});
+
+describe('UserMenu closing', () => {
+	it('closes a pointer-opened menu when the pointer leaves, even after the rows took the focus', async () => {
+		vi.useFakeTimers();
+		const { root, container, trigger } = renderMenu();
+		await pointerClick(trigger);
+		await fireEvent.pointerMove(menuItems(container)[0] as HTMLElement);
+		await fireEvent.pointerLeave(root.querySelector('.panel') as HTMLElement);
+		vi.advanceTimersByTime(200);
+		await tick();
+		expect(trigger.getAttribute('aria-expanded')).toBe('false');
+		expect(document.activeElement).toBe(trigger);
+	});
+
+	it('closes when the focus moves to something outside it', async () => {
+		render(UserMenuHarness, { props: { items: ITEMS } });
+		const trigger = screen.getByRole('button', { name: 'Account menu for Ada Lovelace' });
+		const outside = screen.getByTestId('outside');
+		trigger.focus();
+		await pointerClick(trigger);
+		expect(trigger.getAttribute('aria-expanded')).toBe('true');
+		outside.focus();
+		await tick();
+		expect(trigger.getAttribute('aria-expanded')).toBe('false');
+		expect(document.activeElement).toBe(outside);
+	});
+
+	it('stays open while the focus moves inside it', async () => {
+		const { container, trigger } = renderMenu();
+		trigger.focus();
+		await pointerClick(trigger);
+		(menuItems(container)[0] as HTMLElement).focus();
+		await tick();
+		expect(trigger.getAttribute('aria-expanded')).toBe('true');
+	});
+
+	it('never pulls the focus back from a control outside on Escape', async () => {
+		const { container } = render(UserMenu, {
+			props: { name: 'Ada Lovelace', items: ITEMS, open: true }
+		});
+		const outside = document.createElement('button');
+		document.body.appendChild(outside);
+		outside.focus();
+		await fireEvent.keyDown(outside, { key: 'Escape' });
+		expect(container.querySelector('[data-user-menu]')?.getAttribute('data-state')).toBe('closed');
+		expect(document.activeElement).toBe(outside);
+		outside.remove();
+	});
+
+	it('returns the focus to the trigger on Escape when nothing held it', async () => {
+		const { trigger } = renderMenu();
+		await pointerClick(trigger);
+		(document.activeElement as HTMLElement | null)?.blur();
+		await fireEvent.keyDown(window, { key: 'Escape' });
+		expect(trigger.getAttribute('aria-expanded')).toBe('false');
+		expect(document.activeElement).toBe(trigger);
+	});
+
+	it('closes on a history navigation (popstate)', async () => {
+		const { trigger } = renderMenu();
+		await pointerClick(trigger);
+		window.dispatchEvent(new PopStateEvent('popstate'));
+		await tick();
+		expect(trigger.getAttribute('aria-expanded')).toBe('false');
+	});
+
+	it('lets a host close it through the bound open state', async () => {
+		const { rerender, root } = renderMenu({ open: true });
+		expect(root.dataset.state).toBe('open');
+		await rerender({ open: false });
+		expect(root.dataset.state).toBe('closed');
+	});
+});
+
+describe('UserMenu geometry', () => {
+	it('keeps the open compact panel inside the 16px gutter: the room left of its right edge', async () => {
+		const spy = vi
+			.spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+			.mockReturnValue({ right: 216, left: 172, top: 6, bottom: 50, width: 44, height: 44, x: 172, y: 6, toJSON: () => ({}) } as DOMRect);
+		const { root, trigger } = renderMenu();
+		expect(root.style.getPropertyValue('--gawdux-user-menu-room')).toBe('');
+		await pointerClick(trigger);
+		await tick();
+		expect(root.style.getPropertyValue('--gawdux-user-menu-room')).toBe('200px');
+		spy.mockRestore();
+	});
+
+	it('keeps the CSS fallback where there is no layout', async () => {
+		const { root, trigger } = renderMenu();
+		await pointerClick(trigger);
+		await tick();
+		expect(root.style.getPropertyValue('--gawdux-user-menu-room')).toBe('');
+	});
+
+	it('mirrors the compact trigger so the avatar keeps its place when the panel grows left', () => {
+		for (const bp of ['768', '1024']) {
+			expect(userMenuSource).toMatch(
+				new RegExp(`\\.compact-${bp} \\.trigger \\{[^}]*flex-direction: row-reverse`)
+			);
+			expect(userMenuSource).toContain(`var(--gawdux-user-menu-room, calc(100vw - 32px))`);
+		}
+	});
+
+	it('never recolours the trigger with the open or hover state; only the chevron turns', () => {
+		expect(userMenuSource).not.toMatch(/\.panel(?::hover|\.open) \.(?:avatar|name|email)\b/);
+		expect(userMenuSource).not.toMatch(/\.panel(?::hover|\.open) \.chevron \{[^}]*color/);
+		expect(userMenuSource).toMatch(/\.panel\.open \.chevron \{\s*transform: rotate\(180deg\);\s*\}/);
+	});
+
+	it('sizes the card from the trigger alone, between the two width knobs', () => {
+		expect(userMenuSource).toMatch(
+			/\.gawdux-user-menu \{[^}]*width: max-content;[^}]*min-width: var\(--gawdux-user-menu-min-width, 208px\);[^}]*max-width: var\(--gawdux-user-menu-width, 272px\);[^}]*height: 44px;/
+		);
+		expect(userMenuSource).toMatch(/\.body \{[^}]*contain: inline-size;/);
+	});
+
+	it('draws every divider one way: full width, one token', () => {
+		expect(userMenuSource).toMatch(
+			/\.rule,\s*\.separator \{\s*height: 1px;\s*background-color: var\(--gawdux-menu-divider\);\s*\}/
+		);
+		expect(userMenuSource).toMatch(/\.separator \{\s*margin: 4px -4px;\s*\}/);
+		expect(userMenuSource).not.toContain('rule quiet');
+	});
+
+	it('centres the footer mark and text in one 32px row (layout jsdom cannot measure)', () => {
+		const block = (selector: string) => {
+			const match = userMenuSource.match(new RegExp(`\\n\\t${selector.replace(/\./g, '\\.')} \\{([^}]*)\\}`));
+			expect(match, `${selector} rule`).toBeTruthy();
+			return match?.[1] ?? '';
+		};
+		const footer = block('.footer');
+		expect(footer).toContain('display: flex;');
+		expect(footer).toContain('align-items: center;');
+		expect(footer).toContain('height: 32px;');
+		expect(footer).toContain('line-height: 16px;');
+		const mark = block('.mark');
+		expect(mark).toContain('width: 16px;');
+		expect(mark).toContain('height: 16px;');
+		expect(mark).toContain('place-items: center;');
+		const lead = block('.lead');
+		expect(lead).toContain('width: 28px;');
+		expect(lead).toContain('height: 16px;');
+		expect(lead).toContain('place-items: center;');
 	});
 });

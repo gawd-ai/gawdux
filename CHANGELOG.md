@@ -7,30 +7,57 @@
 - `UserMenu` (`gawdux/components` and the root) with the `UserMenuItem` and
   `UserMenuProps` types: the account menu of an app shell's top bar, one
   component in place of a hand-written menu per product.
-  - The trigger is two lines, the name and the email, beside a 28px avatar
-    (initials derived from the name, or `initials`, or `avatarSrc`). It is the
-    same open and closed: opening never moves the avatar or the text. The
-    tenant is the open menu's first row, with the `access` chips, never a third
-    trigger line that makes the card taller than the toolbar.
+  - The trigger is two lines, the name (strong) and the email (muted), beside
+    a 28px avatar (initials derived from the name, or `initials`, or
+    `avatarSrc`). It is identical open and closed, colours included: opening
+    never moves or recolours the avatar or the text, only the chevron turns.
+    The email is left out when it repeats the name. The card lifts (border,
+    shadow, the raised menu surface) on hover and while open, so a click never
+    changes it.
+  - The card is as wide as the trigger's content, between
+    `--gawdux-user-menu-min-width` (208px) and `--gawdux-user-menu-width`
+    (272px); the open body never widens it. The root reserves the 44px height,
+    so the toolbar never reflows.
+  - The tenant is the open menu's first line, on the text column with no icon
+    and no hover (a statement, not a row), the `access` chips right after it
+    and an optional `accessLabel` caption before them. It describes the menu
+    (`aria-describedby`), so a person who opens into the rows hears the tenant
+    and the access. It is never a third trigger line.
   - Left-aligned rows with icons on one grid (`items` as data, `extraItems` as
-    a snippet), one neutral hover, quiet dividers, and sign-out as the last
-    row: a POST form (`signOutAction`, `signOutEnhance`) or a handler
-    (`onsignout`), red on its icon and its word only.
-  - The footer is the product mark (`mark`, a 16px box) and
-    `{product} {version}` on one centre line in a 32px row, `versionTitle` as
-    its tooltip; `footer` replaces it.
-  - The panel takes its natural height (no max-height constant to outgrow) and
-    sits on integer pixels in a 56px toolbar. The closed body is `inert`.
+    a snippet), sign-out last: a POST form (`signOutAction`, `signOutEnhance`)
+    or a handler (`onsignout`), red on its icon and its word only. One
+    highlighted row: the row under the pointer takes the focus, so a hovered
+    row and a focused row are the same row, and the focus ring shows for the
+    keyboard only.
+  - One divider: full width, one quiet token (`--gawdux-menu-divider`),
+    between the trigger, the tenant, the rows, sign-out and the footer.
+  - The footer is the product mark (`mark`, a 16px box in the 28px leading
+    column) and `{product} {version}` on one centre line in a 32px row,
+    `versionTitle` as its tooltip; `footer` replaces it.
+  - The panel takes its natural height (no max-height constant to outgrow).
+    The closed body is `inert`.
   - WAI-ARIA menu button keyboard: Enter, Space and the arrows open into the
     rows, the arrows wrap, Home and End, Escape returns the focus to the
-    trigger, Tab closes and moves on. Outside press closes; leaving a
-    pointer-opened menu closes it after a 150ms grace.
-  - `compactBelow` (768, 1024 or 0): the avatar alone below that width.
+    trigger (only when the focus was the menu's or nobody's), Tab closes and
+    moves on. `aria-controls` names the `role="menu"` element.
+  - It closes on an outside press, when the focus leaves it, on a history
+    navigation (popstate) and, for a pointer-opened menu, 150ms after the
+    pointer leaves. `open` is bindable, so a host closes it on its own
+    navigations.
+  - `compactBelow` (768, 1024 or 0): the avatar alone below that width. Open,
+    the trigger row is mirrored so the avatar stays where it was while the
+    panel grows to its left, and the panel stops at the 16px gutter on the
+    left edge (measured, not assumed), however narrow the phone.
   - Styled with scoped CSS over tokens, never Tailwind utilities, so it renders
     even where a host's Tailwind does not scan this package.
-- Tokens, light and dark: `--gawdux-menu-item-hover` (gray-100 / gray-800),
-  `--gawdux-text-danger` (red-600 / red-400), `--gawdux-chip-surface`
-  (gray-100 / gray-800); and the `--gawdux-user-menu-width` knob (272px).
+- Tokens, light and dark: `--gawdux-menu-surface` (white / gray-800: the open
+  menu is lighter than a dark page, where a shadow does not show),
+  `--gawdux-menu-item-hover` (gray-100 / gray-700), `--gawdux-menu-divider`
+  (gray-100 / gray-700), `--gawdux-text-danger` (red-600 / red-400),
+  `--gawdux-chip-surface` (gray-100 / gray-700), `--gawdux-avatar-surface`
+  and `--gawdux-avatar-text` (blue-600 and white in both); and the knobs
+  `--gawdux-user-menu-min-width` (208px) and `--gawdux-user-menu-width`
+  (272px).
 
 ## 0.15.0 - shared AI + Bots and Role blocks, the alert console's house states
 

@@ -88,14 +88,18 @@ rows, sign-out and the product's version.
 ```svelte
 <script lang="ts">
   import { enhance } from '$app/forms';
+  import { afterNavigate } from '$app/navigation';
   import { UsersOutline } from 'flowbite-svelte-icons';
   import { UserMenu, type UserMenuItem } from 'gawdux/components';
 
   let { user, tenant, grade } = $props();
   const items: UserMenuItem[] = [{ label: 'Members', href: '/app/members', icon: UsersOutline }];
+  let open = $state(false);
+  afterNavigate(() => (open = false));
 </script>
 
 <UserMenu
+  bind:open
   name={user.name}
   email={user.email}
   tenant={tenant.name}
@@ -112,32 +116,47 @@ rows, sign-out and the product's version.
 ```
 
 - **Trigger**: always the avatar (initials derived from the first and last word
-  of `name`, or `initials`, or `avatarSrc`), the name and the email. Nothing in
-  it depends on the open state, so opening never moves it. The tenant is never
-  a trigger line; it is the open menu's first row, with the `access` chips.
+  of `name`, or `initials`, or `avatarSrc`), the name and the email (left out
+  when it repeats the name). Nothing in it depends on the open state, colours
+  included, so opening never moves or recolours it; only the chevron turns. The
+  card lifts on hover and while open.
+- **Context**: the tenant is the open menu's first line, on the text column,
+  with the `access` chips right after it and `accessLabel` as an optional
+  caption before them ("Roles"). It is not a row (no icon, no hover), and it
+  describes the menu for a screen reader. It is never a trigger line.
 - **Rows**: `items` are links (`href`) or buttons (`onclick`) with an optional
   16px `icon`. `extraItems` renders custom rows after them; each must carry
   `role="menuitem"`, `tabindex="-1"` and the class `gawdux-user-menu-item`.
   Sign-out is the last row: a POST form to `signOutAction` (with
   `signOutEnhance` applied, e.g. a SvelteKit `enhance`), or `onsignout`, or
-  absent when neither is given. It is red on its icon and its word only.
+  absent when neither is given. It is red on its icon and its word only. The
+  row under the pointer takes the focus, so one row is highlighted at a time;
+  the focus ring shows for the keyboard only.
 - **Footer**: `{product} {version}` in one text run, `versionTitle` as the
   tooltip, `mark` in a 16px box in the leading column; `footer` replaces the
   content inside the same 32px row. No footer when none of these is given.
 - **Keyboard**: the WAI-ARIA menu button pattern. Enter, Space or ArrowDown
   opens on the first row, ArrowUp on the last; the arrows wrap, Home and End
-  jump, Escape closes and returns the focus to the trigger, Tab closes and moves
-  on. The closed body is `inert`.
-- **Pointer**: click toggles; an outside press closes; leaving a menu the
-  pointer opened closes it after 150ms unless the pointer comes back.
-- **Geometry**: the root reserves 272 by 44 (`--gawdux-user-menu-width`), so the
-  toolbar never reflows; the panel grows to its natural height above the page
-  (z-index 60). Below `compactBelow` (768 by default, 1024, or 0 for never) the
-  closed menu is the avatar alone.
+  jump, Escape closes and returns the focus to the trigger (never from a
+  control the person moved to), Tab closes and moves on. The closed body is
+  `inert`.
+- **Closing**: click toggles; an outside press, the focus leaving the menu and
+  a history navigation (popstate) close it; leaving a menu the pointer opened
+  closes it after 150ms unless the pointer comes back. Bind `open` and set it
+  false on the host's own navigations (`afterNavigate`), as above.
+- **Geometry**: the root reserves the 44px height, so the toolbar never
+  reflows, and is as wide as the trigger's content between
+  `--gawdux-user-menu-min-width` (208px) and `--gawdux-user-menu-width`
+  (272px); the open body never widens it. The panel grows to its natural
+  height above the page (z-index 60). Below `compactBelow` (768 by default,
+  1024, or 0 for never) the closed menu is the avatar alone; open, the avatar
+  stays put, the panel grows to its left and stops at the 16px gutter.
 - **Styling** is scoped CSS over the tokens (`--gawdux-surface`,
-  `--gawdux-border`, `--gawdux-menu-item-hover`, `--gawdux-chip-surface`,
-  `--gawdux-text-danger`, ...), never Tailwind utilities, so it renders styled
-  even where the host's Tailwind does not scan this package.
+  `--gawdux-menu-surface`, `--gawdux-border`, `--gawdux-menu-divider`,
+  `--gawdux-menu-item-hover`, `--gawdux-chip-surface`, `--gawdux-avatar-surface`,
+  `--gawdux-avatar-text`, `--gawdux-text-danger`, ...), never Tailwind
+  utilities, so it renders styled even where the host's Tailwind does not scan
+  this package.
 
 ## Host Contract
 

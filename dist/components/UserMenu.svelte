@@ -5,27 +5,32 @@
 	Open, the same card grows downward over the page to show the tenant and the
 	access chips, the account's rows, sign-out and the product's version.
 
-	Geometry. The root is its own spacer, 272 by 44 (`--gawdux-user-menu-width`),
-	so the toolbar never reflows and the card sits on an integer offset in a
-	56px bar. The panel is absolutely positioned and takes its natural height
-	(a 0fr to 1fr grid row, no guessed max-height). Nothing in the trigger
-	depends on the open state, so opening never moves the avatar or the text.
-	Every row shares one left grid: a 28px leading column (avatar, row icons,
-	tenant icon, product mark) and a text column after it.
+	Geometry. The root is its own spacer, 44px tall, as wide as the trigger's
+	content between `--gawdux-user-menu-min-width` and `--gawdux-user-menu-width`,
+	so the toolbar never reflows and the card holds no dead space. The open body
+	never widens the card (`contain: inline-size`): a long tenant truncates. The
+	trigger is identical open and closed (same colours, same boxes), so opening
+	never moves or recolours the avatar or the text; the card lifts (border,
+	shadow, the raised menu surface) on hover and while open. Below
+	`compactBelow` the closed card is the avatar alone; open, the panel grows to
+	the left from the avatar, which stays where it was (the trigger row is
+	mirrored), and never past the 16px gutter on the left.
 
 	Keyboard: the WAI-ARIA menu button pattern. Enter, Space or ArrowDown on the
 	trigger opens and focuses the first row, ArrowUp the last; in the menu the
 	arrows wrap, Home and End jump, Escape closes and returns focus to the
-	trigger, Tab closes and lets focus move on. Pointer: click toggles, an
-	outside press closes, leaving the card closes after a short grace when it
-	was opened by the pointer and the focus is not in its rows.
+	trigger, Tab closes and lets focus move on. Pointer: click toggles, the row
+	under the pointer takes the focus (one highlighted row, never two), an
+	outside press closes, leaving the card closes after a short grace when the
+	pointer opened it. The menu also closes when the focus leaves it and on a
+	history navigation (popstate).
 
 	Styling is scoped CSS over the --gawdux-* tokens, never Tailwind utilities,
 	so a host whose Tailwind does not scan this package still renders it styled.
 -->
 <script lang="ts">
 	import { onDestroy, tick } from 'svelte';
-	import { ArrowRightToBracketOutline, BuildingOutline } from 'flowbite-svelte-icons';
+	import { ArrowRightToBracketOutline } from 'flowbite-svelte-icons';
 	import type { UserMenuProps } from '../types/user-menu.types';
 
 	let {
@@ -35,6 +40,7 @@
 		avatarSrc,
 		tenant,
 		access = [],
+		accessLabel,
 		items = [],
 		extraItems,
 		signOutAction,
@@ -55,12 +61,18 @@
 
 	/** Grace before a pointer that left the card closes it; re-entering cancels. */
 	const LEAVE_GRACE_MS = 150;
+	/** The open compact panel stops this far from the viewport's left edge. */
+	const GUTTER_PX = 16;
 
 	let root = $state<HTMLElement>();
 	let trigger = $state<HTMLButtonElement>();
 	let menu = $state<HTMLElement>();
 	let body = $state<HTMLElement>();
 	let failedAvatar = $state<string>();
+	/** The room to the left of the root's right edge, for the open compact panel. */
+	let room = $state<number>();
+	/** The menu's last input was the pointer: the focused row shows no ring. */
+	let pointerInput = $state(false);
 	/** How the menu was opened: only a pointer-opened menu closes when the pointer leaves. */
 	let openedBy: 'pointer' | 'keyboard' = 'pointer';
 	let leaveTimer: ReturnType<typeof setTimeout> | undefined;
@@ -76,6 +88,8 @@
 
 	const avatarText = $derived(initials?.trim() || deriveInitials(name));
 	const showImage = $derived(Boolean(avatarSrc) && failedAvatar !== avatarSrc);
+	/** A host without a name passes the email as the name: never show it twice. */
+	const secondLine = $derived(email && email.trim() !== name.trim() ? email : '');
 	const hasSignOut = $derived(Boolean(signOutAction || onsignout));
 	const hasRows = $derived(items.length > 0 || Boolean(extraItems));
 	const hasMenu = $derived(hasRows || hasSignOut);
@@ -98,7 +112,15 @@
 		onopenchange?.(next);
 	}
 
-	/** Closes the menu; `focusTrigger` returns the focus to the trigger (Escape, a button row). */
+	function focusInBody(): boolean {
+		return Boolean(body?.contains(document.activeElement));
+	}
+
+	/**
+	 * Closes the menu. `focusTrigger` returns the focus to the trigger (Escape, a
+	 * button row, a pointer leaving the rows it focused): the closed body is
+	 * inert, so focus left in it would fall to the document.
+	 */
 	function close(focusTrigger = false) {
 		setOpen(false);
 		if (focusTrigger) trigger?.focus({ preventScroll: true });
@@ -120,8 +142,16 @@
 		list[wrapped]?.focus({ preventScroll: true });
 	}
 
+	function measureRoom() {
+		if (!root) return;
+		const right = root.getBoundingClientRect().right;
+		// A layout-less environment (no right edge) keeps the CSS fallback.
+		room = right > GUTTER_PX ? Math.floor(right - GUTTER_PX) : undefined;
+	}
+
 	async function openFromKeyboard(target: 'first' | 'last') {
 		openedBy = 'keyboard';
+		pointerInput = false;
 		setOpen(true);
 		// The body is inert until the open state reaches the DOM.
 		await tick();
@@ -137,6 +167,7 @@
 			return;
 		}
 		openedBy = 'pointer';
+		pointerInput = true;
 		setOpen(!open);
 	}
 
@@ -153,15 +184,17 @@
 	function onMenuKeydown(event: KeyboardEvent) {
 		const list = rows();
 		const current = list.indexOf(document.activeElement as HTMLElement);
+		// Any key hands the menu to the keyboard: the ring returns, and the pointer
+		// leaving no longer closes it.
+		openedBy = 'keyboard';
+		pointerInput = false;
 		switch (event.key) {
 			case 'ArrowDown':
 				event.preventDefault();
-				openedBy = 'keyboard';
 				focusRow(current + 1);
 				break;
 			case 'ArrowUp':
 				event.preventDefault();
-				openedBy = 'keyboard';
 				focusRow(current < 0 ? -1 : current - 1);
 				break;
 			case 'Home':
@@ -185,6 +218,27 @@
 		}
 	}
 
+	/**
+	 * The row under the pointer takes the focus, so the hover and the keyboard
+	 * share one highlighted row; between rows the menu itself holds the focus.
+	 */
+	function onMenuPointerMove(event: PointerEvent) {
+		if (event.pointerType === 'touch' || !menu) return;
+		pointerInput = true;
+		const target = event.target instanceof Element ? event.target : null;
+		const row = target?.closest<HTMLElement>('[role="menuitem"]');
+		if (row && rows().includes(row)) {
+			if (document.activeElement !== row) row.focus({ preventScroll: true });
+		} else if (focusInBody() && document.activeElement !== menu) {
+			menu.focus({ preventScroll: true });
+		}
+	}
+
+	function onMenuPointerLeave(event: PointerEvent) {
+		if (event.pointerType === 'touch' || !menu) return;
+		if (focusInBody() && document.activeElement !== menu) menu.focus({ preventScroll: true });
+	}
+
 	/** A link row closes the menu and lets the navigation take the focus. */
 	function chooseLink(event: MouseEvent, handler: ((event: MouseEvent) => void) | undefined) {
 		handler?.(event);
@@ -196,36 +250,57 @@
 	 * was in the rows, so a handler that opens a dialog can still take the focus.
 	 */
 	function chooseButton(event: MouseEvent, handler: ((event: MouseEvent) => void) | undefined) {
-		close(Boolean(body?.contains(document.activeElement)));
+		close(focusInBody());
 		handler?.(event);
 	}
 
 	function onPanelPointerLeave(event: PointerEvent) {
 		if (event.pointerType === 'touch' || !open || openedBy !== 'pointer') return;
-		if (body?.contains(document.activeElement)) return;
 		clearLeave();
-		leaveTimer = setTimeout(() => close(), LEAVE_GRACE_MS);
+		leaveTimer = setTimeout(() => close(focusInBody()), LEAVE_GRACE_MS);
+	}
+
+	/** The focus moving to something outside the menu closes it (Tab, a script). */
+	function onRootFocusOut(event: FocusEvent) {
+		if (!open) return;
+		const next = event.relatedTarget;
+		// null is the window losing focus, or a press on nothing focusable, which
+		// the outside press handles.
+		if (!(next instanceof Node) || root?.contains(next)) return;
+		close();
 	}
 
 	function enhanceSignOut(form: HTMLFormElement) {
 		return signOutEnhance?.(form);
 	}
 
-	// Escape and the outside press are listened for only while the menu is open.
+	// Escape, the outside press, a history navigation and a resize are listened
+	// for only while the menu is open.
 	$effect(() => {
 		if (!open) return;
+		measureRoom();
 		const onKeydown = (event: KeyboardEvent) => {
 			if (event.key !== 'Escape' || event.defaultPrevented) return;
 			event.preventDefault();
-			close(true);
+			// Return the focus only when it was ours or nobody's: never pull it
+			// back from a control the person moved to.
+			const active = document.activeElement;
+			const ours = !active || active === document.body || Boolean(root?.contains(active));
+			close(ours);
 		};
 		const onPointerdown = (event: PointerEvent) => {
 			if (root && !root.contains(event.target as Node)) close();
 		};
+		const onPopstate = () => close();
+		const onResize = () => measureRoom();
 		window.addEventListener('keydown', onKeydown);
+		window.addEventListener('popstate', onPopstate);
+		window.addEventListener('resize', onResize);
 		document.addEventListener('pointerdown', onPointerdown, true);
 		return () => {
 			window.removeEventListener('keydown', onKeydown);
+			window.removeEventListener('popstate', onPopstate);
+			window.removeEventListener('resize', onResize);
 			document.removeEventListener('pointerdown', onPointerdown, true);
 		};
 	});
@@ -237,7 +312,9 @@
 	class="gawdux-user-menu {compactClass}"
 	data-user-menu
 	data-state={open ? 'open' : 'closed'}
+	style:--gawdux-user-menu-room={room === undefined ? undefined : `${room}px`}
 	bind:this={root}
+	onfocusout={onRootFocusOut}
 >
 	<div
 		class="panel"
@@ -253,7 +330,7 @@
 			bind:this={trigger}
 			aria-haspopup="menu"
 			aria-expanded={open}
-			aria-controls="{id}-body"
+			aria-controls={hasMenu ? `${id}-menu` : `${id}-body`}
 			aria-label={triggerLabel}
 			onclick={onTriggerClick}
 			onkeydown={onTriggerKeydown}
@@ -267,7 +344,7 @@
 			</span>
 			<span class="identity">
 				<span class="name">{name}</span>
-				{#if email}<span class="email">{email}</span>{/if}
+				{#if secondLine}<span class="email">{secondLine}</span>{/if}
 			</span>
 			<svg class="chevron" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
 				<path
@@ -283,22 +360,23 @@
 				<div class="rule" aria-hidden="true"></div>
 
 				{#if hasContext}
-					<div class="context" data-user-menu-context>
-						<span class="lead" aria-hidden="true">
-							{#if tenant}<BuildingOutline />{/if}
-						</span>
-						{#if tenant}
-							<span class="tenant" title={tenant}>{tenant}</span>
-						{/if}
+					<!-- Who you are here: a statement, not a row. It sits on the text
+					     column with no icon and no hover, the access chips right after
+					     the tenant they qualify; the menu is described by it. -->
+					<div class="context" id="{id}-context" data-user-menu-context>
+						<!-- The spaces and the hidden comma are for the description a screen
+						     reader reads ("Concord, Owner"); a flex box ignores them. -->
+						{#if tenant}<span class="tenant" title={tenant}>{tenant}</span
+							>{#if access.length > 0}<span class="visually-hidden">,</span>{/if}{/if}
 						{#if access.length > 0}
-							<span class="chips" class:alone={!tenant}>
-								{#each access as chip, index (`${index}:${chip}`)}
-									<span class="chip">{chip}</span>
-								{/each}
+							<span class="access">
+								{#if accessLabel}<span class="access-label">{accessLabel}</span>{' '}{/if}
+								{#each access as chip, index (`${index}:${chip}`)}<span class="chip">{chip}</span
+									>{' '}{/each}
 							</span>
 						{/if}
 					</div>
-					{#if hasMenu}<div class="rule quiet" aria-hidden="true"></div>{/if}
+					{#if hasMenu}<div class="rule" aria-hidden="true"></div>{/if}
 				{/if}
 
 				{#if hasMenu}
@@ -308,8 +386,12 @@
 						role="menu"
 						tabindex="-1"
 						aria-labelledby="{id}-trigger"
+						aria-describedby={hasContext ? `${id}-context` : undefined}
+						data-input={pointerInput ? 'pointer' : 'keyboard'}
 						bind:this={menu}
 						onkeydown={onMenuKeydown}
+						onpointermove={onMenuPointerMove}
+						onpointerleave={onMenuPointerLeave}
 					>
 						{#each items as item (item.id ?? item.label)}
 							{@const Icon = item.icon}
@@ -408,24 +490,28 @@
 </div>
 
 <style>
+	/* ── Root: the spacer, as wide as the trigger's content ─────────────── */
 	.gawdux-user-menu {
 		position: relative;
+		display: flex;
 		flex-shrink: 0;
+		align-items: flex-start;
 		box-sizing: border-box;
-		width: var(--gawdux-user-menu-width, 272px);
+		width: max-content;
+		min-width: var(--gawdux-user-menu-min-width, 208px);
+		max-width: var(--gawdux-user-menu-width, 272px);
 		height: 44px;
 		text-align: left;
 	}
 
 	.panel {
-		position: absolute;
-		top: 0;
-		right: 0;
+		position: relative;
 		z-index: 60;
 		box-sizing: border-box;
 		display: flex;
+		flex: 1 1 auto;
 		flex-direction: column;
-		width: 100%;
+		min-width: 0;
 		overflow: hidden;
 		overflow: clip;
 		border: 1px solid transparent;
@@ -433,20 +519,23 @@
 		background-color: var(--gawdux-surface);
 		transition:
 			border-color 150ms ease-out,
-			box-shadow 150ms ease-out;
+			box-shadow 150ms ease-out,
+			background-color 150ms ease-out;
 	}
+	/* The lift: hover and open alike, so a click never changes the trigger. */
 	.panel:hover,
 	.panel.open {
 		border-color: var(--gawdux-border);
+		background-color: var(--gawdux-menu-surface);
 		box-shadow:
-			0 6px 16px -4px rgb(0 0 0 / 0.12),
-			0 1px 2px rgb(0 0 0 / 0.04);
+			0 10px 24px -6px rgb(0 0 0 / 0.14),
+			0 2px 4px rgb(0 0 0 / 0.05);
 	}
 	:global(.dark) .panel:hover,
 	:global(.dark) .panel.open {
 		box-shadow:
-			0 6px 16px -4px rgb(0 0 0 / 0.5),
-			0 1px 2px rgb(0 0 0 / 0.3);
+			0 12px 28px -6px rgb(0 0 0 / 0.65),
+			0 2px 4px rgb(0 0 0 / 0.4);
 	}
 
 	/* ── Trigger: identical open and closed ─────────────────────────────── */
@@ -486,23 +575,18 @@
 		height: 28px;
 		overflow: hidden;
 		border-radius: 6px;
-		background-color: var(--gawdux-text-muted);
-		color: var(--gawdux-surface);
+		background-color: var(--gawdux-avatar-surface);
+		color: var(--gawdux-avatar-text);
 		font-size: 12px;
 		font-weight: 700;
 		line-height: 1;
 		letter-spacing: -0.02em;
-		transition: background-color 300ms ease-out;
 	}
 	.avatar img {
 		display: block;
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-	}
-	.panel:hover .avatar,
-	.panel.open .avatar {
-		background-color: var(--gawdux-text-accent);
 	}
 
 	.identity {
@@ -521,15 +605,10 @@
 		white-space: nowrap;
 	}
 	.name {
-		color: var(--gawdux-text-muted);
+		color: var(--gawdux-text-primary);
 		font-size: 13px;
-		font-weight: 500;
+		font-weight: 600;
 		line-height: 16px;
-		transition: color 300ms ease-out;
-	}
-	.panel:hover .name,
-	.panel.open .name {
-		color: var(--gawdux-text-accent);
 	}
 	.email {
 		color: var(--gawdux-text-muted);
@@ -542,13 +621,7 @@
 		width: 20px;
 		height: 20px;
 		color: var(--gawdux-text-muted);
-		transition:
-			transform 200ms ease-out,
-			color 150ms ease-out;
-	}
-	.panel:hover .chevron,
-	.panel.open .chevron {
-		color: var(--gawdux-text-primary);
+		transition: transform 200ms ease-out;
 	}
 	.panel.open .chevron {
 		transform: rotate(180deg);
@@ -558,6 +631,8 @@
 	.body {
 		display: grid;
 		grid-template-rows: 0fr;
+		/* The open body never widens the card: the trigger alone sizes it. */
+		contain: inline-size;
 		transition: grid-template-rows 200ms ease-out;
 	}
 	.panel.open .body {
@@ -577,58 +652,49 @@
 		transition: opacity 200ms ease-out 40ms;
 	}
 
-	.rule {
+	/* One divider: full width, one quiet colour, everywhere in the panel. */
+	.rule,
+	.separator {
 		height: 1px;
-		background-color: var(--gawdux-border);
-	}
-	.rule.quiet {
-		background-color: var(--gawdux-table-separator);
+		background-color: var(--gawdux-menu-divider);
 	}
 
-	/* The leading column every row shares: 28px, centred on the avatar. */
-	.lead {
-		display: grid;
-		flex-shrink: 0;
-		place-items: center;
-		width: 28px;
-		height: 16px;
-		color: var(--gawdux-text-muted);
-	}
-	.lead :global(svg) {
-		width: 16px;
-		height: 16px;
-	}
-
+	/* ── Context: the tenant and the access, on the text column ─────────── */
 	.context {
 		box-sizing: border-box;
-		display: grid;
-		grid-template-columns: 28px minmax(0, 1fr) auto;
-		column-gap: 10px;
-		align-items: center;
-		min-height: 36px;
-		padding: 6px 10px 6px 7px;
-	}
-	.tenant {
-		color: var(--gawdux-text-primary);
-		font-size: 12px;
-		font-weight: 600;
-		line-height: 16px;
-	}
-	.chips {
 		display: flex;
 		flex-wrap: wrap;
-		justify-content: flex-end;
-		gap: 4px;
-		max-width: 168px;
+		align-items: center;
+		gap: 4px 8px;
+		min-height: 36px;
+		/* 45px: the text column of the trigger (7 + 28 + 10) and of the rows
+		   (4 + 3 + 28 + 10), so the tenant sits under the name. */
+		padding: 8px 10px 8px 45px;
+		cursor: default;
 	}
-	.chips.alone {
-		grid-column: 2 / 4;
-		justify-content: flex-start;
-		max-width: none;
+	.tenant {
+		min-width: 0;
+		max-width: 100%;
+		color: var(--gawdux-text-secondary);
+		font-size: 12px;
+		font-weight: 500;
+		line-height: 20px;
+	}
+	.access {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 4px;
+		min-width: 0;
+	}
+	.access-label {
+		color: var(--gawdux-text-muted);
+		font-size: 11px;
+		line-height: 20px;
 	}
 	.chip {
 		flex-shrink: 0;
-		padding: 1px 6px;
+		padding: 2px 6px;
 		border-radius: 4px;
 		background-color: var(--gawdux-chip-surface);
 		color: var(--gawdux-text-secondary);
@@ -636,6 +702,17 @@
 		font-weight: 500;
 		line-height: 16px;
 		white-space: nowrap;
+	}
+	.visually-hidden {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		padding: 0;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
+		border: 0;
 	}
 
 	/* ── Rows ───────────────────────────────────────────────────────────── */
@@ -671,14 +748,14 @@
 		appearance: none;
 		transition: background-color 100ms ease-out;
 	}
-	.menu :global(.gawdux-user-menu-item:hover),
-	.menu :global(.gawdux-user-menu-item:focus-visible) {
-		background-color: var(--gawdux-menu-item-hover);
-	}
+	/* One highlighted row: the focused one. The pointer moves the focus, so a
+	   hovered row and a focused row are the same row. */
 	.menu :global(.gawdux-user-menu-item:focus) {
 		outline: none;
+		background-color: var(--gawdux-menu-item-hover);
 	}
-	.menu :global(.gawdux-user-menu-item:focus-visible) {
+	/* The keyboard's ring; a pointer-driven focus shows the fill alone. */
+	.menu[data-input='keyboard'] :global(.gawdux-user-menu-item:focus-visible) {
 		outline: 2px solid var(--gawdux-focus-ring);
 		outline-offset: -2px;
 	}
@@ -695,11 +772,10 @@
 		width: 16px;
 		height: 16px;
 	}
-	.menu :global(.gawdux-user-menu-item:hover .gawdux-user-menu-icon),
-	.menu :global(.gawdux-user-menu-item:focus-visible .gawdux-user-menu-icon) {
+	.menu :global(.gawdux-user-menu-item:focus .gawdux-user-menu-icon) {
 		color: var(--gawdux-text-primary);
 	}
-	/* Sign-out: red on its icon and its word only; the hover stays neutral. */
+	/* Sign-out: red on its icon and its word only; the highlight stays neutral. */
 	.menu :global(.gawdux-user-menu-item[data-tone='danger']),
 	.menu :global(.gawdux-user-menu-item[data-tone='danger'] .gawdux-user-menu-icon) {
 		color: var(--gawdux-text-danger);
@@ -708,10 +784,9 @@
 		flex: 1 1 auto;
 		min-width: 0;
 	}
+	/* Full width like every other divider: it cancels the menu's 4px inset. */
 	.separator {
-		height: 1px;
-		margin: 4px 6px;
-		background-color: var(--gawdux-table-separator);
+		margin: 4px -4px;
 	}
 
 	/* ── Footer: the mark and the version on one centre line ────────────── */
@@ -727,6 +802,14 @@
 		font-weight: 500;
 		line-height: 16px;
 	}
+	/* The leading column the avatar and the row icons share: 28px. */
+	.lead {
+		display: grid;
+		flex-shrink: 0;
+		place-items: center;
+		width: 28px;
+		height: 16px;
+	}
 	.mark {
 		display: grid;
 		place-items: center;
@@ -741,36 +824,72 @@
 		font-variant-numeric: tabular-nums;
 	}
 
-	/* ── Compact: the avatar alone while closed ─────────────────────────── */
+	/* ── Compact: the avatar alone while closed, and it never moves ─────── */
 	@media (max-width: 1023.98px) {
 		.compact-1024 {
 			width: 44px;
+			min-width: 0;
+			max-width: none;
+		}
+		.compact-1024 .panel {
+			position: absolute;
+			top: 0;
+			right: 0;
+			width: 100%;
+		}
+		/* Mirrored: the avatar keeps the right end, where it sat closed, and the
+		   panel grows to the left of it. */
+		.compact-1024 .trigger {
+			flex-direction: row-reverse;
+			padding: 0 7px 0 10px;
+		}
+		.compact-1024 .identity {
+			text-align: right;
 		}
 		.compact-1024 .panel:not(.open) .identity,
-		.compact-1024 .panel:not(.open) .chevron {
+		.compact-1024 .chevron {
 			display: none;
 		}
 		.compact-1024 .panel.open {
-			width: min(var(--gawdux-user-menu-width, 272px), calc(100vw - 32px));
+			width: min(
+				var(--gawdux-user-menu-width, 272px),
+				var(--gawdux-user-menu-room, calc(100vw - 32px))
+			);
 		}
 	}
 	@media (max-width: 767.98px) {
 		.compact-768 {
 			width: 44px;
+			min-width: 0;
+			max-width: none;
+		}
+		.compact-768 .panel {
+			position: absolute;
+			top: 0;
+			right: 0;
+			width: 100%;
+		}
+		.compact-768 .trigger {
+			flex-direction: row-reverse;
+			padding: 0 7px 0 10px;
+		}
+		.compact-768 .identity {
+			text-align: right;
 		}
 		.compact-768 .panel:not(.open) .identity,
-		.compact-768 .panel:not(.open) .chevron {
+		.compact-768 .chevron {
 			display: none;
 		}
 		.compact-768 .panel.open {
-			width: min(var(--gawdux-user-menu-width, 272px), calc(100vw - 32px));
+			width: min(
+				var(--gawdux-user-menu-width, 272px),
+				var(--gawdux-user-menu-room, calc(100vw - 32px))
+			);
 		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
 		.panel,
-		.avatar,
-		.name,
 		.chevron,
 		.body,
 		.body-inner,

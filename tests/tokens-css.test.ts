@@ -86,19 +86,30 @@ describe('tokens.css 0.9.0 additions', () => {
 });
 
 describe('menu tokens', () => {
-	it('declares the row hover, the danger text and the chip surface for light and dark', () => {
+	it('declares the menu surface, row highlight, divider, danger text, chip and avatar for light and dark', () => {
 		for (const name of [
+			'--gawdux-menu-surface',
 			'--gawdux-menu-item-hover',
+			'--gawdux-menu-divider',
 			'--gawdux-text-danger',
-			'--gawdux-chip-surface'
+			'--gawdux-chip-surface',
+			'--gawdux-avatar-surface',
+			'--gawdux-avatar-text'
 		]) {
 			expect(rootBlock, `${name} must have a light (:root) value`).toContain(`${name}:`);
 			expect(darkBlock, `${name} must have a dark (.dark) value`).toContain(`${name}:`);
 		}
 	});
 
-	it('declares the account menu width as a knob shared by both themes', () => {
+	it('raises the open menu above a dark page: a lighter surface than the page surface', () => {
+		expect(darkBlock).toContain('--gawdux-surface: var(--color-gray-900);');
+		expect(darkBlock).toContain('--gawdux-menu-surface: var(--color-gray-800);');
+	});
+
+	it('declares the account menu widths as knobs shared by both themes', () => {
+		expect(rootBlock).toContain('--gawdux-user-menu-min-width: 208px;');
 		expect(rootBlock).toContain('--gawdux-user-menu-width: 272px;');
 		expect(darkBlock).not.toContain('--gawdux-user-menu-width');
+		expect(darkBlock).not.toContain('--gawdux-user-menu-min-width');
 	});
 });
