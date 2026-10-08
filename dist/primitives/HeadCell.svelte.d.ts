@@ -6,6 +6,8 @@ type $$ComponentProps = {
     icon?: Component;
     /** Aligns the label with the column's cells. Left by default. */
     align?: 'left' | 'center' | 'right';
+    /** Lets the label wrap onto a second line; one line by default. */
+    wrap?: boolean;
     /** Classes on the `th` (a width, `status-col`). */
     className?: string;
 };

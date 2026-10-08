@@ -6,10 +6,13 @@
 
 - `HeadCell` (`gawdux/primitives`): the labelled, non-sortable header of a
   hand-built table. Props `label` (required), `icon`, `align` (left, center,
-  right) and `className`; it renders flowbite's `TableHeadCell` with
+  right), `wrap` and `className`; it renders flowbite's `TableHeadCell` with
   `whitespace-nowrap` and, with an icon, the one header shape. Without an
   icon it is the `th` a plain `<TableHeadCell class="whitespace-nowrap">`
-  renders. An empty or screen-reader-only header stays a `TableHeadCell`.
+  renders. `wrap` lets a long label take a second line instead
+  (`whitespace-normal`), for a wide table whose headers wrapped before it
+  adopted `HeadCell`. An empty or screen-reader-only header stays a
+  `TableHeadCell`.
 - Four head-icon knobs in the `:root` density block of `styles/tokens.css`,
   at the geometry that shipped: `--gawdux-table-head-icon-size` (1rem),
   `--gawdux-table-head-icon-gap` (0.5rem), `--gawdux-table-head-icon-color`

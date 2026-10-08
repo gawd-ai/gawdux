@@ -58,4 +58,15 @@ describe('HeadCell: the labelled, non-sortable header (column icons)', () => {
 		const iconed = render(HeadCell, { props: { label: 'When', icon: HeartOutline, className: 'w-32' } });
 		expect(iconed.container.querySelector('th')!.className).toBe(plainClass);
 	});
+
+	it('wraps a long label only when asked', () => {
+		const one = render(HeadCell, { props: { label: 'Operator restarts', align: 'right' } });
+		expect(one.container.querySelector('th')!.className).toContain('whitespace-nowrap');
+		cleanup();
+		const two = render(HeadCell, { props: { label: 'Operator restarts', align: 'right', wrap: true } });
+		const th = two.container.querySelector('th')!;
+		expect(th.className).toContain('whitespace-normal');
+		expect(th.className).not.toContain('whitespace-nowrap');
+		expect(th.className).toContain('text-right');
+	});
 });

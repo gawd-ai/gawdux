@@ -5,6 +5,8 @@
 
      Without an icon it renders the `th` a plain
      `<TableHeadCell class="whitespace-nowrap">Label</TableHeadCell>` renders.
+     `wrap` lets a long label take a second line instead (a report's metric
+     columns, a header carrying a time zone), so a wide table still fits.
      A header that is empty or only for screen readers is not a HeadCell; it
      stays a TableHeadCell. A sortable header is a SortableHeadCell, which
      takes the same `icon`. -->
@@ -18,6 +20,7 @@
 		label,
 		icon,
 		align = 'left',
+		wrap = false,
 		className = ''
 	}: {
 		/** The visible word. Required: a header is never icon-only. */
@@ -26,12 +29,14 @@
 		icon?: Component;
 		/** Aligns the label with the column's cells. Left by default. */
 		align?: 'left' | 'center' | 'right';
+		/** Lets the label wrap onto a second line; one line by default. */
+		wrap?: boolean;
 		/** Classes on the `th` (a width, `status-col`). */
 		className?: string;
 	} = $props();
 </script>
 
-<TableHeadCell class={`whitespace-nowrap ${dataTableAlignClass(align)} ${className}`}>
+<TableHeadCell class={`${wrap ? 'whitespace-normal' : 'whitespace-nowrap'} ${dataTableAlignClass(align)} ${className}`}>
 	{#if icon}
 		<HeadLabel {label} {icon} />
 	{:else}

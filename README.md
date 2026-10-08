@@ -91,7 +91,8 @@ A column header may carry an icon before its label, and every header path
 draws it in one shape: `span.table-head-label > svg.table-head-icon + span`.
 A `DataTable` column takes `icon`, a `SortableHeadCell` takes `icon`, and a
 hand-built table's labelled, non-sortable header is a `HeadCell`
-(`label`, `icon`, `align`, `className`); an empty or screen-reader-only
+(`label`, `icon`, `align`, `className`, and `wrap` for a long label in a
+wide table, which is one line otherwise); an empty or screen-reader-only
 header stays a plain `TableHeadCell`. The blocks that write their own
 headers (`AuditHistoryTable`, `SecurityActivityList`, `AlertOpsConsole` with
 `AlertGroupTable` and `SilenceTable`) take an optional `headIcons` map keyed
