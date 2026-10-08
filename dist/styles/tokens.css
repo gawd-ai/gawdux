@@ -417,12 +417,12 @@
     background-color: var(--gawdux-surface-card);
     border-top-color: var(--gawdux-border);
   }
-  .table-container thead {
+  :is(.table-container, .data-table) thead {
     border-bottom-style: var(--tw-border-style);
     border-bottom-width: 1px;
     border-bottom-color: var(--gawdux-table-separator);
   }
-  .table-container tbody tr {
+  :is(.table-container, .data-table) tbody tr {
     border-bottom-style: var(--tw-border-style);
     border-bottom-width: 1px;
     border-bottom-color: var(--gawdux-table-separator);

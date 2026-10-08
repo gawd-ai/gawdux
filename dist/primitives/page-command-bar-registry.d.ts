@@ -21,5 +21,21 @@ import type { PageCommandBarContext, PageCommandBarZone } from './page-chrome';
  * top registrant goes away the next-newest live one is shown immediately. A null
  * snippet is a legitimate value (a page with no actions clears the bar), so the
  * newest live registration wins even when its snippet is null.
+ *
+ * Two rules keep a dead page's buttons out of the bar:
+ *
+ * - A registrant releases its registration from a teardown that exists from
+ *   the moment it registers (`$effect.pre(() => () => clear(id))`), never from
+ *   `onDestroy`. In runes mode `onDestroy` is a deferred effect's teardown, and
+ *   a component destroyed in the flush that created it (an earlier effect
+ *   closed its block) never ran that effect: the registration stayed live and,
+ *   whenever it was the newest, the bar showed its dead buttons.
+ * - A host renders each zone as `{@render zone?.()}`, never
+ *   `{#if zone}{@render zone()}{/if}`. After server rendering, Svelte (seen on
+ *   5.56 and 5.57) hydrates that `{#if}` branch with the snippet's first node
+ *   as the branch's own start. Swapping to another snippet removes that node;
+ *   when the zone later empties, the branch's removal starts from the detached
+ *   node and removes nothing, so the current buttons stay in the zone with no
+ *   owner, beside every later page's buttons, until a full reload.
  */
 export declare function createPageCommandBarRegistry(apply: (zone: PageCommandBarZone, snippet: Snippet | null) => void): PageCommandBarContext;
