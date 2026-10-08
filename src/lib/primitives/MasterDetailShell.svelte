@@ -102,13 +102,17 @@
 </script>
 
 <div class="master-detail-shell @container min-h-0 w-full flex-1">
-	<!-- House page inset (1rem sides and top, 0.25rem bottom): the same
-	     values the scroll surface, the list chrome, and the page surface use. -->
+	<!-- The host owns the content inset: inside a tab panel (.scroll-surface),
+	     an EditablePageScaffold body or a .page-inset surface the shell adds
+	     none. `master-detail-inset` is the fallback for a shell no host
+	     encloses (a bare, unpadded panel), read from the same knobs, so it is
+	     the one inset there and never a second one. The card's width cap is
+	     the wide-column knob that .panel-col-wide reads too. -->
 	<div
-		class="h-full min-h-0 overflow-auto px-4 pt-4 pb-1 @3xl:flex @3xl:flex-col @3xl:overflow-hidden"
+		class="master-detail-inset h-full min-h-0 overflow-auto @3xl:flex @3xl:flex-col @3xl:overflow-hidden"
 	>
 		<div
-			class="mx-auto grid min-h-[30rem] w-full max-w-6xl grid-cols-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900 @3xl:min-h-0 @3xl:flex-1 @3xl:grid-cols-[18rem_minmax(0,1fr)] @3xl:grid-rows-[minmax(0,1fr)]"
+			class="mx-auto grid min-h-[30rem] w-full max-w-[var(--gawdux-panel-wide-max-width,72rem)] grid-cols-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900 @3xl:min-h-0 @3xl:flex-1 @3xl:grid-cols-[18rem_minmax(0,1fr)] @3xl:grid-rows-[minmax(0,1fr)]"
 		>
 			<aside
 				bind:this={railElement}

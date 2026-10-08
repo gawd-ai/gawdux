@@ -171,3 +171,73 @@ describe('tab states: hover is not active', () => {
 		}
 	});
 });
+
+describe('content inset: one inset, owned once by the host', () => {
+	/** The body of the first rule whose selector is exactly `selector`, at any depth. */
+	function ruleOf(selector: string): string {
+		const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+		const match = new RegExp(`(?:^|[\\n}])\\s*${escaped}\\s*\\{([^}]*)\\}`).exec(tokens);
+		expect(match, `tokens.css must declare a ${selector} rule`).toBeTruthy();
+		return match?.[1] ?? '';
+	}
+
+	const HOST_PADDING =
+		'padding: var(--gawdux-page-inset) var(--gawdux-page-inset) var(--gawdux-page-inset-bottom);';
+
+	it('declares the inset and wide-column knobs at the geometry that shipped', () => {
+		const expected: Record<string, string> = {
+			// pt-4 px-4 on the top and sides, pb-1 above the command bar
+			'--gawdux-page-inset': step(4),
+			'--gawdux-page-inset-bottom': step(1),
+			// max-w-6xl
+			'--gawdux-panel-wide-max-width': '72rem'
+		};
+		for (const [name, value] of Object.entries(expected)) {
+			expect(tokenValue(rootBlock, name), name).toBe(value);
+			expect(darkBlock, `${name} is theme-independent`).not.toContain(`${name}:`);
+		}
+	});
+
+	it('every inset host pads from the knobs and keeps no padding utility', () => {
+		for (const host of ['.scroll-surface', '.page-inset', '.master-detail-inset', '.tab-fill-scroll']) {
+			const body = ruleOf(host);
+			expect(body, `${host} pads from the knobs`).toContain(HOST_PADDING);
+			for (const utility of ['pt-4', 'px-4', 'pb-1', 'p-4']) {
+				expect(body, `${host} keeps no ${utility}`).not.toMatch(new RegExp(`\\b${utility}\\b`));
+			}
+		}
+		// The panel still fills and scrolls the way it always did.
+		expect(ruleOf('.scroll-surface')).toContain('@apply min-h-0 flex-1 overflow-auto;');
+		expect(ruleOf('.tab-fill-scroll')).toContain('overflow-y: auto;');
+	});
+
+	it("the shell's fallback inset is zero inside every host", () => {
+		const body = ruleOf(
+			':is(.scroll-surface, .editable-page-body, .page-inset, .tab-fill-scroll) .master-detail-inset'
+		);
+		expect(body.trim()).toBe('padding: 0;');
+	});
+
+	it("the scrolling fill panel spans its host's padding box", () => {
+		const body = ruleOf(':is(.scroll-surface, .editable-page-body, .page-inset) .tab-fill-scroll');
+		expect(body.replace(/\s+/g, ' ').trim()).toBe(
+			'margin: calc(-1 * var(--gawdux-page-inset)) calc(-1 * var(--gawdux-page-inset)) calc(-1 * var(--gawdux-page-inset-bottom));'
+		);
+	});
+
+	it('the fill-mode chain and the list chrome are untouched', () => {
+		// The panel keeps its padding in fill mode: a fill tab ends one inset
+		// above the bar. List chrome never reads the inset knobs.
+		const fill = tokens.slice(
+			tokens.indexOf('.page-tabs-shell:has(.tab-fill-panel) {'),
+			tokens.indexOf('---------- Card system')
+		);
+		expect(fill).not.toMatch(/padding|--gawdux-page-inset/);
+		expect(ruleOf('.list-table-scroll')).toContain('@apply min-h-0 flex-1 overflow-auto pb-1;');
+		expect(ruleOf('.list-table-scroll')).not.toContain('--gawdux-page-inset');
+	});
+
+	it('the wide content column reads the knob', () => {
+		expect(ruleOf('.panel-col-wide')).toContain('max-width: var(--gawdux-panel-wide-max-width);');
+	});
+});

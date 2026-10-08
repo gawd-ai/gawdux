@@ -18,6 +18,10 @@ type $$__sveltets_2_PropsWithChildren<Props, Slots> = Props & (Slots extends {
 } : {});
 declare const TabFillPanel: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_PropsWithChildren<{
     class?: string;
+    /** A fill tab whose content scrolls: the panel becomes the scroller,
+         *  spans its host's padding box and pads itself with the inset knobs
+         *  (`.tab-fill-scroll` in tokens.css). Without it the panel adds no
+         *  inset and does not scroll. */ scroll?: boolean;
 }, {
     default: {};
 }>, {

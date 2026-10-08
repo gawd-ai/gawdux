@@ -25,7 +25,10 @@ describe('tokens.css 0.3.0 additions', () => {
 		expect(tokens).toContain('.panel-col {');
 		expect(tokens).toContain('.panel-col-wide {');
 		expect(tokens).toMatch(/\.panel-col \{[^}]*max-width: 56rem/);
-		expect(tokens).toMatch(/\.panel-col-wide \{[^}]*max-width: 72rem/);
+		// The wide column reads the knob MasterDetailShell's card reads, 72rem
+		// (max-w-6xl) unless a product redeclares it.
+		expect(tokens).toMatch(/\.panel-col-wide \{[^}]*max-width: var\(--gawdux-panel-wide-max-width\)/);
+		expect(rootBlock).toMatch(/--gawdux-panel-wide-max-width:\s*72rem;/);
 	});
 
 	it('ships the dense-table → card responsive pattern with product-neutral names', () => {

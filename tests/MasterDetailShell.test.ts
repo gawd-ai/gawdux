@@ -103,3 +103,29 @@ describe('MasterDetailShell scroll panes', () => {
 		for (const pane of panes) expect(pane.classList.contains('relative'), pane.className).toBe(true);
 	});
 });
+
+describe('MasterDetailShell content inset', () => {
+	afterEach(() => cleanup());
+
+	it('pads only through the host-aware fallback class, never a padding utility', () => {
+		const { container } = render(MasterDetailShell, {
+			props: { rail, detail, detailKey: null, detailLabel: 'Item details' }
+		});
+		const shell = container.querySelector<HTMLElement>('.master-detail-shell');
+		const frame = shell?.firstElementChild as HTMLElement | null;
+		expect(frame?.classList.contains('master-detail-inset')).toBe(true);
+		for (const element of [shell, frame]) {
+			const padding = [...(element?.classList ?? [])].filter((c) => /^(?:[\w@-]+:)*!?p[xytrblse]?-/.test(c));
+			expect(padding, element?.className).toEqual([]);
+		}
+	});
+
+	it("caps the card with the wide-column knob, not a fixed width", () => {
+		const { container } = render(MasterDetailShell, {
+			props: { rail, detail, detailKey: null, detailLabel: 'Item details' }
+		});
+		const card = container.querySelector<HTMLElement>('.master-detail-inset > div');
+		expect(card?.classList.contains('max-w-[var(--gawdux-panel-wide-max-width,72rem)]')).toBe(true);
+		expect(card?.classList.contains('max-w-6xl')).toBe(false);
+	});
+});

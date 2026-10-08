@@ -119,21 +119,19 @@
 		min-height: 0;
 	}
 
-	/* The house page inset: 1rem sides and top, 0.25rem above the command
-	   bar, the same values .scroll-surface and the list chrome use. Every
-	   surface reads the same because none of them chooses. The inset is on
-	   the body, not the panel, so the feedback strip above it runs edge to
-	   edge like the tab strip and the filter bar do. */
+	/* The body is an inset host: the content inset is its padding, read from
+	   the same knobs as .scroll-surface (1rem on the top and sides, 0.25rem
+	   above the command bar by default). Every surface reads the same
+	   because none of them chooses. The inset is on the body, not the panel,
+	   so the feedback strip above it runs edge to edge like the tab strip and
+	   the filter bar do. A MasterDetailShell inside the body adds no inset of
+	   its own. */
 	.editable-page-body {
 		display: flex;
 		flex-direction: column;
 		flex: 1 1 auto;
 		min-height: 0;
-		padding: 1rem 1rem 0.25rem;
-	}
-	/* A two-pane shell brings its own inset (so it also works inside a tab
-	   panel); a surface that hosts one directly must not add a second. */
-	.editable-page-body:has(> :global(.master-detail-shell)) {
-		padding: 0;
+		padding: var(--gawdux-page-inset, 1rem) var(--gawdux-page-inset, 1rem)
+			var(--gawdux-page-inset-bottom, 0.25rem);
 	}
 </style>

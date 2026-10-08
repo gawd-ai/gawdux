@@ -104,7 +104,14 @@
 	     the row height is unset;
 	   - CardContainer: header `px-6 py-3`, body `px-6 py-3`;
 	   - StatTile / StatTileStrip: `p-3` tiles, `p-2.5` nested tiles, `gap-3`,
-	     tiles wrap below 9rem. */
+	     tiles wrap below 9rem;
+	   - the content inset of every inset host (`.scroll-surface`, which is
+	     PageTabs' panel, `EditablePageScaffold`'s body, `.page-inset`, and a
+	     `MasterDetailShell` or `TabFillPanel scroll` no host encloses):
+	     `--gawdux-page-inset` on the top and sides (`pt-4 px-4`),
+	     `--gawdux-page-inset-bottom` above the command bar (`pb-1`);
+	   - the wide content column (`.panel-col-wide`, `MasterDetailShell`'s
+	     card): `max-w-6xl`. */
 	--gawdux-table-row-height: auto;
 	--gawdux-table-cell-px: calc(var(--spacing, 0.25rem) * 6);
 	--gawdux-table-cell-py: calc(var(--spacing, 0.25rem) * 4);
@@ -117,6 +124,9 @@
 	--gawdux-tile-padding-nested: calc(var(--spacing, 0.25rem) * 2.5);
 	--gawdux-tile-gap: calc(var(--spacing, 0.25rem) * 3);
 	--gawdux-tile-min-width: 9rem;
+	--gawdux-page-inset: calc(var(--spacing, 0.25rem) * 4);
+	--gawdux-page-inset-bottom: calc(var(--spacing, 0.25rem) * 1);
+	--gawdux-panel-wide-max-width: 72rem;
 	/* The --color-gray-* family is intentionally NOT redeclared here.
 	   Tailwind v4 already exposes the full default palette as CSS vars
 	   via `@import 'tailwindcss'` (--color-gray-50 through --color-gray-950,
@@ -528,10 +538,43 @@
 		border-bottom-color: var(--gawdux-table-separator);
 	}
 
-	/* Generic scroll surface (companion to list-table-scroll for non-table surfaces) */
+	/* Generic scroll surface (companion to list-table-scroll for non-table
+	   surfaces). It is PageTabs' panel, so it is the inset host of every tab:
+	   the content inset is its padding, read from the knobs, and nothing
+	   inside it pads itself toward its edges. */
 	.scroll-surface {
-		@apply min-h-0 flex-1 overflow-auto pt-4 px-4 pb-1;
+		@apply min-h-0 flex-1 overflow-auto;
+		padding: var(--gawdux-page-inset) var(--gawdux-page-inset) var(--gawdux-page-inset-bottom);
 		background-color: var(--gawdux-surface-card);
+	}
+
+	/* A surface of a product's own that hosts content the way a tab panel
+	   does: the same inset, from the same knobs. */
+	.page-inset {
+		padding: var(--gawdux-page-inset) var(--gawdux-page-inset) var(--gawdux-page-inset-bottom);
+	}
+
+	/* MasterDetailShell's own inset. It applies only where no host encloses
+	   the shell (a bare, unpadded panel); inside a host the host's padding is
+	   the one inset, never a second. */
+	.master-detail-inset {
+		padding: var(--gawdux-page-inset) var(--gawdux-page-inset) var(--gawdux-page-inset-bottom);
+	}
+	:is(.scroll-surface, .editable-page-body, .page-inset, .tab-fill-scroll) .master-detail-inset {
+		padding: 0;
+	}
+
+	/* TabFillPanel's scrolling form: a fill tab whose content scrolls. Inside
+	   a host it spans the host's padding box (the negative margins) and pads
+	   itself with the same knobs, so its scrollbar sits at the panel's edge
+	   and a hovered tile's shadow has the whole inset to draw in. */
+	.tab-fill-scroll {
+		overflow-y: auto;
+		padding: var(--gawdux-page-inset) var(--gawdux-page-inset) var(--gawdux-page-inset-bottom);
+	}
+	:is(.scroll-surface, .editable-page-body, .page-inset) .tab-fill-scroll {
+		margin: calc(-1 * var(--gawdux-page-inset)) calc(-1 * var(--gawdux-page-inset))
+			calc(-1 * var(--gawdux-page-inset-bottom));
 	}
 
 	/* Reusable compact list table with edge padding */
@@ -1176,9 +1219,11 @@ main:has(.page-command-drawer) .page-command-bar,
 /* ---------- Panel content columns ---------- */
 /* The two deliberate content widths inside tabbed admin panels. `panel-col`
    = record/form/reading content; `panel-col-wide` = tables and other working
-   surfaces (matches MasterDetailShell's max-w-6xl so table tabs line up with
-   the two-pane siblings). Unconstrained full-bleed content inside a tab panel
-   is the legacy behavior — new panels pick one of these.
+   surfaces. `panel-col-wide` reads the same knob as MasterDetailShell's card
+   (--gawdux-panel-wide-max-width, 72rem by default), so table tabs line up
+   with the two-pane siblings; a product that lets both fill the panel
+   redeclares the knob as `none`. Unconstrained full-bleed content inside a
+   tab panel is the legacy behavior; new panels pick one of these.
    Lifted from a consuming product's app.css (gawdux 0.3.0). */
 .panel-col {
 	margin-inline: auto;
@@ -1189,7 +1234,7 @@ main:has(.page-command-drawer) .page-command-bar,
 .panel-col-wide {
 	margin-inline: auto;
 	width: 100%;
-	max-width: 72rem; /* Tailwind max-w-6xl */
+	max-width: var(--gawdux-panel-wide-max-width); /* default 72rem, Tailwind max-w-6xl */
 }
 
 /* ---------- Dense-table → card responsive pattern ---------- */

@@ -44,6 +44,9 @@
   --gawdux-tile-padding-nested: calc(var(--spacing, 0.25rem) * 2.5);
   --gawdux-tile-gap: calc(var(--spacing, 0.25rem) * 3);
   --gawdux-tile-min-width: 9rem;
+  --gawdux-page-inset: calc(var(--spacing, 0.25rem) * 4);
+  --gawdux-page-inset-bottom: calc(var(--spacing, 0.25rem) * 1);
+  --gawdux-panel-wide-max-width: 72rem;
 }
 .dark {
   --gawdux-surface: var(--color-gray-900);
@@ -431,10 +434,25 @@
     min-height: calc(var(--spacing) * 0);
     flex: 1;
     overflow: auto;
-    padding-inline: calc(var(--spacing) * 4);
-    padding-top: calc(var(--spacing) * 4);
-    padding-bottom: calc(var(--spacing) * 1);
+    padding: var(--gawdux-page-inset) var(--gawdux-page-inset) var(--gawdux-page-inset-bottom);
     background-color: var(--gawdux-surface-card);
+  }
+  .page-inset {
+    padding: var(--gawdux-page-inset) var(--gawdux-page-inset) var(--gawdux-page-inset-bottom);
+  }
+  .master-detail-inset {
+    padding: var(--gawdux-page-inset) var(--gawdux-page-inset) var(--gawdux-page-inset-bottom);
+  }
+  :is(.scroll-surface, .editable-page-body, .page-inset, .tab-fill-scroll) .master-detail-inset {
+    padding: 0;
+  }
+  .tab-fill-scroll {
+    overflow-y: auto;
+    padding: var(--gawdux-page-inset) var(--gawdux-page-inset) var(--gawdux-page-inset-bottom);
+  }
+  :is(.scroll-surface, .editable-page-body, .page-inset) .tab-fill-scroll {
+    margin: calc(-1 * var(--gawdux-page-inset)) calc(-1 * var(--gawdux-page-inset))
+			calc(-1 * var(--gawdux-page-inset-bottom));
   }
   .list-table {
     width: 100%;
@@ -932,7 +950,7 @@ main:has(.page-command-drawer) .page-command-bar,
 .panel-col-wide {
   margin-inline: auto;
   width: 100%;
-  max-width: 72rem;
+  max-width: var(--gawdux-panel-wide-max-width);
 }
 @media (max-width: 1024px) {
   .responsive-list-page .filter-row {

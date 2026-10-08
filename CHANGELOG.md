@@ -1,5 +1,48 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Content inset knobs in the `:root` density block of `styles/tokens.css`,
+  at the geometry that shipped: `--gawdux-page-inset` (1rem, the top and
+  sides of every inset host) and `--gawdux-page-inset-bottom` (0.25rem, above
+  the command bar). `.scroll-surface` (PageTabs' panel) and
+  `EditablePageScaffold`'s body read them.
+- `--gawdux-panel-wide-max-width` (72rem): the wide content column, read by
+  `.panel-col-wide` and `MasterDetailShell`'s card. `none` lets both fill
+  their panel.
+- `.page-inset`: a product's own surface becomes an inset host with the same
+  padding.
+- `TabFillPanel scroll`: a fill tab whose content scrolls. The panel is the
+  one scroller, spans its host's padding box and pads itself with the knobs,
+  so its scrollbar sits at the panel's edge and a hovered tile's shadow has
+  the whole inset to draw in. It replaces an inner `overflow-y-auto` wrapper.
+
+### Changed
+
+- `MasterDetailShell` pads only where no host encloses it. Inside a
+  `.scroll-surface`, an `EditablePageScaffold` body, a `.page-inset` surface
+  or a `TabFillPanel scroll`, its frame adds nothing; in a bare, unpadded
+  panel it keeps its own inset (the `master-detail-inset` class, read from
+  the knobs).
+- `EditablePageScaffold`'s body pads around a two-pane shell instead of
+  dropping its padding for it.
+- `.panel-col-wide` reads `--gawdux-panel-wide-max-width`.
+
+### Notes
+
+- The default bottom inset is unchanged (0.25rem): a product that redeclares
+  no knob keeps its geometry.
+- A consumer that hosts a `MasterDetailShell` in a padded host (PageTabs'
+  default panel, any `.scroll-surface`) loses the second inset: 32 / 32 / 8
+  becomes 16 / 16 / 4. One that hosts it in a bare, unpadded surface keeps
+  the shell's own inset. A surface of its own that should count as a host
+  takes the `page-inset` class.
+- Below a 48rem container width a shell inside a host scrolls inside the
+  inset instead of carrying it, so its scrollbar is one inset in from the
+  edge.
+
 ## 0.16.0 - the account menu for every app shell; the command bar never keeps a dead page's buttons
 
 ### Added

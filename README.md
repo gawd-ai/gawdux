@@ -73,10 +73,35 @@ by overriding component classes:
 | `--gawdux-card-body-px` / `-py` | `px-6` / `py-3` | `CardContainer` body |
 | `--gawdux-tile-padding` / `-nested` | `p-3` / `p-2.5` | `StatTile` |
 | `--gawdux-tile-gap` / `--gawdux-tile-min-width` | `gap-3` / `9rem` | `StatTileStrip` |
+| `--gawdux-page-inset` | `pt-4 px-4` (1rem) | the content inset of every host, top and sides |
+| `--gawdux-page-inset-bottom` | `pb-1` (0.25rem) | the content inset of every host, above the command bar |
+| `--gawdux-panel-wide-max-width` | `max-w-6xl` (72rem) | `.panel-col-wide`, `MasterDetailShell`'s card |
 
 The table knobs apply to flowbite cells inside a `TableContainer`,
 `ListSurface` or `DataTable` that still carry flowbite's default padding; a
 cell that sets its own padding keeps it.
+
+### Content inset
+
+A tab's content sits one inset from its panel's edges, and only the box that
+hosts the content sets it. The hosts are `.scroll-surface` (PageTabs' panel),
+`EditablePageScaffold`'s body, and any surface of a product's own that carries
+the `page-inset` class. Nothing inside a host pads itself toward the host's
+edges: a tab body opens on a plain `space-y-3` div, `MasterDetailShell` adds
+no inset inside a host (its own inset is the fallback for a shell in a bare,
+unpadded panel), and `TabFillPanel` adds none. A fill tab whose content
+scrolls is `<TabFillPanel scroll>`: the panel becomes the one scroller, spans
+its host's padding box and pads itself with the same knobs, so the scrollbar
+sits at the panel's edge and a hovered tile's shadow is never clipped.
+
+For 16px on all four sides, and two-pane cards that fill the panel:
+
+```css
+:root {
+	--gawdux-page-inset-bottom: 1rem; /* default 0.25rem */
+	--gawdux-panel-wide-max-width: none; /* default 72rem */
+}
+```
 
 ## Account menu
 
