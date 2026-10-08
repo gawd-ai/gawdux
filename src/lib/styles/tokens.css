@@ -493,12 +493,15 @@
 		border-top-color: var(--gawdux-border);
 	}
 
-	.table-container thead {
+	/* The separators belong to the table, framed or not: an unframed
+	   DataTable (`.data-table` without `.table-container`) otherwise draws
+	   flowbite's row borders in currentColor, the text colour. */
+	:is(.table-container, .data-table) thead {
 		@apply border-b;
 		border-bottom-color: var(--gawdux-table-separator);
 	}
 
-	.table-container tbody tr {
+	:is(.table-container, .data-table) tbody tr {
 		@apply border-b;
 		border-bottom-color: var(--gawdux-table-separator);
 	}

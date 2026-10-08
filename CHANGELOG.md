@@ -12,6 +12,10 @@
   back to the bar whenever it was the newest: a decision opened and closed in
   one flush left its Cancel and Confirm on every later page.
   `PageCommandBarConfirm` and every surface built on these inherit the fix.
+- An unframed `DataTable` (`framed={false}`, inside a card) drew its head
+  and row separators in the text colour: the separator rule covered
+  `.table-container` only, so flowbite's borders fell back to currentColor.
+  The rule now covers `.data-table` as well.
 
 ### Hosts
 
