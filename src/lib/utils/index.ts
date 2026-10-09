@@ -28,11 +28,7 @@ export {
 export type { FieldErrors } from './form-errors';
 
 export { createEditMode } from './edit-mode.svelte';
-export type {
-	EditModeOptions,
-	EditModeSnapshot,
-	EditModeApi
-} from './edit-mode.svelte';
+export type { EditModeOptions, EditModeSnapshot, EditModeApi } from './edit-mode.svelte';
 
 export {
 	applySessionFilters,
@@ -68,6 +64,9 @@ export type {
 } from './active-subitem-stylesheet';
 
 export { resolveActiveItemHref } from './resolve-active-nav';
+
+export { activateRowLink, rowLinkIntent } from './row-link';
+export type { RowLinkIntent, RowLinkNavigation } from './row-link';
 
 export {
 	createCancellableScheduler,

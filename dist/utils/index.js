@@ -8,6 +8,7 @@ export { createBreadcrumbBuilder } from './url-breadcrumb';
 export { slideFadeIn, slideFadeOut } from './transitions';
 export { createActiveSubitemStylesheet, DEFAULT_PALETTE } from './active-subitem-stylesheet';
 export { resolveActiveItemHref } from './resolve-active-nav';
+export { activateRowLink, rowLinkIntent } from './row-link';
 export { createCancellableScheduler, createSearchScheduler, DEFAULT_SCHEDULE_DELAY_MS, SEARCH_SCHEDULE_DELAY_MS } from './cancellable-scheduler';
 // Feedback: message center (transient toasts + persistent conditions)
 export { createDocumentVisibilitySource, createMessageCenter, createStorageHiddenConditionPersistence, MessageCenter, DEFAULT_MESSAGE_LIFETIMES_MS } from './message-center';

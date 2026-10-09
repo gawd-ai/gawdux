@@ -47,6 +47,28 @@ Supported package subpaths:
 - **admin** (`gawdux/admin`): tenant-administration blocks, presentation only (the host loads, authorizes and performs every change): `MemberAccessCard`, `SecurityActivityList`, `AuditHistoryTable`, `RoleMembersCard` (who holds a Role: a quiet trash icon raises the removal for the host to confirm, a picker adds), and the AI + Bots blocks: `AiUsageReport` (totals as tiles, `AiUsageBars` per day, one share-bar card per breakdown; turns and tokens, never money), `BotRail` (bots with avatar, role and one state, for every tab that picks a bot first), `BotIdentityHeader`, `BotConfigView` (a config read, the other half of `BotConfigFields`' edit), `BotContextCard` (the composed block a bot reads, by parts), `BotToolAccess`.
 - **styles/tokens.css**: the shared design tokens (color, spacing, density) that give host applications a common visual language.
 
+## Row navigation
+
+Keep a real anchor in a row for keyboard navigation and native link controls.
+Use `activateRowLink` from `gawdux/utils` on both `click` and `auxclick` to make
+the rest of the row follow that destination:
+
+```svelte
+<tr
+  onclick={(event) => activateRowLink(event, href, { navigate })}
+  onauxclick={(event) => activateRowLink(event, href, { navigate })}
+>
+  <td><a {href}>Item</a></td>
+  <td>Other row content</td>
+</tr>
+```
+
+`navigate` is the host router. Modified and middle clicks open a separate browsing
+context with `noopener`, or use the host's optional `open` adapter. Nested links,
+controls and editable content are untouched; selected text, cancelled events,
+Alt-click and secondary clicks do not navigate. Mark custom interactive regions
+with `data-row-interactive`. `rowLinkIntent` exposes the decision without effects.
+
 ## Density
 
 Table cells, cards and stat tiles take their padding from `--gawdux-*` knobs

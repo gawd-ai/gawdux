@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.19.0 - shared row background navigation
+
+- `activateRowLink` and `rowLinkIntent` (`gawdux/utils`) share background row
+  navigation. Native anchors and nested controls keep their behavior; modified
+  and middle clicks open a separate browsing context, selected text and cancelled
+  events do not navigate. The host keeps its router and row destinations.
+- Removed a leftover merge-marker line from this history.
+
 ## 0.18.0 - a column header carries the icon of its meaning
 
 ### Added
@@ -218,8 +226,6 @@
   branch removes nothing, so the current buttons stay in the bar beside every
   later page's until a full reload. The registry's header says why.
 
-||||||| c667012
-
 ## 0.15.0 - shared AI + Bots and Role blocks, the alert console's house states
 
 ### Added
@@ -338,12 +344,13 @@ The two visible changes are the fixes listed under Fixed.
   A compact table, for example (40px rows, 48px with a second line):
 
   ```css
-  @import 'gawdux/styles/tokens.css';
+  @import "gawdux/styles/tokens.css";
   :root {
-  	--gawdux-table-cell-py: 0.3125rem;
-  	--gawdux-table-row-height: 2.5rem;
+    --gawdux-table-cell-py: 0.3125rem;
+    --gawdux-table-row-height: 2.5rem;
   }
   ```
+
 - Tab colour tokens: `--gawdux-tab-text`, `--gawdux-tab-text-hover`,
   `--gawdux-tab-text-active`, `--gawdux-tab-indicator` (light and dark).
 - `StatTile` and `StatTileStrip` (`gawdux/primitives`): the KPI tile of a
@@ -404,6 +411,7 @@ The two visible changes are the fixes listed under Fixed.
 ## 0.12.0 - audit history table
 
 ### Added
+
 - `AuditHistoryTable` (`gawdux/admin`): an audit history that fits its
   container. Fixed column shares, the comment clamped to two lines, the user
   and record truncated; a row opens its full entry beneath it (facts, the
@@ -414,6 +422,7 @@ The two visible changes are the fixes listed under Fixed.
 ## 0.11.1 - one scroller in the master-detail shell
 
 ### Fixed
+
 - `MasterDetailShell`: the rail and detail scroll panes are positioned, so an
   absolutely positioned child (flowbite's `Toggle` checkbox) no longer
   stretches the document and makes the whole page scroll as well as the pane.
@@ -421,6 +430,7 @@ The two visible changes are the fixes listed under Fixed.
 ## 0.11.0 - bot administration blocks
 
 ### Added
+
 - `BotToolAccess` (`gawdux/admin`): the tools one bot may use, grouped by area.
   A switch is an intent the host confirms; without `canEdit` and `ontoggle`
   the list is read-only. Writing tools carry a badge (`changesLabel`).
@@ -431,6 +441,7 @@ The two visible changes are the fixes listed under Fixed.
 ## 0.10.0 - admin blocks
 
 ### Added
+
 - `gawdux/admin` subpath: shared tenant-administration blocks. Presentation
   only; hosts load, authorize and perform every mutation.
 - `MemberAccessCard`: the Roles a member holds and what they allow, grouped by
@@ -444,6 +455,7 @@ The two visible changes are the fixes listed under Fixed.
 ## 0.9.0 - saved views rail and list-state query projection
 
 ### Added
+
 - `SavedViewsRail`: one pill row for a list surface, `[All] [view] ... [Save view]`.
   Selecting a pill applies its query, the trailing pill becomes an inline name
   field while the current query is unsaved (Enter saves, Escape cancels and
@@ -463,12 +475,14 @@ The two visible changes are the fixes listed under Fixed.
   and the exported `filterPillClass` recipe.
 
 ### Changed
+
 - `initListState` resolves an empty URL value (`?q=`) to the field default instead
   of the empty string.
 
 ## 0.8.1 — filter pills that fit a narrow column
 
 ### Added
+
 - `FilterPillRow` takes an opt-in `wrap`. The row flows onto further lines
   instead of scrolling sideways, and its overflow affordances are suppressed
   because there is nothing left to scroll to. Off by default, so every existing
@@ -490,6 +504,7 @@ The two visible changes are the fixes listed under Fixed.
 ## 0.7.1 — focus restoration after command dismissal
 
 ### Fixed
+
 - `PageCommandBarConfirm` retains its focus target and fallback while mounted.
   A host can now clear its request on cancel, acknowledgement, or external
   dismissal without a deferred callback reading removed state. Focus returns
@@ -500,6 +515,7 @@ The two visible changes are the fixes listed under Fixed.
 ## 0.7.0 — shared feedback and command-bar decisions
 
 ### Added
+
 - `PageCommandBarConfirm` places the question in a drawer and its actions in
   the command bar. It supports pending/error states, single dispatch, retry,
   acknowledgement-only results, selectable codes, and focus restoration.
@@ -511,6 +527,7 @@ The two visible changes are the fixes listed under Fixed.
   the existing health strip remains enabled by default.
 
 ### Changed — consumer migration
+
 - `ListQueryBar` removes `resultCount`, `resultNoun`, `resultNounPlural`, and
   `resultSummary`. Remove those props and use the range/count already shown
   by `ListPaginationNav` or the scaffold's `pagination` contract. A list
@@ -526,6 +543,7 @@ The two visible changes are the fixes listed under Fixed.
   edge. These are intentional interaction/layout changes in this minor release.
 
 ### Fixed
+
 - Command-bar snippets register immediately, avoiding an empty frame when
   page actions change. The previous page's actions return when a confirmation closes.
 - List tables use the panel's scroller so sticky headers remain attached.
@@ -539,6 +557,7 @@ The two visible changes are the fixes listed under Fixed.
 - The dependency lock updates `nanoid` to 3.3.18.
 
 ### Release verification
+
 - Built from the 28 source commits after v0.6.2 through `42f6c3b`, plus the
   release fixes and regression coverage described above. Tracked `dist/` is
   regenerated from this release's source with `npm run package`, including
@@ -549,6 +568,7 @@ The two visible changes are the fixes listed under Fixed.
 ## 0.6.2 — compact feedback stops swallowing the message
 
 ### Fixed
+
 - **`PageFeedback`** — `compact` no longer clamps the message to a single line.
 
   It was applying `white-space: nowrap` + `text-overflow: ellipsis` on top of
@@ -571,6 +591,7 @@ The two visible changes are the fixes listed under Fixed.
 ## 0.6.1 — the sidebar rail's width owns group open-state
 
 ### Fixed
+
 - **`AppSidebar`** — a collapsed rail no longer leaves the active group open,
   and expanding the rail now opens the group holding the current page.
 
@@ -591,7 +612,7 @@ The two visible changes are the fixes listed under Fixed.
   show it.
 
   `toggleSidebar` already called `resetDropdowns()` on the way down, so
-  collapsing *via the toggle* always looked right — the bug hid behind the
+  collapsing _via the toggle_ always looked right — the bug hid behind the
   path most people exercise.
 
   Open-state now follows the rail width: collapsing closes every group,
@@ -604,7 +625,7 @@ The two visible changes are the fixes listed under Fixed.
   forces the active group open with DOM clicks is now redundant. If it guards
   on the wrapper's `.open` class it will go inert by itself and needs no
   coordinated change; remove it when convenient. An unguarded one would now
-  toggle the group *shut*, so check that guard before taking this bump.
+  toggle the group _shut_, so check that guard before taking this bump.
 
   No API change: no new props, no changed signatures. `defaultOpen` still wins
   over the active page in both directions.
@@ -612,6 +633,7 @@ The two visible changes are the fixes listed under Fixed.
 ## 0.6.0 — the command drawer becomes a primitive
 
 ### Added
+
 - **`CommandDrawer`** — the strip that opens against the bottom command bar.
 
   Five components across this library and two consuming products carried a
@@ -640,6 +662,7 @@ The two visible changes are the fixes listed under Fixed.
   so it is pinned by a test.
 
 ### Changed
+
 - `ConfirmationCommandSurface` is rebuilt on `CommandDrawer` (~40 lines lighter)
   with **no visual or behavioural change** — `variant="card"` preserves its
   exact look, and its existing tests pass untouched. Its focus RESTORE stays
@@ -656,6 +679,7 @@ The two visible changes are the fixes listed under Fixed.
 ## 0.5.4 — the declarative pagination path can show page numbers too
 
 ### Fixed
+
 - `ListSurface` (and therefore `ListPageScaffold`) now forwards
   **`showPageNumbers`** from the declarative `pagination` object to
   `ListPaginationNav`, and `ExactListPagination` gained the field.
@@ -678,12 +702,13 @@ The two visible changes are the fixes listed under Fixed.
 ## 0.5.3 — ListPaginationNav can show page numbers
 
 ### Added
+
 - `ListPaginationNav` gains **`showPageNumbers`** (default `false`), which
   renders numbered page buttons between the range readout and Next.
 
   This exists because the component could not be adopted without a capability
   regression. It shipped prev/range/next only, while consumers were already
-  rendering numbered pagination — so migrating to it *removed* direct
+  rendering numbered pagination — so migrating to it _removed_ direct
   page-jump. Rather than ask those pages to accept less, the numbers move up
   here behind an opt-in. Default off means every current consumer renders
   exactly what it renders today.
@@ -691,6 +716,7 @@ The two visible changes are the fixes listed under Fixed.
   Applies to `mode="exact"` only; a cursor pager has no page numbers to offer.
   The active button carries `aria-current="page"`, and ellipses are
   `aria-hidden` rather than being announced as content.
+
 - `buildPageWindow(current, total)` is exported alongside it, so a consumer
   that wants its own markup can still share the windowing rule: all pages up
   to seven, then first / ellipsis / current ± 1 / ellipsis / last. It clamps
@@ -705,6 +731,7 @@ The two visible changes are the fixes listed under Fixed.
 ## 0.5.2 — AppSidebar knows where you are
 
 ### Fixed
+
 - Top-level sidebar items now highlight by **longest-prefix match with a `/`
   boundary** (the `resolveActiveItemHref` rule the library already shipped
   but never used here), instead of exact match. A detail page keeps its
@@ -727,6 +754,7 @@ The two visible changes are the fixes listed under Fixed.
 ## 0.5.1 — TabTitle icons are optional
 
 ### Fixed
+
 - `TabTitle` no longer requires `icon`, and omits the icon box entirely when
   none is given. It previously rendered the `w-5 h-5` wrapper unconditionally,
   so a tab set that carries no icons was indented by the width of an icon that
@@ -743,9 +771,10 @@ The two visible changes are the fixes listed under Fixed.
 ## 0.5.0 — alert-ops silence mutation (opt-in)
 
 ### Added
+
 - `gawdux/alert-ops` gains silence **mutation affordances that do not exist
   unless a host asks for them twice**. Every control is behind a double gate
-  — a capability flag *and* a callback — so a host that upgrades and wires
+  — a capability flag _and_ a callback — so a host that upgrades and wires
   nothing keeps byte-for-byte the 0.4.0 read-only surface. The read-only
   default is a pinned test, not a convention.
   - `SilenceTable` — `canMutate` + `onexpire`, adding an actions column with
@@ -765,6 +794,7 @@ The two visible changes are the fixes listed under Fixed.
     outcome back down.
 
 ### Changed
+
 - `AlertOpsCopy` gains seven keys (`silenceColumnActions`, `expireSilence`,
   `expireSilenceAccessibleLabel`, `expireDisabledExpired`, `silenceAlert`,
   `mutationPending`, `mutationFailed`). Hosts that pass copy **overrides**
@@ -774,6 +804,7 @@ The two visible changes are the fixes listed under Fixed.
 ## 0.4.0 — alert operations
 
 ### Added
+
 - New `gawdux/alert-ops` subpath: reusable Alert Operations console surface
   (presentation + UI contract only; hosts own transport, auth, tenancy and
   the provider adapter).
@@ -801,10 +832,10 @@ The two visible changes are the fixes listed under Fixed.
   - UI contract types + `AlertOpsCopy` — every user-facing string
     overridable via props with English defaults ({placeholder} templates).
 
-
 ## 0.3.0 — lift wave
 
 ### Added
+
 - primitives: `ConfirmationCommandSurface` + `confirmation-command` types —
   command-surface confirmation (title/message/labels/tone, single-dispatch
   until the host settles, focus discipline, Escape-cancel).
@@ -839,11 +870,13 @@ The two visible changes are the fixes listed under Fixed.
   colors flow through `--gawdux-*` tokens.
 
 ### Changed (additive)
+
 - `PageTabs`: new `below` slot — persistent content inside the panel chrome
   below the tab strip, across tab switches.
 - `EmptyStateRow`: new `hint` prop — second muted line under the text.
 
 ### Deprecated
+
 - `ConfirmModal` — new surfaces confirm in the bottom command bar
   (`ConfirmationCommandSurface`/`DiscardNavigationCommandSurface`); removal
   only when consumers reach zero uses.
