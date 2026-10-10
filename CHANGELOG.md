@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.20.0 - composable bot configuration fields
+
+- Added `BotConfigContentFields` and `BotConfigAssignments` (`gawdux/admin`)
+  for hosts that retain their own cards and working-copy lifecycle. Bindable
+  values, validation messages, editor sizing and optional presentation snippets
+  do not own persistence, revision checks or commands. `BotConfigFields`
+  delegates to these leaves while retaining its existing API and defaults.
+- Neutralized the related administration fixtures without changing their
+  behavioral assertions.
+
 ## 0.19.0 - shared row background navigation
 
 - `activateRowLink` and `rowLinkIntent` (`gawdux/utils`) share background row

@@ -56,7 +56,7 @@ describe('AiUsageReport', () => {
 				id: 'bots',
 				title: 'By assistant',
 				rows: [
-					{ key: 'ops', label: 'Netage Ops', turns: 9, tokens: 3750 },
+					{ key: 'ops', label: 'Operations Agent', turns: 9, tokens: 3750 },
 					{ key: 'idle', label: 'Quiet bot', turns: 0, tokens: 0 }
 				]
 			},
@@ -115,7 +115,7 @@ describe('AiUsageReport', () => {
 
 describe('BotRail', () => {
 	const BOTS = [
-		{ id: 'ops', name: 'Netage Ops', role: 'Fleet operations', status: { on: true, label: 'On' } },
+		{ id: 'ops', name: 'Operations Agent', role: 'Operations support', status: { on: true, label: 'On' } },
 		{ id: 'sales', name: 'Sales Desk', role: 'Quotes', color: 'bg-pink-600', status: { on: false, label: 'Off' } }
 	];
 
@@ -124,7 +124,7 @@ describe('BotRail', () => {
 		const rows = container.querySelectorAll('[data-master-detail-row]');
 		expect(rows).toHaveLength(2);
 		expect(rows[0]!.getAttribute('aria-current')).toBe('true');
-		expect(rows[0]!.textContent).toContain('NO');
+		expect(rows[0]!.textContent).toContain('OA');
 		expect(rows[1]!.querySelector('.bg-pink-600')).toBeTruthy();
 		expect(rows[1]!.querySelector('[data-bot-status="off"]')?.getAttribute('title')).toBe('Off');
 	});
@@ -134,9 +134,9 @@ describe('BotRail', () => {
 		render(BotRail, { props: { bots: BOTS, onselect, search: true } });
 		await fireEvent.click(screen.getByText('Sales Desk'));
 		expect(onselect).toHaveBeenCalledWith('sales');
-		await fireEvent.input(screen.getByLabelText('Search bots'), { target: { value: 'fleet' } });
+		await fireEvent.input(screen.getByLabelText('Search bots'), { target: { value: 'operations' } });
 		expect(screen.queryByText('Sales Desk')).toBeNull();
-		expect(screen.getByText('Netage Ops')).toBeTruthy();
+		expect(screen.getByText('Operations Agent')).toBeTruthy();
 	});
 
 	it('draws lanes with a rule between them', () => {
@@ -145,7 +145,7 @@ describe('BotRail', () => {
 	});
 
 	it('derives two initials from the name when the host gives none', () => {
-		expect(botInitials({ name: 'Netage Ops' })).toBe('NO');
+		expect(botInitials({ name: 'Operations Agent' })).toBe('OA');
 		expect(botInitials({ name: 'Atlas' })).toBe('AT');
 		expect(botInitials({ name: 'X', initials: 'qa' })).toBe('QA');
 	});
@@ -154,10 +154,10 @@ describe('BotRail', () => {
 describe('BotIdentityHeader', () => {
 	it('shows the name, role, state and what it does', () => {
 		render(BotIdentityHeader, {
-			props: { bot: { id: 'ops', name: 'Netage Ops', role: 'Fleet operations', status: { on: true, label: 'On' } }, tagline: 'Ask in plain language.' }
+			props: { bot: { id: 'ops', name: 'Operations Agent', role: 'Operations support', status: { on: true, label: 'On' } }, tagline: 'Ask in plain language.' }
 		});
-		expect(screen.getByRole('heading', { name: 'Netage Ops' })).toBeTruthy();
-		expect(screen.getByText('Fleet operations')).toBeTruthy();
+		expect(screen.getByRole('heading', { name: 'Operations Agent' })).toBeTruthy();
+		expect(screen.getByText('Operations support')).toBeTruthy();
 		expect(screen.getByText('On').dataset.botStatus).toBe('on');
 		expect(screen.getByText('Ask in plain language.')).toBeTruthy();
 	});
@@ -168,12 +168,12 @@ describe('BotConfigView', () => {
 		render(BotConfigView, {
 			props: {
 				config: { name: 'Arenas', body: 'Say tenant.\nNever infer a site.', enabled: false, botIds: ['ops', 'gone'] },
-				bots: [{ id: 'ops', name: 'Netage Ops' }],
+				bots: [{ id: 'ops', name: 'Operations Agent' }],
 				maxBodyChars: 4000
 			}
 		});
 		expect(screen.getByText('Off')).toBeTruthy();
-		expect(screen.getByText('Netage Ops, gone')).toBeTruthy();
+		expect(screen.getByText('Operations Agent, gone')).toBeTruthy();
 		expect(screen.getByText(/Never infer a site/).tagName).toBe('PRE');
 		expect(screen.getByText('31 of 4,000 characters')).toBeTruthy();
 	});
@@ -206,7 +206,7 @@ describe('BotContextCard', () => {
 
 describe('RoleMembersCard', () => {
 	const MEMBERS = [
-		{ ref: 'u:1', label: 'Alex Chen', detail: 'admin@netage.ai' },
+		{ ref: 'u:1', label: 'Alex Chen', detail: 'admin@example.test' },
 		{ ref: 'u:2', label: 'Sam Lee' }
 	];
 
@@ -218,7 +218,7 @@ describe('RoleMembersCard', () => {
 		expect(trash.textContent?.trim()).toBe('');
 		await fireEvent.click(trash);
 		expect(onremove).toHaveBeenCalledWith(MEMBERS[1]);
-		expect(screen.getByText('admin@netage.ai')).toBeTruthy();
+		expect(screen.getByText('admin@example.test')).toBeTruthy();
 	});
 
 	it('is read-only for a platform-managed Role', () => {

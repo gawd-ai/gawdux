@@ -6,6 +6,8 @@ export { default as MemberAccessCard } from './MemberAccessCard.svelte';
 export { default as SecurityActivityList } from './SecurityActivityList.svelte';
 export { default as BotToolAccess } from './BotToolAccess.svelte';
 export { default as BotConfigFields } from './BotConfigFields.svelte';
+export { default as BotConfigContentFields } from './BotConfigContentFields.svelte';
+export { default as BotConfigAssignments } from './BotConfigAssignments.svelte';
 export { default as AuditHistoryTable } from './AuditHistoryTable.svelte';
 export { default as AiUsageBars } from './AiUsageBars.svelte';
 export { default as AiUsageReport } from './AiUsageReport.svelte';
