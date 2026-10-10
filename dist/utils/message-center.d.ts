@@ -24,7 +24,10 @@ export interface TransientMessageInput extends MessageInput {
     /** Override the tone default. Null keeps the message until it is dismissed. */
     lifetimeMs?: number | null;
 }
-export type PersistentConditionInput = MessageInput;
+export interface PersistentConditionInput extends MessageInput {
+    /** Start in notices without a floating overlay. Explicit reveal still works. */
+    noticeOnly?: boolean;
+}
 export interface MessageCenterItem {
     readonly id: string;
     readonly revision: MessageRevision;

@@ -35,7 +35,10 @@ export interface TransientMessageInput extends MessageInput {
 	lifetimeMs?: number | null;
 }
 
-export type PersistentConditionInput = MessageInput;
+export interface PersistentConditionInput extends MessageInput {
+	/** Start in notices without a floating overlay. Explicit reveal still works. */
+	noticeOnly?: boolean;
+}
 
 export interface MessageCenterItem {
 	readonly id: string;
@@ -389,8 +392,11 @@ export class MessageCenter {
 		const now = this.#clock.now();
 		const persistedHiddenRevision =
 			kind === 'condition' ? this.#hiddenConditionRevisions.get(id) : undefined;
+		const noticeOnly =
+			kind === 'condition' && (input as PersistentConditionInput).noticeOnly === true;
 		const overlayHidden =
-			persistedHiddenRevision !== undefined && sameRevision(persistedHiddenRevision, revision);
+			noticeOnly ||
+			(persistedHiddenRevision !== undefined && sameRevision(persistedHiddenRevision, revision));
 		if (persistedHiddenRevision !== undefined && !overlayHidden) {
 			this.#hiddenConditionRevisions.delete(id);
 			this.#persistHiddenConditions();

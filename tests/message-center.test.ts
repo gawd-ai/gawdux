@@ -181,6 +181,55 @@ describe('MessageCenter', () => {
 		expect(center.getSnapshot().hiddenNoticeCount).toBe(1);
 	});
 
+	it('keeps notice-only conditions outside overlays across revisions until explicitly revealed', () => {
+		const center = createMessageCenter({ maxVisible: 1 });
+		const input = {
+			id: 'standing-notice',
+			revision: 'v1',
+			tone: 'info' as const,
+			message: '8 items need review.',
+			noticeOnly: true
+		};
+		center.publishCondition(input);
+		center.publishTransient({ id: 'saved', revision: 1, tone: 'success', message: 'Saved.' });
+
+		expect(center.getSnapshot().overlay.map((item) => item.id)).toEqual(['saved']);
+		expect(center.getSnapshot().notices.map((item) => item.id)).toEqual(['standing-notice']);
+		expect(center.getSnapshot().notices[0]?.overlayHidden).toBe(true);
+		expect(center.getSnapshot().hiddenNoticeCount).toBe(1);
+		expect(center.getSnapshot().pendingOverlayCount).toBe(0);
+
+		center.publishCondition({ ...input, revision: 'v2', message: '7 items need review.' });
+		expect(center.getSnapshot().overlay.map((item) => item.id)).toEqual(['saved']);
+		expect(center.getSnapshot().notices[0]?.message).toBe('7 items need review.');
+		expect(center.revealCondition('standing-notice', 'v1')).toBe(false);
+		expect(center.revealCondition('standing-notice', 'v2')).toBe(true);
+		expect(center.getSnapshot().overlay[0]?.id).toBe('standing-notice');
+		expect(center.getSnapshot().hiddenNoticeCount).toBe(0);
+		expect(center.publishCondition({ ...input, revision: 'v2' }).outcome).toBe('deduplicated');
+		expect(center.getSnapshot().overlay[0]?.id).toBe('standing-notice');
+		expect(center.resolveCondition('standing-notice', 'v2')).toBe(true);
+		expect(center.getSnapshot().notices).toHaveLength(0);
+		center.destroy();
+	});
+
+	it('keeps ordinary and explicit false conditions on the original overlay path', () => {
+		const center = createMessageCenter();
+		center.publishCondition({ id: 'ordinary', revision: 1, tone: 'info', message: 'Ordinary.' });
+		center.publishCondition({
+			id: 'explicit-overlay',
+			revision: 1,
+			tone: 'info',
+			message: 'Visible.',
+			noticeOnly: false
+		});
+		expect(new Set(center.getSnapshot().overlay.map((item) => item.id))).toEqual(
+			new Set(['ordinary', 'explicit-overlay'])
+		);
+		expect(center.getSnapshot().hiddenNoticeCount).toBe(0);
+		center.destroy();
+	});
+
 	it('dismisses transients while hide, reveal, and revision-guarded resolution govern conditions', () => {
 		const center = createMessageCenter();
 		center.publishTransient({
@@ -322,6 +371,38 @@ describe('MessageCenter', () => {
 		expect(storage.values.size).toBe(1);
 		expect(reloaded.resolveCondition('credits-exhausted', 'copy-v2')).toBe(true);
 		expect(storage.values.size).toBe(0);
+	});
+
+	it('keeps a supplied persistence namespace and does not load another namespace', () => {
+		const storage = memoryStorage();
+		const identity = 'tenant:41/user:7';
+		const namespace = 'host.notice-state';
+		const input = {
+			id: 'service-offline',
+			revision: 1,
+			tone: 'warning' as const,
+			message: 'Offline.'
+		};
+		const first = createMessageCenter({
+			hiddenConditionPersistence: createStorageHiddenConditionPersistence(storage, identity, namespace)
+		});
+		first.publishCondition(input);
+		first.hideCondition(input.id, input.revision);
+		expect([...storage.values.keys()]).toEqual([`${namespace}:${encodeURIComponent(identity)}`]);
+		first.destroy();
+
+		const restored = createMessageCenter({
+			hiddenConditionPersistence: createStorageHiddenConditionPersistence(storage, identity, namespace)
+		});
+		restored.publishCondition(input);
+		expect(restored.getSnapshot().overlay).toHaveLength(0);
+		const independent = createMessageCenter({
+			hiddenConditionPersistence: createStorageHiddenConditionPersistence(storage, identity)
+		});
+		independent.publishCondition(input);
+		expect(independent.getSnapshot().overlay[0]?.id).toBe(input.id);
+		restored.destroy();
+		independent.destroy();
 	});
 
 	it('isolates hidden-condition persistence by identity', () => {

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.23.0 - notice-only persistent feedback
+
+- Persistent conditions may opt into notices without consuming floating overlay
+  capacity. Explicit reveal, revision guards, deduplication and resolution retain
+  their original behavior. Existing optional persistence namespaces let hosts
+  retain their previously stored hidden-condition state without another engine.
+
 ## 0.22.0 - capability-driven Knowledge administration
 
 - Added `AiKnowledgePanel` and opaque-ID model/action contracts to `gawdux/admin`.

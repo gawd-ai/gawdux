@@ -254,7 +254,9 @@ export class MessageCenter {
         }
         const now = this.#clock.now();
         const persistedHiddenRevision = kind === 'condition' ? this.#hiddenConditionRevisions.get(id) : undefined;
-        const overlayHidden = persistedHiddenRevision !== undefined && sameRevision(persistedHiddenRevision, revision);
+        const noticeOnly = kind === 'condition' && input.noticeOnly === true;
+        const overlayHidden = noticeOnly ||
+            (persistedHiddenRevision !== undefined && sameRevision(persistedHiddenRevision, revision));
         if (persistedHiddenRevision !== undefined && !overlayHidden) {
             this.#hiddenConditionRevisions.delete(id);
             this.#persistHiddenConditions();
