@@ -2,7 +2,7 @@ import type { AiSkillsPanelProps } from './skills-types';
 declare function $$render<KnowledgeId extends string | number = number>(): {
     props: AiSkillsPanelProps<KnowledgeId>;
     exports: {};
-    bindings: "settingsDirty" | "editorBusy";
+    bindings: "editorBusy" | "settingsDirty";
     slots: {};
     events: {};
 };
@@ -10,7 +10,7 @@ declare class __sveltets_Render<KnowledgeId extends string | number = number> {
     props(): ReturnType<typeof $$render<KnowledgeId>>['props'];
     events(): ReturnType<typeof $$render<KnowledgeId>>['events'];
     slots(): ReturnType<typeof $$render<KnowledgeId>>['slots'];
-    bindings(): "settingsDirty" | "editorBusy";
+    bindings(): "editorBusy" | "settingsDirty";
     exports(): {};
 }
 interface $$IsomorphicComponent {

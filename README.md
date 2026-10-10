@@ -288,6 +288,30 @@ and `createPageCommandBarRegistry` are shared exports, not host-local copies.
 
 ## Development Workflow
 
+### Knowledge administration
+
+`AiKnowledgePanel` from `gawdux/admin` takes a loaded model and complete host
+actions. It retains the existing master-detail geometry, explicit name/description
+draft, inline removal confirmations, pending-write navigation block, abortable
+resource search and text-upload selection. A same-selection refresh preserves
+unsaved input; only a new source projection supersedes locally settled source rows.
+Resource results are ordered by the host, and stale or aborted requests cannot
+replace the current picker.
+
+The host supplies limits, supported upload types and validation, source eligibility,
+status/version/last-good captions, disclosure, API effects and error messages.
+The panel does not fetch, authorize, invent a revision protocol or run ingestion.
+Full knowledge-base row subtypes survive mutation callbacks; knowledge, source and
+resource IDs keep their supplied string or number identity. Apply successful source
+responses locally before requesting the host's focused refresh.
+
+Bind `editorDirty` and `editorBusy` to the existing host navigation guard; delegate
+its command-bar create action to the component's `openCreate()`. Route approval
+and discard decisions remain host-owned. Used-by links are already-authorized
+native href intents, preserving modified and middle-click navigation. A null usage
+capability renders no pretend connections, and an optional history snippet renders
+only host-authorized history. A null model renders no panel or substitute storage.
+
 ### Skills administration
 
 `AiSkillsPanel` from `gawdux/admin` takes one loaded `AiSkillsPanelModel` and

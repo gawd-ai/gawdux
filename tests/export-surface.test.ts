@@ -423,6 +423,7 @@ describe('admin export surface', () => {
 		const admin = await import('../src/lib/admin/index');
 		expect(Object.keys(admin).sort()).toEqual(
 			[
+				'AiKnowledgePanel',
 				'AiSkillsPanel',
 				'AiUsageBars',
 				'AiUsageReport',

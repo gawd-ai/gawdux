@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.22.0 - capability-driven Knowledge administration
+
+- Added `AiKnowledgePanel` and opaque-ID model/action contracts to `gawdux/admin`.
+  Shared interaction covers working copies, inline confirmations, pending writes,
+  abortable resource search and upload selection. Hosts retain source eligibility,
+  disclosure, limits, routes, storage, errors and optional usage/history policy.
+- Successful responses settle locally before a focused host refresh. A refresh of
+  the same selection preserves unsaved input, and stale search results cannot
+  replace the active picker. No revision protocol or ingestion engine is inferred.
+- The neutral fixture consumes the packaged public entry with string identifiers;
+  build the package before running its DOM contract tests.
+
 ## 0.21.0 - capability-driven Skills administration
 
 - Added `AiSkillsPanel` and its typed host model/action contracts to `gawdux/admin`.

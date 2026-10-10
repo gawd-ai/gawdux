@@ -7,6 +7,8 @@ export { default as BotConfigAssignments } from './BotConfigAssignments.svelte';
 export { default as AuditHistoryTable } from './AuditHistoryTable.svelte';
 export { default as AiUsageBars } from './AiUsageBars.svelte';
 export { default as AiSkillsPanel } from './AiSkillsPanel.svelte';
+export { default as AiKnowledgePanel } from './AiKnowledgePanel.svelte';
+export type { AiKnowledgeId, AiKnowledgeTone, AiKnowledgeBase, AiKnowledgeSource, AiKnowledgeResource, AiKnowledgeUsageIntent, AiKnowledgeLimits, AiKnowledgeSourcePolicy, AiKnowledgeUsage, AiKnowledgePanelModel, AiKnowledgeDiscardRequest, AiKnowledgePanelActions, AiKnowledgePanelProps } from './knowledge-types';
 export type { AiSkillDefinition, AiSkillBot, AiSkillGrant, AiSkillSettings, AiSkillPreviewTuning, AiSkillsPanelModel, AiSkillDiscardRequest, AiSkillsPanelActions, AiSkillsPanelProps } from './skills-types';
 export { default as AiUsageReport } from './AiUsageReport.svelte';
 export { default as BotRail, botInitials } from './BotRail.svelte';
