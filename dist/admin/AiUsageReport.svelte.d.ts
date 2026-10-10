@@ -1,4 +1,5 @@
-import type { AiUsageBreakdown, AiUsageDay, AiUsageTile, AiUsageTotals } from './types';
+import type { Snippet } from 'svelte';
+import type { AiUsageBreakdown, AiUsageBreakdownRow, AiUsageDay, AiUsageTile, AiUsageTotals } from './types';
 type $$ComponentProps = {
     totals: AiUsageTotals;
     /** Every day of the window, oldest first. */
@@ -21,6 +22,18 @@ type $$ComponentProps = {
     emptyText?: string;
     /** Leave out a breakdown with no rows instead of saying it is empty. */
     hideEmptyBreakdowns?: boolean;
+    /** Replaces the default totals strip; the host owns its presentation. */
+    summary?: Snippet;
+    /** Replaces the default per-day card without changing breakdown iteration. */
+    activity?: Snippet;
+    /** Renders beside the label; owns its own wrapper, title and disclosure. */
+    rowValue?: Snippet<[AiUsageBreakdownRow]>;
+    /** Spacing classes between the report's summary, activity and breakdowns. */
+    contentClass?: string;
+    /** Layout classes for the shared breakdown-card grid. */
+    breakdownGridClass?: string;
+    /** Spacing classes for the shared breakdown-row list. */
+    breakdownRowsClass?: string;
 };
 declare const AiUsageReport: import("svelte").Component<$$ComponentProps, {}, "">;
 type AiUsageReport = ReturnType<typeof AiUsageReport>;

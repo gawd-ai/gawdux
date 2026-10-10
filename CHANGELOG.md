@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.24.0 - optional usage-report presentation
+
+- `AiUsageReport` accepts optional summary, activity and row-value snippets so
+  hosts can retain their presentation and authorized disclosure without another
+  report renderer. Shared breakdown iteration and share calculations remain
+  authoritative; optional content, grid and row spacing preserve host geometry.
+- Without presentation hooks, the existing labels, numbers, daily activity,
+  notes, window intents and layout defaults are unchanged. An independent host
+  fixture uses the real public `gawdux/admin` entry point.
+
 ## 0.23.0 - notice-only persistent feedback
 
 - Persistent conditions may opt into notices without consuming floating overlay
