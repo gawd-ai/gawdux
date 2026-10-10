@@ -288,6 +288,28 @@ and `createPageCommandBarRegistry` are shared exports, not host-local copies.
 
 ## Development Workflow
 
+### Skills administration
+
+`AiSkillsPanel` from `gawdux/admin` takes one loaded `AiSkillsPanelModel` and
+one complete `AiSkillsPanelActions` adapter. It preserves the skill rail/detail
+layout, search, inline dependent-revoke confirmation, parameter working copy,
+captured revision, stale reload, optimistic knowledge connections and host-rendered
+preview. Blank required fields are setup hints, not additional rejection rules.
+
+The host supplies navigation/discard decisions, API calls, error classification,
+the authoritative grant result and the same preview renderer used by its runtime.
+Its settings/binding adapters own any focused refresh; a refresh must not turn an
+already successful mutation into a failed save. A same-selection refresh never
+silently replaces the working draft or its captured revision.
+
+Bind `settingsDirty` and `editorBusy` into the host's existing navigation guard.
+Navigation approval and route formatting stay in the host. An optional `history`
+snippet renders already-authorized host history, and `guideId` is host-supplied.
+Knowledge IDs retain their supplied string or number identity. Only explicitly
+live tools are called live; an unavailable tool may carry a host `statusLabel`.
+A null model renders no pretend capability. Hosts without skills/knowledge storage
+should hide the optional entry rather than fabricate an empty registry.
+
 A host that vendors gawdux as a local `file:` dependency resolves it either to `../<gawdux>/src/lib/...` through Vite dev aliases for HMR, or to `dist` for build/package verification.
 
 ```bash

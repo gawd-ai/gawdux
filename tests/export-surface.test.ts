@@ -413,8 +413,8 @@ describe('gawdux 0.5.0 export surface (opt-in silence mutation)', () => {
 	});
 });
 
-describe('gawdux 0.10.0 export surface (admin blocks)', () => {
-	it('adds the admin subpath and its two blocks', async () => {
+describe('admin export surface', () => {
+	it('exposes the supported administration blocks through the admin subpath', async () => {
 		expect(pkg.exports['./admin']).toEqual({
 			types: './dist/admin/index.d.ts',
 			svelte: './dist/admin/index.js',
@@ -423,9 +423,12 @@ describe('gawdux 0.10.0 export surface (admin blocks)', () => {
 		const admin = await import('../src/lib/admin/index');
 		expect(Object.keys(admin).sort()).toEqual(
 			[
+				'AiSkillsPanel',
 				'AiUsageBars',
 				'AiUsageReport',
 				'AuditHistoryTable',
+				'BotConfigAssignments',
+				'BotConfigContentFields',
 				'BotConfigFields',
 				'BotConfigView',
 				'BotContextCard',

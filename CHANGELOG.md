@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.21.0 - capability-driven Skills administration
+
+- Added `AiSkillsPanel` and its typed host model/action contracts to `gawdux/admin`.
+  The panel shares selection, drafts, captured revisions, stale reload, dependency
+  confirmation, binding rollback and preview presentation. Hosts retain routes,
+  authorization, persistence, history and preview policy. Knowledge identifiers
+  remain opaque strings or numbers; an absent model hides the capability.
+- The neutral host fixture consumes the packaged public entry point with uncast
+  string identifiers. Build the package before running its DOM contract tests.
+
 ## 0.20.0 - composable bot configuration fields
 
 - Added `BotConfigContentFields` and `BotConfigAssignments` (`gawdux/admin`)

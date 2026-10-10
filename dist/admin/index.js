@@ -9,6 +9,7 @@ export { default as BotConfigContentFields } from './BotConfigContentFields.svel
 export { default as BotConfigAssignments } from './BotConfigAssignments.svelte';
 export { default as AuditHistoryTable } from './AuditHistoryTable.svelte';
 export { default as AiUsageBars } from './AiUsageBars.svelte';
+export { default as AiSkillsPanel } from './AiSkillsPanel.svelte';
 export { default as AiUsageReport } from './AiUsageReport.svelte';
 export { default as BotRail, botInitials } from './BotRail.svelte';
 export { default as BotIdentityHeader } from './BotIdentityHeader.svelte';
