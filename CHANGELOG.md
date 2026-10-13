@@ -184,12 +184,11 @@
   shell and anything beside it, or let the shell be its host's only content,
   as every current consumer does.
 - The card no longer carries `max-w-6xl`. A consumer that lifted the cap by
-  that class must use the knob instead. SIMS's Document Control page does:
-  `.document-control-page :global(.max-w-6xl) { max-width: none; }`
-  (`src/routes/t/[tenant]/app/documents/control/+page.svelte`) matches
-  nothing after this release, and its three shells (TypesPanel, FoldersPanel,
-  WorkflowsPanel) go back to a centred 72rem card. Replace that rule with
-  `.document-control-page { --gawdux-panel-wide-max-width: none; }`, which
+  that class must use the knob instead. For example,
+  `.wide-panel-host :global(.max-w-6xl) { max-width: none; }` matches
+  nothing after this release, and its nested shells go back to a centred
+  72rem card. Replace that rule with
+  `.wide-panel-host { --gawdux-panel-wide-max-width: none; }`, which
   the shells' cards inherit.
 
 ## 0.16.0 - the account menu for every app shell; the command bar never keeps a dead page's buttons
