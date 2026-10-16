@@ -16,7 +16,7 @@ export type {
 	ModuleNav,
 	DomainModule
 } from './types/sidebar.types';
-export type { UserMenuItem, UserMenuProps } from './types/user-menu.types';
+export type { UserMenuItem, UserMenuProps, UserMenuPresentation } from './types/user-menu.types';
 
 // Utilities
 export {

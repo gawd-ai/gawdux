@@ -56,7 +56,8 @@
 		compactBelow = 768,
 		id = 'gawdux-user-menu',
 		open = $bindable(false),
-		onopenchange
+		onopenchange,
+		presentation
 	}: UserMenuProps = $props();
 
 	/** Grace before a pointer that left the card closes it; re-entering cancels. */
@@ -76,6 +77,23 @@
 	/** How the menu was opened: only a pointer-opened menu closes when the pointer leaves. */
 	let openedBy: 'pointer' | 'keyboard' = 'pointer';
 	let leaveTimer: ReturnType<typeof setTimeout> | undefined;
+
+	function rootAction(node: HTMLElement) {
+		root = node;
+		return { destroy() { if (root === node) root = undefined; } };
+	}
+	function triggerAction(node: HTMLButtonElement) {
+		trigger = node;
+		return { destroy() { if (trigger === node) trigger = undefined; } };
+	}
+	function bodyAction(node: HTMLElement) {
+		body = node;
+		return { destroy() { if (body === node) body = undefined; } };
+	}
+	function menuAction(node: HTMLElement) {
+		menu = node;
+		return { destroy() { if (menu === node) menu = undefined; } };
+	}
 
 	function deriveInitials(value: string): string {
 		const words = value.trim().split(/\s+/).filter(Boolean);
@@ -308,6 +326,17 @@
 	onDestroy(clearLeave);
 </script>
 
+{#if presentation}
+	{@render presentation({
+		open, pointerInput,
+		triggerId: `${id}-trigger`, bodyId: `${id}-body`, menuId: `${id}-menu`,
+		triggerLabel, controlsId: hasMenu ? `${id}-menu` : `${id}-body`,
+		rootAction, triggerAction, bodyAction, menuAction,
+		close, clearLeave, onTriggerClick, onTriggerKeydown,
+		onMenuKeydown, onMenuPointerMove, onMenuPointerLeave,
+		onPanelPointerLeave, onRootFocusOut
+	})}
+{:else}
 <div
 	class="gawdux-user-menu {compactClass}"
 	data-user-menu
@@ -488,6 +517,7 @@
 		</div>
 	</div>
 </div>
+{/if}
 
 <style>
 	/* ── Root: the spacer, as wide as the trigger's content ─────────────── */

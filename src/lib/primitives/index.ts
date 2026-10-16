@@ -23,6 +23,10 @@ export { default as CurrencyCell } from './CurrencyCell.svelte';
 export { default as DeferredLoadingIndicator } from './DeferredLoadingIndicator.svelte';
 export { DEFERRED_LOADING_DELAY_MS } from './DeferredLoadingIndicator.svelte';
 export { default as DiscardNavigationCommandSurface } from './DiscardNavigationCommandSurface.svelte';
+export type {
+	DiscardNavigationCommandPresentationProps,
+	DiscardNavigationCommandSurfaceProps
+} from './discard-navigation-command';
 export { default as DarkModeToggle } from './DarkModeToggle.svelte';
 export { default as DateCell } from './DateCell.svelte';
 export { default as DataTable } from './DataTable.svelte';

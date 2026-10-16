@@ -7,4 +7,4 @@ export type {
 	ModuleNav,
 	DomainModule
 } from './sidebar.types';
-export type { UserMenuItem, UserMenuProps } from './user-menu.types';
+export type { UserMenuItem, UserMenuProps, UserMenuPresentation } from './user-menu.types';

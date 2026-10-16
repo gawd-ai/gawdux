@@ -55,6 +55,27 @@ export type {
 } from './url-breadcrumb';
 
 export { slideFadeIn, slideFadeOut } from './transitions';
+export { createDisclosureController } from './disclosure';
+export type { DisclosurePorts, DisclosureController } from './disclosure';
+export { activateFocusScope } from './focus-scope';
+export type { FocusScopePorts } from './focus-scope';
+
+export { buildUtcDaySeries, sampleSeriesTicks } from './day-series';
+export type { UtcDaySeriesRow, UtcDaySeriesOptions } from './day-series';
+export { createSavedViewActions } from './saved-view-actions';
+export type { SavedViewActionRecord, SavedViewActionPorts } from './saved-view-actions';
+export {
+	calendarDateOf,
+	formatCalendarDate,
+	isValidTimeZone,
+	todayInZone,
+	formatDate,
+	formatRelativeDate,
+	formatAbsoluteDateTime,
+	formatAuditDateTime,
+	formatAuditDateTimeText
+} from './temporal';
+export type { AuditDateTimeParts } from './temporal';
 
 export { createActiveSubitemStylesheet, DEFAULT_PALETTE } from './active-subitem-stylesheet';
 export type {

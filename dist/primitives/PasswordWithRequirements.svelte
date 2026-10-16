@@ -96,9 +96,9 @@
 		<Label for={name} class={labelClass}>
 			{label}
 		</Label>
-		<div class="relative">
+		<div class="relative isolate">
 			{#if !compact}
-				<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+				<div class="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3">
 					<LockSolid class="h-5 w-5 text-gray-400 dark:text-gray-500" />
 				</div>
 			{/if}
@@ -115,7 +115,7 @@
 			/>
 			<button
 				type="button"
-				class="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-lg text-gray-500 hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-500 min-[1025px]:hidden dark:text-gray-400 dark:hover:text-white"
+				class="absolute inset-y-0 right-0 z-10 flex w-11 items-center justify-center rounded-r-lg text-gray-500 hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-500 min-[1025px]:hidden dark:text-gray-400 dark:hover:text-white"
 				aria-label={passwordVisible ? hidePasswordLabel : showPasswordLabel}
 				aria-controls={name}
 				aria-pressed={passwordVisible}
@@ -135,9 +135,9 @@
 			<Label for={confirmName} class={labelClass}>
 				{confirmLabel}
 			</Label>
-			<div class="relative">
+			<div class="relative isolate">
 				{#if !compact}
-					<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+					<div class="pointer-events-none absolute inset-y-0 left-0 z-10 flex items-center pl-3">
 						<LockSolid class="h-5 w-5 text-gray-400 dark:text-gray-500" />
 					</div>
 				{/if}
@@ -154,7 +154,7 @@
 				/>
 				<button
 					type="button"
-					class="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r-lg text-gray-500 hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-500 min-[1025px]:hidden dark:text-gray-400 dark:hover:text-white"
+					class="absolute inset-y-0 right-0 z-10 flex w-11 items-center justify-center rounded-r-lg text-gray-500 hover:text-gray-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-cyan-500 min-[1025px]:hidden dark:text-gray-400 dark:hover:text-white"
 					aria-label={confirmationVisible ? hideConfirmationLabel : showConfirmationLabel}
 					aria-controls={confirmName}
 					aria-pressed={confirmationVisible}

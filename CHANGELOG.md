@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.25.0 - reusable host lifecycle and presentation adapters
+
+- Shared disclosure and focus-scope controllers preserve outside/Escape behavior,
+  nested background custody, cleanup and focus restoration through explicit ports.
+  Account and discard surfaces support host presentation without copied lifecycle.
+- UTC day-series, explicit-zone date parts and ordered saved-view settlement are
+  public utilities. Host time zones, thresholds, credit conversions, scope and
+  transport remain explicit policy.
+- Usage bars accept optional formatters, legends, native titles and geometry
+  tokens while keeping existing defaults. Password adornments remain above input
+  backgrounds within their own stacking context.
+
 ## 0.24.0 - optional usage-report presentation
 
 - `AiUsageReport` accepts optional summary, activity and row-value snippets so

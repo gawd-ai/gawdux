@@ -6,6 +6,11 @@ export { applySessionFilters, initListState, listStateQuery, listStateValuesFrom
 export { createHistoryTab } from './history-tab.svelte';
 export { createBreadcrumbBuilder } from './url-breadcrumb';
 export { slideFadeIn, slideFadeOut } from './transitions';
+export { createDisclosureController } from './disclosure';
+export { activateFocusScope } from './focus-scope';
+export { buildUtcDaySeries, sampleSeriesTicks } from './day-series';
+export { createSavedViewActions } from './saved-view-actions';
+export { calendarDateOf, formatCalendarDate, isValidTimeZone, todayInZone, formatDate, formatRelativeDate, formatAbsoluteDateTime, formatAuditDateTime, formatAuditDateTimeText } from './temporal';
 export { createActiveSubitemStylesheet, DEFAULT_PALETTE } from './active-subitem-stylesheet';
 export { resolveActiveItemHref } from './resolve-active-nav';
 export { activateRowLink, rowLinkIntent } from './row-link';

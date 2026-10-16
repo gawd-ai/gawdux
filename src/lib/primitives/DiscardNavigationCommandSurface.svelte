@@ -3,20 +3,16 @@
 	import { Button } from 'flowbite-svelte';
 	import { ExclamationCircleOutline } from 'flowbite-svelte-icons';
 	import type { DiscardNavigationRequest } from '../utils/discard-navigation.svelte';
+	import type { DiscardNavigationCommandSurfaceProps } from './discard-navigation-command';
 
 	let {
 		request,
 		pending = $bindable(false),
 		anchorBottom = false,
+		presentation: Presentation,
 		oncancel,
 		oncomplete
-	}: {
-		request: DiscardNavigationRequest | null;
-		pending?: boolean;
-		anchorBottom?: boolean;
-		oncancel: (request: DiscardNavigationRequest) => void;
-		oncomplete: (request: DiscardNavigationRequest) => void;
-	} = $props();
+	}: DiscardNavigationCommandSurfaceProps = $props();
 	const componentId = $props.id();
 	const titleId = `${componentId}-title`;
 	const messageId = `${componentId}-message`;
@@ -36,7 +32,7 @@
 		restoreFocusTo =
 			current.focusOnCancel?.() ??
 			(document.activeElement instanceof HTMLElement ? document.activeElement : null);
-		void tick().then(() => {
+		if (!Presentation) void tick().then(() => {
 			const confirm = stripEl?.querySelector<HTMLButtonElement>('button[data-action-confirm]');
 			if (confirm && !confirm.disabled) confirm.focus();
 			else stripEl?.querySelector<HTMLElement>('button[data-action-cancel]')?.focus();
@@ -108,7 +104,7 @@
 	}
 
 	function onKeydown(event: KeyboardEvent) {
-		if (!request || pending || event.isComposing || event.key !== 'Escape') return;
+		if (Presentation || !request || pending || event.isComposing || event.key !== 'Escape') return;
 		event.preventDefault();
 		cancel();
 	}
@@ -117,6 +113,11 @@
 <svelte:window on:keydown={onKeydown} />
 
 {#if request}
+	{#if Presentation}
+		{#key request.id ?? request}
+			<Presentation {request} {pending} error={error ?? request.disabledMessage ?? null} onconfirm={() => void continueAfterDiscard()} oncancel={cancel} />
+		{/key}
+	{:else}
 	<section
 		bind:this={stripEl}
 		data-workflow-role="command-drawer"
@@ -172,6 +173,7 @@
 			</div>
 		</div>
 	</section>
+	{/if}
 {/if}
 
 <style>

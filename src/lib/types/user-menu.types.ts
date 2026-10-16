@@ -16,6 +16,13 @@ export interface UserMenuItem {
 }
 
 export interface UserMenuProps {
+	/**
+	 * Omit to retain the default view. An alternate view registers its root,
+	 * trigger, body and menu with the supplied actions and forwards their event
+	 * callbacks. Keep the body inert while closed; rows use role=menuitem and
+	 * tabindex=-1. Items/sign-out still describe whether a menu is available.
+	 */
+	presentation?: Snippet<[UserMenuPresentation]>;
 	/** The signed-in person's name: the trigger's first line. */
 	name: string;
 	/** The trigger's second line, shown open and closed; left out when it repeats `name`. */
@@ -75,4 +82,28 @@ export interface UserMenuProps {
 	 */
 	open?: boolean;
 	onopenchange?: (open: boolean) => void;
+}
+
+/** Optional host markup, using the same keyboard, pointer and focus lifecycle. */
+export interface UserMenuPresentation {
+	open: boolean;
+	pointerInput: boolean;
+	triggerId: string;
+	bodyId: string;
+	menuId: string;
+	triggerLabel: string;
+	controlsId: string;
+	rootAction: Action<HTMLElement>;
+	triggerAction: Action<HTMLButtonElement>;
+	bodyAction: Action<HTMLElement>;
+	menuAction: Action<HTMLElement>;
+	close: (focusTrigger?: boolean) => void;
+	clearLeave: () => void;
+	onTriggerClick: (event: MouseEvent) => void;
+	onTriggerKeydown: (event: KeyboardEvent) => void;
+	onMenuKeydown: (event: KeyboardEvent) => void;
+	onMenuPointerMove: (event: PointerEvent) => void;
+	onMenuPointerLeave: (event: PointerEvent) => void;
+	onPanelPointerLeave: (event: PointerEvent) => void;
+	onRootFocusOut: (event: FocusEvent) => void;
 }

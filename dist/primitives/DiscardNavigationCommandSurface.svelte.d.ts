@@ -1,11 +1,4 @@
-import type { DiscardNavigationRequest } from '../utils/discard-navigation.svelte';
-type $$ComponentProps = {
-    request: DiscardNavigationRequest | null;
-    pending?: boolean;
-    anchorBottom?: boolean;
-    oncancel: (request: DiscardNavigationRequest) => void;
-    oncomplete: (request: DiscardNavigationRequest) => void;
-};
-declare const DiscardNavigationCommandSurface: import("svelte").Component<$$ComponentProps, {}, "pending">;
+import type { DiscardNavigationCommandSurfaceProps } from './discard-navigation-command';
+declare const DiscardNavigationCommandSurface: import("svelte").Component<DiscardNavigationCommandSurfaceProps, {}, "pending">;
 type DiscardNavigationCommandSurface = ReturnType<typeof DiscardNavigationCommandSurface>;
 export default DiscardNavigationCommandSurface;
