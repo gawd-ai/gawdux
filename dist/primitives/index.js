@@ -1,5 +1,8 @@
 // gawdux/primitives — visually-opinionated low-level UI components
 // (design system layer; consumer apps own app shell + Tailwind config).
+export { default as ApprovalsLedger } from './ApprovalsLedger.svelte';
+export { default as ApprovalsLedgerSignatures } from './ApprovalsLedgerSignatures.svelte';
+export { ledgerRowText } from './approvals-ledger';
 export { default as BreadcrumbTrail } from './BreadcrumbTrail.svelte';
 export { default as CardContainer } from './CardContainer.svelte';
 export { default as ClearableInput } from './ClearableInput.svelte';
@@ -45,6 +48,7 @@ export { default as PageCommandBarConfirm } from './PageCommandBarConfirm.svelte
 export { default as PageCommandBarRight } from './PageCommandBarRight.svelte';
 export { default as PageFeedback } from './PageFeedback.svelte';
 export { default as SurfaceFeedback } from './SurfaceFeedback.svelte';
+export { default as SurfaceFeedbackOutlet } from './SurfaceFeedbackOutlet.svelte';
 export { SURFACE_FEEDBACK_CONTEXT } from './surface-feedback-context';
 export { default as PageTabs } from './PageTabs.svelte';
 export { default as RailRowButton } from './RailRowButton.svelte';

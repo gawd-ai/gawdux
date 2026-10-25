@@ -4,8 +4,12 @@ import { dirname, join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { UserMenu } from 'gawdux';
 import {
+	ApprovalsLedger,
+	ApprovalsLedgerSignatures,
 	DiscardNavigationCommandSurface,
-	ConfirmationCommandSurface
+	ConfirmationCommandSurface,
+	SurfaceFeedbackOutlet,
+	ledgerRowText
 } from 'gawdux/primitives';
 import { publicUtilitiesFixture } from './fixtures/public-convergence';
 
@@ -27,6 +31,10 @@ describe('compiled public convergence package', () => {
 		expect(UserMenu).toBeDefined();
 		expect(DiscardNavigationCommandSurface).toBeDefined();
 		expect(ConfirmationCommandSurface).toBeDefined();
+		expect(SurfaceFeedbackOutlet).toBeDefined();
+		expect(ApprovalsLedger).toBeDefined();
+		expect(ApprovalsLedgerSignatures).toBeDefined();
+		expect(typeof ledgerRowText).toBe('function');
 	});
 
 	it('compiles strict uncast utility and presentation consumers against emitted declarations', () => {

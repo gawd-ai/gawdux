@@ -8,8 +8,13 @@
 
 	let {
 		busy = false,
+		variant = 'attached',
 		extraAttr = undefined
-	}: { busy?: boolean; extraAttr?: string | undefined } = $props();
+	}: {
+		busy?: boolean;
+		variant?: 'attached' | 'card';
+		extraAttr?: string | undefined;
+	} = $props();
 
 	// Starts closed and is opened through `setOpen`, never seeded from a prop.
 	// Seeding `$state` from a prop earns a `state_referenced_locally` warning,
@@ -30,6 +35,7 @@
 <CommandDrawer
 	open={isOpen}
 	{busy}
+	{variant}
 	onclose={() => closeCount++}
 	{...extraAttr ? { 'data-probe': extraAttr } : {}}
 >

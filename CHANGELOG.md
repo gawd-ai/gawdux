@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.26.0 - decisions fused with the bar, a feedback outlet, and an approvals ledger
+
+- `CommandDrawer`'s `attached` variant (the default) renders the house
+  `.page-command-drawer` from `tokens.css` instead of its own Tailwind chrome
+  and upward shadow, so the bar loses its top edge and fuses with every
+  attached drawer the way it does with `PageCommandBarConfirm`. The drawer is
+  centred; a form body sets `text-left` on itself, and titles, messages and
+  errors use `.page-command-drawer-title`, `-message` and `-error`. The `card`
+  variant is unchanged. Consumers whose attached bodies relied on left
+  alignment or on the old background should check them.
+- `SurfaceFeedbackOutlet` (`gawdux/primitives`) renders an
+  `EditablePageScaffold`'s feedback strip inside a host-built panel that is not
+  `PageTabs`. It claims `SURFACE_FEEDBACK_CONTEXT` as `PageTabs` does, renders
+  `SurfaceFeedback` where it is mounted, and releases the claim while its
+  `active` prop (default true) is false. The first claim wins; a second outlet
+  renders nothing, as does an outlet outside a scaffold.
+- `ApprovalsLedger` and `ApprovalsLedgerSignatures` (`gawdux/primitives`), with
+  `ledgerRowText` and the types `LedgerView`, `LedgerRow`, `LedgerRowState` and
+  `LedgerSignature`. Data in, words out: the host composes each row's words,
+  the integrity sentence and the "approved with" link, and pairs rows with
+  signatures; the ledger draws one line per role and a disclosure of every
+  signature, each moment through `formatAuditDateTimeText` at the `timeZone`
+  it is given, named. Rows carry `data-ledger-row`, `data-step` and
+  `data-state`; the table's `integrity={false}` drops its Integrity column.
+- `@types/node` is a development dependency, so `npm run check` type-checks the
+  public package test that drives the compiler and resolver.
+
 ## 0.25.0 - reusable host lifecycle and presentation adapters
 
 - Shared disclosure and focus-scope controllers preserve outside/Escape behavior,

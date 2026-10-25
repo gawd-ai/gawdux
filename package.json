@@ -1,6 +1,6 @@
 {
 	"name": "gawdux",
-	"version": "0.25.0",
+	"version": "0.26.0",
 	"description": "Shared UI component library for Svelte applications",
 	"type": "module",
 	"svelte": "./dist/index.js",
@@ -77,6 +77,7 @@
 		"@tailwindcss/oxide": "4.0.2",
 		"@tailwindcss/postcss": "4.0.2",
 		"@testing-library/svelte": "^5.2.4",
+		"@types/node": "^22.20.5",
 		"flowbite-svelte": "^0.47.0",
 		"flowbite-svelte-icons": "^2.0.0",
 		"jsdom": "^25.0.0",

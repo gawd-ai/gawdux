@@ -1,0 +1,224 @@
+import { afterEach, describe, expect, it } from 'vitest';
+import { flushSync, mount, unmount } from 'svelte';
+import {
+	ApprovalsLedger,
+	ApprovalsLedgerSignatures,
+	ledgerRowText,
+	type LedgerRow,
+	type LedgerSignature,
+	type LedgerView
+} from '../src/lib/primitives';
+
+let app: object | null = null;
+
+afterEach(() => {
+	if (app) unmount(app);
+	app = null;
+	document.body.innerHTML = '';
+});
+
+// Signed at 21:15 in Toronto on 1 October: 01:15 UTC on the 2nd.
+const signature: LedgerSignature = {
+	id: 1,
+	meaning: 'Reviewed',
+	signerName: 'Dana Owner',
+	signerEmail: 'dana@example.test',
+	signedAt: '2026-10-02T01:15:00.000Z',
+	reason: null,
+	intact: true,
+	standing: true
+};
+
+function row(overrides: Partial<LedgerRow>): LedgerRow {
+	return {
+		stepCode: 'supplier',
+		role: 'Supplier',
+		state: 'signed',
+		signer: { name: 'Dana Owner', email: 'dana@example.test' },
+		meaning: 'Reviewed',
+		signedAt: '2026-10-02T01:15:00.000Z',
+		reason: null,
+		integrity: 'intact',
+		alsoSigned: [],
+		note: null,
+		...overrides
+	};
+}
+
+const ledger: LedgerView = {
+	title: 'Approvals of version 1.0',
+	rows: [
+		row({ alsoSigned: ['Quality'] }),
+		row({
+			stepCode: 'quality',
+			role: 'Quality',
+			meaning: 'Approved',
+			alsoSigned: ['Supplier'],
+			integrity: 'changed',
+			note: 'Content changed since signature'
+		}),
+		row({
+			stepCode: 'owner',
+			role: 'Owner',
+			state: 'awaiting',
+			signer: null,
+			meaning: null,
+			signedAt: null,
+			integrity: null,
+			note: 'Awaiting System Owner'
+		})
+	],
+	verified: false,
+	integritySentence: "Not intact: the approving signature's record does not bind this text.",
+	approvedWith: { title: 'Release package', href: '/documents/12' },
+	signatures: [signature, { ...signature, id: 2, meaning: 'Withdrawn', standing: false }]
+};
+
+function renderLedger(view: LedgerView = ledger, timeZone = 'America/Toronto') {
+	app = mount(ApprovalsLedger, { target: document.body, props: { ledger: view, timeZone } });
+	flushSync();
+}
+
+function renderTable(props: Record<string, unknown>) {
+	app = mount(ApprovalsLedgerSignatures, {
+		target: document.body,
+		props: { signatures: [signature], timeZone: 'UTC', ...props } as never
+	});
+	flushSync();
+	return document.body.textContent?.replace(/\s+/g, ' ') ?? '';
+}
+
+function again() {
+	unmount(app!);
+	app = null;
+	document.body.innerHTML = '';
+}
+
+describe('ApprovalsLedger', () => {
+	it('marks each row with its step code and state', () => {
+		renderLedger();
+		const rows = [...document.querySelectorAll('[data-ledger-row]')];
+		expect(rows.map((el) => el.getAttribute('data-step'))).toEqual([
+			'supplier',
+			'quality',
+			'owner'
+		]);
+		expect(rows.map((el) => el.getAttribute('data-state'))).toEqual([
+			'signed',
+			'signed',
+			'awaiting'
+		]);
+	});
+
+	it('reads one line per role at the site, zone named, with the marker and integrity words', () => {
+		renderLedger();
+		const lines = [...document.querySelectorAll('[data-ledger-row]')].map((el) =>
+			el.textContent?.replace(/\s+/g, ' ').trim()
+		);
+		expect(lines).toEqual([
+			'Supplier · Dana Owner (dana@example.test) · Reviewed · 2026-10-01 21:15:00 EDT · Also signed Quality',
+			'Quality · Dana Owner (dana@example.test) · Approved · 2026-10-01 21:15:00 EDT · Also signed Supplier · Content changed since signature',
+			'Owner · Awaiting System Owner'
+		]);
+	});
+
+	it('states the integrity sentence, the set it was approved with, and every signature', () => {
+		renderLedger();
+		const text = document.body.textContent?.replace(/\s+/g, ' ') ?? '';
+		expect(document.querySelector('[data-ledger-integrity]')?.textContent?.trim()).toBe(
+			"Not intact: the approving signature's record does not bind this text."
+		);
+		expect(text).toContain('Approved with Release package');
+		expect(document.querySelector('a')?.getAttribute('href')).toBe('/documents/12');
+		expect(document.querySelector('summary')?.textContent?.trim()).toBe('All signatures (2)');
+		expect(document.querySelectorAll('[data-signatures] tbody tr')).toHaveLength(2);
+	});
+
+	it('leaves out what a ledger does not carry', () => {
+		renderLedger({ ...ledger, integritySentence: null, approvedWith: null, signatures: [] });
+		expect(document.querySelector('[data-ledger-integrity]')).toBeNull();
+		expect(document.querySelector('summary')).toBeNull();
+		expect(document.body.textContent).not.toContain('Approved with');
+	});
+});
+
+describe('ledgerRowText', () => {
+	const stamp = (iso: string) => `at ${iso}`;
+
+	it('reads a signed row from its composed words, and an unsigned row from its note', () => {
+		expect(ledgerRowText(row({ signer: { name: 'Dana Owner', email: '' } }), stamp)).toBe(
+			'Supplier · Dana Owner · Reviewed · at 2026-10-02T01:15:00.000Z'
+		);
+		expect(
+			ledgerRowText(row({ state: 'sent', signer: null, note: 'Sent to the client' }), stamp)
+		).toBe('Supplier · Sent to the client');
+		expect(ledgerRowText(row({ state: 'not_required', signer: null, note: null }), stamp)).toBe(
+			'Supplier'
+		);
+	});
+});
+
+describe('ApprovalsLedgerSignatures', () => {
+	it('states integrity only where the content was compared', () => {
+		expect(renderTable({})).toContain('Intact');
+		again();
+		const text = renderTable({ integrity: false });
+		expect(text).not.toContain('Integrity');
+		expect(text).not.toContain('Intact');
+		expect(text).toContain('Dana Owner');
+	});
+
+	it('reads a signature it cannot check as Not verified, never Intact', () => {
+		const text = renderTable({ signatures: [{ ...signature, intact: null }] });
+		expect(text).toContain('Not verified');
+		expect(text).not.toContain('Intact');
+		expect(text).not.toContain('Content changed');
+		again();
+		expect(renderTable({ signatures: [{ ...signature, intact: false }] })).toContain(
+			'Content changed since signature'
+		);
+	});
+
+	it('reads a withdrawn signature as Withdrawn after the record changed, never as broken', () => {
+		// An approver withdraws, then the record changes, so its content no
+		// longer equals what either of that approver's rows bound.
+		const approval = { ...signature, id: 1, meaning: 'Approved' as const };
+		const withdrawal = { ...signature, id: 2, meaning: 'Withdrawn' as const };
+		const cell = (n: number) =>
+			document.querySelectorAll('tbody tr')[n - 1]!.querySelectorAll('td')[4]!.textContent?.trim();
+		renderTable({
+			signatures: [
+				{ ...approval, intact: false, standing: false },
+				{ ...withdrawal, intact: false, standing: false }
+			]
+		});
+		expect(cell(1)).toBe('Withdrawn');
+		// The withdrawal states the change it made way for, without the alarm.
+		expect(cell(2)).toBe('Content changed since signature');
+		expect(document.querySelectorAll('.text-red-600')).toHaveLength(0);
+		again();
+		// A standing signature whose content changed keeps the alarm.
+		renderTable({ signatures: [{ ...approval, intact: false, standing: true }] });
+		expect(cell(1)).toBe('Content changed since signature');
+		expect(document.querySelectorAll('.text-red-600')).toHaveLength(1);
+		again();
+		// A withdrawn signature that cannot be checked reads Withdrawn too.
+		renderTable({ signatures: [{ ...approval, intact: null, standing: false }] });
+		expect(cell(1)).toBe('Withdrawn');
+	});
+
+	it('shows each moment at the zone given, named', () => {
+		expect(renderTable({})).toContain('2026-10-02 01:15:00 UTC');
+		again();
+		expect(renderTable({ timeZone: 'America/Toronto' })).toContain('2026-10-01 21:15:00 EDT');
+	});
+
+	it('marks each row with its meaning for the cases that read it', () => {
+		renderTable({ signatures: [signature, { ...signature, id: 2, meaning: 'Approved' }] });
+		expect(
+			[...document.querySelectorAll('[data-signatures] [data-signature-meaning]')].map((el) =>
+				el.getAttribute('data-signature-meaning')
+			)
+		).toEqual(['Reviewed', 'Approved']);
+	});
+});

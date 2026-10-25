@@ -60,11 +60,23 @@ describe('CommandDrawer', () => {
 		expect(surface()).not.toBeNull();
 	});
 
-	it('is attached by default and a card on request — the two shipped looks', () => {
+	it('is attached by default, rendered as the house page-command-drawer the bar fuses with', () => {
 		mountHarness({ open: true });
-		expect(surface()?.className).toContain('command-drawer--attached');
-		expect(surface()?.className).toContain('border-t');
-		expect(surface()?.className).not.toContain('shadow-sm');
+		const classes = surface()!.classList;
+		expect(classes.contains('command-drawer--attached')).toBe(true);
+		expect(classes.contains('page-command-drawer')).toBe(true);
+		// None of its own chrome: the house class carries background, border and padding.
+		expect(classes.contains('border-t')).toBe(false);
+		expect(classes.contains('bg-gray-50/95')).toBe(false);
+		expect(classes.contains('shadow-sm')).toBe(false);
+	});
+
+	it('keeps the card its own rounded panel, not the house drawer', () => {
+		mountHarness({ open: true, variant: 'card' });
+		const classes = surface()!.classList;
+		expect(classes.contains('command-drawer--card')).toBe(true);
+		expect(classes.contains('page-command-drawer')).toBe(false);
+		expect(classes.contains('shadow-sm')).toBe(true);
 	});
 
 	it('passes arbitrary attributes through to the section', () => {
