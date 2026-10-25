@@ -72,6 +72,31 @@ describe('SortableHeadCell: the header shape and aria-sort (column icons)', () =
 		expect(idle.querySelector('.table-head-icon')!.getAttribute('class')).toBe(iconBefore);
 	});
 
+	it('wraps a long label only when asked, as HeadCell does', () => {
+		const one = render(SortableHeadCell, { props: { ...base, label: 'Operator restarts', align: 'right' } });
+		const nowrap = one.container.querySelector('th')!;
+		expect(nowrap.className).toContain('whitespace-nowrap');
+		expect(nowrap.className).not.toContain('whitespace-normal');
+		cleanup();
+		const two = render(SortableHeadCell, {
+			props: { ...base, label: 'Operator restarts', align: 'right', wrap: true, className: 'w-24' }
+		});
+		const th = two.container.querySelector('th')!;
+		expect(th.className).toContain('whitespace-normal');
+		expect(th.className).not.toContain('whitespace-nowrap');
+		for (const kept of ['interactive-hover', 'group', 'w-24', 'text-right']) {
+			expect(th.className.split(/\s+/), kept).toContain(kept);
+		}
+		// Only the th changes: the label, the arrow and their row stay as they were.
+		expect((th.querySelector('th > div') as HTMLElement).className).toBe('flex items-center gap-2 justify-end');
+		expect(th.querySelector('th > div > span')?.textContent).toBe('Operator restarts');
+		cleanup();
+		// `wrap={false}` is the default: the markup of 0.17.0.
+		const off = render(SortableHeadCell, { props: { ...base, wrap: false } });
+		const then = render(SortableHeadCell0170, { props: base });
+		expect(markup(off.container.querySelector('th')!)).toBe(markup(then.container.querySelector('th')!));
+	});
+
 	it('sorts on a click anywhere in the cell, the icon included', async () => {
 		const onSort = vi.fn();
 		const { container } = render(SortableHeadCell, { props: { ...base, onSort, icon: ClockOutline } });

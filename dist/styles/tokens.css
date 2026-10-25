@@ -854,6 +854,21 @@ main:has(.page-command-drawer) .page-command-bar,
 .dark .page-command-drawer-error {
   color: rgb(252 165 165);
 }
+@media (min-width: 1025px) {
+  .page-command-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+  }
+  .page-command-bar > .cmd-bar-left,
+	.page-command-bar > .cmd-bar-right {
+    flex: 1 1 0;
+    min-width: max-content;
+  }
+  .page-command-bar > .cmd-bar-center {
+    flex: 0 1 auto;
+  }
+}
 @media (max-width: 1024px) {
   .page-command-bar {
     grid-template-columns: minmax(0, 1fr);

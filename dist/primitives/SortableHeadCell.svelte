@@ -16,6 +16,8 @@
 	export let icon: Component | undefined = undefined;
 	/** Aligns the label and arrow with the column's cells. Left by default. */
 	export let align: 'left' | 'center' | 'right' = 'left';
+	/** Lets the label wrap onto a second line; one line by default. */
+	export let wrap: boolean = false;
 
 	$: isActive = sortField === field;
 	$: sortIcon = isActive
@@ -32,7 +34,7 @@
 </script>
 
 <TableHeadCell
-	class={`interactive-hover whitespace-nowrap group ${className}${alignCellClass}`}
+	class={`interactive-hover ${wrap ? 'whitespace-normal' : 'whitespace-nowrap'} group ${className}${alignCellClass}`}
 	aria-sort={ariaSort}
 	on:click={() => onSort(field)}
 >

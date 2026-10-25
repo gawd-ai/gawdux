@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.26.1 - a command bar that wraps instead of clipping; sortable headers that wrap
+
+### Fixed
+
+- `.page-command-bar` above 1024px of viewport is a wrapping flex row instead
+  of the `1fr auto 1fr` grid. The grid let the left zone's track shrink to
+  nothing, so in a narrow pane (a 774px bar beside an open side panel) the
+  left zone's state words clipped to a single letter and an ellipsis whenever
+  the center's actions took most of the width. Now:
+  - A bar whose left and right zones each fit their equal share of the free
+    space draws exactly the row it drew before: same height, center at the
+    middle, every zone and control at the same place.
+  - A side zone never shrinks below its content (`min-width: max-content`).
+    When its words outgrow their share but the three zones still fit on one
+    line, the center moves along the row, off the middle, and nothing clips.
+    A right zone whose text used to wrap inside its track now keeps it on
+    one line.
+  - When the three cannot share one line, the row wraps (`row-gap` 0.5rem)
+    and the bar grows by a line: a center that does not fit starts the next
+    line at its left edge; a right zone that does not fit fills its own line
+    and keeps its content at the right.
+  - A side zone whose content is wider than the whole bar overflows the bar's
+    edge rather than ending in an ellipsis.
+  - At 1024px and below the stacked grid is unchanged, and an attached
+    `.page-command-drawer` still fuses with the bar.
+
+### Added
+
+- `SortableHeadCell` takes `wrap`, as `HeadCell` does: `whitespace-normal`
+  instead of `whitespace-nowrap` on the `th`, so a long label takes a second
+  line. False by default, which renders the markup it rendered before.
+
 ## 0.26.0 - decisions fused with the bar, a feedback outlet, and an approvals ledger
 
 - `CommandDrawer`'s `attached` variant (the default) renders the house

@@ -23,6 +23,7 @@ declare const SortableHeadCell: $$__sveltets_2_IsomorphicComponent<{
             shape (HeadLabel), aria-hidden, sized by the head-icon knobs. It never
             shows the sort; the arrow and aria-sort do. */ icon?: Component | undefined;
     /** Aligns the label and arrow with the column's cells. Left by default. */ align?: "left" | "center" | "right";
+    /** Lets the label wrap onto a second line; one line by default. */ wrap?: boolean;
 }, {
     [evt: string]: CustomEvent<any>;
 }, {}, {}, string>;
