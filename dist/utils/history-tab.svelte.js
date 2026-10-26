@@ -1,5 +1,17 @@
 import { writable, get } from 'svelte/store';
-export function createHistoryTab(fetchFn) {
+const LOAD_FAILED = 'The history could not be loaded.';
+function failureText(error, options) {
+    if (!options.errorMessage)
+        return LOAD_FAILED;
+    try {
+        const words = options.errorMessage(error, LOAD_FAILED);
+        return typeof words === 'string' && words.trim() ? words : LOAD_FAILED;
+    }
+    catch {
+        return LOAD_FAILED;
+    }
+}
+export function createHistoryTab(fetchFn, options = {}) {
     const store = writable({
         entries: undefined,
         loading: false,
@@ -32,11 +44,11 @@ export function createHistoryTab(fetchFn) {
                 const entries = await fetchFn(id);
                 patch({ entries, loading: false });
             }
-            catch {
+            catch (error) {
                 // Entries stay as they were: undefined on a first load (so the tab
                 // shows the failure alone, not an empty history), the previous
                 // list on a refresh.
-                patch({ error: 'The history could not be loaded.', loading: false });
+                patch({ error: failureText(error, options), loading: false });
             }
         }
     };

@@ -15,7 +15,35 @@ export interface HistoryTabApi<E> extends Readable<HistoryTabSnapshot<E>> {
 	load(id: string | number | null | undefined, canView: boolean): Promise<void>;
 }
 
-export function createHistoryTab<E>(fetchFn: HistoryFetcher<E>): HistoryTabApi<E> {
+export interface HistoryTabOptions {
+	/**
+	 * The host's words for a failed load: the same `(error, fallback)` port the
+	 * admin panels take as `errorMessage`. It receives the fetcher's rejection
+	 * exactly as thrown, so a kind and a request reference the host's error
+	 * carries reach it, and the tab's default sentence, so the host can lead
+	 * with it and add its troubleshooting handle. What it returns is `error`.
+	 * Blank words, or a formatter that throws, leave the default sentence: a
+	 * failed load never reads as no failure, and the tab never stays loading.
+	 */
+	errorMessage?: (error: unknown, fallback: string) => string;
+}
+
+const LOAD_FAILED = 'The history could not be loaded.';
+
+function failureText(error: unknown, options: HistoryTabOptions): string {
+	if (!options.errorMessage) return LOAD_FAILED;
+	try {
+		const words = options.errorMessage(error, LOAD_FAILED);
+		return typeof words === 'string' && words.trim() ? words : LOAD_FAILED;
+	} catch {
+		return LOAD_FAILED;
+	}
+}
+
+export function createHistoryTab<E>(
+	fetchFn: HistoryFetcher<E>,
+	options: HistoryTabOptions = {}
+): HistoryTabApi<E> {
 	const store = writable<HistoryTabSnapshot<E>>({
 		entries: undefined,
 		loading: false,
@@ -50,11 +78,11 @@ export function createHistoryTab<E>(fetchFn: HistoryFetcher<E>): HistoryTabApi<E
 			try {
 				const entries = await fetchFn(id);
 				patch({ entries, loading: false });
-			} catch {
+			} catch (error) {
 				// Entries stay as they were: undefined on a first load (so the tab
 				// shows the failure alone, not an empty history), the previous
 				// list on a refresh.
-				patch({ error: 'The history could not be loaded.', loading: false });
+				patch({ error: failureText(error, options), loading: false });
 			}
 		}
 	};

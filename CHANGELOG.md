@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.26.2 - the host words a failed history load
+
+### Added
+
+- `createHistoryTab` takes an optional second argument, `HistoryTabOptions`
+  (exported from `gawdux/utils`), with `errorMessage(error, fallback)`: the
+  same port the admin panels take. It receives the fetcher's rejection exactly
+  as thrown, so a kind and a request reference the host's error carries reach
+  it, and the default sentence ("The history could not be loaded."), and what
+  it returns becomes `error`. A host can now lead with the calm sentence and
+  follow it with its troubleshooting handle instead of showing a fixed line
+  nobody can trace.
+  - Blank words, or a formatter that throws, leave the default sentence: a
+    failed load never reads as no failure, and the tab never stays loading.
+  - Entries keep their rules: undefined after a failed first load, the last
+    good list after a failed refresh of the same record.
+  - A host that passes nothing sees the sentence it saw before.
+
 ## 0.26.1 - a command bar that wraps instead of clipping; sortable headers that wrap
 
 ### Fixed

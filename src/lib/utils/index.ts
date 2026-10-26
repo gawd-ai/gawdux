@@ -45,7 +45,12 @@ export type {
 } from './list-state';
 
 export { createHistoryTab } from './history-tab.svelte';
-export type { HistoryFetcher, HistoryTabSnapshot, HistoryTabApi } from './history-tab.svelte';
+export type {
+	HistoryFetcher,
+	HistoryTabSnapshot,
+	HistoryTabApi,
+	HistoryTabOptions
+} from './history-tab.svelte';
 
 export { createBreadcrumbBuilder } from './url-breadcrumb';
 export type {
