@@ -1,5 +1,87 @@
 # Changelog
 
+## 0.26.4 - a breadcrumb trail that folds its middle instead of clipping
+
+### Added
+
+- `Breadcrumbs` (`gawdux/primitives`): an app header's trail on one line that
+  never wraps and never clips a crumb. It takes `items`
+  (`BreadcrumbCrumb[]`, the last is the current page), `trailing` (a snippet
+  beside the current page: a status chip), `label` (the landmark's name,
+  "Breadcrumb"), `moreLabel` (the `…` button's name and tooltip, "Show the
+  hidden levels") and `className`.
+  - Every crumb shows in full while the trail fits. When it does not, the
+    trail gives way in this order, each step only when the one before is not
+    enough:
+    1. the crumbs between the first and the current page fold into one `…`
+       button, from the inside out: the crumb nearest the middle first, then
+       its neighbours outward, the root side first on a tie, so the folded
+       crumbs are always one run and the current page's parent folds last;
+    2. the first crumb shows as its icon alone (when it has one), still a
+       link, its name in a tooltip and for a screen reader;
+    3. the current page ellipsizes, the very last resort, its full name in a
+       tooltip.
+  - `trailing` never gives way, and the trail spaces it from the page's words
+    (0.5rem).
+  - The `…` button takes the separator of the first crumb it folds and opens a
+    small menu under it, not a dialog, listing in order every level the trail
+    does not name: the first crumb when it shows as its icon, the folded
+    crumbs, the current page when it is cut (`aria-current="page"`). A level
+    with an `href` is a link; one without is a row of words the arrows pass
+    over. The menu is the house dropdown: UserMenu's surface, border, shadow
+    and 32px rows, one highlighted row, the ring for the keyboard only. It is
+    `position: fixed` under the button and follows it on a scroll or a
+    resize, so a clipping box around the trail never cuts it.
+  - Keyboard: the WAI-ARIA menu button pattern. Enter, Space or ArrowDown
+    opens on the first link, ArrowUp on the last; the arrows wrap, Home and
+    End jump, Escape closes and returns the focus to the button, Tab closes
+    and moves on. A press outside, the focus leaving the trail, a chosen row
+    and a new trail close it.
+  - Measuring: a hidden copy of the trail is measured once per trail and
+    again when its size changes (a web font arriving). A `ResizeObserver` on
+    the trail's box re-plans on every resize, a sidebar or a dock opening,
+    from those widths alone: a resize reads no layout. Until it is measured
+    (a server render, no `ResizeObserver`) the trail shows whole. The root
+    grows into its row (`flex: 1 1 0%; min-width: 0`), so its width never
+    depends on what it shows.
+  - The crumbs keep the token classes (`.breadcrumb-title`,
+    `.breadcrumb-section-icon`, `.breadcrumb-chevron`, `.breadcrumb-label`)
+    and look as they did.
+
+### Changed
+
+- `BreadcrumbTrail` renders `Breadcrumbs`: a consumer written with slots gets
+  the folding trail and its menu, the `afterLast` slot riding as `trailing`.
+  Its props (`items`, `className`, `h-12` by default) are unchanged; new code
+  uses `Breadcrumbs`.
+  - The trail no longer renders flowbite-svelte's `Breadcrumb` and
+    `BreadcrumbItem`. The first crumb's icon sits inside its link, a
+    separator carries `aria-hidden="true"`, a later crumb without an icon is
+    separated by a chevron instead of nothing, and the `afterLast` content is
+    centred on the crumb instead of lifted by `-translate-y-[3px]`.
+  - Host rules that reached into the old trail (`> ol > li:last-child`,
+    min-width floors on the crumbs, `flex-shrink` ratios, a `display: none`
+    on the crumbs on the way, an ellipsis on `.breadcrumb-title`) fight the
+    plan and should go: the trail owns its one line.
+
+### Migration
+
+- `<BreadcrumbTrail {items} className="…">` with
+  `<svelte:fragment slot="afterLast">` becomes
+  `<Breadcrumbs {items} className="…" trailing={…}>`, the chip in a snippet.
+  Drop a left margin on the chip and any `overflow: hidden` on the trail's
+  box or its wrapper.
+
+### Known limits
+
+- A box narrower than the first crumb's icon, the `…` button and the trailing
+  chip together cuts the chip at the box's edge (the trail clips at its box,
+  `overflow-x: clip`, rather than running under the controls beside it).
+- An ellipsized current page can leave up to a character's width before the
+  chip, where the ellipsis replaced a whole character.
+- The menu opens below the button, aligned to its left edge; it does not flip
+  above it near the bottom of the viewport.
+
 ## 0.26.3 - a command bar whose actions centre on their own line
 
 ### Fixed

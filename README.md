@@ -41,7 +41,7 @@ Supported package subpaths:
 ## What's Inside
 
 - **components**: `AppSidebar`, `SidebarDropdownGroup`, `SidebarFlyout`: the collapsible app navigation shell; `UserMenu`: the top bar's account menu.
-- **primitives**: list and page building blocks: `ListSurface`, `ListQueryBar`, `ListPaginationNav`, `FilterBar`/`FilterPillRow`, `SavedViewsRail`, `MasterDetailShell`, `ListPageScaffold`/`EditablePageScaffold`, `PageCommandBar`, `PageTabs`, `FormField`, `ReadonlyField`, `CardContainer`, and more.
+- **primitives**: list and page building blocks: `Breadcrumbs` (the header's trail on one line, folding its middle into a menu), `ListSurface`, `ListQueryBar`, `ListPaginationNav`, `FilterBar`/`FilterPillRow`, `SavedViewsRail`, `MasterDetailShell`, `ListPageScaffold`/`EditablePageScaffold`, `PageCommandBar`, `PageTabs`, `FormField`, `ReadonlyField`, `CardContainer`, and more.
 - **detail and table primitives**: `StatTile`/`StatTileStrip` (a detail overview's KPI tiles: label, value, meta, icon, a state tone, a go-to icon drill-down; the strip wraps and never clips), `SectionLink` (the go-to-section arrow, no words, at the top right of a card header or tile; `CardContainer` takes it as `link`), `IconButton` (an icon action named by its tooltip; `danger` turns red only on hover), `DataTable` (a `TableContainer` with column definitions, `SortableHeadCell` headers, cells from a snippet and the house empty row), `IconLabel` (an icon and a word, the shape of a cue), `StatusBadge` (a coloured word, optionally with an icon), `TableContainer`, `SortableHeadCell`, `HeadCell` (the labelled, non-sortable header of a hand-built table, with an optional column icon), `EmptyStateRow`, `CollectionEmptyState`.
 - **alert-ops**: `AlertOpsConsole`, the Alert Operations surface (alert groups, detail, silences), transport-agnostic. Its tabs carry icons; its denied and unavailable states are the house `CollectionEmptyState` on the page surface, and with `healthBar={false}` the host's bar carries status and Refresh, so the unavailable state offers no Retry of its own.
 - **admin** (`gawdux/admin`): tenant-administration blocks, presentation only (the host loads, authorizes and performs every change): `MemberAccessCard`, `SecurityActivityList`, `AuditHistoryTable`, `RoleMembersCard` (who holds a Role: a quiet trash icon raises the removal for the host to confirm, a picker adds), and the AI + Bots blocks: `AiUsageReport` (totals as tiles, `AiUsageBars` per day, one share-bar card per breakdown; turns and tokens, never money), `BotRail` (bots with avatar, role and one state, for every tab that picks a bot first), `BotIdentityHeader`, `BotConfigView` (a config read, the other half of `BotConfigFields`' edit), `BotContextCard` (the composed block a bot reads, by parts), `BotToolAccess`.
@@ -249,6 +249,66 @@ rows, sign-out and the product's version.
   `--gawdux-avatar-text`, `--gawdux-text-danger`, ...), never Tailwind
   utilities, so it renders styled even where the host's Tailwind does not scan
   this package.
+
+## Breadcrumbs
+
+`Breadcrumbs` (`gawdux/primitives`) is an app header's trail: one line that
+never wraps and never clips a crumb.
+
+```svelte
+<script lang="ts">
+  import { Breadcrumbs, StatusBadge } from 'gawdux/primitives';
+  import type { BreadcrumbCrumb } from 'gawdux/utils';
+
+  let { crumbs, status }: { crumbs: BreadcrumbCrumb[]; status: string | null } = $props();
+</script>
+
+<Breadcrumbs items={crumbs} className="h-14" trailing={status ? chip : undefined} />
+
+{#snippet chip()}<StatusBadge color="green" label={status ?? ''} />{/snippet}
+```
+
+- **Items**: `{ label, href?, icon? }`, first crumb first; the last is the
+  current page (`aria-current="page"`). The first crumb's `icon` stands in
+  front of its words; on every later crumb `icon` is the separator before it,
+  a chevron when it has none.
+- **Giving way**: every crumb shows in full while the trail fits. When it does
+  not, each step comes only when the one before is not enough:
+  1. the crumbs between the first and the current page fold into one `…`
+     button, from the inside out (the crumb nearest the middle first, the
+     root side first on a tie), so the current page's parent folds last;
+  2. the first crumb shows as its icon alone, still a link, its name in a
+     tooltip;
+  3. the current page ellipsizes, the very last resort, its full name in a
+     tooltip.
+
+  `trailing` (a status chip) rides beside the current page and never gives
+  way.
+- **Menu**: the `…` button opens a small menu under it, not a dialog, listing
+  in order every level the trail does not name: the first crumb when it shows
+  as its icon, the folded crumbs, the current page when it is cut. A level
+  with an `href` is a link; one without is words the arrows pass over. It is
+  `position: fixed`, so a clipping box around the trail never cuts it.
+- **Keyboard**: the WAI-ARIA menu button pattern. Enter, Space or ArrowDown
+  opens on the first link, ArrowUp on the last; the arrows wrap, Home and End
+  jump, Escape closes and returns the focus to the button, Tab closes and
+  moves on. A press outside, the focus leaving and a new trail close it.
+- **Measuring**: a hidden copy of the trail is measured once per trail and
+  again when its size changes (a web font arriving); a `ResizeObserver` on the
+  trail's box re-plans on every resize (a sidebar or a dock opening) from those
+  widths, without reading the layout. Unmeasured (server render, no
+  `ResizeObserver`) the trail shows whole. The root grows into its row
+  (`flex: 1 1 0%; min-width: 0`): give it the room, not a width of its own,
+  and add no rules of your own to its crumbs.
+- **Words**: `label` names the landmark ("Breadcrumb"), `moreLabel` the `…`
+  button ("Show the hidden levels").
+- **Styling**: the crumbs keep the token classes `.breadcrumb-title`,
+  `.breadcrumb-section-icon` and `.breadcrumb-chevron`; the layout and the
+  menu (UserMenu's surface and rows) are scoped CSS over the `--gawdux-*`
+  tokens.
+
+`BreadcrumbTrail` is the same trail for a consumer written with slots: its
+`afterLast` slot rides as `trailing`.
 
 ## Host Contract
 
