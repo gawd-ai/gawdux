@@ -1,5 +1,59 @@
 # Changelog
 
+## 0.26.3 - a command bar whose actions centre on their own line
+
+### Fixed
+
+- `.page-command-bar` switches layout at one boundary. The wide row applied
+  from `(min-width: 1025px)` and the stacked grid to `(max-width: 1024px)`,
+  so a zoomed browser between the two (1024.5px wide) matched neither and
+  drew the old `1fr auto 1fr` grid. The wide row is now
+  `not all and (max-width: 1024px)`: every width the stacked query does not
+  match.
+- A bar whose zones fit on one line draws exactly the row it drew before:
+  same height, actions at the middle, words and buttons at the same place,
+  measured in Chromium and Firefox. A bar whose words outgrow their share
+  but still fit beside the actions keeps its row too, the actions moving
+  along it as before.
+- When the zones cannot share one line:
+  - The words take a line of their own above the actions. The row runs right
+    to left and wraps upward (`flex-flow: row-reverse wrap-reverse`, with
+    the right zone ordered first and the left zone last), so the left zone is
+    the first to leave, and the zones still read left, center, right across
+    one row and top to bottom in document order once wrapped. With all three
+    zones filled, the actions and the right zone share the line under the
+    words when they fit together.
+  - The actions sit centred on their line. They used to start at its left
+    edge, because the side zone beside them took all the free space. Each
+    side zone now grows by half a share (`flex: 0.5 1 0`): in a row that
+    fits the two halves make the whole free space, and a zone alone beside
+    the actions takes half of it, leaving the other half on the far side of
+    them. The 1rem between zones moved from the column gap into the center's
+    inline padding, so the space on either side of the actions is the same
+    whichever is next to them.
+  - Buttons wrap as whole buttons, each line centred; a label never wraps
+    inside its button (`white-space: nowrap`, `flex-shrink: 0` on zone
+    buttons and links). In a narrow pane they used to squeeze until each
+    label broke over two or three lines.
+  - Words wider than the whole bar wrap within it as text. A side zone's
+    floor is `min-width: fit-content` (its words or the bar's width,
+    whichever is less) instead of `max-content`, which ran past the bar's
+    right edge. Inside a side zone `.truncate` wraps rather than ending in
+    an ellipsis.
+- An empty center zone is hidden unless both side zones are filled, so a
+  bar with only words keeps one line when they wrap.
+- Below the boundary the stacked grid is unchanged, and an attached
+  `.page-command-drawer` still fuses with the bar.
+
+### Known limits
+
+- With all three zones filled in a pane too narrow for the actions to share
+  a line with either side zone, the actions sit alone on their line, off the
+  middle by half its free space. When only the words fit beside them, they
+  share the words' line toward its right end, as before.
+- A right zone whose text outgrows its share in a row that otherwise fits
+  still moves the actions off the middle, as in 0.26.1.
+
 ## 0.26.2 - the host words a failed history load
 
 ### Added

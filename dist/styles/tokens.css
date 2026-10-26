@@ -854,19 +854,45 @@ main:has(.page-command-drawer) .page-command-bar,
 .dark .page-command-drawer-error {
   color: rgb(252 165 165);
 }
-@media (min-width: 1025px) {
+@media not all and (max-width: 1024px) {
   .page-command-bar {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem 1rem;
+    flex-flow: row-reverse wrap-reverse;
+    gap: 0.5rem 0;
+  }
+  .page-command-bar > .cmd-bar-right {
+    order: -1;
+  }
+  .page-command-bar > .cmd-bar-left {
+    order: 1;
   }
   .page-command-bar > .cmd-bar-left,
 	.page-command-bar > .cmd-bar-right {
-    flex: 1 1 0;
-    min-width: max-content;
+    flex: 0.5 1 0;
+    min-width: fit-content;
+    white-space: normal;
+  }
+  .page-command-bar > .cmd-bar-left:has(> *) {
+    margin-right: auto;
+  }
+  .page-command-bar > :is(.cmd-bar-left, .cmd-bar-right) .truncate {
+    white-space: normal;
   }
   .page-command-bar > .cmd-bar-center {
     flex: 0 1 auto;
+    flex-wrap: wrap;
+    max-width: 100%;
+    padding-inline: 1rem;
+  }
+  .page-command-bar > .cmd-bar-left:not(:has(> *)) ~ .cmd-bar-center {
+    margin-right: auto;
+  }
+  .page-command-bar:is(:not(:has(> .cmd-bar-left > *)), :not(:has(> .cmd-bar-right > *))) > .cmd-bar-center:not(:has(> *)) {
+    display: none;
+  }
+  .page-command-bar > .cmd-bar-zone > :is(button, a) {
+    flex-shrink: 0;
+    white-space: nowrap;
   }
 }
 @media (max-width: 1024px) {

@@ -1012,7 +1012,8 @@ main:has(.page-command-bar) *:has(> .context-surface),
    rather than separate chrome. Three CSS zones from day one:
    left = supplementary actions, center = lifecycle actions / status,
    right = pagination + meta. The grid here is the stacked layout's base;
-   above 1024px the zones are a wrapping flex row (below). */
+   at every width the stacked query does not match, the zones are a
+   wrapping flex row (below). */
 .page-command-bar {
 	margin-top: auto;
 	flex-shrink: 0;
@@ -1133,27 +1134,73 @@ main:has(.page-command-drawer) .page-command-bar,
 	color: rgb(252 165 165);
 }
 
-/* Wide layouts: the three zones as one wrapping row. Left and right take
-   equal shares of the free space, as the grid's `1fr auto 1fr` does, so a
-   bar whose zones fit keeps the centred row the grid draws. Unlike a 1fr
-   track, a side zone cannot be squeezed below its own content: when its
-   words outgrow their share the center moves along the row instead of the
-   words clipping to an ellipsis, and when the three cannot share one line
-   the row wraps, the first zone that does not fit opening the next line.
-   The grid on the bar itself stays the fallback outside both queries. */
-@media (min-width: 1025px) {
+/* Wide layouts: every width the stacked query below does not match,
+   fractional ones included (a zoomed browser can be 1024.5px wide), so one
+   of the two layouts always applies.
+   The three zones are one wrapping row. Left and right take equal shares of
+   the free space, as the grid's `1fr auto 1fr` does, so a bar whose zones
+   fit draws the centred row the grid draws; a side zone is never narrower
+   than its words, so when they outgrow their share the center moves along
+   the row instead of the words clipping.
+   When the zones cannot share one line:
+   - The row runs right to left (order and direction reversed, so it still
+     reads left, center, right) and wraps upward, so the left zone is the
+     first to leave: the words take a line of their own above the actions.
+   - A side zone's floor is its words or the bar's width, whichever is
+     less; past the bar's width the words wrap as text, never clipped and
+     never past the bar's edge.
+   - Each side zone grows by half a share. In a row that fits the two halves
+     make the whole free space; alone beside the actions, a zone takes only
+     half of it and the other half lands on the far side of the actions,
+     which centres them on their line.
+   - The column gap lives in the center's inline padding, so the space on
+     either side of the actions is the same whether a side zone or the
+     bar's edge is next to them.
+   - The actions wrap as whole buttons, centred; a label never wraps inside
+     its button. */
+@media not all and (max-width: 1024px) {
 	.page-command-bar {
 		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem 1rem;
+		flex-flow: row-reverse wrap-reverse;
+		gap: 0.5rem 0;
+	}
+	.page-command-bar > .cmd-bar-right {
+		order: -1;
+	}
+	.page-command-bar > .cmd-bar-left {
+		order: 1;
 	}
 	.page-command-bar > .cmd-bar-left,
 	.page-command-bar > .cmd-bar-right {
-		flex: 1 1 0;
-		min-width: max-content;
+		flex: 0.5 1 0;
+		min-width: fit-content;
+		white-space: normal;
+	}
+	/* Alone on its line, the left zone keeps to the left edge. */
+	.page-command-bar > .cmd-bar-left:has(> *) {
+		margin-right: auto;
+	}
+	/* Words that would truncate wrap at the bar's edge instead. */
+	.page-command-bar > :is(.cmd-bar-left, .cmd-bar-right) .truncate {
+		white-space: normal;
 	}
 	.page-command-bar > .cmd-bar-center {
 		flex: 0 1 auto;
+		flex-wrap: wrap;
+		max-width: 100%;
+		padding-inline: 1rem;
+	}
+	/* Beside an empty left zone, the free space goes after the actions. */
+	.page-command-bar > .cmd-bar-left:not(:has(> *)) ~ .cmd-bar-center {
+		margin-right: auto;
+	}
+	/* An empty center only spaces two filled sides. */
+	.page-command-bar:is(:not(:has(> .cmd-bar-left > *)), :not(:has(> .cmd-bar-right > *))) > .cmd-bar-center:not(:has(> *)) {
+		display: none;
+	}
+	.page-command-bar > .cmd-bar-zone > :is(button, a) {
+		flex-shrink: 0;
+		white-space: nowrap;
 	}
 }
 
