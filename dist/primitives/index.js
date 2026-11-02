@@ -60,6 +60,7 @@ export { default as SectionLink } from './SectionLink.svelte';
 export { default as ResizableSplitter } from './ResizableSplitter.svelte';
 export { default as SortableHeadCell } from './SortableHeadCell.svelte';
 export { default as HeadCell } from './HeadCell.svelte';
+export { default as HeaderStatus } from './HeaderStatus.svelte';
 export { default as StatTile } from './StatTile.svelte';
 export { statTileToneClass } from './StatTile.svelte';
 export { default as StatTileStrip } from './StatTileStrip.svelte';

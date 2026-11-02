@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.26.5 - a pane header's state with an optional lock
+
+### Added
+
+- `HeaderStatus` (`gawdux/primitives`): a pane header's state. It takes
+  `color` (`StatusBadgeColor`) and `label`, the host's word, and always shows
+  them as a `StatusBadge` in the header's density (`px-1.5 py-0 text-[10px]`,
+  the chip a header wears beside its title); `className` merges further chip
+  classes over it.
+  - `lockReason` (a string, or `null`/`undefined`): set, a small lock follows
+    the chip, `role="img"`, the reason its tooltip and its accessible name.
+    The lock carries no word of its own: the chip names the state, the
+    tooltip says why the viewer cannot edit. Empty or blank, no lock.
+  - The lock is quiet, `text-gray-500` (`dark:text-gray-400`), the header's
+    secondary text, so the chip's colour stays the one signal.
+
 ## 0.26.4 - a breadcrumb trail that folds its middle instead of clipping
 
 ### Added

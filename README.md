@@ -42,7 +42,7 @@ Supported package subpaths:
 
 - **components**: `AppSidebar`, `SidebarDropdownGroup`, `SidebarFlyout`: the collapsible app navigation shell; `UserMenu`: the top bar's account menu.
 - **primitives**: list and page building blocks: `Breadcrumbs` (the header's trail on one line, folding its middle into a menu), `ListSurface`, `ListQueryBar`, `ListPaginationNav`, `FilterBar`/`FilterPillRow`, `SavedViewsRail`, `MasterDetailShell`, `ListPageScaffold`/`EditablePageScaffold`, `PageCommandBar`, `PageTabs`, `FormField`, `ReadonlyField`, `CardContainer`, and more.
-- **detail and table primitives**: `StatTile`/`StatTileStrip` (a detail overview's KPI tiles: label, value, meta, icon, a state tone, a go-to icon drill-down; the strip wraps and never clips), `SectionLink` (the go-to-section arrow, no words, at the top right of a card header or tile; `CardContainer` takes it as `link`), `IconButton` (an icon action named by its tooltip; `danger` turns red only on hover), `DataTable` (a `TableContainer` with column definitions, `SortableHeadCell` headers, cells from a snippet and the house empty row), `IconLabel` (an icon and a word, the shape of a cue), `StatusBadge` (a coloured word, optionally with an icon), `TableContainer`, `SortableHeadCell`, `HeadCell` (the labelled, non-sortable header of a hand-built table, with an optional column icon), `EmptyStateRow`, `CollectionEmptyState`.
+- **detail and table primitives**: `StatTile`/`StatTileStrip` (a detail overview's KPI tiles: label, value, meta, icon, a state tone, a go-to icon drill-down; the strip wraps and never clips), `SectionLink` (the go-to-section arrow, no words, at the top right of a card header or tile; `CardContainer` takes it as `link`), `IconButton` (an icon action named by its tooltip; `danger` turns red only on hover), `DataTable` (a `TableContainer` with column definitions, `SortableHeadCell` headers, cells from a snippet and the house empty row), `IconLabel` (an icon and a word, the shape of a cue), `StatusBadge` (a coloured word, optionally with an icon), `HeaderStatus` (a pane header's state: the status chip, always, and a lock beside it while the viewer cannot edit, the reason in its tooltip), `TableContainer`, `SortableHeadCell`, `HeadCell` (the labelled, non-sortable header of a hand-built table, with an optional column icon), `EmptyStateRow`, `CollectionEmptyState`.
 - **alert-ops**: `AlertOpsConsole`, the Alert Operations surface (alert groups, detail, silences), transport-agnostic. Its tabs carry icons; its denied and unavailable states are the house `CollectionEmptyState` on the page surface, and with `healthBar={false}` the host's bar carries status and Refresh, so the unavailable state offers no Retry of its own.
 - **admin** (`gawdux/admin`): tenant-administration blocks, presentation only (the host loads, authorizes and performs every change): `MemberAccessCard`, `SecurityActivityList`, `AuditHistoryTable`, `RoleMembersCard` (who holds a Role: a quiet trash icon raises the removal for the host to confirm, a picker adds), and the AI + Bots blocks: `AiUsageReport` (totals as tiles, `AiUsageBars` per day, one share-bar card per breakdown; turns and tokens, never money), `BotRail` (bots with avatar, role and one state, for every tab that picks a bot first), `BotIdentityHeader`, `BotConfigView` (a config read, the other half of `BotConfigFields`' edit), `BotContextCard` (the composed block a bot reads, by parts), `BotToolAccess`.
 - **styles/tokens.css**: the shared design tokens (color, spacing, density) that give host applications a common visual language.
@@ -309,6 +309,23 @@ never wraps and never clips a crumb.
 
 `BreadcrumbTrail` is the same trail for a consumer written with slots: its
 `afterLast` slot rides as `trailing`.
+
+## HeaderStatus
+
+`HeaderStatus` (`gawdux/primitives`) is a pane header's state: the status chip,
+always shown, and a small lock beside it while the viewer cannot edit.
+
+```svelte
+<HeaderStatus color="yellow" label="In approval" lockReason={canEdit ? null : reason} />
+```
+
+- **Chip**: a `StatusBadge` in the header's density (`px-1.5 py-0
+  text-[10px]`); `color` and `label` are the host's vocabulary, the same words
+  and colours its lists use. `className` merges further chip classes.
+- **Lock**: drawn only while `lockReason` holds words. It carries none of its
+  own: the reason is its tooltip and its accessible name (`role="img"`), and
+  it is the header's quiet secondary grey, so the chip's colour stays the one
+  signal.
 
 ## Host Contract
 

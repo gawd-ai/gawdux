@@ -94,6 +94,7 @@ export type { SearchInputSize } from './SearchInput.svelte';
 export { default as ResizableSplitter } from './ResizableSplitter.svelte';
 export { default as SortableHeadCell } from './SortableHeadCell.svelte';
 export { default as HeadCell } from './HeadCell.svelte';
+export { default as HeaderStatus } from './HeaderStatus.svelte';
 export { default as StatTile } from './StatTile.svelte';
 export { statTileToneClass } from './StatTile.svelte';
 export type { StatTileTone } from './StatTile.svelte';
