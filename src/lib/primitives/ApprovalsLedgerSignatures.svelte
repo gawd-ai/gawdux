@@ -11,7 +11,9 @@
     Intact. A surface that does not compare the content with what was signed
     says nothing about it: `integrity={false}` drops the column rather than
     show a check that never ran. The ledger's disclosure opens it; a host may also
-    list any set of signatures through it on its own.
+    list any set of signatures through it on its own. It never scrolls on its
+    own: on a narrow page its cells wrap (a moment at its spaces, an address
+    anywhere), so it reads inside the one scroller of the page that holds it.
 -->
 <script lang="ts">
 	import { formatAuditDateTimeText } from '../utils/temporal';
@@ -46,61 +48,60 @@
 {#if signatures.length === 0}
 	<p class="text-xs text-gray-500 dark:text-gray-400">{emptyText}</p>
 {:else}
-	<div class="overflow-x-auto">
-		<table class="w-full text-xs" data-signatures>
-			<thead>
-				<tr class="text-left text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
-					<th class="py-1 pr-3 font-semibold">Meaning</th>
-					<th class="py-1 pr-3 font-semibold">Signed by</th>
-					<th class="py-1 pr-3 font-semibold">Signed at</th>
-					<th class="py-1 pr-3 font-semibold">Reason</th>
+	<table class="w-full text-xs" data-signatures>
+		<thead>
+			<tr class="text-left text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
+				<th class="py-1 pr-3 font-semibold">Meaning</th>
+				<th class="py-1 pr-3 font-semibold">Signed by</th>
+				<th class="py-1 pr-3 font-semibold">Signed at</th>
+				<th class="py-1 pr-3 font-semibold">Reason</th>
+				{#if integrity}
+					<th class="py-1 font-semibold">Integrity</th>
+				{/if}
+			</tr>
+		</thead>
+		<tbody>
+			{#each signatures as signature (signature.id)}
+				<tr
+					class="border-t border-gray-200 align-top dark:border-gray-800"
+					data-signature-meaning={signature.meaning}
+				>
+					<td class="py-1.5 pr-3 font-medium {meaningTone[signature.meaning]}"
+						>{signature.meaning}</td
+					>
+					<td class="py-1.5 pr-3 text-gray-900 dark:text-gray-100">
+						{signature.signerName}
+						<span
+							class="block text-[11px] text-gray-500 [overflow-wrap:anywhere] dark:text-gray-400"
+							>{signature.signerEmail}</span
+						>
+					</td>
+					<td class="py-1.5 pr-3 text-gray-700 dark:text-gray-300"
+						>{signedAt(signature.signedAt)}</td
+					>
+					<td class="py-1.5 pr-3 text-gray-700 dark:text-gray-300">{signature.reason ?? ''}</td>
 					{#if integrity}
-						<th class="py-1 font-semibold">Integrity</th>
+						<td class="py-1.5">
+							{#if !signature.standing && signature.meaning !== 'Withdrawn'}
+								<span class="text-gray-500 dark:text-gray-400">Withdrawn</span>
+							{:else if signature.intact === false && signature.standing}
+								<span class="font-medium text-red-600 dark:text-red-400"
+									>Content changed since signature</span
+								>
+							{:else if signature.intact === false}
+								<!-- The withdrawal itself: the record was free to change after it. -->
+								<span class="text-gray-500 dark:text-gray-400"
+									>Content changed since signature</span
+								>
+							{:else if signature.intact === null}
+								<span class="text-gray-500 dark:text-gray-400">Not verified</span>
+							{:else}
+								<span class="text-gray-500 dark:text-gray-400">Intact</span>
+							{/if}
+						</td>
 					{/if}
 				</tr>
-			</thead>
-			<tbody>
-				{#each signatures as signature (signature.id)}
-					<tr
-						class="border-t border-gray-200 align-top dark:border-gray-800"
-						data-signature-meaning={signature.meaning}
-					>
-						<td class="py-1.5 pr-3 font-medium {meaningTone[signature.meaning]}"
-							>{signature.meaning}</td
-						>
-						<td class="py-1.5 pr-3 text-gray-900 dark:text-gray-100">
-							{signature.signerName}
-							<span class="block text-[11px] text-gray-500 dark:text-gray-400"
-								>{signature.signerEmail}</span
-							>
-						</td>
-						<td class="py-1.5 pr-3 whitespace-nowrap text-gray-700 dark:text-gray-300"
-							>{signedAt(signature.signedAt)}</td
-						>
-						<td class="py-1.5 pr-3 text-gray-700 dark:text-gray-300">{signature.reason ?? ''}</td>
-						{#if integrity}
-							<td class="py-1.5">
-								{#if !signature.standing && signature.meaning !== 'Withdrawn'}
-									<span class="text-gray-500 dark:text-gray-400">Withdrawn</span>
-								{:else if signature.intact === false && signature.standing}
-									<span class="font-medium text-red-600 dark:text-red-400"
-										>Content changed since signature</span
-									>
-								{:else if signature.intact === false}
-									<!-- The withdrawal itself: the record was free to change after it. -->
-									<span class="text-gray-500 dark:text-gray-400"
-										>Content changed since signature</span
-									>
-								{:else if signature.intact === null}
-									<span class="text-gray-500 dark:text-gray-400">Not verified</span>
-								{:else}
-									<span class="text-gray-500 dark:text-gray-400">Intact</span>
-								{/if}
-							</td>
-						{/if}
-					</tr>
-				{/each}
-			</tbody>
-		</table>
-	</div>
+			{/each}
+		</tbody>
+	</table>
 {/if}

@@ -5,7 +5,6 @@ import { ChevronRightOutline, FolderOutline } from 'flowbite-svelte-icons';
 import Breadcrumbs from '../src/lib/primitives/Breadcrumbs.svelte';
 import breadcrumbsSource from '../src/lib/primitives/Breadcrumbs.svelte?raw';
 import BreadcrumbsHarness from './fixtures/BreadcrumbsHarness.svelte';
-import BreadcrumbTrailSlotHarness from './fixtures/BreadcrumbTrailSlotHarness.svelte';
 import * as primitives from '../src/lib/primitives/index';
 import type { BreadcrumbCrumb } from '../src/lib/utils/url-breadcrumb';
 
@@ -307,6 +306,22 @@ describe('Breadcrumbs: the overflow menu', () => {
 		expect(screen.queryByRole('menu')).toBeNull();
 	});
 
+	it('stays closed when the trail folds again: an unfolding closes the menu, it does not hide it', async () => {
+		await renderTrail(600);
+		await fireEvent.click(moreButton(), { detail: 1 });
+		expect(screen.queryByRole('menu')).not.toBeNull();
+		await resize(882);
+		expect(screen.queryByRole('menu')).toBeNull();
+		await resize(600);
+		expect(screen.queryByRole('menu')).toBeNull();
+		expect(moreButton().getAttribute('aria-expanded')).toBe('false');
+		// Closed, it listens for nothing: an Escape elsewhere leaves the focus.
+		const outside = screen.getByTestId('outside');
+		outside.focus();
+		await fireEvent.keyDown(document, { key: 'Escape' });
+		expect(document.activeElement).toBe(outside);
+	});
+
 	it('takes the host wording for its button', async () => {
 		render(BreadcrumbsHarness, { props: { items: TRAIL, moreLabel: 'Show the full path' } });
 		await resize(600);
@@ -393,19 +408,9 @@ describe('Breadcrumbs: one line', () => {
 	});
 });
 
-describe('BreadcrumbTrail', () => {
-	it('is Breadcrumbs for a slot consumer: the afterLast slot rides beside the current page', async () => {
-		const { container } = render(BreadcrumbTrailSlotHarness, { props: { items: TRAIL } });
-		await resize(600);
-		expect(readTrail(container)).toEqual(['Documents', '…', 'QP-001 Document Control SOP']);
-		const nav = container.querySelector('nav') as HTMLElement;
-		expect(nav.classList.contains('legacy-trail')).toBe(true);
-		const leaf = container.querySelector('nav > ol > li:last-child') as HTMLElement;
-		expect(leaf.querySelector('.chip')?.textContent).toBe('In force');
-	});
-
-	it('is exported beside Breadcrumbs', () => {
+describe('one trail', () => {
+	it('is Breadcrumbs alone: no slot adapter beside it', () => {
 		expect(primitives.Breadcrumbs).toBe(Breadcrumbs);
-		expect(primitives.BreadcrumbTrail).toBeDefined();
+		expect(primitives).not.toHaveProperty('BreadcrumbTrail');
 	});
 });

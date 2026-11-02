@@ -74,15 +74,8 @@
 	});
 </script>
 
-<!-- The `breadcrumb` slot is declared but intentionally not rendered.
-     The visible breadcrumb comes from `$page.data.appBreadcrumb` in the
-     layout; pages still pass content here for source compatibility, and
-     declaring the slot keeps TypeScript happy without surfacing the
-     duplicate breadcrumb. -->
+<!-- No breadcrumb of its own: the app header draws the page's trail. -->
 <div class="editable-page-scaffold {className}">
-	<div class="hidden" aria-hidden="true">
-		<slot name="breadcrumb" />
-	</div>
 	{#if editMode || lifecycle.length > 0}
 		<PageActionBar {editMode} {lifecycle} {kindRenderers} />
 	{:else if $$slots.actions}

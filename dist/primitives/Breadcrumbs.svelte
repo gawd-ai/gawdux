@@ -102,6 +102,12 @@
 	const hidden = $derived(new Set(plan.hidden));
 	const folded = $derived(plan.hidden.length > 0);
 	const menuOpen = $derived(open && folded);
+
+	// The trail unfolding closes the menu. Hidden while `open` held, it came
+	// back by itself, its listeners with it, the next time the trail folded.
+	$effect(() => {
+		if (!folded) open = false;
+	});
 	/** Every level the trail does not name, in order. */
 	const menuEntries = $derived([
 		...(plan.compactFirst ? [0] : []),

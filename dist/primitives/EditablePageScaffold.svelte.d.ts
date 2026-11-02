@@ -40,7 +40,6 @@ declare const EditablePageScaffold: $$__sveltets_2_IsomorphicComponent<$$__svelt
             should leave this false. */ surface?: boolean;
     className?: string;
 }, {
-    breadcrumb: {};
     actions: {};
     default: {};
 }>, {
@@ -48,7 +47,6 @@ declare const EditablePageScaffold: $$__sveltets_2_IsomorphicComponent<$$__svelt
 } & {
     [evt: string]: CustomEvent<any>;
 }, {
-    breadcrumb: {};
     actions: {};
     default: {};
 }, {}, string>;

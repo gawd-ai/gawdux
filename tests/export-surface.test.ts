@@ -103,7 +103,7 @@ describe('gawdux 0.3.0 export surface', () => {
 		}
 		// Pre-existing surface stays intact (spot checks across the family).
 		for (const name of [
-			'BreadcrumbTrail',
+			'Breadcrumbs',
 			'ConfirmModal',
 			'EmptyStateRow',
 			'ListPageScaffold',

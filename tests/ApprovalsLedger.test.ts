@@ -213,6 +213,24 @@ describe('ApprovalsLedgerSignatures', () => {
 		expect(renderTable({ timeZone: 'America/Toronto' })).toContain('2026-10-01 21:15:00 EDT');
 	});
 
+	// The table sits inside a document that has one scroller: on a narrow
+	// page it wraps its cells instead of scrolling sideways on its own.
+	it('wraps on a narrow page and keeps no scroller of its own', () => {
+		renderTable({});
+		const own = [...document.body.querySelectorAll('*')].filter((el) =>
+			/\boverflow(?:-[xy])?-(?:auto|scroll)\b/.test(el.getAttribute('class') ?? '')
+		);
+		expect(own.map((el) => el.outerHTML.slice(0, 80))).toEqual([]);
+		const table = document.querySelector('table[data-signatures]')!;
+		expect(table.parentElement).toBe(document.body);
+		expect(table.querySelectorAll('.whitespace-nowrap')).toHaveLength(0);
+		// An address has no space to break at: it breaks anywhere.
+		const email = [...table.querySelectorAll('td span')].find((el) =>
+			el.textContent?.includes('dana@example.test')
+		);
+		expect(email?.className).toMatch(/\[overflow-wrap:anywhere\]/);
+	});
+
 	it('marks each row with its meaning for the cases that read it', () => {
 		renderTable({ signatures: [signature, { ...signature, id: 2, meaning: 'Approved' }] });
 		expect(

@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.26.6 - one trail, a menu that stays closed, a signatures table that wraps
+
+### Fixed
+
+- `Breadcrumbs`: the trail unfolding closes its menu. Before, the menu only
+  hid while the trail fitted, so it came back open, its listeners bound again,
+  the next time the trail folded, with no press on the `…` button.
+- `ApprovalsLedgerSignatures` keeps no scroller of its own: the table is no
+  longer wrapped in `overflow-x-auto`. On a narrow page its cells wrap, the
+  moment at its spaces (no `whitespace-nowrap`) and the signer's address
+  anywhere (`[overflow-wrap:anywhere]`), so it reads inside the one scroller
+  of the page or document that holds it.
+
+### Removed
+
+- `BreadcrumbTrail`, the slot adapter over `Breadcrumbs`, and its `afterLast`
+  slot. Use `Breadcrumbs` with the chip in its `trailing` snippet (the 0.26.4
+  migration).
+- `EditablePageScaffold`'s `breadcrumb` slot. It was never shown (it rendered
+  inside a hidden box), so a page that filled it mounted a second, invisible
+  trail beside the header's. The app header draws the page's trail; drop the
+  slot's content.
+
 ## 0.26.5 - a pane header's state with an optional lock
 
 ### Added

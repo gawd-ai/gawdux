@@ -17,3 +17,10 @@ describe('EditablePageScaffold body: an inset host', () => {
 		expect(style).not.toMatch(/padding:\s*0;/);
 	});
 });
+
+describe('EditablePageScaffold: the header draws the trail', () => {
+	it('takes no breadcrumb of its own, so a page never mounts a second, hidden trail', () => {
+		expect(source).not.toMatch(/<slot\s+name="breadcrumb"/);
+		expect(source).not.toContain('class="hidden" aria-hidden="true"');
+	});
+});

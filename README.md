@@ -307,9 +307,6 @@ never wraps and never clips a crumb.
   menu (UserMenu's surface and rows) are scoped CSS over the `--gawdux-*`
   tokens.
 
-`BreadcrumbTrail` is the same trail for a consumer written with slots: its
-`afterLast` slot rides as `trailing`.
-
 ## HeaderStatus
 
 `HeaderStatus` (`gawdux/primitives`) is a pane header's state: the status chip,
