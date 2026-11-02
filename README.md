@@ -297,12 +297,17 @@ never wraps and never clips a crumb.
 - **Keyboard**: the WAI-ARIA menu button pattern. Enter, Space or ArrowDown
   opens on the first link, ArrowUp on the last; the arrows wrap, Home and End
   jump, Escape closes and returns the focus to the button, Tab closes and
-  moves on. A press outside, the focus leaving and a new trail close it.
+  moves on. A press outside, the focus leaving and a new trail close it. An
+  Escape from anywhere closes a menu the pointer opened and is taken
+  (`preventDefault`), so a page handler that reads `defaultPrevented` (a
+  dock closing on Escape) leaves it alone.
 - **Focus on a re-plan**: the focus follows its level. A focused menu row
   whose level comes back to the trail (the trail unfolding closes the menu)
   hands the focus to that level's crumb, its link or, without one, the
-  current page; a focused crumb that folds hands it to the `…` button, which
-  keeps it when it moves.
+  current page; a focused crumb that folds hands it to the `…` button. The
+  button keeps the focus wherever it moves, the trail narrowing or widening,
+  its menu open or closed as it was; only the trail unfolding whole hands it
+  on, to the crumb of the first level the button stood for.
 - **Measuring**: a hidden copy of the trail is measured once per trail and
   again when its size changes (a web font arriving); a `ResizeObserver` on the
   trail's box re-plans on every resize (a sidebar or a dock opening) from those

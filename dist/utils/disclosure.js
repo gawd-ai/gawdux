@@ -25,6 +25,9 @@ export function createDisclosureController(ports) {
                     key.isComposing ||
                     key.key !== "Escape")
                     return;
+                // The Escape that closes it is handled: a later handler (a dock, a
+                // drawer) reads it as taken and leaves it alone.
+                key.preventDefault();
                 close({ restoreFocus: true });
             };
             target.addEventListener("click", click);

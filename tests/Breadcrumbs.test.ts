@@ -301,6 +301,24 @@ describe('Breadcrumbs: the overflow menu', () => {
 		expect(document.activeElement).toBe(button);
 	});
 
+	it('takes the Escape that closes a menu the pointer opened, wherever the focus is', async () => {
+		await renderTrail(600);
+		await fireEvent.click(moreButton(), { detail: 1 });
+		const outside = screen.getByTestId('outside');
+		outside.focus();
+		const escape = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+		let seenByPage: boolean | null = null;
+		// A page handler on the window, as a dock's is: the key reaches it handled.
+		const page = (event: Event) => (seenByPage = event.defaultPrevented);
+		window.addEventListener('keydown', page);
+		outside.dispatchEvent(escape);
+		window.removeEventListener('keydown', page);
+		await tick();
+		expect(screen.queryByRole('menu')).toBeNull();
+		expect(seenByPage).toBe(true);
+		expect(document.activeElement).toBe(moreButton());
+	});
+
 	it('closes on a press outside it, on a chosen row, and when nothing is folded any more', async () => {
 		await renderTrail(600);
 		await fireEvent.click(moreButton(), { detail: 1 });
@@ -510,6 +528,46 @@ describe('Breadcrumbs: the focus follows its level when the trail re-plans', () 
 		// The button stood for Quality Systems; it now stands for Reference too.
 		await resize(700);
 		await settle();
+		expect(document.activeElement).toBe(moreButton());
+	});
+
+	it('stays on the … button when the trail widens and the button moves on', async () => {
+		const { container } = await renderTrail(700);
+		expect(readTrail(container)).toEqual(['Documents', '…', 'Package', 'QP-001 Document Control SOP']);
+		moreButton().focus();
+		// Reference comes back to the trail; the button now stands for Quality Systems.
+		await resize(800);
+		await settle();
+		expect(readTrail(container)).toEqual([
+			'Documents',
+			'Reference',
+			'…',
+			'Package',
+			'QP-001 Document Control SOP'
+		]);
+		expect(document.activeElement).toBe(moreButton());
+	});
+
+	it('keeps a menu opened by the pointer open, the focus on its button, as the trail widens', async () => {
+		await renderTrail(700);
+		// A press on the button focuses it before its click (jsdom only clicks).
+		moreButton().focus();
+		await fireEvent.click(moreButton(), { detail: 1 });
+		expect(document.activeElement).toBe(moreButton());
+		await resize(800);
+		await settle();
+		expect(screen.getByRole('menu')).not.toBeNull();
+		expect(menuRows().map((row) => row.textContent?.trim())).toEqual(['Quality Systems']);
+		expect(document.activeElement).toBe(moreButton());
+	});
+
+	it('stays on the … button when the first crumb comes back in front of it', async () => {
+		const { container } = await renderTrail(227);
+		expect(readTrail(container)[0]).toBe('…');
+		moreButton().focus();
+		await resize(228);
+		await settle();
+		expect(readTrail(container)[0]).toBe('Documents');
 		expect(document.activeElement).toBe(moreButton());
 	});
 

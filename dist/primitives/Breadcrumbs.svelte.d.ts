@@ -35,13 +35,18 @@ type $$ComponentProps = {
  * pattern. Enter, Space or ArrowDown opens on the first link, ArrowUp on the
  * last; the arrows wrap, Home and End jump, Escape closes and returns the
  * focus to the button, Tab closes and moves on. A press outside, the focus
- * leaving and a new trail close it.
+ * leaving and a new trail close it. An Escape from anywhere closes a menu
+ * the pointer opened and is taken (`preventDefault`), so a page handler
+ * reading `defaultPrevented` leaves it alone.
  *
  * The focus follows its level when the trail re-plans. A focused menu row
  * whose level comes back to the trail (the trail unfolding closes the menu)
  * hands the focus to that level's crumb: its link, or the current page when
  * it has none, and the menu closes behind it. A focused crumb that folds
- * hands it to the … button, and the button keeps it when it moves.
+ * hands it to the … button, and the button keeps it when it moves, the
+ * trail narrowing or widening, its menu open or closed as it was; only the
+ * trail unfolding whole hands it on, to the crumb of the first level it
+ * stood for.
  *
  * Icons. The first crumb's `icon` stands in front of its words; on every
  * later crumb `icon` is the separator before it (a chevron when it has none),

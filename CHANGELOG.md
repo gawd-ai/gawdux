@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.26.8 - a … button that keeps the focus both ways, an Escape the menu takes
+
+### Fixed
+
+- `Breadcrumbs`: the `…` button keeps the focus when the trail widens. It
+  already did when the trail narrowed, but a wider trail brings the first
+  level the button stood for back as a crumb, and the focus went to that
+  crumb's link while the button, one level to the right, closed a menu the
+  pointer had opened. The button now keeps the focus wherever it moves, its
+  menu open or closed as it was; only the trail unfolding whole hands the
+  focus to the crumb of the first level it stood for.
+- `createDisclosureController`: the Escape that closes the disclosure is
+  taken (`preventDefault`). A page handler bound after it that reads
+  `defaultPrevented` (a dock that closes on Escape) closed too, when a menu
+  the pointer opened was closed by an Escape pressed with the focus outside
+  it. A closed disclosure takes no Escape, and a composing or already
+  handled Escape is left as before.
+
 ## 0.26.7 - a current page that stays readable, a focus that follows its level
 
 ### Fixed

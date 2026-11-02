@@ -55,6 +55,26 @@ describe("explicit disclosure lifecycle", () => {
     f.cleanup();
   });
 
+  it("consumes the Escape that closes it, so a later handler leaves it alone", () => {
+    const f = fixture();
+    f.controller.toggle();
+    const escape = new KeyboardEvent("keydown", {
+      key: "Escape",
+      cancelable: true,
+    });
+    window.dispatchEvent(escape);
+    expect(f.isOpen()).toBe(false);
+    expect(escape.defaultPrevented).toBe(true);
+    // Closed, it takes no Escape of anyone's.
+    const later = new KeyboardEvent("keydown", {
+      key: "Escape",
+      cancelable: true,
+    });
+    window.dispatchEvent(later);
+    expect(later.defaultPrevented).toBe(false);
+    f.cleanup();
+  });
+
   it("does not consume composing or previously handled Escape and removes listeners once", () => {
     const f = fixture();
     f.controller.toggle();
