@@ -16,24 +16,37 @@ type $$ComponentProps = {
  *
  * Every crumb shows in full while the trail fits. When it does not, the trail
  * gives way in this order, each step only when the one before is not enough:
- * the crumbs between the first and the current page fold, from the inside
- * out, into one … button; the first crumb shows as its icon alone; the
- * current page ellipsizes, the very last resort, with its full name in a
- * tooltip. The first crumb and the current page always stay. `trailing` (a
- * status chip) rides beside the current page and never gives way.
+ * 1. the crumbs between the first and the current page fold, from the inside
+ *    out, into one … button;
+ * 2. the first crumb shows as its icon alone;
+ * 3. the current page ellipsizes, with its full name in a tooltip, down to
+ *    its readable minimum: its own width up to `BREADCRUMB_LEAF_MIN_PX`
+ *    (64px, four or five characters), never below it;
+ * 4. the first crumb folds into the … button too, which then stands first:
+ *    the trail reads "… › Pack…".
+ * The current page always stays. `trailing` (a status chip) rides beside it
+ * and never gives way. Past the narrowest the trail can go, the page holds
+ * its minimum and the trail's box clips the end.
  *
  * The … button opens a small menu, not a dialog, listing in order every level
- * the trail does not name: the first crumb when it shows as its icon, the
- * folded crumbs, the current page when it is cut. A level with an `href` is a
- * link; one without is words. Keyboard: the WAI-ARIA menu button pattern.
- * Enter, Space or ArrowDown opens on the first link, ArrowUp on the last; the
- * arrows wrap, Home and End jump, Escape closes and returns the focus to the
- * button, Tab closes and moves on. A press outside, the focus leaving and a
- * new trail close it.
+ * the trail does not name: the first crumb when it shows as its icon or is
+ * folded, the folded crumbs, the current page when it is cut. A level with an
+ * `href` is a link; one without is words. Keyboard: the WAI-ARIA menu button
+ * pattern. Enter, Space or ArrowDown opens on the first link, ArrowUp on the
+ * last; the arrows wrap, Home and End jump, Escape closes and returns the
+ * focus to the button, Tab closes and moves on. A press outside, the focus
+ * leaving and a new trail close it.
+ *
+ * The focus follows its level when the trail re-plans. A focused menu row
+ * whose level comes back to the trail (the trail unfolding closes the menu)
+ * hands the focus to that level's crumb: its link, or the current page when
+ * it has none, and the menu closes behind it. A focused crumb that folds
+ * hands it to the … button, and the button keeps it when it moves.
  *
  * Icons. The first crumb's `icon` stands in front of its words; on every
  * later crumb `icon` is the separator before it (a chevron when it has none),
- * and the … button takes the separator of the first crumb it folds.
+ * and the … button takes the separator of the first crumb it folds, none when
+ * it folds the first crumb itself.
  *
  * Measurement. A hidden copy of the trail is measured once per trail, and
  * again when its size changes (a web font arriving). A ResizeObserver on the

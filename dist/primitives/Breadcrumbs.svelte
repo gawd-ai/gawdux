@@ -4,24 +4,37 @@
 
 	Every crumb shows in full while the trail fits. When it does not, the trail
 	gives way in this order, each step only when the one before is not enough:
-	the crumbs between the first and the current page fold, from the inside
-	out, into one … button; the first crumb shows as its icon alone; the
-	current page ellipsizes, the very last resort, with its full name in a
-	tooltip. The first crumb and the current page always stay. `trailing` (a
-	status chip) rides beside the current page and never gives way.
+	1. the crumbs between the first and the current page fold, from the inside
+	   out, into one … button;
+	2. the first crumb shows as its icon alone;
+	3. the current page ellipsizes, with its full name in a tooltip, down to
+	   its readable minimum: its own width up to `BREADCRUMB_LEAF_MIN_PX`
+	   (64px, four or five characters), never below it;
+	4. the first crumb folds into the … button too, which then stands first:
+	   the trail reads "… › Pack…".
+	The current page always stays. `trailing` (a status chip) rides beside it
+	and never gives way. Past the narrowest the trail can go, the page holds
+	its minimum and the trail's box clips the end.
 
 	The … button opens a small menu, not a dialog, listing in order every level
-	the trail does not name: the first crumb when it shows as its icon, the
-	folded crumbs, the current page when it is cut. A level with an `href` is a
-	link; one without is words. Keyboard: the WAI-ARIA menu button pattern.
-	Enter, Space or ArrowDown opens on the first link, ArrowUp on the last; the
-	arrows wrap, Home and End jump, Escape closes and returns the focus to the
-	button, Tab closes and moves on. A press outside, the focus leaving and a
-	new trail close it.
+	the trail does not name: the first crumb when it shows as its icon or is
+	folded, the folded crumbs, the current page when it is cut. A level with an
+	`href` is a link; one without is words. Keyboard: the WAI-ARIA menu button
+	pattern. Enter, Space or ArrowDown opens on the first link, ArrowUp on the
+	last; the arrows wrap, Home and End jump, Escape closes and returns the
+	focus to the button, Tab closes and moves on. A press outside, the focus
+	leaving and a new trail close it.
+
+	The focus follows its level when the trail re-plans. A focused menu row
+	whose level comes back to the trail (the trail unfolding closes the menu)
+	hands the focus to that level's crumb: its link, or the current page when
+	it has none, and the menu closes behind it. A focused crumb that folds
+	hands it to the … button, and the button keeps it when it moves.
 
 	Icons. The first crumb's `icon` stands in front of its words; on every
 	later crumb `icon` is the separator before it (a chevron when it has none),
-	and the … button takes the separator of the first crumb it folds.
+	and the … button takes the separator of the first crumb it folds, none when
+	it folds the first crumb itself.
 
 	Measurement. A hidden copy of the trail is measured once per trail, and
 	again when its size changes (a web font arriving). A ResizeObserver on the
@@ -34,11 +47,15 @@
 	the layout and the menu are scoped CSS over the --gawdux-* tokens.
 -->
 <script lang="ts">
-	import { tick, type Component, type Snippet } from 'svelte';
+	import { tick, untrack, type Component, type Snippet } from 'svelte';
 	import { ChevronRightOutline } from 'flowbite-svelte-icons';
 	import type { BreadcrumbCrumb } from '../utils/url-breadcrumb';
 	import { createDisclosureController } from '../utils/disclosure';
-	import { planBreadcrumbOverflow, type BreadcrumbOverflowPlan } from './breadcrumb-overflow';
+	import {
+		breadcrumbLeafMin,
+		planBreadcrumbOverflow,
+		type BreadcrumbOverflowPlan
+	} from './breadcrumb-overflow';
 
 	let {
 		items = [],
@@ -62,6 +79,7 @@
 		items: BreadcrumbCrumb[];
 		crumbs: number[];
 		more: number;
+		moreLead: number;
 		firstCompact: number | null;
 	};
 
@@ -95,6 +113,7 @@
 			available,
 			crumbs: measured.crumbs,
 			more: measured.more,
+			moreLead: measured.moreLead,
 			firstCompact: measured.firstCompact,
 			trailing: trailing ? trailingWidth : 0
 		});
@@ -102,6 +121,12 @@
 	const hidden = $derived(new Set(plan.hidden));
 	const folded = $derived(plan.hidden.length > 0);
 	const menuOpen = $derived(open && folded);
+	/** The narrowest the current page goes, its chip beside it; null until measured. */
+	const leafMinWidth = $derived(
+		measured && measured.items === items
+			? breadcrumbLeafMin(measured.crumbs[last] ?? 0) + (trailing ? trailingWidth : 0)
+			: null
+	);
 
 	// The trail unfolding closes the menu. Hidden while `open` held, it came
 	// back by itself, its listeners with it, the next time the trail folded.
@@ -126,6 +151,7 @@
 			items,
 			crumbs: Array.from(list.querySelectorAll('[data-measure="crumb"]'), widthOf),
 			more: widthOf(list.querySelector('[data-measure="more"]')),
+			moreLead: widthOf(list.querySelector('[data-measure="more-lead"]')),
 			firstCompact: compact ? widthOf(compact) : null
 		};
 	}
@@ -194,6 +220,44 @@
 			window.removeEventListener('scroll', place, true);
 		};
 	});
+
+	// The focus follows its level when the trail re-plans. A focused row,
+	// crumb or … button the new plan unmounts would take the focus to the
+	// page's body with it: read where it stands before the DOM updates, and
+	// hand it on after.
+	$effect.pre(() => {
+		void plan;
+		const trail = items;
+		const box = untrack(() => root);
+		const focused = document.activeElement;
+		if (!box || !(focused instanceof HTMLElement) || !box.contains(focused)) return;
+		const holder = focused.closest<HTMLElement>('[data-level]');
+		// The menu itself (no row to focus) stands for the current page.
+		const level = holder && box.contains(holder) ? Number(holder.dataset.level) : last;
+		void tick().then(() => {
+			if (focused.isConnected || items !== trail) return;
+			const active = document.activeElement;
+			if (active && active !== document.body && active.isConnected) return;
+			handFocus(level);
+		});
+	});
+
+	/** A level the trail shows takes the focus on its link, else the current page; a folded one on the … button. */
+	function handFocus(level: number) {
+		const list = root?.querySelector<HTMLElement>(':scope > ol');
+		if (!list) return;
+		const crumb = list.querySelector<HTMLElement>(`:scope > li[data-level="${level}"]:not(.more)`);
+		if (crumb) {
+			const target =
+				crumb.querySelector<HTMLElement>('a.breadcrumb-title') ??
+				list.querySelector<HTMLElement>(':scope > li.leaf .breadcrumb-title');
+			// The focus leaves the menu for the trail: the menu closes behind it.
+			open = false;
+			target?.focus({ preventScroll: true });
+		} else if (hidden.has(level)) {
+			button?.focus({ preventScroll: true });
+		}
+	}
 
 	function rows(): HTMLElement[] {
 		if (!menu) return [];
@@ -329,8 +393,8 @@
 		{#each items as item, index}
 			{#if hidden.has(index)}
 				{#if index === plan.hidden[0]}
-					<li class="crumb">
-						{@render separator(item.icon)}
+					<li class="crumb more" data-level={index}>
+						{#if index > 0}{@render separator(item.icon)}{/if}
 						<button
 							type="button"
 							id={buttonId}
@@ -350,16 +414,26 @@
 				{@const compact = index === 0 && index !== last && plan.compactFirst}
 				{@const named = compact || (index === last && plan.leafCut) ? item.label : undefined}
 				{@const current = index === last ? 'page' : undefined}
-				<li class="crumb" class:leaf={index === last}>
+				<li
+					class="crumb"
+					class:leaf={index === last}
+					data-level={index}
+					style:--gawdux-breadcrumb-leaf-min={index === last && leafMinWidth !== null
+						? `${leafMinWidth}px`
+						: undefined}
+				>
 					{#if index > 0}{@render separator(item.icon)}{/if}
 					{#if item.href}
 						<a class="breadcrumb-title" href={item.href} title={named} aria-current={current}
 							>{@render words(item, index, compact)}</a
 						>
-					{:else}
-						<span class="breadcrumb-title" title={named} aria-current={current}
+					{:else if index === last}
+						<!-- The current page without a link can take the focus a re-plan hands it. -->
+						<span class="breadcrumb-title" title={named} aria-current={current} tabindex="-1"
 							>{@render words(item, index, compact)}</span
 						>
+					{:else}
+						<span class="breadcrumb-title" title={named}>{@render words(item, index, compact)}</span>
 					{/if}
 					{#if index === last && trailing}
 						<span class="trailing" bind:this={trailingBox}>{@render trailing()}</span>
@@ -391,21 +465,27 @@
 						class="row"
 						role="menuitem"
 						tabindex="-1"
+						data-level={index}
 						href={item.href}
 						aria-current={current}
 						onclick={() => close()}>{item.label}</a
 					>
 				{:else}
-					<span class="row" role="menuitem" tabindex="-1" aria-disabled="true" aria-current={current}
-						>{item.label}</span
+					<span
+						class="row"
+						role="menuitem"
+						tabindex="-1"
+						aria-disabled="true"
+						aria-current={current}
+						data-level={index}>{item.label}</span
 					>
 				{/if}
 			{/each}
 		</div>
 	{/if}
 
-	<!-- The ruler: every crumb at its natural width, the … button and the
-	     first crumb as its icon, out of sight. -->
+	<!-- The ruler: every crumb at its natural width, the … button with its
+	     separator and alone, and the first crumb as its icon, out of sight. -->
 	<div class="ruler" aria-hidden="true" inert>
 		<ol class="trail" bind:this={ruler}>
 			{#each items as item, index}
@@ -416,6 +496,9 @@
 			{/each}
 			<li class="crumb" data-measure="more">
 				{@render separator(items[1]?.icon)}
+				<span class="breadcrumb-title more-button">…</span>
+			</li>
+			<li class="crumb" data-measure="more-lead">
 				<span class="breadcrumb-title more-button">…</span>
 			</li>
 			{#if items[0]?.icon}
@@ -463,9 +546,12 @@
 		min-width: 0;
 	}
 
-	/* The current page alone gives up width, its words before its chip. */
+	/* The current page alone gives up width, its words before its chip, and
+	   never below its readable minimum (its own width up to 64px, its chip
+	   added), which the plan sets. Past it the trail's box clips the end. */
 	.crumb.leaf {
 		flex: 0 1 auto;
+		min-width: var(--gawdux-breadcrumb-leaf-min, 0px);
 	}
 
 	.breadcrumb-title {

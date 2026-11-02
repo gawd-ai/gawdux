@@ -279,20 +279,30 @@ never wraps and never clips a crumb.
      root side first on a tie), so the current page's parent folds last;
   2. the first crumb shows as its icon alone, still a link, its name in a
      tooltip;
-  3. the current page ellipsizes, the very last resort, its full name in a
-     tooltip.
+  3. the current page ellipsizes, its full name in a tooltip, down to its
+     readable minimum: its own width, separator included, up to 64px
+     (`BREADCRUMB_LEAF_MIN_PX`, four or five characters), never below it;
+  4. the first crumb folds into the `…` button too, which then stands first
+     with no separator before it: the trail reads "… › Pack…".
 
   `trailing` (a status chip) rides beside the current page and never gives
-  way.
+  way. Past the narrowest the trail can go, the page holds its minimum and
+  the trail's box clips the end.
 - **Menu**: the `…` button opens a small menu under it, not a dialog, listing
   in order every level the trail does not name: the first crumb when it shows
-  as its icon, the folded crumbs, the current page when it is cut. A level
-  with an `href` is a link; one without is words the arrows pass over. It is
-  `position: fixed`, so a clipping box around the trail never cuts it.
+  as its icon or is folded, the folded crumbs, the current page when it is
+  cut. A level with an `href` is a link; one without is words the arrows pass
+  over. It is `position: fixed`, so a clipping box around the trail never
+  cuts it.
 - **Keyboard**: the WAI-ARIA menu button pattern. Enter, Space or ArrowDown
   opens on the first link, ArrowUp on the last; the arrows wrap, Home and End
   jump, Escape closes and returns the focus to the button, Tab closes and
   moves on. A press outside, the focus leaving and a new trail close it.
+- **Focus on a re-plan**: the focus follows its level. A focused menu row
+  whose level comes back to the trail (the trail unfolding closes the menu)
+  hands the focus to that level's crumb, its link or, without one, the
+  current page; a focused crumb that folds hands it to the `…` button, which
+  keeps it when it moves.
 - **Measuring**: a hidden copy of the trail is measured once per trail and
   again when its size changes (a web font arriving); a `ResizeObserver` on the
   trail's box re-plans on every resize (a sidebar or a dock opening) from those

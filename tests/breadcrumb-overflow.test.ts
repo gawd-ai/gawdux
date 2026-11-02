@@ -1,17 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import {
+	BREADCRUMB_LEAF_MIN_PX,
 	breadcrumbCollapseOrder,
+	breadcrumbLeafMin,
 	planBreadcrumbOverflow,
 	type BreadcrumbOverflowMeasure
 } from '../src/lib/primitives/breadcrumb-overflow';
 
 // A five-level trail: a first crumb with its icon (36px of icon), three
 // levels on the way, the current page, a chip beside it. Every separator is
-// 24px. Full width: 126 + 114 + 174 + 94 + 294 + 80 = 882.
+// 24px; the overflow button is 24px alone, 48px with its separator. Full
+// width: 126 + 114 + 174 + 94 + 294 + 80 = 882.
 const TRAIL: BreadcrumbOverflowMeasure = {
 	available: Infinity,
 	crumbs: [126, 114, 174, 94, 294],
 	more: 48,
+	moreLead: 24,
 	firstCompact: 36,
 	trailing: 80
 };
@@ -106,12 +110,83 @@ describe('planBreadcrumbOverflow', () => {
 	});
 
 	it('rounds a sub-pixel crumb up and the room down, so a plan that fits never ellipsizes', () => {
-		const fractional = { crumbs: [10.2, 10.2], trailing: 0, firstCompact: null };
-		expect(plan(22, fractional).leafCut).toBe(false);
-		expect(plan(21.9, fractional).leafCut).toBe(true);
+		const fractional = { crumbs: [10.2, 80.2], trailing: 0, firstCompact: null };
+		expect(plan(92, fractional).leafCut).toBe(false);
+		expect(plan(91.9, fractional).leafCut).toBe(true);
 	});
 
 	it('has nothing to plan for an empty trail', () => {
 		expect(plan(10, { crumbs: [] })).toEqual({ hidden: [], compactFirst: false, leafCut: false });
+	});
+});
+
+describe('the current page keeps a readable minimum', () => {
+	const FOLDED_FIRST = { hidden: [0, 1, 2, 3], compactFirst: false, leafCut: true };
+
+	it('is the page at its own width, up to a few characters', () => {
+		expect(BREADCRUMB_LEAF_MIN_PX).toBe(64);
+		expect(breadcrumbLeafMin(294)).toBe(64);
+		expect(breadcrumbLeafMin(64)).toBe(64);
+		expect(breadcrumbLeafMin(50.5)).toBe(50.5);
+	});
+
+	it('cuts the current page only down to its minimum', () => {
+		// 36 + 48 + 64 + 80 = 228: the icon, the button, the page at its minimum, the chip.
+		expect(plan(457)).toEqual({ hidden: [1, 2, 3], compactFirst: true, leafCut: true });
+		expect(plan(228)).toEqual({ hidden: [1, 2, 3], compactFirst: true, leafCut: true });
+	});
+
+	it('folds the first crumb into the menu too before the page would go below it', () => {
+		// 24 + 64 + 80 = 168: the button alone, the page at its minimum, the chip.
+		expect(plan(227)).toEqual(FOLDED_FIRST);
+		expect(plan(168)).toEqual(FOLDED_FIRST);
+	});
+
+	it('gives nothing more past the narrowest: the page holds its minimum', () => {
+		expect(plan(167)).toEqual(FOLDED_FIRST);
+		expect(plan(10)).toEqual(FOLDED_FIRST);
+		expect(plan(0)).toEqual(FOLDED_FIRST);
+	});
+
+	it('reads the page whole again when folding the first crumb frees enough room', () => {
+		// The narrow-pane case: four levels, no chip. 36 + 48 + 64 = 148 cuts
+		// the page beside the icon; below it the first crumb folds, and
+		// 24 + 94 = 118 holds the page whole.
+		const four = { crumbs: [126, 114, 174, 94], trailing: 0 };
+		expect(plan(148, four)).toEqual({ hidden: [1, 2], compactFirst: true, leafCut: true });
+		expect(plan(147, four)).toEqual({ hidden: [0, 1, 2], compactFirst: false, leafCut: false });
+		expect(plan(118, four)).toEqual({ hidden: [0, 1, 2], compactFirst: false, leafCut: false });
+		expect(plan(117, four)).toEqual({ hidden: [0, 1, 2], compactFirst: false, leafCut: true });
+		expect(plan(97, four)).toEqual({ hidden: [0, 1, 2], compactFirst: false, leafCut: true });
+		expect(plan(88, four)).toEqual({ hidden: [0, 1, 2], compactFirst: false, leafCut: true });
+	});
+
+	it('folds a first crumb without an icon the same way, from its words', () => {
+		// 126 + 48 + 64 + 80 = 318
+		expect(plan(318, { firstCompact: null })).toEqual({ hidden: [1, 2, 3], compactFirst: false, leafCut: true });
+		expect(plan(317, { firstCompact: null })).toEqual(FOLDED_FIRST);
+	});
+
+	it('folds the first crumb of a two-crumb trail into the button alone', () => {
+		const two = { crumbs: [126, 294] };
+		// 36 + 64 + 80 = 180
+		expect(plan(180, two)).toEqual({ hidden: [], compactFirst: true, leafCut: true });
+		expect(plan(179, two)).toEqual({ hidden: [0], compactFirst: false, leafCut: true });
+	});
+
+	it('never cuts a page no wider than its minimum: the first crumb folds instead', () => {
+		const short = { crumbs: [126, 114, 174, 94, 50] };
+		// 36 + 48 + 50 + 80 = 214 with the first crumb as its icon
+		expect(plan(214, short)).toEqual({ hidden: [1, 2, 3], compactFirst: true, leafCut: false });
+		// 24 + 50 + 80 = 154 with the first crumb folded
+		expect(plan(213, short)).toEqual({ hidden: [0, 1, 2, 3], compactFirst: false, leafCut: false });
+		expect(plan(100, short)).toEqual({ hidden: [0, 1, 2, 3], compactFirst: false, leafCut: false });
+		expect(plan(40, { crumbs: [50] })).toEqual({ hidden: [], compactFirst: false, leafCut: false });
+	});
+
+	it('keeps a first crumb that is narrower than the button alone', () => {
+		// 20 + 64 + 80 = 164; the button alone would take 24 + 64 + 80 = 168.
+		const tiny = { crumbs: [20, 294], firstCompact: null };
+		expect(plan(163, tiny)).toEqual({ hidden: [], compactFirst: false, leafCut: true });
 	});
 });

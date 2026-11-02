@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.26.7 - a current page that stays readable, a focus that follows its level
+
+### Fixed
+
+- `Breadcrumbs`: the current page keeps a readable minimum. In a narrow box
+  (a pane beside an open dock) the plan cut the page and the layout squeezed
+  it to a few pixels, so the trail showed the first crumb's icon and the `…`
+  button alone. The page now ellipsizes only down to its own width up to
+  64px (`BREADCRUMB_LEAF_MIN_PX`, four or five characters), held by a CSS
+  `min-width` on its crumb, its chip added. A last step follows: the first
+  crumb folds into the menu too, the `…` button stands first with no
+  separator before it, and the trail reads "… › Pack…" with its chip. The
+  menu then lists the first crumb. The first crumb folds only when that
+  narrows the trail, and a page no wider than the minimum is never cut. Past
+  the narrowest the trail can go, the page holds its minimum and the trail's
+  box clips the end.
+- `Breadcrumbs`: the focus follows its level when the trail re-plans. A
+  focused menu row whose level comes back to the trail (the trail unfolding
+  closes the menu) lost the focus to the page's body; it now lands on that
+  level's crumb, its link or, without one, the current page, and the menu
+  closes behind it. A focused crumb that folds hands the focus to the `…`
+  button, and the button keeps it when it moves.
+
 ## 0.26.6 - one trail, a menu that stays closed, a signatures table that wraps
 
 ### Fixed

@@ -9,9 +9,24 @@
  *   1. the crumbs between the first and the current page fold, from the
  *      inside out, into one overflow button;
  *   2. the first crumb shows as its icon alone (when it has one);
- *   3. the current page ellipsizes, the very last resort.
- * The trailing content beside the current page never gives way.
+ *   3. the current page ellipsizes, down to its readable minimum
+ *      (`breadcrumbLeafMin`), never below it;
+ *   4. the first crumb folds into the button too, which then stands first
+ *      with no separator before it (when that narrows the trail).
+ * The trailing content beside the current page never gives way. Past the
+ * narrowest the trail can go, the page holds its minimum and the trail's box
+ * clips the end.
  */
+/** The current page's readable minimum, its separator in: four or five characters and the ellipsis. */
+export const BREADCRUMB_LEAF_MIN_PX = 64;
+/**
+ * The narrowest the current page goes: its natural width (its separator or
+ * icon included) up to `BREADCRUMB_LEAF_MIN_PX`. A page no wider than that
+ * is never cut.
+ */
+export function breadcrumbLeafMin(natural) {
+    return Math.min(natural, BREADCRUMB_LEAF_MIN_PX);
+}
 const NOTHING = { hidden: [], compactFirst: false, leafCut: false };
 /**
  * The order the crumbs between the first and the last fold in: the one
@@ -36,28 +51,49 @@ export function planBreadcrumbOverflow(measure) {
     const crumbs = measure.crumbs.map((width) => Math.ceil(width));
     const trailing = Math.ceil(measure.trailing);
     const last = count - 1;
+    const leaf = crumbs[last];
+    const leafMin = Math.ceil(breadcrumbLeafMin(measure.crumbs[last]));
+    /** The page can give way at all: it is wider than its minimum. */
+    const leafGives = leaf > leafMin;
+    /** Before the current page there is `before`: the page does not fit whole. */
+    const overflows = (before) => before + leaf + trailing > available;
     if (count === 1)
-        return { ...NOTHING, leafCut: crumbs[0] + trailing > available };
+        return { ...NOTHING, leafCut: leafGives && overflows(0) };
     const hidden = new Set();
-    const needed = (compactFirst) => {
-        let sum = compactFirst ? Math.ceil(measure.firstCompact ?? 0) : crumbs[0];
+    /** Everything before the current page, the first crumb `first` wide. */
+    const before = (first) => {
+        let sum = first;
         for (let i = 1; i < last; i++)
             if (!hidden.has(i))
                 sum += crumbs[i];
         if (hidden.size > 0)
             sum += Math.ceil(measure.more);
-        return sum + crumbs[last] + trailing;
+        return sum;
     };
     const folded = () => [...hidden].sort((a, b) => a - b);
+    // 1. The crumbs on the way fold, from the inside out.
     const order = breadcrumbCollapseOrder(count);
     for (let step = 0;; step++) {
-        if (needed(false) <= available)
+        if (!overflows(before(crumbs[0])))
             return { hidden: folded(), compactFirst: false, leafCut: false };
         if (step >= order.length)
             break;
         hidden.add(order[step]);
     }
-    if (measure.firstCompact === null)
-        return { hidden: folded(), compactFirst: false, leafCut: true };
-    return { hidden: folded(), compactFirst: true, leafCut: needed(true) > available };
+    // 2. The first crumb shows as its icon alone.
+    const compactFirst = measure.firstCompact !== null;
+    const rest = before(compactFirst ? Math.ceil(measure.firstCompact) : crumbs[0]);
+    if (!overflows(rest))
+        return { hidden: folded(), compactFirst, leafCut: false };
+    // 3. The current page ellipsizes, down to its minimum.
+    if (leafGives && rest + leafMin + trailing <= available) {
+        return { hidden: folded(), compactFirst, leafCut: true };
+    }
+    // 4. The first crumb folds too: the button alone stands before the page.
+    const lead = Math.ceil(measure.moreLead);
+    if (lead < rest) {
+        return { hidden: [0, ...folded()], compactFirst: false, leafCut: leafGives && overflows(lead) };
+    }
+    // Folding the first crumb would not narrow the trail: the page holds its minimum.
+    return { hidden: folded(), compactFirst, leafCut: leafGives };
 }
