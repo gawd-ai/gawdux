@@ -74,6 +74,14 @@ export interface UserMenuProps {
      * open, the panel grows to the left and the avatar stays put. 0 never.
      */
     compactBelow?: 0 | 768 | 1024;
+    /**
+     * The closed menu is the avatar alone at every width, as below
+     * `compactBelow`: a header gives its room to a trail that needs it
+     * (`createRoomYield`). The name stays the trigger's accessible name and is
+     * the closed card's tooltip; open, the panel grows to the left as it does
+     * below the breakpoint.
+     */
+    compact?: boolean;
     /** Prefix of the element ids (trigger, body, context, menu); unique per page. */
     id?: string;
     /**
@@ -87,6 +95,8 @@ export interface UserMenuProps {
 export interface UserMenuPresentation {
     open: boolean;
     pointerInput: boolean;
+    /** The host's `compact`: the closed trigger shows the avatar alone. */
+    compact: boolean;
     triggerId: string;
     bodyId: string;
     menuId: string;

@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.26.9 - controls that give the header trail their room
+
+### Added
+
+- `Breadcrumbs` reports the room it needs: `room` (bindable) carries, once
+  the trail is measured, `available` (its box's width), `whole` (every crumb
+  in full with the chip) and `page` (the current page whole with the chip,
+  the crumbs on the way folded and the first as its icon). The needs come
+  from the measures alone, never from the room, and a new trail keeps the
+  last report until it is measured. `breadcrumbNeed` is the same arithmetic,
+  pure, and `BreadcrumbNeed` and `BreadcrumbRoom` are exported from
+  `gawdux/primitives`.
+- `createRoomYield` (`gawdux/utils`): header controls that give their room to
+  a sibling that needs it, an account menu showing its avatar alone so the
+  trail reads whole. A control yields when the sibling needs more than the
+  room it would have with every control at full size, in the order given,
+  each only when the ones before it are not enough, and comes back as soon as
+  the sibling fits without it. The room at full size is the same whichever
+  controls yield, so the row never oscillates. `planRoomYield` and
+  `roomAtFullSize` are the rule, pure.
+- `UserMenu` takes `compact`: the closed menu is the avatar alone at every
+  width, as below `compactBelow`, and opens the same panel growing to the
+  left. The name stays the trigger's accessible name; the closed card names
+  the person in its tooltip, on the card rather than the trigger, so the
+  trigger gains no description. A `presentation` receives `compact`.
+
 ## 0.26.8 - a … button that keeps the focus both ways, an Escape the menu takes
 
 ### Fixed

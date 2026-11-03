@@ -47,6 +47,13 @@
 	those widths alone, so a resize reads no layout. The root grows into its
 	row (`flex: 1 1 0%`), so its width never depends on what it shows.
 
+	The room it needs. `room` (bindable) reports, once measured, the width the
+	trail has and the widths it needs: `whole`, every crumb in full, and
+	`page`, the current page whole with the crumbs on the way folded. The
+	needs come from the measures alone, never from the room, so a host can
+	give the trail room (`createRoomYield`: an account menu showing its avatar
+	alone) and decide again without the decision undoing itself.
+
 	Styling: the crumbs keep the token classes (`.breadcrumb-title`,
 	`.breadcrumb-section-icon`, `.breadcrumb-chevron`, `.breadcrumb-label`);
 	the layout and the menu are scoped CSS over the --gawdux-* tokens.
@@ -58,8 +65,10 @@
 	import { createDisclosureController } from '../utils/disclosure';
 	import {
 		breadcrumbLeafMin,
+		breadcrumbNeed,
 		planBreadcrumbOverflow,
-		type BreadcrumbOverflowPlan
+		type BreadcrumbOverflowPlan,
+		type BreadcrumbRoom
 	} from './breadcrumb-overflow';
 
 	let {
@@ -67,7 +76,8 @@
 		trailing,
 		label = 'Breadcrumb',
 		moreLabel = 'Show the hidden levels',
-		className = ''
+		className = '',
+		room = $bindable(null)
 	}: {
 		/** The trail, first crumb first; the last is the current page. */
 		items?: BreadcrumbCrumb[];
@@ -78,6 +88,12 @@
 		/** The … button's name and tooltip. */
 		moreLabel?: string;
 		className?: string;
+		/**
+		 * Bindable. The width the trail has and the widths it needs (`whole`,
+		 * `page`); null until it is measured, then the last report while a new
+		 * trail is measured.
+		 */
+		room?: BreadcrumbRoom | null;
 	} = $props();
 
 	type Measured = {
@@ -132,6 +148,38 @@
 			? breadcrumbLeafMin(measured.crumbs[last] ?? 0) + (trailing ? trailingWidth : 0)
 			: null
 	);
+
+	/** This trail's report, once it is measured and has a box. */
+	const report = $derived.by<BreadcrumbRoom | null>(() => {
+		if (available === null || !measured || measured.items !== items) return null;
+		return {
+			available,
+			...breadcrumbNeed({
+				crumbs: measured.crumbs,
+				more: measured.more,
+				moreLead: measured.moreLead,
+				firstCompact: measured.firstCompact,
+				trailing: trailing ? trailingWidth : 0
+			})
+		};
+	});
+
+	// The host reads the last report while a new trail is measured: the room
+	// it gave never flickers back for a frame.
+	$effect(() => {
+		const next = report;
+		if (!next) return;
+		const last = untrack(() => room);
+		if (
+			last &&
+			last.available === next.available &&
+			last.whole === next.whole &&
+			last.page === next.page
+		) {
+			return;
+		}
+		room = next;
+	});
 
 	// The trail unfolding closes the menu. Hidden while `open` held, it came
 	// back by itself, its listeners with it, the next time the trail folded.

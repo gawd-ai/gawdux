@@ -28,6 +28,22 @@ export function breadcrumbLeafMin(natural) {
     return Math.min(natural, BREADCRUMB_LEAF_MIN_PX);
 }
 const NOTHING = { hidden: [], compactFirst: false, leafCut: false };
+/** The widths a trail needs, rounded up as the plan rounds them. */
+export function breadcrumbNeed(measure) {
+    const count = measure.crumbs.length;
+    if (count === 0)
+        return { whole: 0, page: 0 };
+    const crumbs = measure.crumbs.map((width) => Math.ceil(width));
+    const trailing = Math.ceil(measure.trailing);
+    const whole = crumbs.reduce((sum, width) => sum + width, 0) + trailing;
+    if (count === 1)
+        return { whole, page: whole };
+    const first = measure.firstCompact === null ? crumbs[0] : Math.ceil(measure.firstCompact);
+    const folded = count > 2 ? Math.ceil(measure.more) : 0;
+    // Folding can widen a trail (a crumb narrower than the … button): the
+    // page then needs no more than the whole trail.
+    return { whole, page: Math.min(whole, first + folded + crumbs[count - 1] + trailing) };
+}
 /**
  * The order the crumbs between the first and the last fold in: the one
  * nearest the middle of the trail first, then its neighbours outward, the

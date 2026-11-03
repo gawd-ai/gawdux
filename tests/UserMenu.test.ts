@@ -468,6 +468,52 @@ describe('UserMenu compact', () => {
 		const c = renderMenu({ compactBelow: 0 });
 		expect(c.root.className).not.toMatch(/compact-/);
 	});
+
+	it('shows the avatar alone at every width when the host compacts it, the name still its accessible name', () => {
+		const { root, trigger } = renderMenu({ compact: true, compactBelow: 0 });
+		expect(root.classList.contains('compact')).toBe(true);
+		expect(trigger.getAttribute('aria-label')).toBe('Account menu for Ada Lovelace');
+		expect(trigger.querySelector('.name')?.textContent).toBe('Ada Lovelace');
+	});
+
+	it('is full size unless the host compacts it', () => {
+		const { root, container } = renderMenu({ compactBelow: 0 });
+		expect(root.classList.contains('compact')).toBe(false);
+		expect(container.querySelector('.panel')?.hasAttribute('title')).toBe(false);
+	});
+
+	it("names the person in the closed avatar's tooltip, and drops it while the panel is open", async () => {
+		const { container, trigger } = renderMenu({ compact: true });
+		const panel = container.querySelector('.panel') as HTMLElement;
+		expect(panel.getAttribute('title')).toBe('Ada Lovelace');
+		// The tooltip is the card's, not the trigger's: it adds no description.
+		expect(trigger.hasAttribute('title')).toBe(false);
+		await pointerClick(trigger);
+		expect(trigger.getAttribute('aria-expanded')).toBe('true');
+		expect(panel.hasAttribute('title')).toBe(false);
+		await pointerClick(trigger);
+		expect(panel.getAttribute('title')).toBe('Ada Lovelace');
+	});
+
+	it('opens the same menu from the avatar, by the keyboard as by the pointer', async () => {
+		const { container, trigger } = renderMenu({ compact: true });
+		await fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+		await tick();
+		const rows = menuItems(container);
+		expect(rows.map((row) => row.textContent?.trim())).toEqual(['Members', 'Remote access', 'Sign out']);
+		expect(document.activeElement).toBe(rows[0]);
+		await fireEvent.keyDown(rows[0]!, { key: 'Escape' });
+		expect(trigger.getAttribute('aria-expanded')).toBe('false');
+		expect(document.activeElement).toBe(trigger);
+	});
+
+	it('compacts with the rules the breakpoints use: the avatar keeps its place, the panel grows left', () => {
+		expect(userMenuSource).toMatch(/\n\t\.compact \{[^}]*width: 44px;/);
+		expect(userMenuSource).toMatch(/\.compact \.trigger \{[^}]*flex-direction: row-reverse/);
+		expect(userMenuSource).toMatch(
+			/\.compact \.panel\.open \{\s*width: min\(\s*var\(--gawdux-user-menu-width, 272px\),\s*var\(--gawdux-user-menu-room, calc\(100vw - 32px\)\)\s*\);/
+		);
+	});
 });
 
 describe('UserMenu one highlighted row', () => {

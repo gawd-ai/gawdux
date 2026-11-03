@@ -51,6 +51,28 @@ export type BreadcrumbOverflowPlan = {
     leafCut: boolean;
 };
 /**
+ * The widths a trail needs, read from its measures alone, never from the
+ * room it has: a host can give it room (a control beside it shrinking) and
+ * decide again without the decision undoing itself.
+ */
+export type BreadcrumbNeed = {
+    /** Every crumb in full, the trailing content beside the current page. */
+    whole: number;
+    /**
+     * The current page whole, its trailing content beside it: the crumbs on
+     * the way folded and the first as its icon. From this width up the plan
+     * never cuts the page.
+     */
+    page: number;
+};
+/** What a trail reports to its host: the room it has and the room it needs. */
+export type BreadcrumbRoom = BreadcrumbNeed & {
+    /** The width the trail has now: its box's content width. */
+    available: number;
+};
+/** The widths a trail needs, rounded up as the plan rounds them. */
+export declare function breadcrumbNeed(measure: Omit<BreadcrumbOverflowMeasure, 'available'>): BreadcrumbNeed;
+/**
  * The order the crumbs between the first and the last fold in: the one
  * nearest the middle of the trail first, then its neighbours outward, the
  * root side before the page side on a tie. Every prefix of the order is one

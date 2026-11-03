@@ -14,7 +14,9 @@
 	shadow, the raised menu surface) on hover and while open. Below
 	`compactBelow` the closed card is the avatar alone; open, the panel grows to
 	the left from the avatar, which stays where it was (the trigger row is
-	mirrored), and never past the 16px gutter on the left.
+	mirrored), and never past the 16px gutter on the left. `compact` gives the
+	same avatar at every width, for a header whose trail needs the room
+	(`createRoomYield`); the closed card then names the person in its tooltip.
 
 	Keyboard: the WAI-ARIA menu button pattern. Enter, Space or ArrowDown on the
 	trigger opens and focuses the first row, ArrowUp the last; in the menu the
@@ -54,6 +56,7 @@
 		footer,
 		label,
 		compactBelow = 768,
+		compact = false,
 		id = 'gawdux-user-menu',
 		open = $bindable(false),
 		onopenchange,
@@ -328,7 +331,7 @@
 
 {#if presentation}
 	{@render presentation({
-		open, pointerInput,
+		open, pointerInput, compact,
 		triggerId: `${id}-trigger`, bodyId: `${id}-body`, menuId: `${id}-menu`,
 		triggerLabel, controlsId: hasMenu ? `${id}-menu` : `${id}-body`,
 		rootAction, triggerAction, bodyAction, menuAction,
@@ -339,16 +342,21 @@
 {:else}
 <div
 	class="gawdux-user-menu {compactClass}"
+	class:compact
 	data-user-menu
 	data-state={open ? 'open' : 'closed'}
 	style:--gawdux-user-menu-room={room === undefined ? undefined : `${room}px`}
 	bind:this={root}
 	onfocusout={onRootFocusOut}
 >
+	<!-- The avatar alone names the person in its tooltip. The card carries it,
+	     not the trigger, so the trigger's accessible name and description stay
+	     as they are; it goes while the panel is open, over the rows. -->
 	<div
 		class="panel"
 		class:open
 		role="presentation"
+		title={compact && !open ? name : undefined}
 		onpointerenter={clearLeave}
 		onpointerleave={onPanelPointerLeave}
 	>
@@ -855,6 +863,38 @@
 	}
 
 	/* ── Compact: the avatar alone while closed, and it never moves ─────── */
+	/* The host's `compact` at every width; then the same rules below each
+	   breakpoint. */
+	.compact {
+		width: 44px;
+		min-width: 0;
+		max-width: none;
+	}
+	.compact .panel {
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 100%;
+	}
+	/* Mirrored: the avatar keeps the right end, where it sat closed, and the
+	   panel grows to the left of it. */
+	.compact .trigger {
+		flex-direction: row-reverse;
+		padding: 0 7px 0 10px;
+	}
+	.compact .identity {
+		text-align: right;
+	}
+	.compact .panel:not(.open) .identity,
+	.compact .chevron {
+		display: none;
+	}
+	.compact .panel.open {
+		width: min(
+			var(--gawdux-user-menu-width, 272px),
+			var(--gawdux-user-menu-room, calc(100vw - 32px))
+		);
+	}
 	@media (max-width: 1023.98px) {
 		.compact-1024 {
 			width: 44px;

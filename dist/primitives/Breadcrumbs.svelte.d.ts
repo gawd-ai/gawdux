@@ -1,5 +1,6 @@
 import { type Component, type Snippet } from 'svelte';
 import type { BreadcrumbCrumb } from '../utils/url-breadcrumb';
+import { type BreadcrumbRoom } from './breadcrumb-overflow';
 type $$ComponentProps = {
     /** The trail, first crumb first; the last is the current page. */
     items?: BreadcrumbCrumb[];
@@ -10,6 +11,12 @@ type $$ComponentProps = {
     /** The … button's name and tooltip. */
     moreLabel?: string;
     className?: string;
+    /**
+     * Bindable. The width the trail has and the widths it needs (`whole`,
+     * `page`); null until it is measured, then the last report while a new
+     * trail is measured.
+     */
+    room?: BreadcrumbRoom | null;
 };
 /**
  * A breadcrumb trail on one line that never wraps and never clips a crumb.
@@ -59,10 +66,17 @@ type $$ComponentProps = {
  * those widths alone, so a resize reads no layout. The root grows into its
  * row (`flex: 1 1 0%`), so its width never depends on what it shows.
  *
+ * The room it needs. `room` (bindable) reports, once measured, the width the
+ * trail has and the widths it needs: `whole`, every crumb in full, and
+ * `page`, the current page whole with the crumbs on the way folded. The
+ * needs come from the measures alone, never from the room, so a host can
+ * give the trail room (`createRoomYield`: an account menu showing its avatar
+ * alone) and decide again without the decision undoing itself.
+ *
  * Styling: the crumbs keep the token classes (`.breadcrumb-title`,
  * `.breadcrumb-section-icon`, `.breadcrumb-chevron`, `.breadcrumb-label`);
  * the layout and the menu are scoped CSS over the --gawdux-* tokens.
  */
-declare const Breadcrumbs: Component<$$ComponentProps, {}, "">;
+declare const Breadcrumbs: Component<$$ComponentProps, {}, "room">;
 type Breadcrumbs = ReturnType<typeof Breadcrumbs>;
 export default Breadcrumbs;

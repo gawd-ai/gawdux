@@ -60,6 +60,43 @@ export type BreadcrumbOverflowPlan = {
 const NOTHING: BreadcrumbOverflowPlan = { hidden: [], compactFirst: false, leafCut: false };
 
 /**
+ * The widths a trail needs, read from its measures alone, never from the
+ * room it has: a host can give it room (a control beside it shrinking) and
+ * decide again without the decision undoing itself.
+ */
+export type BreadcrumbNeed = {
+	/** Every crumb in full, the trailing content beside the current page. */
+	whole: number;
+	/**
+	 * The current page whole, its trailing content beside it: the crumbs on
+	 * the way folded and the first as its icon. From this width up the plan
+	 * never cuts the page.
+	 */
+	page: number;
+};
+
+/** What a trail reports to its host: the room it has and the room it needs. */
+export type BreadcrumbRoom = BreadcrumbNeed & {
+	/** The width the trail has now: its box's content width. */
+	available: number;
+};
+
+/** The widths a trail needs, rounded up as the plan rounds them. */
+export function breadcrumbNeed(measure: Omit<BreadcrumbOverflowMeasure, 'available'>): BreadcrumbNeed {
+	const count = measure.crumbs.length;
+	if (count === 0) return { whole: 0, page: 0 };
+	const crumbs = measure.crumbs.map((width) => Math.ceil(width));
+	const trailing = Math.ceil(measure.trailing);
+	const whole = crumbs.reduce((sum, width) => sum + width, 0) + trailing;
+	if (count === 1) return { whole, page: whole };
+	const first = measure.firstCompact === null ? crumbs[0]! : Math.ceil(measure.firstCompact);
+	const folded = count > 2 ? Math.ceil(measure.more) : 0;
+	// Folding can widen a trail (a crumb narrower than the … button): the
+	// page then needs no more than the whole trail.
+	return { whole, page: Math.min(whole, first + folded + crumbs[count - 1]! + trailing) };
+}
+
+/**
  * The order the crumbs between the first and the last fold in: the one
  * nearest the middle of the trail first, then its neighbours outward, the
  * root side before the page side on a tie. Every prefix of the order is one

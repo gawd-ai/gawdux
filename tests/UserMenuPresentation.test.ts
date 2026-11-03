@@ -51,4 +51,12 @@ describe("custom account menu presentation", () => {
       "/signout",
     );
   });
+
+  it("tells the host's markup when the host compacts the menu", async () => {
+    const { container, rerender } = render(CustomUserMenuHarness);
+    const root = container.querySelector("[data-custom-menu]") as HTMLElement;
+    expect(root.dataset.compact).toBe("false");
+    await rerender({ compact: true });
+    expect(root.dataset.compact).toBe("true");
+  });
 });

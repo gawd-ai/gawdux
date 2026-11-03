@@ -61,6 +61,10 @@ export type {
 
 export { slideFadeIn, slideFadeOut } from './transitions';
 export { createDisclosureController } from './disclosure';
+export { planRoomYield, roomAtFullSize } from './room-yield';
+export type { RoomYieldMeasure, YieldingControl } from './room-yield';
+export { createRoomYield } from './room-yield.svelte';
+export type { RoomYieldController, RoomYieldPorts, RoomYieldSibling } from './room-yield.svelte';
 export type { DisclosurePorts, DisclosureController } from './disclosure';
 export { activateFocusScope } from './focus-scope';
 export type { FocusScopePorts } from './focus-scope';

@@ -1,9 +1,12 @@
 <script lang="ts">
   import UserMenu from "../../src/lib/components/UserMenu.svelte";
+
+  let { compact = false }: { compact?: boolean } = $props();
 </script>
 
 <UserMenu
   name="Ada Lovelace"
+  {compact}
   items={[{ label: "Profile", href: "/profile" }]}
   signOutAction="/signout"
 >
@@ -11,6 +14,7 @@
     <div
       data-custom-menu
       data-state={menu.open ? "open" : "closed"}
+      data-compact={menu.compact}
       use:menu.rootAction
       onfocusout={menu.onRootFocusOut}
     >

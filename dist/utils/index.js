@@ -7,6 +7,8 @@ export { createHistoryTab } from './history-tab.svelte';
 export { createBreadcrumbBuilder } from './url-breadcrumb';
 export { slideFadeIn, slideFadeOut } from './transitions';
 export { createDisclosureController } from './disclosure';
+export { planRoomYield, roomAtFullSize } from './room-yield';
+export { createRoomYield } from './room-yield.svelte';
 export { activateFocusScope } from './focus-scope';
 export { buildUtcDaySeries, sampleSeriesTicks } from './day-series';
 export { createSavedViewActions } from './saved-view-actions';

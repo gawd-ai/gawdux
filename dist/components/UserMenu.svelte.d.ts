@@ -14,7 +14,9 @@ import type { UserMenuProps } from '../types/user-menu.types';
  * shadow, the raised menu surface) on hover and while open. Below
  * `compactBelow` the closed card is the avatar alone; open, the panel grows to
  * the left from the avatar, which stays where it was (the trigger row is
- * mirrored), and never past the 16px gutter on the left.
+ * mirrored), and never past the 16px gutter on the left. `compact` gives the
+ * same avatar at every width, for a header whose trail needs the room
+ * (`createRoomYield`); the closed card then names the person in its tooltip.
  *
  * Keyboard: the WAI-ARIA menu button pattern. Enter, Space or ArrowDown on the
  * trigger opens and focuses the first row, ArrowUp the last; in the menu the

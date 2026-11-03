@@ -3,6 +3,7 @@ import {
 	BREADCRUMB_LEAF_MIN_PX,
 	breadcrumbCollapseOrder,
 	breadcrumbLeafMin,
+	breadcrumbNeed,
 	planBreadcrumbOverflow,
 	type BreadcrumbOverflowMeasure
 } from '../src/lib/primitives/breadcrumb-overflow';
@@ -188,5 +189,65 @@ describe('the current page keeps a readable minimum', () => {
 		// 20 + 64 + 80 = 164; the button alone would take 24 + 64 + 80 = 168.
 		const tiny = { crumbs: [20, 294], firstCompact: null };
 		expect(plan(163, tiny)).toEqual({ hidden: [], compactFirst: false, leafCut: true });
+	});
+});
+
+describe('breadcrumbNeed: the room a trail needs, whatever room it has', () => {
+	it('needs every crumb and the chip to show whole: 882px', () => {
+		expect(breadcrumbNeed(TRAIL).whole).toBe(882);
+		expect(plan(882)).toEqual({ hidden: [], compactFirst: false, leafCut: false });
+		expect(plan(881).hidden).not.toEqual([]);
+	});
+
+	it('needs the folded middle, the first as its icon, the page and the chip to show the page whole: 458px', () => {
+		// 36 (the first as its icon) + 48 (the … button) + 294 + 80.
+		expect(breadcrumbNeed(TRAIL).page).toBe(458);
+		expect(plan(458).leafCut).toBe(false);
+		expect(plan(457).leafCut).toBe(true);
+	});
+
+	it('is the same at every width: it reads the measures, never the room', () => {
+		const at = (available: number) => {
+			const measure: BreadcrumbOverflowMeasure = { ...TRAIL, available };
+			return breadcrumbNeed(measure);
+		};
+		expect(at(100)).toEqual(at(Infinity));
+		expect(at(0)).toEqual({ whole: 882, page: 458 });
+	});
+
+	it('rounds the widths up as the plan does, so a trail given its need is never cut', () => {
+		const measure = { ...TRAIL, crumbs: [125.2, 113.5, 173.1, 93.9, 293.4], trailing: 79.6 };
+		const need = breadcrumbNeed(measure);
+		expect(need).toEqual({ whole: 882, page: 458 });
+		expect(planBreadcrumbOverflow({ ...measure, available: need.whole }).hidden).toEqual([]);
+		expect(planBreadcrumbOverflow({ ...measure, available: need.page }).leafCut).toBe(false);
+	});
+
+	it('keeps the first crumb in words when it has no icon to stand for it', () => {
+		// 126 + 48 + 294 + 80.
+		expect(breadcrumbNeed({ ...TRAIL, firstCompact: null }).page).toBe(548);
+		expect(plan(548, { firstCompact: null }).leafCut).toBe(false);
+		expect(plan(547, { firstCompact: null }).leafCut).toBe(true);
+	});
+
+	it('folds nothing on a two-level trail: the first as its icon beside the page', () => {
+		const two = { ...TRAIL, crumbs: [126, 294] };
+		expect(breadcrumbNeed(two)).toEqual({ whole: 500, page: 410 });
+		expect(planBreadcrumbOverflow({ ...two, available: 410 }).leafCut).toBe(false);
+		expect(planBreadcrumbOverflow({ ...two, available: 409 }).leafCut).toBe(true);
+	});
+
+	it('never needs more to show the page than to show the whole trail', () => {
+		// One crumb on the way narrower than the … button, and no icon for the
+		// first: folding would widen the trail, so the page needs the whole of it.
+		const narrow = { ...TRAIL, crumbs: [126, 30, 294], firstCompact: null };
+		expect(breadcrumbNeed(narrow)).toEqual({ whole: 530, page: 530 });
+		expect(planBreadcrumbOverflow({ ...narrow, available: 530 }).leafCut).toBe(false);
+		expect(planBreadcrumbOverflow({ ...narrow, available: 529 }).leafCut).toBe(true);
+	});
+
+	it('needs the page and its chip alone on a one-level trail, and nothing without a trail', () => {
+		expect(breadcrumbNeed({ ...TRAIL, crumbs: [294] })).toEqual({ whole: 374, page: 374 });
+		expect(breadcrumbNeed({ ...TRAIL, crumbs: [] })).toEqual({ whole: 0, page: 0 });
 	});
 });

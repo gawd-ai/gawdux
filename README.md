@@ -243,6 +243,12 @@ rows, sign-out and the product's version.
   height above the page (z-index 60). Below `compactBelow` (768 by default,
   1024, or 0 for never) the closed menu is the avatar alone; open, the avatar
   stays put, the panel grows to its left and stops at the 16px gutter.
+  `compact` gives the same avatar at every width, for a header whose trail
+  needs the room (see [Giving the trail room](#giving-the-trail-room)). The
+  name stays the trigger's accessible name, and the closed card names the
+  person in its tooltip; the tooltip is the card's, not the trigger's, so it
+  adds no description, and it goes while the panel is open. A `presentation`
+  receives `compact` too.
 - **Styling** is scoped CSS over the tokens (`--gawdux-surface`,
   `--gawdux-menu-surface`, `--gawdux-border`, `--gawdux-menu-divider`,
   `--gawdux-menu-item-hover`, `--gawdux-chip-surface`, `--gawdux-avatar-surface`,
@@ -315,12 +321,71 @@ never wraps and never clips a crumb.
   `ResizeObserver`) the trail shows whole. The root grows into its row
   (`flex: 1 1 0%; min-width: 0`): give it the room, not a width of its own,
   and add no rules of your own to its crumbs.
+- **The room it needs**: `room` (bindable) reports, once the trail is
+  measured, `available`, the width its box has, and two widths it needs:
+  `whole`, every crumb in full with the chip, and `page`, the current page
+  whole with the chip, the crumbs on the way folded and the first as its icon
+  (from that width up the page is never cut). The needs come from the
+  measures alone, never from the room, so a host that gives the trail room
+  decides again without undoing itself. `breadcrumbNeed` is the same
+  arithmetic, pure. A new trail keeps the last report until it is measured.
 - **Words**: `label` names the landmark ("Breadcrumb"), `moreLabel` the `…`
   button ("Show the hidden levels").
 - **Styling**: the crumbs keep the token classes `.breadcrumb-title`,
   `.breadcrumb-section-icon` and `.breadcrumb-chevron`; the layout and the
   menu (UserMenu's surface and rows) are scoped CSS over the `--gawdux-*`
   tokens.
+
+## Giving the trail room
+
+`createRoomYield` (`gawdux/utils`) lets header controls give their room to a
+sibling that needs it: the account menu shows its avatar alone so the trail
+beside it reads whole.
+
+```svelte
+<script lang="ts">
+  import { UserMenu } from 'gawdux/components';
+  import { Breadcrumbs, type BreadcrumbRoom } from 'gawdux/primitives';
+  import { createRoomYield } from 'gawdux/utils';
+
+  let { crumbs, user } = $props();
+  let trail = $state<BreadcrumbRoom | null>(null);
+  let account = $state<HTMLElement>();
+  const room = createRoomYield({
+    sibling: () => (trail ? { available: trail.available, need: trail.whole } : null),
+    controls: () => [account]
+  });
+</script>
+
+<header class="flex items-center gap-2">
+  <Breadcrumbs items={crumbs} bind:room={trail} />
+  <div bind:this={account}>
+    <UserMenu name={user.name} compact={room.yields(0)} />
+  </div>
+</header>
+```
+
+- **The rule**: a control yields when the sibling needs more than the room it
+  would have with every control at full size; the controls yield in the order
+  given (`controls`), each only when the ones before it are not enough, and
+  each comes back as soon as the sibling fits without it. `planRoomYield` is
+  the rule, pure: the need rounds up and the room down, as the trail plans its
+  own fit, and a sibling that needs nothing takes no room.
+- **Stable**: the room at full size is the sibling's box now plus what each
+  yielding control gave it, from each control's last width at full size. It
+  is the same whether a control yields or not, so a yield never undoes itself
+  and the row never oscillates. The decision never reads how the trail fits
+  after a control yielded.
+- **When it decides**: whenever the sibling reports, so on every resize of
+  the row (a sidebar collapsing, a dock opening) and on a new trail. Every
+  change in the row reaches the trail's box, which takes the room the
+  controls leave. Until the trail is measured the controls stay at full size,
+  so a server render and its hydration agree.
+- **Ports**: `sibling` gives the room and the need (the host picks `whole` or
+  `page`); `controls` gives the boxes that hold the controls, a missing one
+  taking no part; `compactWidth` (44 by default) is a control's width while it
+  yields, until it has yielded once and been measured. Read `yields(index)` in
+  the markup that renders the controls.
 
 ## HeaderStatus
 

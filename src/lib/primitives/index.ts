@@ -6,7 +6,8 @@ export { default as ApprovalsLedgerSignatures } from './ApprovalsLedgerSignature
 export { ledgerRowText } from './approvals-ledger';
 export type { LedgerRow, LedgerRowState, LedgerSignature, LedgerView } from './approvals-ledger';
 export { default as Breadcrumbs } from './Breadcrumbs.svelte';
-/** The slot form of Breadcrumbs (`afterLast` for `trailing`); new code uses Breadcrumbs. */
+export { breadcrumbNeed } from './breadcrumb-overflow';
+export type { BreadcrumbNeed, BreadcrumbRoom } from './breadcrumb-overflow';
 export { default as CardContainer } from './CardContainer.svelte';
 export { default as ClearableInput } from './ClearableInput.svelte';
 export { default as ActiveFilterChip } from './ActiveFilterChip.svelte';

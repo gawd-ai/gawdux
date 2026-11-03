@@ -589,6 +589,44 @@ describe('Breadcrumbs: the focus follows its level when the trail re-plans', () 
 	});
 });
 
+describe('Breadcrumbs: the room it needs', () => {
+	/** The harness writes the report out: the room the trail has, then what it needs whole and with its page whole. */
+	const report = () => screen.getByTestId('room').textContent;
+
+	it('reports nothing until it is measured', () => {
+		render(BreadcrumbsHarness, { props: { items: TRAIL } });
+		expect(report()).toBe('none');
+	});
+
+	it('reports the room it has, the room it needs to show whole and the room it needs to show its page whole', async () => {
+		await renderTrail(600);
+		// Whole: 802 + the 80px chip. The page whole: the first as its icon
+		// (36), the … button (48), the page (294) and the chip (80).
+		expect(report()).toBe('600 882 458');
+	});
+
+	it('needs the same whatever room it has: a resize changes only the room it has', async () => {
+		await renderTrail(600);
+		await resize(300);
+		expect(report()).toBe('300 882 458');
+		await resize(1200);
+		expect(report()).toBe('1200 882 458');
+	});
+
+	it('counts the chip only when the page has one', async () => {
+		await renderTrail(600, TRAIL, null);
+		expect(report()).toBe('600 802 378');
+	});
+
+	it("reports a new trail's need as soon as it is measured", async () => {
+		const { rerender } = await renderTrail(600);
+		await rerender({ items: TRAIL.slice(0, 2) });
+		await tick();
+		// 126 + 114 + 80 whole; the first as its icon, 36 + 114 + 80, with the page whole.
+		expect(report()).toBe('600 320 230');
+	});
+});
+
 describe('Breadcrumbs: one line', () => {
 	const css = breadcrumbsSource.slice(breadcrumbsSource.indexOf('<style>'));
 	const rule = (selector: string) => {
