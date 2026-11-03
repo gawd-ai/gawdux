@@ -107,14 +107,36 @@ describe('planRoomYield', () => {
 		expect(planAt(200, 0, [true, true])).toEqual([false, false]);
 	});
 
-	it('counts a control already as narrow as its avatar as giving nothing, and moves on to the next', () => {
+	it('never yields a control already as narrow as its avatar: it gives nothing, and the next one yields', () => {
 		// The account menu is already its avatar (a narrow viewport's own rule).
 		const controls: YieldingControl[] = [
 			{ width: 44, full: 44, compact: 44 },
 			{ width: 180, full: 180, compact: 44 }
 		];
-		expect(planRoomYield({ need: 700, available: 650, controls })).toEqual([true, true]);
+		expect(planRoomYield({ need: 700, available: 650, controls })).toEqual([false, true]);
+		expect(planRoomYield({ need: 5000, available: 650, controls })).toEqual([false, true]);
 		expect(planRoomYield({ need: 650, available: 650, controls })).toEqual([false, false]);
+		// Nor does one that gives nothing while it yields, in either state.
+		const yielded: YieldingControl[] = [
+			{ width: 44, full: 44, compact: 44 },
+			{ width: 44, full: 180, compact: 44 }
+		];
+		expect(planRoomYield({ need: 700, available: 786, controls: yielded })).toEqual([false, true]);
+	});
+
+	it('flags only the controls that give room: a yield always widens the sibling', () => {
+		for (const first of [44, 120, 240]) {
+			for (const need of [100, 500, 700, 900]) {
+				const controls: YieldingControl[] = [
+					{ width: first, full: first, compact: 44 },
+					{ width: 180, full: 180, compact: 44 }
+				];
+				const plan = planRoomYield({ need, available: 400, controls });
+				plan.forEach((yields, i) => {
+					if (yields) expect(controls[i]!.full - controls[i]!.compact, `${first}px, need ${need}`).toBeGreaterThan(0);
+				});
+			}
+		}
 	});
 
 	it('plans nothing for no controls', () => {

@@ -244,11 +244,13 @@ rows, sign-out and the product's version.
   1024, or 0 for never) the closed menu is the avatar alone; open, the avatar
   stays put, the panel grows to its left and stops at the 16px gutter.
   `compact` gives the same avatar at every width, for a header whose trail
-  needs the room (see [Giving the trail room](#giving-the-trail-room)). The
+  needs the room (see [Giving the trail room](#giving-the-trail-room)); the
+  menu carries the full-size probe (`data-room-full`) that header reads. The
   name stays the trigger's accessible name, and the closed card names the
-  person in its tooltip; the tooltip is the card's, not the trigger's, so it
-  adds no description, and it goes while the panel is open. A `presentation`
-  receives `compact` too.
+  person in its tooltip at every size, the avatar alone whatever made it the
+  avatar and a name the full card cuts; the tooltip is the card's, not the
+  trigger's, so it adds no description, and it goes while the panel is open.
+  A `presentation` receives `compact` too.
 - **Styling** is scoped CSS over the tokens (`--gawdux-surface`,
   `--gawdux-menu-surface`, `--gawdux-border`, `--gawdux-menu-divider`,
   `--gawdux-menu-item-hover`, `--gawdux-chip-surface`, `--gawdux-avatar-surface`,
@@ -368,14 +370,27 @@ beside it reads whole.
 - **The rule**: a control yields when the sibling needs more than the room it
   would have with every control at full size; the controls yield in the order
   given (`controls`), each only when the ones before it are not enough, and
-  each comes back as soon as the sibling fits without it. `planRoomYield` is
-  the rule, pure: the need rounds up and the room down, as the trail plans its
-  own fit, and a sibling that needs nothing takes no room.
+  each comes back as soon as the sibling fits without it. A control already
+  as narrow as it yields (an avatar by a narrow viewport's own rule) gives
+  nothing and never yields; the next one yields in its place. `planRoomYield`
+  is the rule, pure: the need rounds up and the room down, as the trail plans
+  its own fit, and a sibling that needs nothing takes no room.
 - **Stable**: the room at full size is the sibling's box now plus what each
-  yielding control gave it, from each control's last width at full size. It
-  is the same whether a control yields or not, so a yield never undoes itself
-  and the row never oscillates. The decision never reads how the trail fits
-  after a control yielded.
+  yielding control gave it, from each control's full width at the viewport
+  the row has now. It is the same whether a control yields or not, so a yield
+  never undoes itself and the row never oscillates, a breakpoint crossed
+  included. The decision never reads how the trail fits after a control
+  yielded.
+- **Full width**: a control's full width is read from the element marked
+  `data-room-full` inside its box, in every state: an invisible probe laid out
+  at the control's full size whatever it shows (`position: absolute`,
+  `visibility: hidden`, the control's full-size width rules). A control whose
+  full width changes with the viewport needs one, or a yield taken below its
+  breakpoint would read its avatar as its full size above it. `UserMenu`
+  carries its own; a `presentation`, or a control of the host's, renders one
+  beside its spacer. Without a probe the full width is the last one the box
+  had while the control did not yield, right for a control with no breakpoint
+  of its own.
 - **When it decides**: whenever the sibling reports, so on every resize of
   the row (a sidebar collapsing, a dock opening) and on a new trail. Every
   change in the row reaches the trail's box, which takes the room the

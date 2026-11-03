@@ -16,7 +16,9 @@ import type { UserMenuProps } from '../types/user-menu.types';
  * the left from the avatar, which stays where it was (the trigger row is
  * mirrored), and never past the 16px gutter on the left. `compact` gives the
  * same avatar at every width, for a header whose trail needs the room
- * (`createRoomYield`); the closed card then names the person in its tooltip.
+ * (`createRoomYield`), which reads the menu's full width from an invisible
+ * probe (`data-room-full`) laid out at full size whatever the menu shows. The
+ * closed card names the person in its tooltip at every size.
  *
  * Keyboard: the WAI-ARIA menu button pattern. Enter, Space or ArrowDown on the
  * trigger opens and focuses the first row, ArrowUp the last; in the menu the

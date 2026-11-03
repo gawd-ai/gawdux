@@ -8,13 +8,15 @@
  * never reads how the sibling fits after a control yielded, so a yield never
  * undoes itself and the row never oscillates. The controls yield in the
  * order given, each only when the ones before it are not enough, and each
- * comes back as soon as the sibling fits without it.
+ * comes back as soon as the sibling fits without it. A control already as
+ * narrow as it yields (an avatar by a narrow viewport's own rule) gives
+ * nothing and never yields.
  */
 
 export type YieldingControl = {
 	/** Its width as laid out now. */
 	width: number;
-	/** Its width at full size: the last width it had while it did not yield. */
+	/** Its width at full size, at this viewport, whatever it shows now. */
 	full: number;
 	/** Its width while it yields (the avatar alone). */
 	compact: number;
@@ -43,9 +45,12 @@ export function roomAtFullSize(available: number, controls: readonly YieldingCon
 }
 
 /**
- * One flag per control, in order: true for a control that yields. The flags
- * are a prefix: once a control does not yield, none after it does. A sibling
- * that needs nothing (an empty trail) takes no room from anyone.
+ * One flag per control, in order: true for a control that yields. A control
+ * yields only when it gives the sibling room (its full width is more than
+ * its compact one) and the sibling needs more than the room it would have
+ * with that control and every one after it at full size; once a control that
+ * gives room does not yield, none after it does. A sibling that needs nothing
+ * (an empty trail) takes no room from anyone.
  */
 export function planRoomYield({ need, available, controls }: RoomYieldMeasure): boolean[] {
 	// The need rounds up and the room down, as a trail plans its own fit.
@@ -54,8 +59,9 @@ export function planRoomYield({ need, available, controls }: RoomYieldMeasure): 
 	let room = available;
 	for (const control of controls) room += control.width - control.full;
 	return controls.map((control) => {
-		if (target <= Math.floor(room + EPSILON)) return false;
-		room += Math.max(0, control.full - control.compact);
+		const gives = control.full - control.compact;
+		if (gives <= EPSILON || target <= Math.floor(room + EPSILON)) return false;
+		room += gives;
 		return true;
 	});
 }

@@ -10,8 +10,14 @@
 	let {
 		items,
 		scope = true,
-		need = 'whole'
-	}: { items: BreadcrumbCrumb[]; scope?: boolean; need?: 'whole' | 'page' } = $props();
+		need = 'whole',
+		compactBelow = 0
+	}: {
+		items: BreadcrumbCrumb[];
+		scope?: boolean;
+		need?: 'whole' | 'page';
+		compactBelow?: 0 | 768 | 1024;
+	} = $props();
 
 	let trail = $state<BreadcrumbRoom | null>(null);
 	let accountBox = $state<HTMLElement>();
@@ -29,6 +35,6 @@
 		<div class="scope-box" data-yields={room.yields(1)} bind:this={scopeBox}>Scope</div>
 	{/if}
 	<div class="account-box" bind:this={accountBox}>
-		<UserMenu name="Ada Lovelace" compactBelow={0} compact={room.yields(0)} />
+		<UserMenu name="Ada Lovelace" {compactBelow} compact={room.yields(0)} />
 	</div>
 </div>

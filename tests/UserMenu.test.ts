@@ -477,22 +477,58 @@ describe('UserMenu compact', () => {
 	});
 
 	it('is full size unless the host compacts it', () => {
-		const { root, container } = renderMenu({ compactBelow: 0 });
+		const { root } = renderMenu({ compactBelow: 0 });
 		expect(root.classList.contains('compact')).toBe(false);
-		expect(container.querySelector('.panel')?.hasAttribute('title')).toBe(false);
 	});
 
-	it("names the person in the closed avatar's tooltip, and drops it while the panel is open", async () => {
-		const { container, trigger } = renderMenu({ compact: true });
-		const panel = container.querySelector('.panel') as HTMLElement;
-		expect(panel.getAttribute('title')).toBe('Ada Lovelace');
-		// The tooltip is the card's, not the trigger's: it adds no description.
-		expect(trigger.hasAttribute('title')).toBe(false);
-		await pointerClick(trigger);
-		expect(trigger.getAttribute('aria-expanded')).toBe('true');
-		expect(panel.hasAttribute('title')).toBe(false);
-		await pointerClick(trigger);
-		expect(panel.getAttribute('title')).toBe('Ada Lovelace');
+	// One card, one tooltip: the avatar alone names the person whatever made
+	// it the avatar (the host's `compact` or the breakpoint), and the full card
+	// names the person a long name cuts.
+	it("names the person in the closed card's tooltip at every size, and drops it while the panel is open", async () => {
+		for (const props of [{ compact: true }, { compactBelow: 1024 }, { compactBelow: 0 }]) {
+			const { container, trigger, unmount } = renderMenu(props);
+			const panel = container.querySelector('.panel') as HTMLElement;
+			expect(panel.getAttribute('title'), JSON.stringify(props)).toBe('Ada Lovelace');
+			// The tooltip is the card's, not the trigger's: it adds no description.
+			expect(trigger.hasAttribute('title')).toBe(false);
+			await pointerClick(trigger);
+			expect(trigger.getAttribute('aria-expanded')).toBe('true');
+			expect(panel.hasAttribute('title')).toBe(false);
+			await pointerClick(trigger);
+			expect(panel.getAttribute('title')).toBe('Ada Lovelace');
+			unmount();
+		}
+	});
+
+	// A header that yields its room (createRoomYield) reads the menu's full
+	// width from this probe in every state, so a yield holds as the window
+	// crosses `compactBelow`.
+	it('carries a probe laid out at its full size, with no words of its own in the page', () => {
+		const { root } = renderMenu({ compact: true, compactBelow: 1024 });
+		const probe = root.querySelector<HTMLElement>(':scope > [data-room-full]')!;
+		expect(probe).not.toBeNull();
+		expect(probe.getAttribute('aria-hidden')).toBe('true');
+		expect(probe.textContent).toBe('');
+		expect(Array.from(probe.querySelectorAll('[data-text]'), (el) => el.getAttribute('data-text'))).toEqual([
+			'Ada Lovelace',
+			'ada@example.test'
+		]);
+		expect(root.textContent?.match(/Ada Lovelace/g)?.length).toBe(1);
+	});
+
+	it("lays the probe out as the closed trigger at full size, the host's compact never reaching it", () => {
+		// border 1, padding 7, avatar 28, gap 10 | the words | gap 10, chevron 20, padding 10, border 1
+		expect(userMenuSource).toMatch(
+			/\.room-full \{[^}]*position: absolute;[^}]*width: max-content;[^}]*min-width: var\(--gawdux-user-menu-min-width, 208px\);[^}]*max-width: var\(--gawdux-user-menu-width, 272px\);[^}]*padding: 0 41px 0 46px;[^}]*visibility: hidden;/
+		);
+		expect(userMenuSource).toMatch(/\.room-full-text::before \{\s*content: attr\(data-text\);\s*\}/);
+		expect(userMenuSource).toMatch(/\.trigger \{[^}]*gap: 10px;[^}]*padding: 0 10px 0 7px;/);
+		for (const bp of ['768', '1024']) {
+			expect(userMenuSource).toMatch(
+				new RegExp(`\\.compact-${bp} \\.room-full \\{\\s*width: 44px;\\s*min-width: 0;\\s*max-width: none;\\s*padding: 0;\\s*\\}`)
+			);
+		}
+		expect(userMenuSource).not.toMatch(/\.compact \.room-full/);
 	});
 
 	it('opens the same menu from the avatar, by the keyboard as by the pointer', async () => {

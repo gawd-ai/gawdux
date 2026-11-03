@@ -9,6 +9,9 @@ import type { BreadcrumbCrumb } from '../src/lib/utils/url-breadcrumb';
 // Breadcrumbs.test.ts without its chip: 802px whole, 378px with its page
 // whole. The account menu is 240px, 44px as its avatar; the scope control
 // 180px, 44px. The trail's box is the row less the controls as laid out.
+// With `compactBelow` 1024 the account menu is its avatar below a 1024px
+// viewport by its own rule, and its full-size probe (`data-room-full`)
+// follows the same rule; the scope control has no breakpoint and no probe.
 const CHAR = 10;
 const ACCOUNT = { full: 240, compact: 44 };
 const SCOPE = { full: 180, compact: 44 };
@@ -23,13 +26,31 @@ const TRAIL: BreadcrumbCrumb[] = [
 ];
 
 let rowWidth = 0;
+let viewport = 1400;
 let lastTrail: number | null = null;
 const observers = new Set<FakeResizeObserver>();
+
+/** The account menu is its avatar by its own rule: below its breakpoint. */
+function narrowByViewport(root: Element): boolean {
+	return root.classList.contains('compact-1024') && viewport < 1024;
+}
 
 function accountWidth(): number {
 	const root = document.querySelector('.account-box [data-user-menu]');
 	if (!root) return 0;
-	return root.classList.contains('compact') ? ACCOUNT.compact : ACCOUNT.full;
+	return root.classList.contains('compact') || narrowByViewport(root) ? ACCOUNT.compact : ACCOUNT.full;
+}
+
+/** The probe is the menu at full size whatever it shows: it follows the breakpoint only. */
+function accountFullWidth(probe: Element): number {
+	const root = probe.closest('[data-user-menu]');
+	if (!root) return 0;
+	return narrowByViewport(root) ? ACCOUNT.compact : ACCOUNT.full;
+}
+
+/** Whether the row yields the account menu: the host's `compact`, not its width. */
+function accountYields(): boolean {
+	return Boolean(document.querySelector('.account-box [data-user-menu]')?.classList.contains('compact'));
 }
 
 function scopeWidth(): number {
@@ -43,6 +64,7 @@ function trailWidth(): number {
 }
 
 function modelWidth(el: Element): number {
+	if (el.matches('[data-room-full]')) return accountFullWidth(el);
 	if (el.matches('.account-box')) return accountWidth();
 	if (el.matches('.scope-box')) return scopeWidth();
 	const measure = el.getAttribute('data-measure');
@@ -91,8 +113,9 @@ function rowState(): string {
  * Returns the states the row passed through; a row that oscillates never
  * settles and runs out of passes.
  */
-async function layout(row: number): Promise<string[]> {
+async function layout(row: number, at: number = viewport): Promise<string[]> {
 	rowWidth = row;
+	viewport = at;
 	const passes: string[] = [];
 	for (let pass = 0; pass < 8; pass++) {
 		const width = trailWidth();
@@ -124,6 +147,7 @@ async function renderRow(row: number, props: Record<string, unknown> = {}) {
 
 beforeEach(() => {
 	lastTrail = null;
+	viewport = 1400;
 	vi.stubGlobal('ResizeObserver', FakeResizeObserver);
 	vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
 		const width = modelWidth(this);
@@ -174,6 +198,14 @@ describe('header controls that yield their room to the trail', () => {
 			await tick();
 			expect(rowState(), `${row}px, again`).toBe(`${account} ${scope}`);
 		}
+		for (let row = 500; row <= 1400; row += 13) {
+			const passes = await layout(row);
+			const room = row - ACCOUNT.full - SCOPE.full;
+			const account = WHOLE > room ? 'avatar' : 'full';
+			const scope = WHOLE > room + ACCOUNT.full - ACCOUNT.compact ? 'avatar' : 'full';
+			expect(passes.length, `${row}px, widening`).toBeLessThanOrEqual(2);
+			for (const pass of passes) expect(pass, `${row}px, widening`).toBe(`${account} ${scope}`);
+		}
 		expect(readTrail(container)).toContain('QP-001 Document Control SOP');
 	});
 
@@ -208,5 +240,78 @@ describe('header controls that yield their room to the trail', () => {
 		// 760 beside the full account menu, 956 beside its avatar.
 		expect(rowState()).toBe('avatar');
 		expect(readTrail(container)).toEqual(WHOLE_TRAIL);
+	});
+});
+
+// A control as narrow as its avatar by its own rule gives the trail nothing,
+// so it never yields; a control whose full width changes with the viewport
+// reads that width from its probe, so a breakpoint crossed while it yields
+// never shows it full on the way.
+describe('a control with a breakpoint of its own', () => {
+	const own = { compactBelow: 1024, scope: false };
+
+	/** The row by the rule at full size: the account's full width at this viewport. */
+	function expected(row: number, at: number) {
+		const full = at < 1024 ? ACCOUNT.compact : ACCOUNT.full;
+		const yields = full > ACCOUNT.compact && WHOLE > row - full;
+		return { yields, state: yields || full === ACCOUNT.compact ? 'avatar' : 'full' };
+	}
+
+	it('never yields below its breakpoint, where it is already its avatar', async () => {
+		viewport = 900;
+		await renderRow(700, own);
+		// 656px beside the avatar is short of 802, but the menu has nothing more to give.
+		expect(rowState()).toBe('avatar');
+		expect(accountYields()).toBe(false);
+		expect(document.querySelector('.account-box .panel')?.getAttribute('title')).toBe('Ada Lovelace');
+	});
+
+	it('yields the next control in its place: the one that gives the room', async () => {
+		viewport = 900;
+		await renderRow(900, { compactBelow: 1024 });
+		// 676 beside the controls at full size; the account gives nothing; the scope 136.
+		expect(rowState()).toBe('avatar avatar');
+		expect(accountYields()).toBe(false);
+	});
+
+	it('keeps the avatar as the window widens past its breakpoint where the trail fits only beside it', async () => {
+		viewport = 900;
+		await renderRow(700, own);
+		// 1100px: 660 beside the full menu, 856 beside the avatar.
+		const passes = await layout(900, 1100);
+		expect(passes.length).toBeGreaterThan(0);
+		for (const pass of passes) expect(pass).toBe('avatar');
+		expect(accountYields()).toBe(true);
+	});
+
+	it('drops the yield as the window narrows past its breakpoint, the full width read from its probe', async () => {
+		await renderRow(900, { ...own });
+		viewport = 1100;
+		await layout(901, 1100);
+		expect(accountYields()).toBe(true);
+		await layout(700, 900);
+		expect(rowState()).toBe('avatar');
+		expect(accountYields()).toBe(false);
+		// And back: the yield returns at once, the menu never full on the way.
+		const passes = await layout(900, 1100);
+		for (const pass of passes) expect(pass).toBe('avatar');
+		expect(accountYields()).toBe(true);
+	});
+
+	it('never oscillates across the breakpoint: every pass shows the rule at full size', async () => {
+		const sweep: number[] = [];
+		for (let at = 1400; at >= 700; at -= 13) sweep.push(at);
+		for (let at = 700; at <= 1400; at += 13) sweep.push(at);
+		viewport = sweep[0]!;
+		await renderRow(sweep[0]! - 300, own);
+		for (const at of sweep) {
+			const row = at - 300;
+			const passes = await layout(row, at);
+			const rule = expected(row, at);
+			expect(passes.length, `${at}px`).toBeLessThanOrEqual(2);
+			for (const pass of passes) expect(pass, `${at}px`).toBe(rule.state);
+			expect(rowState(), `${at}px`).toBe(rule.state);
+			expect(accountYields(), `${at}px`).toBe(rule.yields);
+		}
 	});
 });

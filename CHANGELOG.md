@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.26.10 - a yield that holds across a breakpoint, one tooltip for the account card
+
+### Fixed
+
+- `createRoomYield` reads a control's full width from its probe, the element
+  marked `data-room-full` in its box, at the viewport the row has now. A
+  control that is its avatar below a breakpoint of its own measured 44px as
+  its full width there, and a yield taken below the breakpoint gave the
+  control back for a frame as the window widened past it. Without a probe the
+  full width is still the last one the box had while the control did not
+  yield.
+- `planRoomYield` never yields a control already as narrow as it yields: it
+  gives the sibling nothing, and the next control yields in its place. Below
+  `compactBelow` the account menu took the host's `compact` whenever the trail
+  overflowed, though nothing about its width changed.
+- `UserMenu` names the person in the closed card's tooltip at every size, not
+  only when the host compacts it: the avatar below `compactBelow` named no one
+  while the same avatar compacted by the host did.
+
+### Added
+
+- `UserMenu` carries its full-size probe (`data-room-full`): the closed
+  trigger at full size between the two width knobs, the avatar below
+  `compactBelow`, never the host's `compact`; its words come from attributes,
+  so it adds no text to the page.
+
 ## 0.26.9 - controls that give the header trail their room
 
 ### Added

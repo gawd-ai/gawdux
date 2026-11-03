@@ -16,7 +16,9 @@
 	the left from the avatar, which stays where it was (the trigger row is
 	mirrored), and never past the 16px gutter on the left. `compact` gives the
 	same avatar at every width, for a header whose trail needs the room
-	(`createRoomYield`); the closed card then names the person in its tooltip.
+	(`createRoomYield`), which reads the menu's full width from an invisible
+	probe (`data-room-full`) laid out at full size whatever the menu shows. The
+	closed card names the person in its tooltip at every size.
 
 	Keyboard: the WAI-ARIA menu button pattern. Enter, Space or ArrowDown on the
 	trigger opens and focuses the first row, ArrowUp the last; in the menu the
@@ -349,14 +351,16 @@
 	bind:this={root}
 	onfocusout={onRootFocusOut}
 >
-	<!-- The avatar alone names the person in its tooltip. The card carries it,
-	     not the trigger, so the trigger's accessible name and description stay
-	     as they are; it goes while the panel is open, over the rows. -->
+	<!-- The closed card names the person in its tooltip at every size: the
+	     avatar alone, whatever made it the avatar, and a name the full card
+	     cuts. The card carries it, not the trigger, so the trigger's accessible
+	     name and description stay as they are; it goes while the panel is
+	     open, over the rows. -->
 	<div
 		class="panel"
 		class:open
 		role="presentation"
-		title={compact && !open ? name : undefined}
+		title={open ? undefined : name}
 		onpointerenter={clearLeave}
 		onpointerleave={onPanelPointerLeave}
 	>
@@ -524,6 +528,14 @@
 			</div>
 		</div>
 	</div>
+	<!-- The menu at full size whatever it shows: a header that yields its room
+	     (`createRoomYield`) reads the full width here, so a yield holds as the
+	     viewport crosses `compactBelow`. Its words come from attributes, so it
+	     adds no text to the page. -->
+	<span class="room-full" data-room-full aria-hidden="true"
+		><span class="room-full-text name" data-text={name}></span
+		>{#if secondLine}<span class="room-full-text email" data-text={secondLine}></span>{/if}</span
+	>
 </div>
 {/if}
 
@@ -862,6 +874,32 @@
 		font-variant-numeric: tabular-nums;
 	}
 
+	/* ── The full-size probe: the closed card's width at full size ──────── */
+	/* Laid out as the closed trigger at full size, between the root's two
+	   width knobs, whatever the menu shows: border 1, padding 7, avatar 28,
+	   gap 10 before the words; gap 10, chevron 20, padding 10, border 1 after
+	   them. Below `compactBelow` it is the avatar, as the menu is; the host's
+	   `compact` never reaches it. */
+	.room-full {
+		position: absolute;
+		top: 0;
+		right: 0;
+		display: flex;
+		flex-direction: column;
+		box-sizing: border-box;
+		width: max-content;
+		min-width: var(--gawdux-user-menu-min-width, 208px);
+		max-width: var(--gawdux-user-menu-width, 272px);
+		height: 0;
+		padding: 0 41px 0 46px;
+		overflow: hidden;
+		visibility: hidden;
+		pointer-events: none;
+	}
+	.room-full-text::before {
+		content: attr(data-text);
+	}
+
 	/* ── Compact: the avatar alone while closed, and it never moves ─────── */
 	/* The host's `compact` at every width; then the same rules below each
 	   breakpoint. */
@@ -901,6 +939,12 @@
 			min-width: 0;
 			max-width: none;
 		}
+		.compact-1024 .room-full {
+			width: 44px;
+			min-width: 0;
+			max-width: none;
+			padding: 0;
+		}
 		.compact-1024 .panel {
 			position: absolute;
 			top: 0;
@@ -932,6 +976,12 @@
 			width: 44px;
 			min-width: 0;
 			max-width: none;
+		}
+		.compact-768 .room-full {
+			width: 44px;
+			min-width: 0;
+			max-width: none;
+			padding: 0;
 		}
 		.compact-768 .panel {
 			position: absolute;
