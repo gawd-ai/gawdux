@@ -69,6 +69,13 @@ controls and editable content are untouched; selected text, cancelled events,
 Alt-click and secondary clicks do not navigate. Mark custom interactive regions
 with `data-row-interactive`. `rowLinkIntent` exposes the decision without effects.
 
+A row that answers a click of its own (a disclosure row that opens its detail
+beneath it) asks `isRowClickTarget` from `gawdux/primitives`, the guard
+`rowLinkIntent` and `DataTable` ask: a click on a control, or inside one, is
+the control's, and so is a click whose target the control removed on the way
+(a chevron that swaps its icon on open), so the row never undoes what the
+control did.
+
 ## Density
 
 Table cells, cards and stat tiles take their padding from `--gawdux-*` knobs

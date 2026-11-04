@@ -34,10 +34,6 @@ export function dataTableAlignClass(align: DataTableColumn['align']): string {
 	return align ? ALIGN_CLASS[align] : '';
 }
 
-/** The row-click guard: a click on a control inside the row is that
-    control's, never the row's (the list-table row-click rule). */
-export function isRowClickTarget(event: Event): boolean {
-	const target = event.target;
-	if (!(target instanceof Element)) return true;
-	return !target.closest('button, a, [role="button"], input, select, textarea, label, summary');
-}
+/** The row-click guard is the row link's (`utils/row-link`): one guard for a
+    row that opens a page and a row that answers a click of its own. */
+export { isRowClickTarget } from '../utils/row-link';

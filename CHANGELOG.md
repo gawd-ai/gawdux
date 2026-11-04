@@ -1,5 +1,28 @@
 # Changelog
 
+## 0.26.11 - one row-click guard, and a control that redraws itself keeps its click
+
+### Fixed
+
+- `rowLinkIntent`, `activateRowLink` and `DataTable`'s row click leave a click
+  whose target has left the document to the control that removed it. A real
+  click runs the page's microtasks between one listener and the next, so a
+  control that redraws itself on click (a disclosure chevron that swaps its
+  icon on open) has removed the click's target by the time the click reaches
+  the row. The row read the click as its own and undid what the control did:
+  a row navigated, or closed again what its chevron had just opened.
+
+### Changed
+
+- `isRowClickTarget` is the one row-click guard, and `rowLinkIntent` asks it.
+  It lives in `utils/row-link` and `gawdux/primitives` exports the same
+  function. It now leaves to the control every control the row link leaves
+  (`[role="link"]`, `[role="checkbox"]`, `[role="switch"]`,
+  `[role="combobox"]`, `[role="menuitem"]`, `[role="tab"]`, editable content
+  and `data-row-interactive`, beside the native controls it read), and reads
+  a text-node target by the element that holds it, where it took any
+  text-node target as the row's.
+
 ## 0.26.10 - a yield that holds across a breakpoint, one tooltip for the account card
 
 ### Fixed
