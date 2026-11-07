@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.27.0 - an execution report in the house style, with nothing to sign or complete
+
+### Changed
+
+- `ValidationRunReport` reads an execution's results as Passed, Failed and
+  Not run, each in one colour of the tokens (`--gawdux-text-success`,
+  `--gawdux-text-error`, `--gawdux-text-muted`), and counts the three. A
+  failed case opens. The host heads the report (protocol, version, where and
+  when) and passes the words that replace observations and captures it
+  withholds as `heldNotice`; the component no longer words them itself. Each
+  capture names its SHA-256 beside its link, and the execution's identity
+  names its content SHA-256.
+- `ValidationExecutionView` is the execution's id, its content SHA-256,
+  whether evidence is withheld, its cases and its requirement coverage.
+  `ValidationCaseView` and `ValidationStepView` carry a result each.
+
+### Added
+
+- `resultWord` and `resultCounts`, the words and the counts the report reads.
+
+### Removed
+
+- `ValidationRunReport` loses `onmanual`, the manual observation block, the
+  "Awaiting completion" count and the status pill: an execution is read, not
+  completed or signed here.
+- `ManualObservationForm` and `SignatureHistory`, with `ManualObservationInput`
+  and `SignatureHistoryEntry`, leave `gawdux/validation`.
+
 ## 0.26.13 - a signatures table never breaks a moment inside itself
 
 ### Fixed
