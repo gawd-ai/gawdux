@@ -5,23 +5,38 @@
 // each moment at the zone it is given, named. Rendered by ApprovalsLedger.svelte
 // and its signatures table, ApprovalsLedgerSignatures.svelte.
 /**
- * One row as one line: "Quality · Jane Roe (jane@site) · Approved ·
- * 2026-10-21 14:03:11 EDT", then "Also signed Supplier" and, on a signed row
- * that is not intact, its integrity words. An unsigned row reads its note.
- * `stamp` formats a moment at the site, zone named.
+ * One row in its parts, in order, a part the row does not carry left out: the
+ * role, the signer, the meaning, the moment, "Also signed Supplier" and the
+ * note (on a signed row that is not intact, its integrity words). An unsigned
+ * row is its role and its note. `stamp` formats a moment at the site, zone
+ * named. A surface draws each part as a run of its own, so the row wraps
+ * between its parts and never inside the moment: a stamp broken inside itself
+ * ("2026-10-21" over "14:03:11 EDT") reads as two facts.
+ */
+export function ledgerRowParts(row, stamp) {
+    const parts = [['role', row.role]];
+    if (row.state === 'signed') {
+        const who = row.signer
+            ? row.signer.email
+                ? `${row.signer.name} (${row.signer.email})`
+                : row.signer.name
+            : null;
+        parts.push(['signer', who], ['meaning', row.meaning]);
+        parts.push(['at', row.signedAt ? stamp(row.signedAt) : null]);
+        if (row.alsoSigned.length > 0)
+            parts.push(['also', `Also signed ${row.alsoSigned.join(', ')}`]);
+    }
+    parts.push(['note', row.note]);
+    return parts.flatMap(([kind, text]) => (text ? [{ kind, text }] : []));
+}
+/**
+ * One row as one line, its parts joined: "Quality · Jane Roe (jane@site) ·
+ * Approved · 2026-10-21 14:03:11 EDT", then "Also signed Supplier" and, on a
+ * signed row that is not intact, its integrity words. An unsigned row reads
+ * its note.
  */
 export function ledgerRowText(row, stamp) {
-    if (row.state !== 'signed')
-        return [row.role, row.note].filter(Boolean).join(' · ');
-    const who = row.signer
-        ? row.signer.email
-            ? `${row.signer.name} (${row.signer.email})`
-            : row.signer.name
-        : null;
-    const parts = [row.role, who, row.meaning, row.signedAt ? stamp(row.signedAt) : null];
-    if (row.alsoSigned.length > 0)
-        parts.push(`Also signed ${row.alsoSigned.join(', ')}`);
-    if (row.note)
-        parts.push(row.note);
-    return parts.filter(Boolean).join(' · ');
+    return ledgerRowParts(row, stamp)
+        .map((part) => part.text)
+        .join(' · ');
 }

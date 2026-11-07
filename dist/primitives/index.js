@@ -2,7 +2,7 @@
 // (design system layer; consumer apps own app shell + Tailwind config).
 export { default as ApprovalsLedger } from './ApprovalsLedger.svelte';
 export { default as ApprovalsLedgerSignatures } from './ApprovalsLedgerSignatures.svelte';
-export { ledgerRowText } from './approvals-ledger';
+export { ledgerRowParts, ledgerRowText } from './approvals-ledger';
 export { default as Breadcrumbs } from './Breadcrumbs.svelte';
 export { breadcrumbNeed } from './breadcrumb-overflow';
 export { default as CardContainer } from './CardContainer.svelte';

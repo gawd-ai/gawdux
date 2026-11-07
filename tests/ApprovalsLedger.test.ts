@@ -3,6 +3,7 @@ import { flushSync, mount, unmount } from 'svelte';
 import {
 	ApprovalsLedger,
 	ApprovalsLedgerSignatures,
+	ledgerRowParts,
 	ledgerRowText,
 	type LedgerRow,
 	type LedgerSignature,
@@ -134,6 +135,39 @@ describe('ApprovalsLedger', () => {
 		expect(document.querySelectorAll('[data-signatures] tbody tr')).toHaveLength(2);
 	});
 
+	// A stamp broken inside itself reads as two facts ("2026-11-07" over
+	// "07:40:02 EST"): each part of a row is a run of its own, the moment never
+	// wrapping inside, the row wrapping between its parts.
+	it('wraps a row between its parts and never inside its moment', () => {
+		renderLedger();
+		const first = document.querySelector('[data-ledger-row]')!;
+		expect(
+			[...first.querySelectorAll('[data-ledger-part]')].map((el) => [
+				el.getAttribute('data-ledger-part'),
+				el.textContent
+			])
+		).toEqual([
+			['role', 'Supplier'],
+			['signer', 'Dana Owner (dana@example.test)'],
+			['meaning', 'Reviewed'],
+			['at', '2026-10-01 21:15:00 EDT'],
+			['also', 'Also signed Quality']
+		]);
+		expect(first.querySelector('[data-ledger-part="at"]')?.className).toMatch(
+			/(^|\s)whitespace-nowrap(\s|$)/
+		);
+		for (const kind of ['role', 'signer', 'meaning', 'also'])
+			expect(first.querySelector(`[data-ledger-part="${kind}"]`)?.className ?? '').not.toMatch(
+				/whitespace-nowrap/
+			);
+		// The separators sit outside the runs, where the row may wrap.
+		const between = [...first.childNodes]
+			.filter((node) => node.nodeType === Node.TEXT_NODE)
+			.map((node) => node.textContent ?? '')
+			.filter((text) => text.trim().length > 0);
+		expect(between).toEqual([' · ', ' · ', ' · ', ' · ']);
+	});
+
 	it('leaves out what a ledger does not carry', () => {
 		renderLedger({ ...ledger, integritySentence: null, approvedWith: null, signatures: [] });
 		expect(document.querySelector('[data-ledger-integrity]')).toBeNull();
@@ -144,6 +178,29 @@ describe('ApprovalsLedger', () => {
 
 describe('ledgerRowText', () => {
 	const stamp = (iso: string) => `at ${iso}`;
+
+	it("is the row's parts joined, each part named", () => {
+		const signed = row({ alsoSigned: ['Quality'], note: 'Content changed since signature' });
+		expect(ledgerRowParts(signed, stamp)).toEqual([
+			{ kind: 'role', text: 'Supplier' },
+			{ kind: 'signer', text: 'Dana Owner (dana@example.test)' },
+			{ kind: 'meaning', text: 'Reviewed' },
+			{ kind: 'at', text: 'at 2026-10-02T01:15:00.000Z' },
+			{ kind: 'also', text: 'Also signed Quality' },
+			{ kind: 'note', text: 'Content changed since signature' }
+		]);
+		expect(ledgerRowText(signed, stamp)).toBe(
+			ledgerRowParts(signed, stamp)
+				.map((part) => part.text)
+				.join(' · ')
+		);
+		expect(
+			ledgerRowParts(row({ state: 'awaiting', signer: null, note: 'Awaiting Quality' }), stamp)
+		).toEqual([
+			{ kind: 'role', text: 'Supplier' },
+			{ kind: 'note', text: 'Awaiting Quality' }
+		]);
+	});
 
 	it('reads a signed row from its composed words, and an unsigned row from its note', () => {
 		expect(ledgerRowText(row({ signer: { name: 'Dana Owner', email: '' } }), stamp)).toBe(

@@ -50,10 +50,27 @@ export interface LedgerView {
     /** Every signature, withdrawn included, oldest first. */
     signatures: LedgerSignature[];
 }
+/** What a part of a ledger row says. */
+export type LedgerRowPartKind = 'role' | 'signer' | 'meaning' | 'at' | 'also' | 'note';
+/** One part of a ledger row, in the words the row uses. */
+export interface LedgerRowPart {
+    kind: LedgerRowPartKind;
+    text: string;
+}
 /**
- * One row as one line: "Quality · Jane Roe (jane@site) · Approved ·
- * 2026-10-21 14:03:11 EDT", then "Also signed Supplier" and, on a signed row
- * that is not intact, its integrity words. An unsigned row reads its note.
- * `stamp` formats a moment at the site, zone named.
+ * One row in its parts, in order, a part the row does not carry left out: the
+ * role, the signer, the meaning, the moment, "Also signed Supplier" and the
+ * note (on a signed row that is not intact, its integrity words). An unsigned
+ * row is its role and its note. `stamp` formats a moment at the site, zone
+ * named. A surface draws each part as a run of its own, so the row wraps
+ * between its parts and never inside the moment: a stamp broken inside itself
+ * ("2026-10-21" over "14:03:11 EDT") reads as two facts.
+ */
+export declare function ledgerRowParts(row: LedgerRow, stamp: (iso: string) => string): LedgerRowPart[];
+/**
+ * One row as one line, its parts joined: "Quality · Jane Roe (jane@site) ·
+ * Approved · 2026-10-21 14:03:11 EDT", then "Also signed Supplier" and, on a
+ * signed row that is not intact, its integrity words. An unsigned row reads
+ * its note.
  */
 export declare function ledgerRowText(row: LedgerRow, stamp: (iso: string) => string): string;

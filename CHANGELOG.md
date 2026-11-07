@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.26.12 - a ledger row wraps between its parts, never inside its moment
+
+### Fixed
+
+- `ApprovalsLedger` draws each row's parts as runs of their own: the role,
+  the signer, the meaning, the moment, "Also signed ..." and the note. The
+  moment never wraps inside itself, and the row wraps between its parts. A
+  row drawn as one string broke inside its stamp on a narrow page, reading
+  "Approved · 2026-11-07" over "07:40:02 EST". Each run carries
+  `data-ledger-part` with its kind; the row's words are unchanged.
+
+### Added
+
+- `ledgerRowParts(row, stamp)`, exported from `gawdux/primitives` with
+  `LedgerRowPart` and `LedgerRowPartKind`: a row's parts in order, a part
+  the row does not carry left out. `ledgerRowText` joins the same parts with
+  " · ", so a surface that draws the row and one that writes it as text say
+  the same words.
+
 ## 0.26.11 - one row-click guard, and a control that redraws itself keeps its click
 
 ### Fixed

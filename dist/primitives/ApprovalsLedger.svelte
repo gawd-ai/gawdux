@@ -1,7 +1,8 @@
 <!--
     The approvals ledger: one line per role of the workflow,
     "Quality · Jane Roe (jane@site) · Approved · 2026-10-21 14:03:11 EDT", or
-    the role and why it is not signed yet. Under the rows: the integrity
+    the role and why it is not signed yet. Each part is a run of its own: a
+    row wraps between its parts, never inside its moment. Under the rows: the integrity
     sentence, what the version was approved with, and a disclosure opening
     every signature, withdrawn ones kept. The host composes every word; this
     draws them, each moment at the zone it is given, named.
@@ -9,7 +10,7 @@
 <script lang="ts">
 	import { formatAuditDateTimeText } from '../utils/temporal';
 	import ApprovalsLedgerSignatures from './ApprovalsLedgerSignatures.svelte';
-	import { ledgerRowText, type LedgerRow, type LedgerView } from './approvals-ledger';
+	import { ledgerRowParts, type LedgerRow, type LedgerView } from './approvals-ledger';
 
 	let {
 		ledger,
@@ -44,7 +45,14 @@
 		<ul class="space-y-1 text-sm">
 			{#each ledger.rows as row (row.stepCode)}
 				<li data-ledger-row data-step={row.stepCode} data-state={row.state} class={tone(row)}>
-					{ledgerRowText(row, stamp)}
+					<!-- The row's parts, each a run of its own: the row wraps between
+					     them, never inside the moment. -->
+					{#each ledgerRowParts(row, stamp) as part, index (part.kind)}{index > 0
+							? ' · '
+							: ''}<span
+							data-ledger-part={part.kind}
+							class={part.kind === 'at' ? 'whitespace-nowrap' : undefined}>{part.text}</span
+						>{/each}
 					{#if row.state === 'signed' && row.reason}
 						<span class="block text-xs italic text-gray-500 dark:text-gray-400">{row.reason}</span>
 					{/if}

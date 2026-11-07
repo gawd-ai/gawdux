@@ -1,7 +1,7 @@
 export { default as ApprovalsLedger } from './ApprovalsLedger.svelte';
 export { default as ApprovalsLedgerSignatures } from './ApprovalsLedgerSignatures.svelte';
-export { ledgerRowText } from './approvals-ledger';
-export type { LedgerRow, LedgerRowState, LedgerSignature, LedgerView } from './approvals-ledger';
+export { ledgerRowParts, ledgerRowText } from './approvals-ledger';
+export type { LedgerRow, LedgerRowPart, LedgerRowPartKind, LedgerRowState, LedgerSignature, LedgerView } from './approvals-ledger';
 export { default as Breadcrumbs } from './Breadcrumbs.svelte';
 export { breadcrumbNeed } from './breadcrumb-overflow';
 export type { BreadcrumbNeed, BreadcrumbRoom } from './breadcrumb-overflow';
