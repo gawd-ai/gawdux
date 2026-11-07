@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.26.13 - a signatures table never breaks a moment inside itself
+
+### Fixed
+
+- `ApprovalsLedgerSignatures` keeps each moment whole: the "Signed at" cell
+  draws the moment as a run that never wraps (`data-signature-at`). Before,
+  the cells wrapped the moment at its spaces, so on a narrow page
+  "2026-11-07 08:42:07 EST" read over two to four lines.
+- Five columns and a whole moment need about 26rem. Below 32rem of its own
+  width (`container-type: inline-size` on the table's frame,
+  `data-signatures-frame`) the table reads as one block per signature, each
+  fact beside its column's name (`data-label` on every cell), a reason not
+  given left out (`data-empty`). From 32rem it is the table it was. It still
+  keeps no scroller of its own, so it reads inside the one scroller of the
+  page that holds it, and an address still breaks anywhere.
+
 ## 0.26.12 - a ledger row wraps between its parts, never inside its moment
 
 ### Fixed

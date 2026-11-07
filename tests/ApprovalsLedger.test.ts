@@ -9,6 +9,7 @@ import {
 	type LedgerSignature,
 	type LedgerView
 } from '../src/lib/primitives';
+import signaturesSource from '../src/lib/primitives/ApprovalsLedgerSignatures.svelte?raw';
 
 let app: object | null = null;
 
@@ -270,22 +271,74 @@ describe('ApprovalsLedgerSignatures', () => {
 		expect(renderTable({ timeZone: 'America/Toronto' })).toContain('2026-10-01 21:15:00 EDT');
 	});
 
-	// The table sits inside a document that has one scroller: on a narrow
-	// page it wraps its cells instead of scrolling sideways on its own.
-	it('wraps on a narrow page and keeps no scroller of its own', () => {
+	// The table sits inside a document that has one scroller, so it never
+	// scrolls sideways on its own; and a moment is never broken inside
+	// itself ("2026-10-02" over "01:15:00 UTC").
+	it('keeps no scroller of its own and never breaks a moment inside itself', () => {
 		renderTable({});
 		const own = [...document.body.querySelectorAll('*')].filter((el) =>
 			/\boverflow(?:-[xy])?-(?:auto|scroll)\b/.test(el.getAttribute('class') ?? '')
 		);
 		expect(own.map((el) => el.outerHTML.slice(0, 80))).toEqual([]);
 		const table = document.querySelector('table[data-signatures]')!;
-		expect(table.parentElement).toBe(document.body);
-		expect(table.querySelectorAll('.whitespace-nowrap')).toHaveLength(0);
+		const frame = table.parentElement!;
+		expect(frame.hasAttribute('data-signatures-frame')).toBe(true);
+		expect(frame.parentElement).toBe(document.body);
+		// The moment is the one run that never wraps; every other cell wraps.
+		const nowrap = [...table.querySelectorAll('.whitespace-nowrap')];
+		expect(nowrap.map((el) => [el.getAttribute('data-signature-at'), el.textContent])).toEqual([
+			['', '2026-10-02 01:15:00 UTC']
+		]);
 		// An address has no space to break at: it breaks anywhere.
 		const email = [...table.querySelectorAll('td span')].find((el) =>
 			el.textContent?.includes('dana@example.test')
 		);
 		expect(email?.className).toMatch(/\[overflow-wrap:anywhere\]/);
+	});
+
+	// Five columns with an unbroken moment need about 26rem, more than a
+	// card holds at 390 px: below 32rem of its own width the table reads as
+	// one block per signature, each fact under its column's name, rather than
+	// breaking the moment or scrolling sideways.
+	it('names each fact by its column, for the rows a narrow container stacks', () => {
+		renderTable({ signatures: [signature, { ...signature, id: 2, reason: 'Checked.' }] });
+		const heads = [...document.querySelectorAll('[data-signatures] thead th')].map((th) =>
+			th.textContent?.trim()
+		);
+		expect(heads).toEqual(['Meaning', 'Signed by', 'Signed at', 'Reason', 'Integrity']);
+		for (const tr of document.querySelectorAll('[data-signatures] tbody tr'))
+			expect([...tr.querySelectorAll('td')].map((td) => td.getAttribute('data-label'))).toEqual(
+				heads
+			);
+		// Each cell holds one block beside its name: the signer's name and
+		// address read as one fact.
+		const signer = document.querySelector('[data-signatures] td[data-label="Signed by"]')!;
+		expect(signer.children).toHaveLength(1);
+		expect(signer.children[0]!.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+			'Dana Owner dana@example.test'
+		);
+		// A reason not given is left out of the block, never a name over nothing.
+		const reasons = [...document.querySelectorAll('[data-signatures] td[data-label="Reason"]')];
+		expect(reasons.map((td) => td.hasAttribute('data-empty'))).toEqual([true, false]);
+		again();
+		renderTable({ integrity: false });
+		expect(
+			[...document.querySelectorAll('[data-signatures] tbody td')].map((td) =>
+				td.getAttribute('data-label')
+			)
+		).toEqual(['Meaning', 'Signed by', 'Signed at', 'Reason']);
+	});
+
+	it('stacks its rows below 32rem of its own width, from its own frame', () => {
+		const style = signaturesSource.slice(signaturesSource.indexOf('<style>'));
+		expect(style).toMatch(/\.ledger-signatures\s*\{[^}]*container-type:\s*inline-size/);
+		const at = style.indexOf('@container (max-width: 32rem)');
+		expect(at).toBeGreaterThan(-1);
+		const narrow = style.slice(at);
+		expect(narrow).toMatch(/thead\s*\{\s*display:\s*none/);
+		expect(narrow).toMatch(/td::before\s*\{[^}]*content:\s*attr\(data-label\)/);
+		expect(narrow).toMatch(/td\[data-empty\]\s*\{\s*display:\s*none/);
+		expect(style).not.toMatch(/overflow(?:-x)?:\s*(?:auto|scroll)/);
 	});
 
 	it('marks each row with its meaning for the cases that read it', () => {
