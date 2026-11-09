@@ -5,6 +5,7 @@
 <script lang="ts">
 	import { tick, untrack, type Snippet } from 'svelte';
 	import { ArrowLeftOutline } from 'flowbite-svelte-icons';
+	import { masterDetailCompact } from './master-detail';
 
 	let {
 		rail,
@@ -34,9 +35,7 @@
 	let railElement: HTMLElement | undefined;
 	let detailElement: HTMLElement | undefined;
 
-	function isCompactViewport(): boolean {
-		return typeof window !== 'undefined' && window.matchMedia('(max-width: 48rem)').matches;
-	}
+	const isCompactViewport = masterDetailCompact;
 
 	async function focusDetail() {
 		await tick();

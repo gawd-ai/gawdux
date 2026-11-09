@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.28.0 - the command bar wraps on a narrow screen, crumbs keep the leaf, one separator rule
+
+### Changed
+
+- The page command bar below the compact width stacks its zones and wraps
+  each one in the house order instead of panning: a zone's controls flow onto
+  a second line, a button and a link keep their words on one line, and a
+  status chip in the left or right zone reads whole, never truncated.
+- `Breadcrumbs` keeps the leaf's title readable on a narrow screen: the
+  middle crumbs fold first, then the first crumb shows its icon alone, then it
+  folds, then the trailing status yields its room (`plan.trailingHidden`,
+  kept in the layout and hidden), and only then is the leaf cut.
+- `ApprovalsLedger` keeps each separator with the part before it: a row never
+  wraps just before " · ", so a line never starts with "· 2026-11-07 ...".
+
+### Added
+
+- `LEDGER_PART_SEPARATOR`, the separator the ledger joins a row's parts with
+  (a no-break space, then the middle dot and a space).
+- `MASTER_DETAIL_COMPACT_QUERY` and `masterDetailCompact()`, the width at
+  which `MasterDetailShell` shows its list or its detail alone, so a host
+  opens on the list there instead of selecting a first row the reader does
+  not see.
+
 ## 0.27.0 - an execution report in the house style, with nothing to sign or complete
 
 ### Changed

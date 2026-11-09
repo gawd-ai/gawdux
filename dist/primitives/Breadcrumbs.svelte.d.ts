@@ -22,18 +22,21 @@ type $$ComponentProps = {
  * A breadcrumb trail on one line that never wraps and never clips a crumb.
  *
  * Every crumb shows in full while the trail fits. When it does not, the trail
- * gives way in this order, each step only when the one before is not enough:
+ * gives way in this order, each step only when the one before is not enough,
+ * so the current page keeps its title readable while anything else can give
+ * way:
  * 1. the crumbs between the first and the current page fold, from the inside
  *    out, into one … button;
  * 2. the first crumb shows as its icon alone;
- * 3. the current page ellipsizes, with its full name in a tooltip, down to
+ * 3. the first crumb folds into the … button too, which then stands first:
+ *    the trail reads "… › Package";
+ * 4. `trailing` (a status chip beside the current page) leaves the line,
+ *    never cut: the page's own header carries the state it repeats;
+ * 5. the current page ellipsizes, with its full name in a tooltip, down to
  *    its readable minimum: its own width up to `BREADCRUMB_LEAF_MIN_PX`
- *    (64px, four or five characters), never below it;
- * 4. the first crumb folds into the … button too, which then stands first:
- *    the trail reads "… › Pack…".
- * The current page always stays. `trailing` (a status chip) rides beside it
- * and never gives way. Past the narrowest the trail can go, the page holds
- * its minimum and the trail's box clips the end.
+ *    (64px, four or five characters), never below it.
+ * The current page always stays. Past the narrowest the trail can go, the
+ * page holds its minimum and the trail's box clips the end.
  *
  * The … button opens a small menu, not a dialog, listing in order every level
  * the trail does not name: the first crumb when it shows as its icon or is

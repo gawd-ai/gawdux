@@ -5,17 +5,20 @@
  * measured once, so a resize re-plans without reading the layout again.
  *
  * The trail gives way in this order, each step only when the one before it
- * is not enough:
+ * is not enough, so the current page keeps its title readable as long as
+ * anything else can give way:
  *   1. the crumbs between the first and the current page fold, from the
  *      inside out, into one overflow button;
  *   2. the first crumb shows as its icon alone (when it has one);
- *   3. the current page ellipsizes, down to its readable minimum
- *      (`breadcrumbLeafMin`), never below it;
- *   4. the first crumb folds into the button too, which then stands first
- *      with no separator before it (when that narrows the trail).
- * The trailing content beside the current page never gives way. Past the
- * narrowest the trail can go, the page holds its minimum and the trail's box
- * clips the end.
+ *   3. the first crumb folds into the button too, which then stands first
+ *      with no separator before it (when that narrows the trail);
+ *   4. the trailing content beside the current page (a status chip) leaves
+ *      the line: a chip is never cut, and the page's own header carries the
+ *      state it repeats;
+ *   5. the current page ellipsizes, down to its readable minimum
+ *      (`breadcrumbLeafMin`), never below it.
+ * Past the narrowest the trail can go, the page holds its minimum and the
+ * trail's box clips the end.
  */
 /** The current page's readable minimum, its separator in: four or five characters and the ellipsis. */
 export declare const BREADCRUMB_LEAF_MIN_PX = 64;
@@ -49,6 +52,8 @@ export type BreadcrumbOverflowPlan = {
     compactFirst: boolean;
     /** The current page does not fit whole and ends in an ellipsis. */
     leafCut: boolean;
+    /** The trailing content leaves the line (step 4); it is never cut. */
+    trailingHidden: boolean;
 };
 /**
  * The widths a trail needs, read from its measures alone, never from the

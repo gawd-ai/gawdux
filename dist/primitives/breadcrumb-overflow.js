@@ -5,17 +5,20 @@
  * measured once, so a resize re-plans without reading the layout again.
  *
  * The trail gives way in this order, each step only when the one before it
- * is not enough:
+ * is not enough, so the current page keeps its title readable as long as
+ * anything else can give way:
  *   1. the crumbs between the first and the current page fold, from the
  *      inside out, into one overflow button;
  *   2. the first crumb shows as its icon alone (when it has one);
- *   3. the current page ellipsizes, down to its readable minimum
- *      (`breadcrumbLeafMin`), never below it;
- *   4. the first crumb folds into the button too, which then stands first
- *      with no separator before it (when that narrows the trail).
- * The trailing content beside the current page never gives way. Past the
- * narrowest the trail can go, the page holds its minimum and the trail's box
- * clips the end.
+ *   3. the first crumb folds into the button too, which then stands first
+ *      with no separator before it (when that narrows the trail);
+ *   4. the trailing content beside the current page (a status chip) leaves
+ *      the line: a chip is never cut, and the page's own header carries the
+ *      state it repeats;
+ *   5. the current page ellipsizes, down to its readable minimum
+ *      (`breadcrumbLeafMin`), never below it.
+ * Past the narrowest the trail can go, the page holds its minimum and the
+ * trail's box clips the end.
  */
 /** The current page's readable minimum, its separator in: four or five characters and the ellipsis. */
 export const BREADCRUMB_LEAF_MIN_PX = 64;
@@ -27,7 +30,12 @@ export const BREADCRUMB_LEAF_MIN_PX = 64;
 export function breadcrumbLeafMin(natural) {
     return Math.min(natural, BREADCRUMB_LEAF_MIN_PX);
 }
-const NOTHING = { hidden: [], compactFirst: false, leafCut: false };
+const NOTHING = {
+    hidden: [],
+    compactFirst: false,
+    leafCut: false,
+    trailingHidden: false
+};
 /** The widths a trail needs, rounded up as the plan rounds them. */
 export function breadcrumbNeed(measure) {
     const count = measure.crumbs.length;
@@ -73,8 +81,17 @@ export function planBreadcrumbOverflow(measure) {
     const leafGives = leaf > leafMin;
     /** Before the current page there is `before`: the page does not fit whole. */
     const overflows = (before) => before + leaf + trailing > available;
-    if (count === 1)
-        return { ...NOTHING, leafCut: leafGives && overflows(0) };
+    /** The trailing content can leave the line at all. */
+    const trailingGives = trailing > 0;
+    /** The page fits whole after `before`, the trailing content off the line. */
+    const fitsAlone = (before) => before + leaf <= available;
+    if (count === 1) {
+        if (!overflows(0))
+            return NOTHING;
+        if (fitsAlone(0))
+            return { ...NOTHING, trailingHidden: trailingGives };
+        return { ...NOTHING, leafCut: leafGives, trailingHidden: trailingGives };
+    }
     const hidden = new Set();
     /** Everything before the current page, the first crumb `first` wide. */
     const before = (first) => {
@@ -91,7 +108,7 @@ export function planBreadcrumbOverflow(measure) {
     const order = breadcrumbCollapseOrder(count);
     for (let step = 0;; step++) {
         if (!overflows(before(crumbs[0])))
-            return { hidden: folded(), compactFirst: false, leafCut: false };
+            return { ...NOTHING, hidden: folded() };
         if (step >= order.length)
             break;
         hidden.add(order[step]);
@@ -100,16 +117,20 @@ export function planBreadcrumbOverflow(measure) {
     const compactFirst = measure.firstCompact !== null;
     const rest = before(compactFirst ? Math.ceil(measure.firstCompact) : crumbs[0]);
     if (!overflows(rest))
-        return { hidden: folded(), compactFirst, leafCut: false };
-    // 3. The current page ellipsizes, down to its minimum.
-    if (leafGives && rest + leafMin + trailing <= available) {
-        return { hidden: folded(), compactFirst, leafCut: true };
-    }
-    // 4. The first crumb folds too: the button alone stands before the page.
+        return { ...NOTHING, hidden: folded(), compactFirst };
+    // 3. The first crumb folds too: the button alone stands before the page,
+    // when that narrows the trail.
     const lead = Math.ceil(measure.moreLead);
-    if (lead < rest) {
-        return { hidden: [0, ...folded()], compactFirst: false, leafCut: leafGives && overflows(lead) };
-    }
-    // Folding the first crumb would not narrow the trail: the page holds its minimum.
-    return { hidden: folded(), compactFirst, leafCut: leafGives };
+    const foldFirst = lead < rest;
+    const head = foldFirst ? lead : rest;
+    const shape = foldFirst
+        ? { hidden: [0, ...folded()], compactFirst: false }
+        : { hidden: folded(), compactFirst };
+    if (foldFirst && !overflows(head))
+        return { ...NOTHING, ...shape };
+    // 4. The trailing content leaves the line.
+    if (fitsAlone(head))
+        return { ...shape, leafCut: false, trailingHidden: trailingGives };
+    // 5. The current page ellipsizes, down to its minimum.
+    return { ...shape, leafCut: leafGives, trailingHidden: trailingGives };
 }

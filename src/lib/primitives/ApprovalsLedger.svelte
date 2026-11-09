@@ -10,7 +10,12 @@
 <script lang="ts">
 	import { formatAuditDateTimeText } from '../utils/temporal';
 	import ApprovalsLedgerSignatures from './ApprovalsLedgerSignatures.svelte';
-	import { ledgerRowParts, type LedgerRow, type LedgerView } from './approvals-ledger';
+	import {
+		LEDGER_PART_SEPARATOR,
+		ledgerRowParts,
+		type LedgerRow,
+		type LedgerView
+	} from './approvals-ledger';
 
 	let {
 		ledger,
@@ -46,9 +51,10 @@
 			{#each ledger.rows as row (row.stepCode)}
 				<li data-ledger-row data-step={row.stepCode} data-state={row.state} class={tone(row)}>
 					<!-- The row's parts, each a run of its own: the row wraps between
-					     them, never inside the moment. -->
+					     them, never inside the moment, and each separator stays with
+					     the part before it (LEDGER_PART_SEPARATOR). -->
 					{#each ledgerRowParts(row, stamp) as part, index (part.kind)}{index > 0
-							? ' · '
+							? LEDGER_PART_SEPARATOR
 							: ''}<span
 							data-ledger-part={part.kind}
 							class={part.kind === 'at' ? 'whitespace-nowrap' : undefined}>{part.text}</span

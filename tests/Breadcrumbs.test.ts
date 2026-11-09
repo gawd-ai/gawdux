@@ -386,12 +386,24 @@ describe('Breadcrumbs: the current page gives way last', () => {
 		expect(menuRows()[0]?.getAttribute('href')).toBe('#/documents');
 	});
 
-	it('cuts the current page last of all, naming it in full in its tooltip and in the menu', async () => {
+	it('folds the first crumb before the page gives way, the page and its chip whole', async () => {
+		// 24 + 294 + 80 = 398: the button alone, the page, the chip.
 		const { container } = await renderTrail(400);
-		expect(readTrail(container)).toEqual(['Documents', '…', 'QP-001 Document Control SOP']);
+		expect(readTrail(container)).toEqual(['…', 'QP-001 Document Control SOP']);
+		const leaf = container.querySelector('nav > ol > li:last-child') as HTMLElement;
+		expect(leaf.querySelector('[title]')).toBeNull();
+		expect(leaf.querySelector('.trailing')?.classList.contains('yielded')).toBe(false);
+	});
+
+	it('cuts the current page last of all, naming it in full in its tooltip and in the menu', async () => {
+		const { container } = await renderTrail(300);
+		expect(readTrail(container)).toEqual(['…', 'QP-001 Document Control SOP']);
 		const leaf = container.querySelector('nav > ol > li:last-child') as HTMLElement;
 		expect(leaf.querySelector('[title]')?.getAttribute('title')).toBe('QP-001 Document Control SOP');
-		expect(leaf.querySelector('.chip')).not.toBeNull();
+		// The chip left the line before the page was cut, out of sight, never cut.
+		const chip = leaf.querySelector('.trailing') as HTMLElement;
+		expect(chip.classList.contains('yielded')).toBe(true);
+		expect(chip.getAttribute('aria-hidden')).toBe('true');
 
 		await fireEvent.click(moreButton(), { detail: 1 });
 		const rows = menuRows();
@@ -407,13 +419,16 @@ describe('Breadcrumbs: the current page gives way last', () => {
 		expect(page.getAttribute('aria-current')).toBe('page');
 	});
 
-	it('keeps the first crumb in words when it has no icon, and cuts the page instead', async () => {
+	it('keeps the first crumb in words when it has no icon, then folds it before the page gives way', async () => {
 		const items = TRAIL.map((crumb, i) => (i === 0 ? { ...crumb, icon: undefined } : crumb));
-		const { container } = await renderTrail(480, items);
+		const { container } = await renderTrail(548, items);
 		const first = container.querySelector('nav > ol > li:first-child') as HTMLElement;
 		expect(first.querySelector('.visually-hidden')).toBeNull();
+		expect(readTrail(container)).toEqual(['Documents', '…', 'QP-001 Document Control SOP']);
+		await resize(480);
+		expect(readTrail(container)).toEqual(['…', 'QP-001 Document Control SOP']);
 		const leaf = container.querySelector('nav > ol > li:last-child') as HTMLElement;
-		expect(leaf.querySelector('[title]')?.getAttribute('title')).toBe('QP-001 Document Control SOP');
+		expect(leaf.querySelector('[title]')).toBeNull();
 	});
 });
 
@@ -454,21 +469,31 @@ describe('Breadcrumbs: the current page keeps a readable minimum', () => {
 	});
 
 	it('reads the page whole again when folding the first crumb frees the room', async () => {
+		// 24 + 94 = 118 holds the page whole; 36 + 48 + 94 = 178 brings the
+		// first crumb back as its icon.
 		const { container } = await renderTrail(147, FOUR, null);
 		expect(readTrail(container)).toEqual(['…', 'Package']);
 		const leaf = container.querySelector('nav > ol > li:last-child') as HTMLElement;
 		expect(leaf.querySelector('[title]')).toBeNull();
-		await resize(148);
+		await resize(177);
+		expect(readTrail(container)).toEqual(['…', 'Package']);
+		await resize(178);
 		expect(readTrail(container)).toEqual(['Documents', '…', 'Package']);
 	});
 
-	it('keeps the chip beside the page at its minimum', async () => {
-		// 24 + 64 + 80 = 168: the button, the page at its minimum, "In force".
-		const { container } = await renderTrail(168);
+	it('takes the chip off the line before it cuts the page, and brings it back with the room', async () => {
+		// 24 + 294 = 318: the button and the page; the chip leaves the line below 398.
+		const { container } = await renderTrail(318);
 		expect(readTrail(container)).toEqual(['…', 'QP-001 Document Control SOP']);
 		const leaf = container.querySelector('nav > ol > li:last-child') as HTMLElement;
+		expect(leaf.querySelector('[title]')).toBeNull();
+		expect(leaf.querySelector('.trailing')?.classList.contains('yielded')).toBe(true);
+		// The page's minimum no longer reserves the chip's width.
+		await resize(168);
+		expect(leaf.style.getPropertyValue('--gawdux-breadcrumb-leaf-min')).toBe('64px');
+		await resize(398);
+		expect(leaf.querySelector('.trailing')?.classList.contains('yielded')).toBe(false);
 		expect(leaf.querySelector('.chip')).not.toBeNull();
-		expect(leaf.style.getPropertyValue('--gawdux-breadcrumb-leaf-min')).toBe('144px');
 	});
 
 	it('never sets a page no wider than the minimum wider than itself', async () => {
@@ -562,10 +587,10 @@ describe('Breadcrumbs: the focus follows its level when the trail re-plans', () 
 	});
 
 	it('stays on the … button when the first crumb comes back in front of it', async () => {
-		const { container } = await renderTrail(227);
+		const { container } = await renderTrail(457);
 		expect(readTrail(container)[0]).toBe('…');
 		moreButton().focus();
-		await resize(228);
+		await resize(458);
 		await settle();
 		expect(readTrail(container)[0]).toBe('Documents');
 		expect(document.activeElement).toBe(moreButton());

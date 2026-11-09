@@ -1,6 +1,6 @@
 export { default as ApprovalsLedger } from './ApprovalsLedger.svelte';
 export { default as ApprovalsLedgerSignatures } from './ApprovalsLedgerSignatures.svelte';
-export { ledgerRowParts, ledgerRowText } from './approvals-ledger';
+export { LEDGER_PART_SEPARATOR, ledgerRowParts, ledgerRowText } from './approvals-ledger';
 export type { LedgerRow, LedgerRowPart, LedgerRowPartKind, LedgerRowState, LedgerSignature, LedgerView } from './approvals-ledger';
 export { default as Breadcrumbs } from './Breadcrumbs.svelte';
 export { breadcrumbNeed } from './breadcrumb-overflow';
@@ -49,6 +49,7 @@ export type { PageWindowItem } from './page-window';
 export type { CursorListPagination, ExactListPagination, ListPagination } from './list-pagination';
 export { default as ListSurface } from './ListSurface.svelte';
 export { default as MasterDetailShell } from './MasterDetailShell.svelte';
+export { MASTER_DETAIL_COMPACT_QUERY, masterDetailCompact } from './master-detail';
 export { default as MessageHost } from './MessageHost.svelte';
 export { default as PageActionBar } from './PageActionBar.svelte';
 export { default as PasswordWithRequirements } from './PasswordWithRequirements.svelte';

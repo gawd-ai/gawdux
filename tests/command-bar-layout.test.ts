@@ -129,13 +129,45 @@ for (const [name, css] of [
 			);
 		});
 
-		it('below it keeps the stacked grid, each zone panning on its own', () => {
+		it('below it stacks the zones and wraps each in the house order, never panning', () => {
 			expect(declarations([root], '.page-command-bar').display).toBe('grid');
 			expect(declarations(narrow, '.page-command-bar')).toMatchObject({
 				'grid-template-columns': 'minmax(0, 1fr)',
 				gap: '0.5rem'
 			});
-			expect(declarations(narrow, '.cmd-bar-zone')).toMatchObject({ 'overflow-x': 'auto', 'max-width': '100%' });
+			// A zone wraps its commands onto another line instead of scrolling
+			// them sideways: every command shows, in the order the host gave.
+			const zone = declarations(narrow, '.cmd-bar-zone');
+			expect(zone).toMatchObject({
+				'flex-wrap': 'wrap',
+				overflow: 'visible',
+				'white-space': 'normal',
+				'max-width': '100%'
+			});
+			expect(zone).not.toHaveProperty('overflow-x');
+			expect(zone).not.toHaveProperty('flex-direction');
+			expect(zone).not.toHaveProperty('order');
+			// A command keeps its label on one line; a zone's words (a status
+			// line, a chip) wrap whole rather than end in an ellipsis.
+			expect(declarations(narrow, '.page-command-bar > .cmd-bar-zone > :is(button, a)')).toEqual({
+				'flex-shrink': '0',
+				'white-space': 'nowrap'
+			});
+			expect(declarations(narrow, '.page-command-bar > :is(.cmd-bar-left, .cmd-bar-right) .truncate')).toEqual({
+				overflow: 'visible',
+				'text-overflow': 'clip',
+				'white-space': 'normal'
+			});
+			// The base left zone pans at every width the narrow query does not
+			// override; below the boundary nothing in the bar scrolls sideways.
+			for (const media of narrow)
+				media.walkRules((rule) => {
+					if (!/page-command-bar|cmd-bar-/.test(rule.selector)) return;
+					rule.walkDecls((decl) => {
+						if (/^overflow(-x)?$/.test(decl.prop))
+							expect(decl.value, `${rule.selector} ${decl}`).toBe('visible');
+					});
+				});
 		});
 
 		it('still fuses an attached drawer with the bar', () => {

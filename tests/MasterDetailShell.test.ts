@@ -2,6 +2,10 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/sv
 import { createRawSnippet } from 'svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import MasterDetailShell from '../src/lib/primitives/MasterDetailShell.svelte';
+import {
+	MASTER_DETAIL_COMPACT_QUERY,
+	masterDetailCompact
+} from '../src/lib/primitives';
 import RailRowButton from '../src/lib/primitives/RailRowButton.svelte';
 
 const rail = createRawSnippet(() => ({
@@ -38,6 +42,18 @@ describe('MasterDetailShell compact navigation', () => {
 				dispatchEvent: vi.fn()
 			}))
 		});
+	});
+
+	// A host that selects its first row for the reader asks the shell's own
+	// query first, so a compact pane opens on its list (one rule, one width).
+	it('names the width below which it is one pane at a time', () => {
+		expect(MASTER_DETAIL_COMPACT_QUERY).toBe('(max-width: 48rem)');
+		expect(masterDetailCompact()).toBe(true);
+		Object.defineProperty(window, 'matchMedia', {
+			configurable: true,
+			value: vi.fn().mockImplementation((query: string) => ({ matches: false, media: query }))
+		});
+		expect(masterDetailCompact()).toBe(false);
 	});
 
 	it('moves between one rail and detail pane while restoring focus', async () => {

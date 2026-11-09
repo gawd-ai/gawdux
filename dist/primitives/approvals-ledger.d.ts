@@ -68,6 +68,12 @@ export interface LedgerRowPart {
  */
 export declare function ledgerRowParts(row: LedgerRow, stamp: (iso: string) => string): LedgerRowPart[];
 /**
+ * What a surface draws between a row's parts: a no-break space, the dot, a
+ * space. The dot stays with the part before it, so a row that wraps ends a
+ * line on "Approved ·" and never begins one with "· 2026-11-07 10:31:03 EST".
+ */
+export declare const LEDGER_PART_SEPARATOR = "\u00A0\u00B7 ";
+/**
  * One row as one line, its parts joined: "Quality · Jane Roe (jane@site) ·
  * Approved · 2026-10-21 14:03:11 EDT", then "Also signed Supplier" and, on a
  * signed row that is not intact, its integrity words. An unsigned row reads

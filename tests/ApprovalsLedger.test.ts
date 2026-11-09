@@ -3,6 +3,7 @@ import { flushSync, mount, unmount } from 'svelte';
 import {
 	ApprovalsLedger,
 	ApprovalsLedgerSignatures,
+	LEDGER_PART_SEPARATOR,
 	ledgerRowParts,
 	ledgerRowText,
 	type LedgerRow,
@@ -161,12 +162,15 @@ describe('ApprovalsLedger', () => {
 			expect(first.querySelector(`[data-ledger-part="${kind}"]`)?.className ?? '').not.toMatch(
 				/whitespace-nowrap/
 			);
-		// The separators sit outside the runs, where the row may wrap.
+		// The separators sit outside the runs, where the row may wrap, and each
+		// stays with the part before it: a no-break space before the dot, so a
+		// line may end after "Approved ·" but never begin with "· 2026-11-07".
 		const between = [...first.childNodes]
 			.filter((node) => node.nodeType === Node.TEXT_NODE)
 			.map((node) => node.textContent ?? '')
 			.filter((text) => text.trim().length > 0);
-		expect(between).toEqual([' · ', ' · ', ' · ', ' · ']);
+		expect(between).toEqual(Array(4).fill(LEDGER_PART_SEPARATOR));
+		expect(LEDGER_PART_SEPARATOR).toBe('\u00a0· ');
 	});
 
 	it('leaves out what a ledger does not carry', () => {

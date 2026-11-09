@@ -1204,7 +1204,11 @@ main:has(.page-command-drawer) .page-command-bar,
 	}
 }
 
-/* Narrow layouts stack occupied zones and let each zone pan independently. */
+/* Narrow layouts stack the occupied zones, and each zone wraps its content
+   in the house order instead of panning: every command shows, a label never
+   wraps inside its button, and the words of the left zone (a status line, a
+   chip) wrap between their words rather than end in an ellipsis. Nothing in
+   the bar scrolls sideways. */
 @media (max-width: 1024px) {
 	.page-command-bar {
 		grid-template-columns: minmax(0, 1fr);
@@ -1215,22 +1219,29 @@ main:has(.page-command-drawer) .page-command-bar,
 	}
 	.cmd-bar-zone {
 		max-width: 100%;
+		flex-wrap: wrap;
 		justify-content: flex-start;
-		overflow-x: auto;
-		overflow-y: hidden;
-		overscroll-behavior-inline: contain;
-		white-space: nowrap;
-		-webkit-overflow-scrolling: touch;
-		/* Same ring-clearance trick as .cmd-bar-left: the pan clip would
-		   otherwise shave the top/bottom of button focus rings. */
-		padding-block: 4px;
-		margin-block: -4px;
+		overflow: visible;
+		white-space: normal;
+		padding-block: 0;
+		margin-block: 0;
 	}
 	.cmd-bar-zone:not(:has(> *)) {
 		display: none;
 	}
 	.cmd-bar-zone > * {
-		flex: 0 0 auto;
+		flex: 0 1 auto;
+		min-width: 0;
+		max-width: 100%;
+	}
+	.page-command-bar > .cmd-bar-zone > :is(button, a) {
+		flex-shrink: 0;
+		white-space: nowrap;
+	}
+	.page-command-bar > :is(.cmd-bar-left, .cmd-bar-right) .truncate {
+		overflow: visible;
+		text-overflow: clip;
+		white-space: normal;
 	}
 }
 
