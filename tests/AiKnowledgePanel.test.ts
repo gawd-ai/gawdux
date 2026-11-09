@@ -152,6 +152,17 @@ function railRow(name: string) {
 }
 
 describe('shared Knowledge host contract', () => {
+	// An empty rail says what is so; it never names the button that makes
+	// the first one.
+	it('reads an empty rail as its state alone', () => {
+		render(Host, {
+			model: { ...model(), knowledgeBases: [], selectedKnowledgeId: null, sources: [] },
+			actions: actions()
+		});
+		expect(screen.getByText('No knowledge bases yet.')).toBeTruthy();
+		expect(document.body.textContent).not.toMatch(/starts one/);
+	});
+
 	it('uses the existing geometry, complete host presentation, and authorized history slot', () => {
 		const { container } = render(Host, {
 			model: model(),

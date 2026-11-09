@@ -114,6 +114,14 @@ function row(id: string) {
 }
 
 describe('shared Skills panel host contract', () => {
+	// With no skill chosen the detail says so, as a host's other detail panes
+	// do; it does not tell the person to pick one from the list beside it.
+	it('reads an empty detail as its state alone', () => {
+		render(Host, { model: { ...model(), selectedSkillId: null }, actions: actions() });
+		expect(screen.getByText('No skill selected.')).toBeTruthy();
+		expect(document.body.textContent).not.toMatch(/Select a skill to review/);
+	});
+
 	it('preserves the rail/detail geometry, facet cards and authorized history slot', () => {
 		const adapter = actions();
 		const { container } = render(Host, { model: model(), actions: adapter, withHistory: true });

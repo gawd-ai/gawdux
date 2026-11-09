@@ -712,7 +712,7 @@
 					{/if}
 				{:else}
 					<p class="text-sm text-gray-500 dark:text-gray-400">
-						Select a skill to review and grant it.
+						No skill selected.
 					</p>
 				{/if}
 			{/snippet}

@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.28.1 - an empty state says what is so
+
+### Changed
+
+- `AiKnowledgePanel`'s empty rail reads "No knowledge bases yet." and no
+  longer names the button that makes the first one.
+- `AiSkillsPanel`'s detail with no skill chosen reads "No skill selected.", as
+  a host's other detail panes do, instead of telling the person to pick one
+  from the list beside it.
+
 ## 0.28.0 - the command bar wraps on a narrow screen, crumbs keep the leaf, one separator rule
 
 ### Changed

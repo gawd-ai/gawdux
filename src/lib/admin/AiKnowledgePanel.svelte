@@ -534,7 +534,7 @@
 			{#snippet rail()}
 				{#if knowledgeBases.length === 0}
 					<p class="px-2 py-3 text-xs text-gray-500 dark:text-gray-400">
-						No knowledge bases yet. New knowledge base starts one.
+						No knowledge bases yet.
 					</p>
 				{:else if filtered.length === 0}
 					<p class="px-2 py-3 text-xs text-gray-500 dark:text-gray-400">
