@@ -1,6 +1,6 @@
 {
 	"name": "gawdux",
-	"version": "0.30.0",
+	"version": "0.30.1",
 	"description": "Shared UI component library for Svelte applications",
 	"type": "module",
 	"svelte": "./dist/index.js",

@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.30.1 - the count no taller than a line of words
+
+### Fixed
+
+- `PageCommandBarProgress` stands 16px, words, gap and track together: the
+  words 11px on a 12px line, a 1px gap and a 3px track. A bar whose status
+  zone wraps onto its own row on a narrow screen is no taller with the count
+  than with one line of status words.
+
 ## 0.30.0 - one count in the command bar: the words above, a track below
 
 ### Added

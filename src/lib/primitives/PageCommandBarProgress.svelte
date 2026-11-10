@@ -54,12 +54,14 @@
 
 <style>
 	/* As wide as its words, never wider than the zone: the words keep one line
-	   and yield with an ellipsis, the whole in their tooltip. */
+	   and yield with an ellipsis, the whole in their tooltip. Words, gap and
+	   track stand 16px, the height of one line of the bar's status words, so
+	   the count makes no bar taller than its words alone would. */
 	.gawdux-bar-progress {
 		display: inline-flex;
 		flex-direction: column;
 		justify-content: center;
-		gap: 3px;
+		gap: 1px;
 		align-self: center;
 		min-width: 0;
 		max-width: 100%;
@@ -68,15 +70,15 @@
 		overflow: hidden;
 		text-overflow: ellipsis;
 		white-space: nowrap;
-		font-size: 0.75rem;
-		line-height: 1rem;
+		font-size: 0.6875rem;
+		line-height: 12px;
 		font-weight: 500;
 		color: rgb(75 85 99);
 	}
 	.gawdux-bar-progress-track {
 		display: block;
 		width: 100%;
-		height: 4px;
+		height: 3px;
 		overflow: hidden;
 		border-radius: 9999px;
 		background: rgb(229 231 235);
