@@ -1299,6 +1299,22 @@ main:has(.page-command-drawer) .page-command-bar,
   .filter-bar {
     padding-inline: var(--gawdux-compact-inset);
   }
+  .master-detail-inset {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+  :is(.scroll-surface, .editable-page-body, .page-inset, .tab-fill-scroll) .master-detail-inset {
+    margin: calc(-1 * var(--gawdux-page-inset)) calc(-1 * var(--gawdux-page-inset))
+			calc(-1 * var(--gawdux-page-inset-bottom));
+    padding: 0;
+    height: calc(100% + var(--gawdux-page-inset) + var(--gawdux-page-inset-bottom));
+  }
+  .master-detail-card {
+    border-width: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
 }
 @media not all and (max-width: 1024px) {
   .gawdux-shell-bar[data-shell-bar='hidden'] {

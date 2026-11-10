@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.31.1 - a master and detail card edge to edge on a phone
+
+### Fixed
+
+- At or below the compact width `MasterDetailShell`'s card is the panel's
+  content, not a box inside it: it spans its host edge to edge (inside an
+  inset host, across the host's padding), with no border, radius or shadow,
+  and its panes carry the level-one inset, so a list's search and rows sit
+  8px from the screen's edge. Above the compact width nothing changes.
+
 ## 0.31.0 - more room on a phone
 
 ### Changed

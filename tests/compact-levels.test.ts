@@ -25,7 +25,7 @@ function declarations(scopes: Array<Root | AtRule>, selector: string): Record<st
 		scope.each((node) => {
 			if (node.type !== 'rule' || !node.selectors.map((s) => s.trim()).includes(selector)) return;
 			node.each((child) => {
-				if (child.type === 'decl') found[child.prop] = child.value;
+				if (child.type === 'decl') found[child.prop] = child.value.replace(/\s+/g, ' ');
 			});
 		});
 	}
@@ -70,6 +70,31 @@ for (const [name, css] of [
 				'border-left-width': '0',
 				'border-right-width': '0',
 				'border-bottom-width': '0',
+				'border-radius': '0',
+				'box-shadow': 'none'
+			});
+		});
+
+		it("makes MasterDetailShell's card the panel's content, edge to edge, its panes carrying level one", () => {
+			expect(declarations(narrow, '.master-detail-inset')).toEqual({
+				margin: '0',
+				padding: '0',
+				height: '100%'
+			});
+			// Inside an inset host it spans the host's padding box.
+			expect(
+				declarations(
+					narrow,
+					':is(.scroll-surface, .editable-page-body, .page-inset, .tab-fill-scroll) .master-detail-inset'
+				)
+			).toEqual({
+				margin:
+					'calc(-1 * var(--gawdux-page-inset)) calc(-1 * var(--gawdux-page-inset)) calc(-1 * var(--gawdux-page-inset-bottom))',
+				padding: '0',
+				height: 'calc(100% + var(--gawdux-page-inset) + var(--gawdux-page-inset-bottom))'
+			});
+			expect(declarations(narrow, '.master-detail-card')).toEqual({
+				'border-width': '0',
 				'border-radius': '0',
 				'box-shadow': 'none'
 			});

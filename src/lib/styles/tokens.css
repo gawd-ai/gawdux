@@ -1712,8 +1712,9 @@ main:has(.page-command-drawer) .page-command-bar,
    no side border, no radius and no shadow, and a page's tabs nested in its
    panel span it too. Level one, the panel's inset and the content inset of
    the hosts directly inside it (every inset host, the filter row), is
-   --gawdux-compact-inset, 8px. Boxes nested in the content (a card, a field,
-   a tile) keep their own padding and gain the width. A host's own column
+   --gawdux-compact-inset, 8px. MasterDetailShell's card is that content, so
+   it spans the panel too. Boxes nested in the content (a card, a field, a
+   tile) keep their own padding and gain the width. A host's own column
    gives up its side gap at the same width. */
 @media (max-width: 1024px) {
 	:root {
@@ -1738,6 +1739,25 @@ main:has(.page-command-drawer) .page-command-bar,
 	}
 	.filter-bar {
 		padding-inline: var(--gawdux-compact-inset);
+	}
+	/* MasterDetailShell's card is the panel's content here, not a box inside
+	   it: it spans its host edge to edge, inside an inset host across the
+	   host's padding, and its panes carry level one. */
+	.master-detail-inset {
+		margin: 0;
+		padding: 0;
+		height: 100%;
+	}
+	:is(.scroll-surface, .editable-page-body, .page-inset, .tab-fill-scroll) .master-detail-inset {
+		margin: calc(-1 * var(--gawdux-page-inset)) calc(-1 * var(--gawdux-page-inset))
+			calc(-1 * var(--gawdux-page-inset-bottom));
+		padding: 0;
+		height: calc(100% + var(--gawdux-page-inset) + var(--gawdux-page-inset-bottom));
+	}
+	.master-detail-card {
+		border-width: 0;
+		border-radius: 0;
+		box-shadow: none;
 	}
 }
 
