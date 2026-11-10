@@ -94,6 +94,16 @@
 	   card is as wide as its trigger's content between the two. */
 	--gawdux-menu-surface: var(--color-white);
 	--gawdux-menu-item-hover: var(--color-gray-100);
+	/* The selected row, the house's one mark for the row that is the current
+	   one in a list or a menu (a sidebar's page, a palette's choice, the path
+	   menu's current level): a blue tint and the accent's text. */
+	--gawdux-row-selected-surface: rgb(239 246 255); /* blue-50 */
+	--gawdux-row-selected-text: rgb(37 99 235); /* blue-600 */
+	/* A strip that scrolls sideways fades this wide at the edge where more of
+	   it lies (scrollEdges, "Anything that scrolls sideways says so"); the
+	   mask each mark draws, none where nothing lies beyond. */
+	--gawdux-scroll-fade-size: 1.5rem;
+	--gawdux-scroll-fade-mask: none;
 	--gawdux-menu-divider: var(--color-gray-100);
 	--gawdux-text-danger: var(--color-red-600);
 	--gawdux-chip-surface: var(--color-gray-100);
@@ -174,6 +184,8 @@
 	--gawdux-tab-indicator: rgb(30 58 138); /* blue-900 */
 	--gawdux-menu-surface: var(--color-gray-800);
 	--gawdux-menu-item-hover: var(--color-gray-700);
+	--gawdux-row-selected-surface: rgb(30 58 138 / 0.35); /* blue-900 */
+	--gawdux-row-selected-text: rgb(147 197 253); /* blue-300 */
 	--gawdux-menu-divider: var(--color-gray-700);
 	--gawdux-text-danger: var(--color-red-400);
 	--gawdux-chip-surface: var(--color-gray-700);
@@ -1684,25 +1696,136 @@ main:has(.page-command-drawer) .page-command-bar,
 .gawdux-tab-strip :is([role='tab'], button, a) {
 	white-space: nowrap;
 }
+/* A strip's own inline padding is where its tabs rest: PageTabs' strip
+   (`.tabs-stick`, px-2) snaps a tab to the padding's edge, not the strip's,
+   so at rest it shows its first tab whole with nothing before it. */
+.gawdux-tab-strip.tabs-stick {
+	scroll-padding-inline: 0.5rem;
+}
 
-/* ---------- The page's status in its tab strip ----------
+/* ---------- Anything that scrolls sideways says so ----------
+   One sign, at every width: the edge where more of a strip lies fades out,
+   drawn as the strip's own mask, so nothing is laid over the strip and no
+   label is covered. `scrollEdges` marks the strip `data-scroll-fade` with
+   the side or sides where more lies (start, end, both); a strip that shows
+   all of itself carries no mark and no fade. A tab strip, a row of filter
+   pills and a drawing that scrolls in its box share it. */
+.gawdux-scroll-fade[data-scroll-fade='end'] {
+	--gawdux-scroll-fade-mask: linear-gradient(
+		to right,
+		#000 calc(100% - var(--gawdux-scroll-fade-size)),
+		transparent
+	);
+}
+.gawdux-scroll-fade[data-scroll-fade='start'] {
+	--gawdux-scroll-fade-mask: linear-gradient(
+		to left,
+		#000 calc(100% - var(--gawdux-scroll-fade-size)),
+		transparent
+	);
+}
+.gawdux-scroll-fade[data-scroll-fade='both'] {
+	--gawdux-scroll-fade-mask: linear-gradient(
+		to right,
+		transparent,
+		#000 var(--gawdux-scroll-fade-size),
+		#000 calc(100% - var(--gawdux-scroll-fade-size)),
+		transparent
+	);
+}
+.gawdux-scroll-fade[data-scroll-fade] {
+	-webkit-mask-image: var(--gawdux-scroll-fade-mask);
+	mask-image: var(--gawdux-scroll-fade-mask);
+}
+/* A right-to-left strip starts at its right edge. */
+.gawdux-scroll-fade[data-scroll-fade='end']:dir(rtl) {
+	--gawdux-scroll-fade-mask: linear-gradient(
+		to left,
+		#000 calc(100% - var(--gawdux-scroll-fade-size)),
+		transparent
+	);
+}
+.gawdux-scroll-fade[data-scroll-fade='start']:dir(rtl) {
+	--gawdux-scroll-fade-mask: linear-gradient(
+		to right,
+		#000 calc(100% - var(--gawdux-scroll-fade-size)),
+		transparent
+	);
+}
+/* A strip ruled along its bottom (PageTabs' strip) keeps its rule whole: the
+   fade takes the strip, the bottom pixel row stays. */
+.gawdux-tab-strip.gawdux-scroll-fade[data-scroll-fade] {
+	-webkit-mask-image: var(--gawdux-scroll-fade-mask), linear-gradient(#000 0 0);
+	mask-image: var(--gawdux-scroll-fade-mask), linear-gradient(#000 0 0);
+	-webkit-mask-size:
+		100% 100%,
+		100% 1px;
+	mask-size:
+		100% 100%,
+		100% 1px;
+	-webkit-mask-position:
+		0 0,
+		0 100%;
+	mask-position:
+		0 0,
+		0 100%;
+	-webkit-mask-repeat: no-repeat;
+	mask-repeat: no-repeat;
+}
+
+/* ---------- The page's status after its tab strip ----------
    A page whose tabs head its panel draws its status at the end of the strip
-   (PageTabs, PAGE_STATUS_CONTEXT): the trail never carries it. Where the
-   strip scrolls sideways the status stays in sight at its end. */
-.page-tabs-list > .page-tabs-status {
+   (PageTabs, PAGE_STATUS_CONTEXT): the trail never carries it. The status
+   sits after the strip, never over it: the strip ends where the status
+   begins (`--gawdux-page-tabs-status-width`, which PageTabs measures), so a
+   strip that scrolls sideways scrolls beside the status and a tab's label is
+   never under it. The status stands as tall as the strip and carries its
+   rule along the bottom. */
+.gawdux-page-tabs {
+	position: relative;
+}
+.gawdux-page-tabs.page-tabs-has-status > .page-tabs-list {
+	width: calc(100% - var(--gawdux-page-tabs-status-width, 0px));
+	max-width: calc(100% - var(--gawdux-page-tabs-status-width, 0px));
+}
+.gawdux-page-tabs > .page-tabs-status {
+	position: absolute;
+	top: var(--gawdux-page-tabs-strip-top, 0px);
+	right: 0;
+	z-index: 11;
+	box-sizing: border-box;
 	display: flex;
 	align-items: center;
-	flex-shrink: 0;
-	margin-inline-start: auto;
+	height: var(--gawdux-page-tabs-strip-height, auto);
 	padding-inline: 0.5rem;
+	border-bottom: 1px solid var(--gawdux-border);
+	border-start-end-radius: inherit;
+	background-color: var(--gawdux-surface-card);
+}
+
+/* ---------- The house icon button ----------
+   IconButton is flat in light and dark alike. A header's (`size="md"`) is
+   32px, and a 44px target at or below the compact width, where a header's
+   controls are touched; a glyph that is no icon reads at the icon's size. */
+.icon-button[data-size='md'] {
+	width: 2rem;
+	height: 2rem;
 }
 @media (max-width: 1024px) {
-	.page-tabs-list > .page-tabs-status {
-		position: sticky;
-		right: 0;
-		z-index: 1;
-		background-color: var(--gawdux-surface-card);
+	.icon-button[data-size='md'] {
+		width: 2.75rem;
+		height: 2.75rem;
 	}
+}
+.icon-button-glyph {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 1rem;
+	height: 1rem;
+	font-size: 0.875rem;
+	font-weight: 600;
+	line-height: 1;
 }
 
 /* ---------- Tight levels zero and one on a phone ----------

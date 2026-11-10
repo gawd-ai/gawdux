@@ -1,3 +1,4 @@
+import postcss from 'postcss';
 import { cleanup, render } from '@testing-library/svelte';
 import { afterEach, describe, expect, it } from 'vitest';
 import tokens from '../src/lib/styles/tokens.css?raw';
@@ -310,5 +311,40 @@ describe('column header icons: one shape, sized by knobs, unlayered', () => {
 		const rules = tokens.replace(/\/\*[\s\S]*?\*\//g, '');
 		const naming = [...rules.matchAll(/([^{}]*\.table-head-icon[^{}]*)\{/g)].map((m) => (m[1] ?? '').trim());
 		expect(naming).toEqual(['.table-head-icon']);
+	});
+});
+
+describe('the selected row and the header icon button', () => {
+	const root = postcss.parse(tokens);
+	const scoped = (selector: string, media: string | null = null) => {
+		const found: Record<string, string> = {};
+		root.walkRules((node) => {
+			const parent = node.parent as { type?: string; params?: string } | undefined;
+			const inMedia = parent?.type === 'atrule' ? (parent.params ?? null) : null;
+			if (inMedia !== media || !node.selectors.map((s) => s.trim()).includes(selector)) return;
+			node.walkDecls((decl) => {
+				found[decl.prop] = decl.value;
+			});
+		});
+		return found;
+	};
+
+	it('names the selected row in both themes', () => {
+		expect(scoped(':root')).toMatchObject({
+			'--gawdux-row-selected-surface': 'rgb(239 246 255)',
+			'--gawdux-row-selected-text': 'rgb(37 99 235)'
+		});
+		expect(scoped('.dark')).toMatchObject({
+			'--gawdux-row-selected-surface': 'rgb(30 58 138 / 0.35)',
+			'--gawdux-row-selected-text': 'rgb(147 197 253)'
+		});
+	});
+
+	it("draws a header's icon button 32px, a 44px target at the compact width", () => {
+		expect(scoped(".icon-button[data-size='md']")).toMatchObject({ width: '2rem', height: '2rem' });
+		expect(scoped(".icon-button[data-size='md']", '(max-width: 1024px)')).toMatchObject({
+			width: '2.75rem',
+			height: '2.75rem'
+		});
 	});
 });

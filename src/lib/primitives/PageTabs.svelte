@@ -10,6 +10,7 @@
 	} from './surface-feedback-context';
 	import { PAGE_STATUS_CONTEXT, type PageStatusHost } from './page-chrome';
 	import PageStatusOutlet from './PageStatusOutlet.svelte';
+	import { scrollEdges } from './scroll-edges';
 	export let className: string = 'w-full tabs-underline tabs-stick';
 	export let contentClass: string = 'tab-content scroll-surface !mt-0 rounded-b-lg';
 	export let shellClass: string = 'page-tabs-shell';
@@ -26,8 +27,9 @@
 	onDestroy(() => release?.());
 
 	/* The page's status, as its host states it: the tabs head the page's panel,
-	   so the first live strip draws it at its end, once (the trail never does),
-	   and a strip that mounts while another holds it draws it once that one goes. */
+	   so the first live strip draws it after its end, once (the trail never
+	   does), and a strip that mounts while another holds it draws it once that
+	   one goes. */
 	const statusHost = getContext<PageStatusHost | undefined>(PAGE_STATUS_CONTEXT);
 	const statusClaim = statusHost?.claim() ?? null;
 	const drawnStatus = statusClaim?.status ?? readable<Snippet | null>(null);
@@ -35,6 +37,52 @@
 	$: hasFeedback = Boolean(
 		$feedback?.loadError?.trim() || $feedback?.actionError?.trim() || $feedback?.notice?.trim()
 	);
+
+	/* The strip and the status after it: the strip fades where more of its
+	   tabs lie (scrollEdges), and ends where the status begins, which stands
+	   as tall as the strip beside it (tokens.css, "The page's status after its
+	   tab strip"), so a tab's label is never under the status. */
+	function stripChrome(node: HTMLElement) {
+		const strip = node.querySelector<HTMLElement>(':scope > .page-tabs-list');
+		const edges = strip ? scrollEdges(strip) : null;
+		const measure = () => {
+			const status = node.querySelector<HTMLElement>(':scope > .page-tabs-status');
+			if (!strip || !status) {
+				node.style.removeProperty('--gawdux-page-tabs-status-width');
+				node.style.removeProperty('--gawdux-page-tabs-strip-height');
+				node.style.removeProperty('--gawdux-page-tabs-strip-top');
+				return;
+			}
+			node.style.setProperty('--gawdux-page-tabs-status-width', `${status.offsetWidth}px`);
+			node.style.setProperty('--gawdux-page-tabs-strip-height', `${strip.offsetHeight}px`);
+			node.style.setProperty('--gawdux-page-tabs-strip-top', `${strip.offsetTop}px`);
+		};
+		const sized = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+		const watch = () => {
+			if (!sized) return;
+			sized.disconnect();
+			if (strip) sized.observe(strip);
+			const status = node.querySelector<HTMLElement>(':scope > .page-tabs-status');
+			if (status) sized.observe(status);
+		};
+		const changed =
+			typeof MutationObserver === 'undefined'
+				? null
+				: new MutationObserver(() => {
+						watch();
+						measure();
+					});
+		changed?.observe(node, { childList: true });
+		watch();
+		measure();
+		return {
+			destroy() {
+				edges?.destroy();
+				sized?.disconnect();
+				changed?.disconnect();
+			}
+		};
+	}
 
 	function wirePanel(node: HTMLElement, options: { id?: string; labelledBy?: string }) {
 		async function apply(next: { id?: string; labelledBy?: string }) {
@@ -53,8 +101,10 @@
      console) inside the same panel chrome, surviving tab switches. Pair it
      with contentClass="hidden" on the active tab to swap which body shows. -->
 <div
-	class="context-surface {shellClass}"
+	class="context-surface gawdux-page-tabs {shellClass}"
+	class:page-tabs-has-status={Boolean($drawnStatus && statusHost)}
 	use:wirePanel={{ id: panelId, labelledBy: panelLabelledBy }}
+	use:stripChrome
 >
 	<Tabs
 		tabStyle="underline"
@@ -63,11 +113,6 @@
 		divider={divider || hasFeedback}
 	>
 		<slot />
-		{#if $drawnStatus && statusHost}
-			<li class="page-tabs-status" role="presentation" data-page-status>
-				<PageStatusOutlet host={statusHost} />
-			</li>
-		{/if}
 		<svelte:fragment slot="divider">
 			{#if hasFeedback && $feedback}
 				<SurfaceFeedback {...$feedback} />
@@ -76,5 +121,10 @@
 			{/if}
 		</svelte:fragment>
 	</Tabs>
+	{#if $drawnStatus && statusHost}
+		<div class="page-tabs-status" data-page-status>
+			<PageStatusOutlet host={statusHost} />
+		</div>
+	{/if}
 	<slot name="below" />
 </div>

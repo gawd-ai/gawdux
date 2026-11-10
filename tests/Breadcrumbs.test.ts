@@ -819,6 +819,29 @@ describe('Breadcrumbs: its layout', () => {
 	});
 });
 
+describe("Breadcrumbs: the current level's mark", () => {
+	const css = breadcrumbsSource.slice(
+		breadcrumbsSource.indexOf('<style>') + 7,
+		breadcrumbsSource.lastIndexOf('</style>')
+	);
+	const root = postcss.parse(css);
+	it("marks the current level with the house's selected row, focused or not", () => {
+		const found: Record<string, string> = {};
+		root.walkRules((node) => {
+			const selectors = node.selectors.map((s) => s.trim());
+			if (!selectors.includes(".row[aria-current='page']")) return;
+			expect(selectors).toContain("a.row[aria-current='page']:focus");
+			node.walkDecls((decl) => {
+				found[decl.prop] = decl.value;
+			});
+		});
+		expect(found).toMatchObject({
+			color: 'var(--gawdux-row-selected-text)',
+			'background-color': 'var(--gawdux-row-selected-surface)'
+		});
+	});
+});
+
 describe('one trail', () => {
 	it('is Breadcrumbs alone: no slot adapter beside it', () => {
 		expect(primitives.Breadcrumbs).toBe(Breadcrumbs);

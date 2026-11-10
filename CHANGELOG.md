@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.32.0 - one sign that a strip scrolls, a status after its strip
+
+### Added
+
+- `scrollEdges` (and `scrollFadeOf`, `ScrollFade`): anything that scrolls
+  sideways says so one way. The action marks a strip `data-scroll-fade` with
+  the side or sides where more of it lies (`start`, `end`, `both`; no mark
+  while it all shows) and keeps the mark as it scrolls, resizes or changes,
+  and `.gawdux-scroll-fade` draws the fade as the strip's own mask,
+  `--gawdux-scroll-fade-size` (1.5rem) wide, so nothing is laid over the strip
+  and no label is covered. A tab strip keeps its bottom rule whole.
+- `--gawdux-row-selected-surface` and `--gawdux-row-selected-text`, the
+  house's selected row in light and dark (a blue tint and the accent's text).
+- `IconButton` takes `size` (`sm`, 28px, the default; `md`, a header's, 32px
+  and a 44px target at or below the compact width) and `children`, a glyph
+  that is no icon (a channel's #), in place of `icon`. It stays flat in light
+  and dark: no border and no shadow at rest.
+
+### Changed
+
+- `PageTabs` fades its strip where more tabs lie, and draws the page's
+  status after the strip, never inside it: the strip ends where the status
+  begins (`--gawdux-page-tabs-status-width`, measured), the status stands as
+  tall as the strip with its bottom rule, so a strip that scrolls sideways
+  scrolls beside the status and no tab's label is under it. The status is a
+  `div` sibling of the strip carrying `data-page-status`, no longer the
+  strip's last `li`.
+- PageTabs' strip rests with its first tab whole: its inline padding is
+  where a tab snaps (`scroll-padding-inline`), so a strip at rest shows no
+  fade before its first tab.
+- `FilterPillRow` fades its row where more pills lie (`scrollEdges`); the
+  1px marks at its edges are removed. A wrapped row shows no fade.
+- `Breadcrumbs`' path menu (and the fold menu) marks the current level with
+  the house's selected row, focused or not, not by weight alone.
+
 ## 0.31.1 - a master and detail card edge to edge on a phone
 
 ### Fixed

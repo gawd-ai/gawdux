@@ -26,6 +26,18 @@ describe('FilterPillRow', () => {
 		}
 	});
 
+	it('fades the edge where more pills lie, one sign that the row scrolls, and none when it wraps', async () => {
+		const { container, rerender } = render(FilterPillRow, {
+			props: { pills: PILLS, selected: 'all', onSelect: () => {} }
+		});
+		const viewport = container.querySelector('.filter-pill-viewport')!;
+		expect(viewport.classList.contains('gawdux-scroll-fade')).toBe(true);
+		// No tick of its own at the edge: the fade is the one sign.
+		expect(container.querySelector('.filter-pill-can-scroll-forward')).toBeNull();
+		await rerender({ pills: PILLS, selected: 'all', onSelect: () => {}, wrap: true });
+		expect(viewport.classList.contains('gawdux-scroll-fade')).toBe(false);
+	});
+
 	it('reports the chosen pill id', async () => {
 		const onSelect = vi.fn();
 		render(FilterPillRow, { props: { pills: PILLS, selected: 'all', onSelect } });

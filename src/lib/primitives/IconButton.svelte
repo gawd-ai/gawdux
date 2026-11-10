@@ -1,24 +1,34 @@
 <!-- An action with an icon and no words, for a place where a labelled button
-     would shout (a row detail's Remove, a card's quiet edit). The label is the
-     accessible name and the tooltip. `danger` stays grey at rest and turns red
-     only on hover and focus: the colour warns at the moment of intent, not on
-     every row. The action itself still confirms where the product confirms. -->
+     would shout (a row detail's Remove, a card's quiet edit, a pane header's
+     close). The label is the accessible name and the tooltip. `danger` stays
+     grey at rest and turns red only on hover and focus: the colour warns at
+     the moment of intent, not on every row. The action itself still confirms
+     where the product confirms. It is the house's one icon button, flat in
+     light and dark alike: no border and no shadow at rest, a quiet fill on
+     hover. `size="md"` is a header's (32px, a 44px target at or below the
+     compact width); a glyph that is no icon (a channel's #) is its children. -->
 <script lang="ts">
-	import type { Component } from 'svelte';
+	import type { Component, Snippet } from 'svelte';
 
 	let {
 		icon: Icon,
+		children,
 		label,
 		onclick,
 		tone = 'neutral',
+		size = 'sm',
 		disabled = false,
 		className = ''
 	}: {
-		icon: Component;
+		/** The icon; or `children` for a glyph that is no icon. */
+		icon?: Component;
+		children?: Snippet;
 		/** What it does ("Remove Camera 3"), for the screen reader and the tooltip. */
 		label: string;
 		onclick?: (event: MouseEvent) => void;
 		tone?: 'neutral' | 'danger';
+		/** `sm` (28px) in a row or a card; `md` (32px, 44px at the compact width) in a header. */
+		size?: 'sm' | 'md';
 		disabled?: boolean;
 		className?: string;
 	} = $props();
@@ -32,7 +42,8 @@
 
 	const classes = $derived(
 		[
-			'icon-button inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md transition-colors',
+			'icon-button inline-flex shrink-0 items-center justify-center rounded-md transition-colors',
+			size === 'sm' ? 'h-7 w-7' : '',
 			'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500',
 			'disabled:pointer-events-none disabled:opacity-40',
 			TONE[tone],
@@ -51,5 +62,9 @@
 	aria-label={label}
 	title={label}
 	data-tone={tone}
-	><Icon class="h-4 w-4" aria-hidden="true" /></button
+	data-size={size}
+	>{#if Icon}<Icon class="h-4 w-4" aria-hidden="true" />{:else if children}<span
+			class="icon-button-glyph"
+			aria-hidden="true">{@render children()}</span
+		>{/if}</button
 >

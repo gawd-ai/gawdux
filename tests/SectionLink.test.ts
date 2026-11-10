@@ -1,3 +1,4 @@
+import { createRawSnippet } from 'svelte';
 import { cleanup, fireEvent, render, screen } from '@testing-library/svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import SectionLink from '../src/lib/primitives/SectionLink.svelte';
@@ -44,6 +45,17 @@ describe('IconButton', () => {
 		expect(button.className).not.toMatch(/(^|\s)text-red-/);
 		await fireEvent.click(button);
 		expect(onclick).toHaveBeenCalledTimes(1);
+	});
+
+	it("is a header's icon button at md, and carries a glyph that is no icon", () => {
+		const glyph = createRawSnippet(() => ({ render: () => '<span>#</span>' }));
+		render(IconButton, { props: { children: glyph, label: 'Open channel', size: 'md' } });
+		const button = screen.getByRole('button', { name: 'Open channel' });
+		expect(button.dataset.size).toBe('md');
+		expect(button.className).not.toMatch(/(^|\s)h-7(\s|$)/);
+		expect(button.querySelector('.icon-button-glyph')?.textContent).toBe('#');
+		// Flat in both themes: no border and no shadow at rest.
+		expect(button.className).not.toMatch(/(^|\s)(shadow|border)(-|\s|$)/);
 	});
 
 	it('does not act when disabled', async () => {

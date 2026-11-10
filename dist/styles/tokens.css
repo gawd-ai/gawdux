@@ -27,6 +27,10 @@
   --gawdux-tab-indicator: rgb(191 219 254);
   --gawdux-menu-surface: var(--color-white);
   --gawdux-menu-item-hover: var(--color-gray-100);
+  --gawdux-row-selected-surface: rgb(239 246 255);
+  --gawdux-row-selected-text: rgb(37 99 235);
+  --gawdux-scroll-fade-size: 1.5rem;
+  --gawdux-scroll-fade-mask: none;
   --gawdux-menu-divider: var(--color-gray-100);
   --gawdux-text-danger: var(--color-red-600);
   --gawdux-chip-surface: var(--color-gray-100);
@@ -79,6 +83,8 @@
   --gawdux-tab-indicator: rgb(30 58 138);
   --gawdux-menu-surface: var(--color-gray-800);
   --gawdux-menu-item-hover: var(--color-gray-700);
+  --gawdux-row-selected-surface: rgb(30 58 138 / 0.35);
+  --gawdux-row-selected-text: rgb(147 197 253);
   --gawdux-menu-divider: var(--color-gray-700);
   --gawdux-text-danger: var(--color-red-400);
   --gawdux-chip-surface: var(--color-gray-700);
@@ -1260,20 +1266,104 @@ main:has(.page-command-drawer) .page-command-bar,
 .gawdux-tab-strip :is([role='tab'], button, a) {
   white-space: nowrap;
 }
-.page-tabs-list > .page-tabs-status {
+.gawdux-tab-strip.tabs-stick {
+  scroll-padding-inline: 0.5rem;
+}
+.gawdux-scroll-fade[data-scroll-fade='end'] {
+  --gawdux-scroll-fade-mask: linear-gradient(
+		to right,
+		#000 calc(100% - var(--gawdux-scroll-fade-size)),
+		transparent
+	);
+}
+.gawdux-scroll-fade[data-scroll-fade='start'] {
+  --gawdux-scroll-fade-mask: linear-gradient(
+		to left,
+		#000 calc(100% - var(--gawdux-scroll-fade-size)),
+		transparent
+	);
+}
+.gawdux-scroll-fade[data-scroll-fade='both'] {
+  --gawdux-scroll-fade-mask: linear-gradient(
+		to right,
+		transparent,
+		#000 var(--gawdux-scroll-fade-size),
+		#000 calc(100% - var(--gawdux-scroll-fade-size)),
+		transparent
+	);
+}
+.gawdux-scroll-fade[data-scroll-fade] {
+  -webkit-mask-image: var(--gawdux-scroll-fade-mask);
+  mask-image: var(--gawdux-scroll-fade-mask);
+}
+.gawdux-scroll-fade[data-scroll-fade='end']:dir(rtl) {
+  --gawdux-scroll-fade-mask: linear-gradient(
+		to left,
+		#000 calc(100% - var(--gawdux-scroll-fade-size)),
+		transparent
+	);
+}
+.gawdux-scroll-fade[data-scroll-fade='start']:dir(rtl) {
+  --gawdux-scroll-fade-mask: linear-gradient(
+		to right,
+		#000 calc(100% - var(--gawdux-scroll-fade-size)),
+		transparent
+	);
+}
+.gawdux-tab-strip.gawdux-scroll-fade[data-scroll-fade] {
+  -webkit-mask-image: var(--gawdux-scroll-fade-mask), linear-gradient(#000 0 0);
+  mask-image: var(--gawdux-scroll-fade-mask), linear-gradient(#000 0 0);
+  -webkit-mask-size: 100% 100%,
+		100% 1px;
+  mask-size: 100% 100%,
+		100% 1px;
+  -webkit-mask-position: 0 0,
+		0 100%;
+  mask-position: 0 0,
+		0 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+.gawdux-page-tabs {
+  position: relative;
+}
+.gawdux-page-tabs.page-tabs-has-status > .page-tabs-list {
+  width: calc(100% - var(--gawdux-page-tabs-status-width, 0px));
+  max-width: calc(100% - var(--gawdux-page-tabs-status-width, 0px));
+}
+.gawdux-page-tabs > .page-tabs-status {
+  position: absolute;
+  top: var(--gawdux-page-tabs-strip-top, 0px);
+  right: 0;
+  z-index: 11;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
-  flex-shrink: 0;
-  margin-inline-start: auto;
+  height: var(--gawdux-page-tabs-strip-height, auto);
   padding-inline: 0.5rem;
+  border-bottom: 1px solid var(--gawdux-border);
+  border-start-end-radius: inherit;
+  background-color: var(--gawdux-surface-card);
+}
+.icon-button[data-size='md'] {
+  width: 2rem;
+  height: 2rem;
 }
 @media (max-width: 1024px) {
-  .page-tabs-list > .page-tabs-status {
-    position: sticky;
-    right: 0;
-    z-index: 1;
-    background-color: var(--gawdux-surface-card);
+  .icon-button[data-size='md'] {
+    width: 2.75rem;
+    height: 2.75rem;
   }
+}
+.icon-button-glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1rem;
+  height: 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
 }
 @media (max-width: 1024px) {
   :root {

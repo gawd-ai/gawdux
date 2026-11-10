@@ -44,7 +44,7 @@ import postcss from "postcss";
 import tokens from "../src/lib/styles/tokens.css?raw";
 
 describe("PageTabs draws the page's status at the end of its tab strip", () => {
-  it("draws the status its host states once, in the first strip, after the tabs", () => {
+  it("draws the status its host states once, after the first strip, never inside it", () => {
     const { container } = render(PageTabsStatusHarness, {
       props: { nested: true },
     });
@@ -52,13 +52,19 @@ describe("PageTabs draws the page's status at the end of its tab strip", () => {
     expect(statuses).toHaveLength(1);
     const status = statuses[0] as HTMLElement;
     expect(status.textContent?.trim()).toBe("Active");
-    expect(status.tagName).toBe("LI");
-    expect(status.getAttribute("role")).toBe("presentation");
-    // In the page's own tab strip, after its tabs.
-    const strip = status.parentElement!;
-    expect(strip.classList.contains("page-tabs-list")).toBe(true);
-    expect(strip.lastElementChild).toBe(status);
+    // After the page's own tab strip, as its sibling: the strip scrolls
+    // beside it and no tab passes under it.
+    const shell = status.parentElement!;
+    expect(shell.classList.contains("gawdux-page-tabs")).toBe(true);
+    expect(shell.classList.contains("page-tabs-has-status")).toBe(true);
+    const strip = shell.querySelector(":scope > .page-tabs-list")!;
+    expect(strip.contains(status)).toBe(false);
+    expect(
+      strip.compareDocumentPosition(status) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     expect(strip.querySelectorAll('[role="tab"]').length).toBeGreaterThan(0);
+    // The strip fades where more of its tabs lie.
+    expect(strip.classList.contains("gawdux-scroll-fade")).toBe(true);
   });
 
   it("draws the next page's status once the previous page's tabs are gone, though they mounted first", async () => {
@@ -94,35 +100,29 @@ describe("PageTabs draws the page's status at the end of its tab strip", () => {
     expect(plain.container.querySelector("[data-page-status]")).toBeNull();
   });
 
-  it("keeps the status at the end of the strip and in sight while the tabs scroll", () => {
+  it("ends the strip where the status begins, the status as tall as the strip", () => {
     const root = postcss.parse(tokens);
-    const decls = (selector: string, media: string | null) => {
+    const decls = (selector: string) => {
       const found: Record<string, string> = {};
       root.walkRules((rule) => {
-        const parent = rule.parent as
-          { type?: string; params?: string } | undefined;
-        const inMedia =
-          parent?.type === "atrule" ? (parent.params ?? null) : null;
-        if (
-          inMedia !== media ||
-          !rule.selectors.map((s) => s.trim()).includes(selector)
-        )
-          return;
+        if (rule.parent?.type !== "root") return;
+        if (!rule.selectors.map((s) => s.trim()).includes(selector)) return;
         rule.walkDecls((decl) => {
           found[decl.prop] = decl.value;
         });
       });
       return found;
     };
-    expect(decls(".page-tabs-list > .page-tabs-status", null)).toMatchObject({
-      "margin-inline-start": "auto",
-      "flex-shrink": "0",
-    });
+    expect(decls(".gawdux-page-tabs")).toMatchObject({ position: "relative" });
     expect(
-      decls(".page-tabs-list > .page-tabs-status", "(max-width: 1024px)"),
+      decls(".gawdux-page-tabs.page-tabs-has-status > .page-tabs-list"),
     ).toMatchObject({
-      position: "sticky",
+      width: "calc(100% - var(--gawdux-page-tabs-status-width, 0px))",
+    });
+    expect(decls(".gawdux-page-tabs > .page-tabs-status")).toMatchObject({
+      position: "absolute",
       right: "0",
+      height: "var(--gawdux-page-tabs-strip-height, auto)",
     });
   });
 });
@@ -161,5 +161,11 @@ describe("a tab strip is one row", () => {
     expect(
       decls(".gawdux-tab-strip :is([role='tab'], button, a)"),
     ).toMatchObject({ "white-space": "nowrap" });
+  });
+
+  it("rests PageTabs' strip with its first tab whole, its padding where a tab snaps", () => {
+    expect(decls(".gawdux-tab-strip.tabs-stick")).toMatchObject({
+      "scroll-padding-inline": "0.5rem",
+    });
   });
 });

@@ -5,7 +5,7 @@ export interface FilterPill {
 }
 /** The pill recipe, shared with controls that must read as one of the pills. */
 export declare function filterPillClass(active: boolean): string;
-import { type Snippet } from 'svelte';
+import type { Snippet } from 'svelte';
 type $$ComponentProps = {
     pills: FilterPill[];
     /** The pressed pill's id; null presses nothing. */
@@ -27,8 +27,8 @@ type $$ComponentProps = {
      * column — a master-detail rail, say — because there the scroller is
      * technically correct and practically wrong: the filters are the first
      * thing a reader needs, and half of them are off-screen behind a
-     * horizontal gesture nobody thinks to make. The overflow affordances are
-     * suppressed when wrapping, since there is nothing left to scroll to.
+     * horizontal gesture nobody thinks to make. A wrapped row scrolls
+     * nowhere, so it shows no fade.
      */
     wrap?: boolean;
 };

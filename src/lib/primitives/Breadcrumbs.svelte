@@ -1069,9 +1069,12 @@
 	.row[aria-disabled='true']:focus {
 		outline: none;
 	}
-	.row[aria-current='page'] {
-		color: var(--gawdux-text-primary);
-		font-weight: 600;
+	/* The current level carries the house's selected row (the tint and the
+	   accent's text), as a sidebar's current page does, focused or not. */
+	.row[aria-current='page'],
+	a.row[aria-current='page']:focus {
+		color: var(--gawdux-row-selected-text);
+		background-color: var(--gawdux-row-selected-surface);
 	}
 
 	/* ── The ruler: laid out, never painted, never in the page's size ──────── */

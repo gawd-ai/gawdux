@@ -128,6 +128,8 @@ export {
 	createPageStatusHost
 } from './page-chrome';
 export { createPageCommandBarRegistry } from './page-command-bar-registry';
+export { scrollEdges, scrollFadeOf } from './scroll-edges';
+export type { ScrollFade } from './scroll-edges';
 export type {
 	AppBreadcrumbItem,
 	AppBreadcrumbData,

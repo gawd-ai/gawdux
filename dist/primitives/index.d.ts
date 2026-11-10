@@ -88,6 +88,8 @@ export { default as TabFillPanel } from './TabFillPanel.svelte';
 export { default as TabTitle } from './TabTitle.svelte';
 export { PAGE_COMMAND_BAR_CONTEXT, EMPTY_PAGE_COMMAND_BAR_SLOTS, PAGE_STATUS_CONTEXT, createPageStatusHost } from './page-chrome';
 export { createPageCommandBarRegistry } from './page-command-bar-registry';
+export { scrollEdges, scrollFadeOf } from './scroll-edges';
+export type { ScrollFade } from './scroll-edges';
 export type { AppBreadcrumbItem, AppBreadcrumbData, PageCommandBarZone, PageCommandBarSlots, PageCommandBarContext, PageStatusClaim, PageStatusHost } from './page-chrome';
 export type { LifecycleAction, EditModeProps, LifecycleKindRenderers } from './PageActionBar.svelte';
 export type { ListQueryBarProps } from './ListQueryBar.svelte';

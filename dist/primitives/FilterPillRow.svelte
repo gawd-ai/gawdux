@@ -1,5 +1,6 @@
 <!-- One-line quick-filter strip. It stays compact when the pills fit and
-     becomes an internally scrollable rail when they do not. The pressed
+     becomes an internally scrollable rail when they do not, its edge fading
+     where more pills lie (scrollEdges, the one sign a strip scrolls). The pressed
      pill can carry a remove control, and the track accepts trailing content
      (SavedViewsRail puts its inline save control there). -->
 <script module lang="ts">
@@ -20,8 +21,9 @@
 </script>
 
 <script lang="ts">
-	import { onMount, type Snippet } from 'svelte';
+	import type { Snippet } from 'svelte';
 	import { CloseOutline } from 'flowbite-svelte-icons';
+	import { scrollEdges } from './scroll-edges';
 
 	let {
 		pills,
@@ -55,41 +57,28 @@
 		 * column — a master-detail rail, say — because there the scroller is
 		 * technically correct and practically wrong: the filters are the first
 		 * thing a reader needs, and half of them are off-screen behind a
-		 * horizontal gesture nobody thinks to make. The overflow affordances are
-		 * suppressed when wrapping, since there is nothing left to scroll to.
+		 * horizontal gesture nobody thinks to make. A wrapped row scrolls
+		 * nowhere, so it shows no fade.
 		 */
 		wrap?: boolean;
 	} = $props();
 
-	let viewportEl: HTMLDivElement | null = null;
 	let trackEl: HTMLDivElement | null = null;
-	let canScrollBackward = $state(false);
-	let canScrollForward = $state(false);
 
-	function updateOverflow() {
-		if (!viewportEl) return;
-		if (wrap) {
-			canScrollBackward = false;
-			canScrollForward = false;
-			return;
-		}
-		const maxScrollLeft = Math.max(0, viewportEl.scrollWidth - viewportEl.clientWidth);
-		canScrollBackward = viewportEl.scrollLeft > 1;
-		canScrollForward = viewportEl.scrollLeft < maxScrollLeft - 1;
-	}
-
-	onMount(() => {
-		updateOverflow();
-		const resizeObserver =
-			typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(updateOverflow);
-		if (viewportEl) resizeObserver?.observe(viewportEl);
-		if (trackEl) resizeObserver?.observe(trackEl);
-		window.addEventListener('resize', updateOverflow);
-		return () => {
-			resizeObserver?.disconnect();
-			window.removeEventListener('resize', updateOverflow);
+	/** The fade where more pills lie, on a row that scrolls; a wrapped one has none. */
+	function edges(node: HTMLElement, wrapped: boolean) {
+		let current = wrapped ? null : scrollEdges(node);
+		return {
+			update(next: boolean) {
+				if (next === !current) return;
+				current?.destroy();
+				current = next ? null : scrollEdges(node);
+			},
+			destroy() {
+				current?.destroy();
+			}
 		};
-	});
+	}
 
 	// Keep the pressed pill in view when the selection changes under a
 	// scrolled rail (a view applied from the URL, a deep link).
@@ -103,17 +92,12 @@
 	});
 </script>
 
-<div
-	class={`filter-pill-shell relative min-w-0 ${className}`}
-	class:filter-pill-can-scroll-backward={canScrollBackward}
-	class:filter-pill-can-scroll-forward={canScrollForward}
->
+<div class={`filter-pill-shell relative min-w-0 ${className}`}>
 	<div
-		bind:this={viewportEl}
+		use:edges={wrap}
 		class={`filter-pill-viewport w-full ${wrap ? '' : 'overflow-x-auto overscroll-x-contain'}`}
 		role="group"
 		aria-label={ariaLabel}
-		onscroll={updateOverflow}
 	>
 		<div
 			bind:this={trackEl}
@@ -169,38 +153,6 @@
 
 	.filter-pill-viewport::-webkit-scrollbar {
 		display: none;
-	}
-
-	.filter-pill-shell::before,
-	.filter-pill-shell::after {
-		content: '';
-		position: absolute;
-		top: 25%;
-		bottom: 25%;
-		z-index: 1;
-		display: none;
-		width: 1px;
-		border-radius: 9999px;
-		background: rgb(156 163 175);
-		pointer-events: none;
-	}
-
-	.filter-pill-shell::before {
-		left: 0;
-	}
-
-	.filter-pill-shell::after {
-		right: 0;
-	}
-
-	.filter-pill-can-scroll-backward::before,
-	.filter-pill-can-scroll-forward::after {
-		display: block;
-	}
-
-	:global(.dark) .filter-pill-shell::before,
-	:global(.dark) .filter-pill-shell::after {
-		background: rgb(107 114 128);
 	}
 
 	@media (max-width: 1024px) {
