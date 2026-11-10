@@ -134,6 +134,7 @@ export type {
 	PageCommandBarZone,
 	PageCommandBarSlots,
 	PageCommandBarContext,
+	PageStatusClaim,
 	PageStatusHost
 } from './page-chrome';
 export type {

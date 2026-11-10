@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Tabs } from 'flowbite-svelte';
-	import { getContext, onDestroy, tick } from 'svelte';
+	import { getContext, onDestroy, tick, type Snippet } from 'svelte';
 	import { readable } from 'svelte/store';
 	import SurfaceFeedback from './SurfaceFeedback.svelte';
 	import {
@@ -26,10 +26,12 @@
 	onDestroy(() => release?.());
 
 	/* The page's status, as its host states it: the tabs head the page's panel,
-	   so the first strip draws it at its end, once (the trail never does). */
+	   so the first live strip draws it at its end, once (the trail never does),
+	   and a strip that mounts while another holds it draws it once that one goes. */
 	const statusHost = getContext<PageStatusHost | undefined>(PAGE_STATUS_CONTEXT);
-	const releaseStatus = statusHost?.claim() ?? null;
-	onDestroy(() => releaseStatus?.());
+	const statusClaim = statusHost?.claim() ?? null;
+	const drawnStatus = statusClaim?.status ?? readable<Snippet | null>(null);
+	onDestroy(() => statusClaim?.release());
 	$: hasFeedback = Boolean(
 		$feedback?.loadError?.trim() || $feedback?.actionError?.trim() || $feedback?.notice?.trim()
 	);
@@ -61,7 +63,7 @@
 		divider={divider || hasFeedback}
 	>
 		<slot />
-		{#if releaseStatus && statusHost?.status}
+		{#if $drawnStatus && statusHost}
 			<li class="page-tabs-status" role="presentation" data-page-status>
 				<PageStatusOutlet host={statusHost} />
 			</li>

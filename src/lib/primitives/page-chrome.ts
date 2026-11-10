@@ -1,4 +1,5 @@
 import type { Snippet } from 'svelte';
+import { derived, toStore, writable, type Readable } from 'svelte/store';
 
 export type AppBreadcrumbItem = {
 	label: string;
@@ -21,31 +22,46 @@ export type AppBreadcrumbData = {
 /**
  * The page's status as its host states it, for the page's own header to draw.
  * A page whose tabs head its panel (PageTabs) draws it at the end of its tab
- * strip; the first header to claim it draws it, so it shows once, never in
- * the trail.
+ * strip; the first live claim draws it, so it shows once, never in the trail.
  */
 export type PageStatusHost = {
 	/** What to draw: the host's status chip, or null for a page without one. */
 	readonly status: Snippet | null;
-	/** Claims the status for one header: a release, or null when another holds it. */
-	claim(): (() => void) | null;
+	/**
+	 * Claims the status for one header. The first live claim draws it; a later
+	 * one waits and draws it once every claim before it is released, so the
+	 * next page's header, which mounts while the previous page's is still
+	 * there, draws its status when the previous page goes.
+	 */
+	claim(): PageStatusClaim;
+};
+
+/** One header's claim on the page's status. */
+export type PageStatusClaim = {
+	/** The status this header draws, live: the host's while this claim is the first, else null. */
+	readonly status: Readable<Snippet | null>;
+	/** Gives the status to the next claim. */
+	release(): void;
 };
 
 export const PAGE_STATUS_CONTEXT = Symbol('page-status');
 
-/** A host's page status, read live from `read`, drawn by the first header that claims it. */
+/** A host's page status, read live from `read`, drawn by the first live claim. */
 export function createPageStatusHost(read: () => Snippet | null): PageStatusHost {
-	let holder: symbol | null = null;
+	const claims = writable<symbol[]>([]);
+	// A store of the live read, so a header written in either Svelte mode
+	// follows the status as the host's state changes.
+	const current = toStore(read);
 	return {
 		get status() {
 			return read();
 		},
 		claim() {
-			if (holder) return null;
 			const mine = Symbol('page-status-claim');
-			holder = mine;
-			return () => {
-				if (holder === mine) holder = null;
+			claims.update((held) => [...held, mine]);
+			return {
+				status: derived([claims, current], ([held, status]) => (held[0] === mine ? status : null)),
+				release: () => claims.update((held) => held.filter((claim) => claim !== mine))
 			};
 		}
 	};

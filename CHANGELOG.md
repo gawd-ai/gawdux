@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.30.2 - the next page's status, though its tabs mounted first
+
+### Fixed
+
+- `PageTabs` draws the page's status after a navigation. A navigation mounts
+  the next page's tabs while the previous page's are still there, so the
+  previous strip held the status and the next drew none, even once the
+  previous page had gone. A claim now waits: the first live claim draws the
+  status, and a later one draws it once every claim before it is released.
+  The strip also follows the status as the host's state changes, which a
+  page whose status arrives after its tabs mounted needs.
+
+### Changed
+
+- `PageStatusHost.claim()` returns a `PageStatusClaim`: `status`, a store of
+  the status this header draws (the host's while the claim is first, else
+  null), and `release()`. It no longer returns null when another header
+  holds the status.
+
 ## 0.30.1 - the count no taller than a line of words
 
 ### Fixed
