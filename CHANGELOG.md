@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.30.0 - one count in the command bar: the words above, a track below
+
+### Added
+
+- `PageCommandBarProgress`, a determinate count for a command bar's status
+  zone: the words small and on one line, above a thin track as wide as they
+  are, the pair inside the bar's height at every width. The group is as wide
+  as its words and never wider than its zone, where the words yield with an
+  ellipsis and keep the whole in their tooltip. The track is the progress bar
+  of assistive technology (`role="progressbar"`, its value the count, its
+  value text the words, its name `name` or the words), and is drawn only when
+  there is a count: a total above zero. Words without a count read alone. A
+  value outside the count is held to it.
+
 ## 0.29.0 - the phone shell: one bar at the bottom, a two-line trail, a status shown once
 
 ### Added
