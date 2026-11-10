@@ -1,5 +1,51 @@
 # Changelog
 
+## 0.31.0 - more room on a phone
+
+### Changed
+
+- `Breadcrumbs` is one row at or below the compact width
+  (`BREADCRUMB_COMPACT_QUERY`, `(max-width: 1024px)`): the current page's
+  name is a button with a chevron, its name on one line and cut with an
+  ellipsis, and the button opens the path below the header, every level from
+  the top down as a link, the current page last and marked
+  (`aria-current="page"`), each name whole and wrapping between words. The
+  path is a menu (`role="menu"`, the house menu's look and keys: arrows,
+  Home, End), never a modal; Escape or a press outside closes it and puts
+  the focus back on the button, choosing a level or a new trail closes it.
+  A trail of one level shows its name as plain text with no chevron. The
+  two-line compact layout is removed.
+- `BREADCRUMB_STACK_QUERY` is renamed `BREADCRUMB_COMPACT_QUERY`.
+- `ShellBar` keeps the host's end at the bar's right end, its controls side
+  by side and its last control the last in the bar, in the same place with
+  or without an occupant; an occupant's controls share the room before it.
+- A command bar with nothing to hold is not drawn (`.page-command-bar` with
+  no zone content). The surface above it then keeps its own bottom edge; the
+  stretch to the column's bottom holds either way.
+- A tab strip is one row at every width (`.gawdux-tab-strip`, carried by
+  `PageTabs`' strip): tabs that do not fit scroll sideways inside the strip,
+  never wrapping onto a second row nor scrolling the page. A host's own strip
+  carries the class to follow the same rule. The compact-only rule on
+  `.page-tabs-list` is folded into it.
+
+### Added
+
+- Tight levels zero and one at or below the compact width, one rule in
+  `tokens.css`: the outermost content surface, a page's tabs nested in it
+  and the command bar run edge to edge (no side border, radius or shadow),
+  and the panel's inset, the hosts directly inside it, the filter row and a
+  responsive card table's grid sit at `--gawdux-compact-inset` (8px, new).
+  `--gawdux-page-inset` takes that value there. Boxes nested in the content
+  (a card, a field, a tile) keep their own padding.
+- `UserMenuThemeRow`, the theme as one row of a user menu: a
+  `menuitemcheckbox` with a moon icon, its label ("Dark mode" by default)
+  and a switch showing the state, which turns the theme and leaves the menu
+  open. `UserMenu` takes `theme` (`UserMenuTheme`: `cookieName`, `label`) to
+  draw it before its extra rows, and its keys move over every row kind.
+- `isDarkTheme`, `setColorTheme`, `toggleColorTheme`, `watchColorTheme` and
+  `COLOR_THEME_STORAGE_KEY` in `gawdux/utils`, the one place the theme is set
+  and kept, shared by `DarkModeToggle` and `UserMenuThemeRow`.
+
 ## 0.30.2 - the next page's status, though its tabs mounted first
 
 ### Fixed

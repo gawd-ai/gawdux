@@ -15,6 +15,14 @@ export interface UserMenuItem {
 	id?: string;
 }
 
+/** The theme row's settings (UserMenuThemeRow). */
+export interface UserMenuTheme {
+	/** The cookie the host's server reads to draw the first paint in the theme. */
+	cookieName: string;
+	/** The row's label; defaults to "Dark mode". */
+	label?: string;
+}
+
 export interface UserMenuProps {
 	/**
 	 * Omit to retain the default view. An alternate view registers its root,
@@ -50,6 +58,12 @@ export interface UserMenuProps {
 	 * the arrow keys reach it and it takes the menu's row style.
 	 */
 	extraItems?: Snippet<[{ close: () => void }]>;
+	/**
+	 * The theme row after `items`: the dark theme's switch with its label, a
+	 * `menuitemcheckbox` that turns the theme over and leaves the menu open.
+	 * Pass it where the menu is the theme's one control.
+	 */
+	theme?: UserMenuTheme;
 	/** POST target of the sign-out form. */
 	signOutAction?: string;
 	/** Applied to the sign-out form, for a host's progressive enhancement. */

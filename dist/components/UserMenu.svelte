@@ -24,6 +24,12 @@
 	the screen) the closed card is the avatar alone and the open body rises
 	above the bar as its sheet (`.gawdux-shell-bar-sheet`), never a modal.
 
+	The theme. `theme` adds the theme row after the rows (UserMenuThemeRow):
+	the dark theme's switch with its label, a `menuitemcheckbox` the arrows
+	reach, which turns the theme over and leaves the menu open. A host passes
+	it where the menu is the theme's one control (the phone shell's bar, where
+	the toggle a header carries beside the menu has no room).
+
 	Keyboard: the WAI-ARIA menu button pattern. Enter, Space or ArrowDown on the
 	trigger opens and focuses the first row, ArrowUp the last; in the menu the
 	arrows wrap, Home and End jump, Escape closes and returns focus to the
@@ -41,6 +47,7 @@
 	import { ArrowRightToBracketOutline } from 'flowbite-svelte-icons';
 	import type { UserMenuProps } from '../types/user-menu.types';
 	import { inShellBar } from '../primitives/shell-bar';
+	import UserMenuThemeRow from './UserMenuThemeRow.svelte';
 
 	let {
 		name,
@@ -52,6 +59,7 @@
 		accessLabel,
 		items = [],
 		extraItems,
+		theme,
 		signOutAction,
 		signOutEnhance,
 		onsignout,
@@ -121,7 +129,7 @@
 	/** A host without a name passes the email as the name: never show it twice. */
 	const secondLine = $derived(email && email.trim() !== name.trim() ? email : '');
 	const hasSignOut = $derived(Boolean(signOutAction || onsignout));
-	const hasRows = $derived(items.length > 0 || Boolean(extraItems));
+	const hasRows = $derived(items.length > 0 || Boolean(extraItems) || Boolean(theme));
 	const hasMenu = $derived(hasRows || hasSignOut);
 	const hasContext = $derived(Boolean(tenant) || access.length > 0);
 	const hasFooter = $derived(Boolean(footer || mark || product || version));
@@ -156,9 +164,12 @@
 		if (focusTrigger) trigger?.focus({ preventScroll: true });
 	}
 
+	/** Every row of the menu: an action, a link, a checkbox row (the theme). */
+	const ROW = '[role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"]';
+
 	function rows(): HTMLElement[] {
 		if (!menu) return [];
-		return Array.from(menu.querySelectorAll<HTMLElement>('[role="menuitem"]')).filter(
+		return Array.from(menu.querySelectorAll<HTMLElement>(ROW)).filter(
 			(row) => !row.hasAttribute('disabled') && row.getAttribute('aria-disabled') !== 'true'
 		);
 	}
@@ -256,7 +267,7 @@
 		if (event.pointerType === 'touch' || !menu) return;
 		pointerInput = true;
 		const target = event.target instanceof Element ? event.target : null;
-		const row = target?.closest<HTMLElement>('[role="menuitem"]');
+		const row = target?.closest<HTMLElement>(ROW);
 		if (row && rows().includes(row)) {
 			if (document.activeElement !== row) row.focus({ preventScroll: true });
 		} else if (focusInBody() && document.activeElement !== menu) {
@@ -478,6 +489,10 @@
 								</button>
 							{/if}
 						{/each}
+
+						{#if theme}
+							<UserMenuThemeRow cookieName={theme.cookieName} label={theme.label} />
+						{/if}
 
 						{@render extraItems?.({ close })}
 

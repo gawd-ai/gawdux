@@ -13,7 +13,7 @@ export type {
 	LedgerView
 } from './approvals-ledger';
 export { default as Breadcrumbs } from './Breadcrumbs.svelte';
-export { BREADCRUMB_STACK_QUERY, breadcrumbNeed, breadcrumbWords } from './breadcrumb-overflow';
+export { BREADCRUMB_COMPACT_QUERY, breadcrumbNeed, breadcrumbWords } from './breadcrumb-overflow';
 export type { BreadcrumbNeed, BreadcrumbRoom } from './breadcrumb-overflow';
 export { default as CardContainer } from './CardContainer.svelte';
 export { default as ClearableInput } from './ClearableInput.svelte';

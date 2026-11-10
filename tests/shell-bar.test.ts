@@ -76,17 +76,29 @@ for (const [name, css] of [
 				display: 'flex',
 				'flex-direction': 'row',
 				'align-items': 'center',
-				'justify-content': 'space-around',
 				width: 'auto',
 				height: 'var(--gawdux-shell-bar-space)',
 				'padding-bottom': 'env(safe-area-inset-bottom, 0px)'
 			});
-			// The occupant's groups and the host's end give their controls to the
-			// bar's one row; a part that belongs to a column is not drawn.
-			expect(declarations(narrow, `${BAR} > :is([data-shell-bar-group], .gawdux-shell-bar-end)`)).toEqual({
-				display: 'contents'
+			// The occupant's groups give their controls to the bar's one row, each
+			// centred in an equal share of the room; a part that belongs to a
+			// column is not drawn.
+			expect(declarations(narrow, `${BAR} > [data-shell-bar-group]`)).toEqual({ display: 'contents' });
+			expect(declarations(narrow, `${BAR} > [data-shell-bar-group] > *`)).toEqual({
+				'margin-inline': 'auto'
 			});
 			expect(declarations(narrow, `${BAR} > [data-shell-bar-column]`)).toEqual({ display: 'none' });
+		});
+
+		it("keeps the host's end at the bar's right end, whether anything occupies the bar or not", () => {
+			expect(declarations(narrow, `${BAR} > .gawdux-shell-bar-end`)).toEqual({
+				display: 'flex',
+				flex: '0 0 auto',
+				'align-items': 'center',
+				gap: '0.25rem',
+				'margin-inline-start': 'auto',
+				'padding-inline-end': '0.25rem'
+			});
 		});
 
 		it('keeps a 44px target for every control in it, and none in a sheet it opens', () => {

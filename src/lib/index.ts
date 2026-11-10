@@ -5,6 +5,7 @@ export { default as AppSidebar } from './components/AppSidebar.svelte';
 export { default as SidebarFlyout } from './components/SidebarFlyout.svelte';
 export { default as SidebarDropdownGroup } from './components/SidebarDropdownGroup.svelte';
 export { default as UserMenu } from './components/UserMenu.svelte';
+export { default as UserMenuThemeRow } from './components/UserMenuThemeRow.svelte';
 
 // Types
 export type {
@@ -16,7 +17,12 @@ export type {
 	ModuleNav,
 	DomainModule
 } from './types/sidebar.types';
-export type { UserMenuItem, UserMenuProps, UserMenuPresentation } from './types/user-menu.types';
+export type {
+	UserMenuItem,
+	UserMenuProps,
+	UserMenuPresentation,
+	UserMenuTheme
+} from './types/user-menu.types';
 
 // Utilities
 export {

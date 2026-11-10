@@ -24,6 +24,12 @@ import type { UserMenuProps } from '../types/user-menu.types';
  * the screen) the closed card is the avatar alone and the open body rises
  * above the bar as its sheet (`.gawdux-shell-bar-sheet`), never a modal.
  *
+ * The theme. `theme` adds the theme row after the rows (UserMenuThemeRow):
+ * the dark theme's switch with its label, a `menuitemcheckbox` the arrows
+ * reach, which turns the theme over and leaves the menu open. A host passes
+ * it where the menu is the theme's one control (the phone shell's bar, where
+ * the toggle a header carries beside the menu has no room).
+ *
  * Keyboard: the WAI-ARIA menu button pattern. Enter, Space or ArrowDown on the
  * trigger opens and focuses the first row, ArrowUp the last; in the menu the
  * arrows wrap, Home and End jump, Escape closes and returns focus to the

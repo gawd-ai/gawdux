@@ -22,3 +22,5 @@ export { createDocumentVisibilitySource, createMessageCenter, createStorageHidde
 export { APP_MESSAGE_CENTER_CONTEXT, getAppMessageCenter } from './message-center-context';
 // Discard-on-navigate guard (pairs with primitives/DiscardNavigationCommandSurface)
 export { DiscardNavigationController, DISCARD_NAVIGATION_CONTEXT, navigationTargets, useGuardedGoto } from './discard-navigation.svelte';
+// The colour theme: one place sets and keeps it (DarkModeToggle, UserMenuThemeRow)
+export { COLOR_THEME_STORAGE_KEY, isDarkTheme, setColorTheme, toggleColorTheme, watchColorTheme } from './color-theme';

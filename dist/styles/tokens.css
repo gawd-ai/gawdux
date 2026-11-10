@@ -48,6 +48,7 @@
   --gawdux-tile-min-width: 9rem;
   --gawdux-page-inset: calc(var(--spacing, 0.25rem) * 4);
   --gawdux-page-inset-bottom: calc(var(--spacing, 0.25rem) * 1);
+  --gawdux-compact-inset: calc(var(--spacing, 0.25rem) * 2);
   --gawdux-panel-wide-max-width: 72rem;
   --gawdux-table-head-icon-size: 1rem;
   --gawdux-table-head-icon-gap: 0.5rem;
@@ -274,24 +275,6 @@
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
     background-color: var(--gawdux-surface-card);
     border-color: var(--gawdux-border);
-  }
-  @media (max-width: 1024px) {
-    .page-tabs-list {
-      flex-wrap: nowrap !important;
-      justify-content: flex-start;
-      overflow-x: auto;
-      overflow-y: hidden;
-      overscroll-behavior-inline: contain;
-      scroll-snap-type: inline proximity;
-      -webkit-overflow-scrolling: touch;
-    }
-    .page-tabs-list > li {
-      flex: 0 0 auto;
-      scroll-snap-align: start;
-    }
-    .page-tabs-list [role='tab'] {
-      white-space: nowrap;
-    }
   }
   .page-tabs-shell:has(.tab-fill-panel) {
     display: flex;
@@ -718,19 +701,22 @@ div.inline-flex.items-center.justify-center.font-medium {
 .dark * {
   scrollbar-color: #4b5563 #1f2937;
 }
-main:has(.page-command-bar) .context-surface,
-.page-shell:has(> .page-command-bar) > main .context-surface {
+main:has(.page-command-bar .cmd-bar-zone > *) .context-surface,
+.page-shell:has(> .page-command-bar .cmd-bar-zone > *) > main .context-surface {
   border-bottom-left-radius: 0 !important;
   border-bottom-right-radius: 0 !important;
   border-bottom-width: 0 !important;
+}
+main:has(.page-command-bar) .context-surface,
+.page-shell:has(> .page-command-bar) > main .context-surface {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
 }
-main:has(.page-command-bar) .context-surface .context-surface,
-.page-shell:has(> .page-command-bar) > main .context-surface .context-surface {
+main:has(.page-command-bar .cmd-bar-zone > *) .context-surface .context-surface,
+.page-shell:has(> .page-command-bar .cmd-bar-zone > *) > main .context-surface .context-surface {
   border-bottom-left-radius: 0.5rem !important;
   border-bottom-right-radius: 0.5rem !important;
   border-bottom-width: 1px !important;
@@ -777,6 +763,9 @@ main:has(.page-command-bar) *:has(> .context-surface),
 .page-command-bar:has(.cmd-bar-zone > *) {
   min-height: 52px;
   padding: 0.5rem 0.75rem;
+}
+.page-command-bar:not(:has(.cmd-bar-zone > *)) {
+  display: none;
 }
 .dark .page-command-bar {
   background-color: rgb(28 37 51);
@@ -1126,7 +1115,7 @@ main:has(.page-command-drawer) .page-command-bar,
   .responsive-card-table tbody {
     display: grid;
     gap: 0.625rem;
-    padding: 0.125rem 0;
+    padding: 0.125rem var(--gawdux-compact-inset);
   }
   .responsive-card-table tbody > tr {
     display: grid;
@@ -1253,6 +1242,24 @@ main:has(.page-command-drawer) .page-command-bar,
     font-size: 16px;
   }
 }
+.gawdux-tab-strip {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: inline proximity;
+  -webkit-overflow-scrolling: touch;
+}
+.gawdux-tab-strip > * {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+}
+.gawdux-tab-strip :is([role='tab'], button, a) {
+  white-space: nowrap;
+}
 .page-tabs-list > .page-tabs-status {
   display: flex;
   align-items: center;
@@ -1266,6 +1273,31 @@ main:has(.page-command-drawer) .page-command-bar,
     right: 0;
     z-index: 1;
     background-color: var(--gawdux-surface-card);
+  }
+}
+@media (max-width: 1024px) {
+  :root {
+    --gawdux-page-inset: var(--gawdux-compact-inset);
+  }
+  main .context-surface:not(.context-surface .context-surface),
+	main .context-surface .page-tabs-shell.context-surface {
+    border-left-width: 0 !important;
+    border-right-width: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+  main .context-surface:not(.context-surface .context-surface) > .surface-feedback:first-child {
+    border-radius: 0;
+  }
+  main .page-command-bar {
+    border-left-width: 0;
+    border-right-width: 0;
+    border-bottom-width: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .filter-bar {
+    padding-inline: var(--gawdux-compact-inset);
   }
 }
 @media not all and (max-width: 1024px) {
@@ -1286,7 +1318,6 @@ main:has(.page-command-drawer) .page-command-bar,
     display: flex;
     flex-direction: row;
     align-items: center;
-    justify-content: space-around;
     width: auto;
     height: var(--gawdux-shell-bar-space);
     padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
@@ -1301,8 +1332,19 @@ main:has(.page-command-drawer) .page-command-bar,
   .gawdux-shell-bar[data-shell-bar]:has(.gawdux-shell-bar-sheet) {
     z-index: 90;
   }
-  .gawdux-shell-bar[data-shell-bar] > :is([data-shell-bar-group], .gawdux-shell-bar-end) {
+  .gawdux-shell-bar[data-shell-bar] > [data-shell-bar-group] {
     display: contents;
+  }
+  .gawdux-shell-bar[data-shell-bar] > [data-shell-bar-group] > * {
+    margin-inline: auto;
+  }
+  .gawdux-shell-bar[data-shell-bar] > .gawdux-shell-bar-end {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.25rem;
+    margin-inline-start: auto;
+    padding-inline-end: 0.25rem;
   }
   .gawdux-shell-bar[data-shell-bar] > [data-shell-bar-column] {
     display: none;

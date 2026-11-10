@@ -2,65 +2,34 @@
 	/**
 	 * Sun/moon toggle that flips the `dark` class on <html>.
 	 *
-	 * Persistence: writes `localStorage['color-theme']` (the de-facto
-	 * Flowbite key) AND a cookie under whatever name the consumer
-	 * passes via `cookieName`. The cookie path is hardcoded to `/` and
-	 * lifetime to one year.
+	 * The theme is set and kept by `setColorTheme` (utils/color-theme), the
+	 * one place every theme control goes through: `localStorage['color-theme']`
+	 * (the de-facto Flowbite key) and a cookie under whatever name the
+	 * consumer passes via `cookieName`, path `/`, one year.
 	 *
-	 * On mount the component installs a MutationObserver on the
-	 * <html> element that mirrors any `dark` class flip back to the
-	 * cookie. This means flips originating from devtools, an inline
-	 * script, another tab, or any third-party toggle stay in sync
-	 * with the SSR cookie — there's no wrong-color flash on next
-	 * reload. Without the observer, only clicks on this button would
-	 * persist.
+	 * While mounted it follows the `dark` class (`watchColorTheme`), so a flip
+	 * from devtools, an inline script, another tab or another control writes
+	 * the cookie too and the SSR theme matches on the next reload.
 	 *
-	 * The initial dark class must still be resolved by the consumer's
-	 * app shell (typically an inline script in the HTML template that
-	 * reads cookie → localStorage → OS preference) to avoid a flash
-	 * on first hydration.
-	 *
-	 * The consumer's server-side cookie reader (e.g. SvelteKit
-	 * +layout.server.ts) is responsible for reading the same
-	 * `cookieName` to inject the right class on first paint.
+	 * The initial dark class must still be resolved by the consumer's app
+	 * shell (typically an inline script in the HTML template that reads
+	 * cookie, then localStorage, then the OS preference) to avoid a flash on
+	 * first hydration, and its server reads the same `cookieName` to inject
+	 * the right class on first paint.
 	 */
 	import { onMount } from 'svelte';
+	import { toggleColorTheme, watchColorTheme } from '../utils/color-theme';
 	export let cookieName: string;
 	export let ariaLabel = 'Toggle dark mode';
 
 	let className = '';
 	export { className as class };
 
-	function writeCookie(isDark: boolean) {
-		try {
-			document.cookie = `${cookieName}=${isDark ? 'dark' : 'light'}; path=/; max-age=${365 * 86400}; SameSite=Lax`;
-		} catch {
-			// Cookies disabled — non-fatal.
-		}
-	}
-
 	function toggleTheme() {
-		const html = document.documentElement;
-		const isDark = html.classList.toggle('dark');
-		try {
-			localStorage.setItem('color-theme', isDark ? 'dark' : 'light');
-		} catch {
-			// localStorage disabled — non-fatal.
-		}
-		writeCookie(isDark);
+		toggleColorTheme(cookieName);
 	}
 
-	onMount(() => {
-		const html = document.documentElement;
-		const sync = () => writeCookie(html.classList.contains('dark'));
-		// Sync once on mount in case the inline script in app.html didn't
-		// run (JS-disabled fallback) or another tab changed the class
-		// since last visit.
-		sync();
-		const observer = new MutationObserver(sync);
-		observer.observe(html, { attributes: true, attributeFilter: ['class'] });
-		return () => observer.disconnect();
-	});
+	onMount(() => watchColorTheme(cookieName));
 </script>
 
 <button

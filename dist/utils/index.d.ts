@@ -38,3 +38,4 @@ export type { DocumentVisibilityLike, KeyValueStorageLike, MessageAction, Messag
 export { APP_MESSAGE_CENTER_CONTEXT, getAppMessageCenter } from './message-center-context';
 export { DiscardNavigationController, DISCARD_NAVIGATION_CONTEXT, navigationTargets, useGuardedGoto } from './discard-navigation.svelte';
 export type { DiscardGuardRegistration, DiscardNavigationRequest, DiscardNavigationRuntime, GuardedGoto, RequestDiscardNavigation } from './discard-navigation.svelte';
+export { COLOR_THEME_STORAGE_KEY, isDarkTheme, setColorTheme, toggleColorTheme, watchColorTheme } from './color-theme';

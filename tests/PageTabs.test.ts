@@ -126,3 +126,40 @@ describe("PageTabs draws the page's status at the end of its tab strip", () => {
     });
   });
 });
+
+describe("a tab strip is one row", () => {
+  const root = postcss.parse(tokens);
+  const decls = (selector: string) => {
+    const found: Record<string, string> = {};
+    root.walkRules((rule) => {
+      if (rule.parent?.type !== "root") return;
+      if (!rule.selectors.map((s) => s.trim()).includes(selector)) return;
+      rule.walkDecls((decl) => {
+        found[decl.prop] = decl.value;
+      });
+    });
+    return found;
+  };
+
+  it("carries the one strip rule on PageTabs' strip", () => {
+    const { container } = render(PageTabsBelowHarness, {
+      props: { withBelow: false },
+    });
+    const strip = container.querySelector(".page-tabs-list") as HTMLElement;
+    expect(strip.classList.contains("gawdux-tab-strip")).toBe(true);
+  });
+
+  it("scrolls sideways within itself at every width, never wrapping a tab onto a second row", () => {
+    expect(decls(".gawdux-tab-strip")).toMatchObject({
+      "flex-wrap": "nowrap",
+      "overflow-x": "auto",
+      "overflow-y": "hidden",
+      "max-width": "100%",
+      "min-width": "0",
+    });
+    expect(decls(".gawdux-tab-strip > *")).toMatchObject({ flex: "0 0 auto" });
+    expect(
+      decls(".gawdux-tab-strip :is([role='tab'], button, a)"),
+    ).toMatchObject({ "white-space": "nowrap" });
+  });
+});

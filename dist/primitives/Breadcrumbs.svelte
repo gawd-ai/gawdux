@@ -1,7 +1,8 @@
 <!--
 	@component
 	A breadcrumb trail that never clips a crumb: one line above the shell's
-	compact width, two at or below it.
+	compact width; at or below it, one row naming the current page, which
+	opens the whole path.
 
 	One line. Every crumb shows in full while the trail fits. When it does not,
 	the trail gives way in this order, each step only when the one before is
@@ -19,16 +20,19 @@
 	page holds its minimum and the trail's box clips the end. The trail
 	carries no status: the page's own header wears it.
 
-	Two lines (`layout` "adaptive", the default, at or below
-	`BREADCRUMB_STACK_QUERY`, 1024px). The current page reads on a line of its
-	own, whole: it wraps between its words and never inside one, so an
-	identifier (CC-0003, a version) never breaks, and a separator (" · ")
-	stays with the word before it. The path above it is a smaller muted line,
-	which gives way as one line does, its last crumb (the page's parent)
-	standing for the page: the crumbs between fold into the … button, then the
-	first shows as its icon, then folds, then the parent ellipsizes. Every
-	crumb stays reachable, in the path or in the menu. `layout` "line" keeps
-	one line at every width.
+	The current page alone (`layout` "adaptive", the default, at or below
+	`BREADCRUMB_COMPACT_QUERY`, 1024px). The row names the current page on
+	one line, a name too long for it ending in an ellipsis, an identifier that
+	fits never cut. With a path above the page, the name is a button with a
+	chevron that opens the path under the row: every level from the top down,
+	each a link to its level (words when it has none), the current page last
+	and marked (`aria-current="page"`), every name whole and wrapping between
+	its words (`breadcrumbWords`). A page that is its own path is its name, no
+	button. The path is a menu, not a dialog: the menu button pattern below,
+	Escape and a press outside close it and the focus returns to the button,
+	choosing a level, the focus leaving, a new trail and the window growing
+	past the compact width close it. `layout` "line" keeps one line at every
+	width.
 
 	The … button opens a small menu, not a dialog, listing in order every level
 	the trail does not name: the first crumb when it shows as its icon or is
@@ -53,12 +57,11 @@
 	Icons. The first crumb's `icon` stands in front of its words; on every
 	later crumb `icon` is the separator before it (a chevron when it has none),
 	and the … button takes the separator of the first crumb it folds, none when
-	it folds the first crumb itself. On two lines the current page has no
-	separator: its line is its own.
+	it folds the first crumb itself. The row naming the current page carries
+	no icon.
 
 	Measurement. A hidden copy of the trail is measured once per trail, and
-	again when its size changes (a web font arriving, the trail crossing the
-	compact width, where the path is set smaller). A ResizeObserver on the
+	again when its size changes (a web font arriving). A ResizeObserver on the
 	trail's box re-plans on every resize (a sidebar or a dock opening) from
 	those widths alone, so a resize reads no layout. The root grows into its
 	row (`flex: 1 1 0%`), so its width never depends on what it shows.
@@ -72,15 +75,15 @@
 
 	Styling: the crumbs keep the token classes (`.breadcrumb-title`,
 	`.breadcrumb-section-icon`, `.breadcrumb-chevron`, `.breadcrumb-label`);
-	the layout and the menu are scoped CSS over the --gawdux-* tokens.
+	the layout and the menus are scoped CSS over the --gawdux-* tokens.
 -->
 <script lang="ts">
 	import { tick, untrack, type Component } from 'svelte';
-	import { ChevronRightOutline } from 'flowbite-svelte-icons';
+	import { ChevronDownOutline, ChevronRightOutline } from 'flowbite-svelte-icons';
 	import type { BreadcrumbCrumb } from '../utils/url-breadcrumb';
 	import { createDisclosureController } from '../utils/disclosure';
 	import {
-		BREADCRUMB_STACK_QUERY,
+		BREADCRUMB_COMPACT_QUERY,
 		breadcrumbLeafMin,
 		breadcrumbNeed,
 		breadcrumbWords,
@@ -100,8 +103,8 @@
 		/** The trail, first crumb first; the last is the current page. */
 		items?: BreadcrumbCrumb[];
 		/**
-		 * "adaptive": one line above `BREADCRUMB_STACK_QUERY`, two at or below
-		 * it (the path, then the current page on a line of its own); "line":
+		 * "adaptive": one line above `BREADCRUMB_COMPACT_QUERY`; at or below it,
+		 * one row naming the current page, which opens the whole path. "line":
 		 * one line at every width.
 		 */
 		layout?: 'adaptive' | 'line';
@@ -137,6 +140,8 @@
 	const componentId = $props.id();
 	const buttonId = `${componentId}-more`;
 	const menuId = `${componentId}-menu`;
+	const pageButtonId = `${componentId}-page`;
+	const pathId = `${componentId}-path`;
 
 	let root = $state<HTMLElement>();
 	let ruler = $state<HTMLElement>();
@@ -145,25 +150,27 @@
 	let measured = $state.raw<Measured | null>(null);
 	let available = $state<number | null>(null);
 	let open = $state(false);
-	/** At or below the compact width an adaptive trail reads on two lines. */
-	let stacked = $state(false);
 	/** The menu's last input was the pointer: the focused row shows no ring. */
 	let pointerInput = $state(false);
 	let menuPosition = $state<{ top: number; left: number } | null>(null);
 
+	/** The current page's button at the compact width, and the path it opens. */
+	let pageButton = $state<HTMLButtonElement>();
+	let pathMenu = $state<HTMLElement>();
+	let pathOpen = $state(false);
+	let pathPointerInput = $state(false);
+	let pathTop = $state<number | null>(null);
+
 	const last = $derived(items.length - 1);
-	/**
-	 * The crumb that ellipsizes last: the current page on one line, its parent
-	 * on two, where the path is planned as a trail of its own.
-	 */
-	const cutLevel = $derived(stacked ? last - 1 : last);
+	/** The crumb that ellipsizes last: the current page. */
+	const cutLevel = $derived(last);
+	/** The current page has a path above it to open. */
+	const hasPath = $derived(items.length > 1);
 	const plan = $derived.by<BreadcrumbOverflowPlan>(() => {
 		// Until this trail is measured it shows whole: a plan from another
 		// trail's widths would fold the wrong crumbs.
 		if (available === null || !measured || measured.items !== items) return NOTHING;
-		// On two lines the current page has a line of its own: only the path
-		// above it is planned.
-		const crumbs = stacked ? measured.crumbs.slice(0, last) : measured.crumbs;
+		const crumbs = measured.crumbs;
 		if (crumbs.length === 0) return NOTHING;
 		return planBreadcrumbOverflow({
 			available,
@@ -226,15 +233,14 @@
 		...(plan.leafCut && folded ? [cutLevel] : [])
 	]);
 
-	// An adaptive trail follows the compact width.
+	// The path is the compact row's: the window growing past the compact
+	// width, where the row is not drawn, closes it.
 	$effect(() => {
-		if (layout !== 'adaptive' || typeof window.matchMedia !== 'function') {
-			stacked = false;
-			return;
-		}
-		const query = window.matchMedia(BREADCRUMB_STACK_QUERY);
-		const sync = () => (stacked = query.matches);
-		sync();
+		if (layout !== 'adaptive' || typeof window.matchMedia !== 'function') return;
+		const query = window.matchMedia(BREADCRUMB_COMPACT_QUERY);
+		const sync = () => {
+			if (!query.matches) pathOpen = false;
+		};
 		query.addEventListener?.('change', sync);
 		return () => query.removeEventListener?.('change', sync);
 	});
@@ -256,11 +262,12 @@
 	}
 
 	// A new trail: measured as soon as its copy is in the DOM (before it
-	// paints), and a menu that listed the old one closes.
+	// paints), and a menu or a path that listed the old one closes.
 	$effect(() => {
 		void items;
 		measure();
 		open = false;
+		pathOpen = false;
 	});
 
 	$effect(() => {
@@ -454,14 +461,146 @@
 		}
 	}
 
-	/** The focus moving out of the trail closes the menu (Tab, a script). */
+	/** The focus moving out of the trail closes its menu or its path (Tab, a script). */
 	function onRootFocusOut(event: FocusEvent) {
-		if (!menuOpen) return;
+		if (!menuOpen && !pathOpen) return;
 		const next = event.relatedTarget;
 		// null is the window losing focus, or a press on nothing focusable,
 		// which the outside press handles.
 		if (!(next instanceof Node) || root?.contains(next)) return;
 		close();
+		pathOpen = false;
+	}
+
+	// ── The path, opened from the current page at the compact width ─────────
+
+	/** The path hangs under the row; it is fixed, so no clipping box cuts it. */
+	function placePath() {
+		if (!pageButton) return;
+		pathTop = pageButton.getBoundingClientRect().bottom + MENU_OFFSET_PX;
+	}
+
+	// Escape from anywhere and a press outside close it, while it is open. The
+	// focus returns to the button when it was in the trail or nowhere: never
+	// pulled back from a control the press moved it to.
+	$effect(() => {
+		if (!pathOpen) return;
+		placePath();
+		const onKeydown = (event: KeyboardEvent) => {
+			if (event.key !== 'Escape' || event.defaultPrevented || event.isComposing) return;
+			// The Escape that closes it is taken: a dock or a drawer leaves it alone.
+			event.preventDefault();
+			closePath(true);
+		};
+		const onClick = (event: MouseEvent) => {
+			const target = event.target;
+			if (target instanceof Node && root?.contains(target)) return;
+			const active = document.activeElement;
+			closePath(!active || active === document.body || Boolean(root?.contains(active)));
+		};
+		document.addEventListener('keydown', onKeydown);
+		document.addEventListener('click', onClick);
+		window.addEventListener('resize', placePath);
+		window.addEventListener('scroll', placePath, true);
+		return () => {
+			document.removeEventListener('keydown', onKeydown);
+			document.removeEventListener('click', onClick);
+			window.removeEventListener('resize', placePath);
+			window.removeEventListener('scroll', placePath, true);
+		};
+	});
+
+	function pathRows(): HTMLElement[] {
+		if (!pathMenu) return [];
+		return Array.from(pathMenu.querySelectorAll<HTMLElement>('[role="menuitem"]')).filter(
+			(row) => row.getAttribute('aria-disabled') !== 'true'
+		);
+	}
+
+	function focusPathRow(index: number) {
+		const list = pathRows();
+		if (list.length === 0) {
+			pathMenu?.focus({ preventScroll: true });
+			return;
+		}
+		const wrapped = ((index % list.length) + list.length) % list.length;
+		list[wrapped]?.focus({ preventScroll: true });
+	}
+
+	function closePath(focusButton = false) {
+		pathOpen = false;
+		if (focusButton) pageButton?.focus({ preventScroll: true });
+	}
+
+	async function openPathFromKeyboard(target: 'first' | 'last') {
+		pathPointerInput = false;
+		pathOpen = true;
+		await tick();
+		focusPathRow(target === 'first' ? 0 : -1);
+	}
+
+	function onPageButtonClick(event: MouseEvent) {
+		// detail 0 is a click the keyboard (Enter, Space) or assistive technology
+		// produced: open into the rows. A pointer click toggles and leaves the focus.
+		if (event.detail === 0) {
+			if (pathOpen) closePath();
+			else void openPathFromKeyboard('first');
+			return;
+		}
+		pathPointerInput = true;
+		pathOpen = !pathOpen;
+	}
+
+	function onPageButtonKeydown(event: KeyboardEvent) {
+		if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+			event.preventDefault();
+			void openPathFromKeyboard(event.key === 'ArrowDown' ? 'first' : 'last');
+		}
+	}
+
+	function onPathKeydown(event: KeyboardEvent) {
+		const list = pathRows();
+		const current = list.indexOf(document.activeElement as HTMLElement);
+		pathPointerInput = false;
+		switch (event.key) {
+			case 'ArrowDown':
+				event.preventDefault();
+				focusPathRow(current + 1);
+				break;
+			case 'ArrowUp':
+				event.preventDefault();
+				focusPathRow(current < 0 ? -1 : current - 1);
+				break;
+			case 'Home':
+				event.preventDefault();
+				focusPathRow(0);
+				break;
+			case 'End':
+				event.preventDefault();
+				focusPathRow(-1);
+				break;
+			case 'Tab':
+				closePath();
+				break;
+			case ' ':
+				// A link row activates on Space as a button row would.
+				if (document.activeElement instanceof HTMLAnchorElement) {
+					event.preventDefault();
+					document.activeElement.click();
+				}
+				break;
+		}
+	}
+
+	/** The link under the pointer takes the focus: one highlighted row, never two. */
+	function onPathPointerMove(event: PointerEvent) {
+		if (event.pointerType === 'touch') return;
+		pathPointerInput = true;
+		const target = event.target instanceof Element ? event.target : null;
+		const row = target?.closest<HTMLElement>('[role="menuitem"]');
+		if (row && document.activeElement !== row && pathRows().includes(row)) {
+			row.focus({ preventScroll: true });
+		}
 	}
 </script>
 
@@ -470,18 +609,19 @@
 	<Separator class="breadcrumb-chevron" aria-hidden="true" />
 {/snippet}
 
-<!-- No whitespace between the icon and the words: it would lead the name.
-     The current page's words are runs that never break inside themselves, so
-     on two lines it wraps only between its words. -->
+<!-- No whitespace between the icon and the words: it would lead the name. -->
 {#snippet words(item: BreadcrumbCrumb, index: number, compact: boolean)}
 	{#if index === 0 && item.icon}<item.icon
 			class="breadcrumb-section-icon"
 			aria-hidden="true"
-		/>{/if}<span class="breadcrumb-label" class:visually-hidden={compact}
-		>{#if index === last}{#each breadcrumbWords(item.label) as word, i}{#if i > 0}{' '}{/if}<span
-					class="word">{word}</span
-				>{/each}{:else}{item.label}{/if}</span
-	>
+		/>{/if}<span class="breadcrumb-label" class:visually-hidden={compact}>{item.label}</span>
+{/snippet}
+
+<!-- A level's name read in full: runs that never break inside themselves,
+     so it wraps only between its words. -->
+{#snippet levelWords(label: string)}
+	{#each breadcrumbWords(label) as word, i}{#if i > 0}{' '}{/if}<span class="word">{word}</span
+		>{/each}
 {/snippet}
 
 <nav
@@ -542,6 +682,74 @@
 			{/if}
 		{/each}
 	</ol>
+
+	<!-- At the compact width: the current page alone, which opens its path. -->
+	{#if layout === 'adaptive' && items.length > 0}
+		{@const page = items[last]!}
+		<div class="page-row">
+			{#if hasPath}
+				<button
+					type="button"
+					id={pageButtonId}
+					class="breadcrumb-title page-button"
+					bind:this={pageButton}
+					aria-haspopup="menu"
+					aria-expanded={pathOpen}
+					aria-controls={pathOpen ? pathId : undefined}
+					aria-current="page"
+					onclick={onPageButtonClick}
+					onkeydown={onPageButtonKeydown}
+					><span class="breadcrumb-label page-name">{page.label}</span><ChevronDownOutline
+						class="page-chevron"
+						aria-hidden="true"
+					/></button
+				>
+			{:else}
+				<span class="breadcrumb-title page-button" aria-current="page"
+					><span class="breadcrumb-label page-name">{page.label}</span></span
+				>
+			{/if}
+		</div>
+	{/if}
+
+	{#if pathOpen && hasPath}
+		<div
+			class="menu path"
+			role="menu"
+			id={pathId}
+			aria-labelledby={pageButtonId}
+			tabindex="-1"
+			bind:this={pathMenu}
+			data-input={pathPointerInput ? 'pointer' : 'keyboard'}
+			style:top={pathTop === null ? undefined : `${pathTop}px`}
+			onkeydown={onPathKeydown}
+			onpointermove={onPathPointerMove}
+		>
+			{#each items as item, index (index)}
+				{@const current = index === last ? 'page' : undefined}
+				{#if item.href}
+					<a
+						class="row"
+						role="menuitem"
+						tabindex="-1"
+						data-path-level={index}
+						href={item.href}
+						aria-current={current}
+						onclick={() => closePath()}>{@render levelWords(item.label)}</a
+					>
+				{:else}
+					<span
+						class="row"
+						role="menuitem"
+						tabindex="-1"
+						aria-disabled="true"
+						aria-current={current}
+						data-path-level={index}>{@render levelWords(item.label)}</span
+					>
+				{/if}
+			{/each}
+		</div>
+	{/if}
 
 	{#if menuOpen}
 		<div
@@ -716,59 +924,86 @@
 		border: 0;
 	}
 
-	/* ── Two lines at the compact width (layout "adaptive") ────────────────
-	   The path is a smaller muted line; the current page takes a line of its
-	   own below it, whole, wrapping between its words. The hidden copy is
-	   set the same way, so the path is planned at the size it is drawn. */
+	/* ── The current page alone at the compact width (layout "adaptive") ────
+	   The row is a 44px target naming the page on one line; the one-line
+	   trail is not drawn there, and above the compact width the row is not. */
+	.page-row {
+		display: none;
+	}
+	.page-button {
+		box-sizing: border-box;
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		min-width: 0;
+		max-width: 100%;
+		min-height: 44px;
+		margin: 0;
+		padding: 0 0.5rem 0 0;
+		border: 0;
+		border-radius: 6px;
+		background: none;
+		font-family: inherit;
+		font-size: 1rem;
+		line-height: 1.5rem;
+		text-align: left;
+		appearance: none;
+	}
+	button.page-button {
+		cursor: pointer;
+	}
+	button.page-button:focus {
+		outline: none;
+	}
+	button.page-button:focus-visible {
+		outline: 2px solid var(--gawdux-focus-ring);
+		outline-offset: -2px;
+	}
+	/* One line: a name too long for the row ends in an ellipsis. */
+	.page-name {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+	.page-button :global(.page-chevron) {
+		flex: 0 0 auto;
+		width: 1rem;
+		height: 1rem;
+		color: var(--gawdux-text-muted);
+		transition: transform 150ms ease-out;
+	}
+	.page-button[aria-expanded='true'] :global(.page-chevron) {
+		transform: rotate(180deg);
+	}
 	@media (max-width: 1024px) {
 		.gawdux-breadcrumbs[data-layout='adaptive'] > .trail {
-			flex-wrap: wrap;
-			align-content: center;
-			row-gap: 0.125rem;
-		}
-		.gawdux-breadcrumbs[data-layout='adaptive'] .crumb:not(.leaf) .breadcrumb-title {
-			font-size: 0.75rem;
-			font-weight: 500;
-			line-height: 1rem;
-			color: var(--gawdux-text-muted);
-		}
-		.gawdux-breadcrumbs[data-layout='adaptive'] .crumb:not(.leaf) :global(.breadcrumb-section-icon) {
-			width: 0.875rem !important;
-			height: 0.875rem !important;
-			margin-right: 0.25rem;
-			color: var(--gawdux-text-muted);
-		}
-		.gawdux-breadcrumbs[data-layout='adaptive'] .crumb:not(.leaf) :global(.breadcrumb-chevron) {
-			width: 0.875rem !important;
-			height: 0.875rem !important;
-			margin: 0 0.125rem;
-		}
-		.gawdux-breadcrumbs[data-layout='adaptive'] .crumb:not(.leaf) .more-button {
-			min-width: 1.25rem;
-			height: 1rem;
-			padding: 0 0.25rem;
-		}
-		/* The current page: a line of its own, no separator before it. */
-		.gawdux-breadcrumbs[data-layout='adaptive'] .crumb.leaf {
-			flex: 1 0 100%;
-			min-width: 0;
-		}
-		.gawdux-breadcrumbs[data-layout='adaptive'] .crumb.leaf:not(:first-child) > :global(.breadcrumb-chevron) {
 			display: none;
 		}
-		.gawdux-breadcrumbs[data-layout='adaptive'] .crumb.leaf .breadcrumb-title {
-			font-size: 1rem;
-			line-height: 1.25rem;
+		.gawdux-breadcrumbs[data-layout='adaptive'] > .page-row {
+			display: flex;
+			align-items: center;
+			min-width: 0;
+			max-width: 100%;
 		}
-		.gawdux-breadcrumbs[data-layout='adaptive'] .crumb.leaf :global(.breadcrumb-section-icon) {
-			width: 1.25rem !important;
-			height: 1.25rem !important;
-		}
-		.gawdux-breadcrumbs[data-layout='adaptive'] .crumb.leaf .breadcrumb-label {
-			overflow: visible;
-			text-overflow: clip;
-			white-space: normal;
-		}
+	}
+
+	/* The path: the house dropdown under the row, inside the screen's gutter,
+	   scrolling inside itself. Every name reads whole, wrapping between its
+	   words. */
+	.menu.path {
+		left: 0.5rem;
+		right: 0.5rem;
+		max-width: none;
+		max-height: calc(100dvh - 8rem);
+		overflow-y: auto;
+	}
+	/* A phone's target: every level is 44px tall at least. */
+	.menu.path .row {
+		display: block;
+		min-height: 44px;
+		padding-block: 12px;
+		overflow-wrap: normal;
 	}
 
 	/* ── The menu: the house dropdown (UserMenu's surface and rows) ────────── */

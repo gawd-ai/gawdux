@@ -6,7 +6,7 @@ type $$ComponentProps = Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'class
      * own); "column" leaves the element to its occupant's layout.
      */
     wide?: 'hidden' | 'column';
-    /** The host's controls, after the occupant's, at the compact width only. */
+    /** The host's controls, at the bar's right end, at the compact width only. */
     end?: Snippet;
     /** The occupant's controls. */
     children?: Snippet;
@@ -20,8 +20,10 @@ type $$ComponentProps = Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'class
  * At or below the shell's compact width (`SHELL_BAR_QUERY`, 1024px) it is one
  * row fixed to the bottom of the screen, clear of the safe-area inset, every
  * control in it a 44px target: first what occupies it (`children`: a chat
- * rail's controls, in their order), then the host's own controls at its end
- * (`end`: the notices, the theme, the account). A part of the occupant marked
+ * rail's controls, in their order, sharing the room before the end), then the
+ * host's own controls side by side at its right end (`end`: the notices, the
+ * account), in the same place whether anything occupies the bar or not. A
+ * part of the occupant marked
  * `data-shell-bar-group` gives its controls to the row; one marked
  * `data-shell-bar-column` belongs to the occupant's column and is not drawn.
  * The host leaves `--gawdux-shell-bar-space` under its page.

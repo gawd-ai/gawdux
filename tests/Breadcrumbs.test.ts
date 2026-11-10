@@ -7,7 +7,7 @@ import Breadcrumbs from '../src/lib/primitives/Breadcrumbs.svelte';
 import breadcrumbsSource from '../src/lib/primitives/Breadcrumbs.svelte?raw';
 import BreadcrumbsHarness from './fixtures/BreadcrumbsHarness.svelte';
 import * as primitives from '../src/lib/primitives/index';
-import { BREADCRUMB_STACK_QUERY, breadcrumbWords } from '../src/lib/primitives/breadcrumb-overflow';
+import { BREADCRUMB_COMPACT_QUERY, breadcrumbWords } from '../src/lib/primitives/breadcrumb-overflow';
 import type { BreadcrumbCrumb } from '../src/lib/utils/url-breadcrumb';
 
 // jsdom lays nothing out, so the widths are a model: 10px a character, a
@@ -617,91 +617,151 @@ describe('Breadcrumbs: the room it needs', () => {
 	});
 });
 
-describe('Breadcrumbs: two lines at the compact width', () => {
-	/** The window at or below the compact width, for this test. */
-	function compactWindow(matches = true) {
-		vi.stubGlobal(
-			'matchMedia',
-			vi.fn((query: string) => ({
-				matches: matches && query === BREADCRUMB_STACK_QUERY,
-				media: query,
-				onchange: null,
-				addEventListener: () => {},
-				removeEventListener: () => {},
-				addListener: () => {},
-				removeListener: () => {},
-				dispatchEvent: () => false
-			}))
+describe('Breadcrumbs: the current page alone at the compact width', () => {
+	/** The current page's button, which opens the path. */
+	function pageButton(container: HTMLElement): HTMLButtonElement {
+		return container.querySelector('nav > .page-row button') as HTMLButtonElement;
+	}
+	function pathRows(): HTMLElement[] {
+		return Array.from(
+			screen.getByRole('menu').querySelectorAll<HTMLElement>('[role="menuitem"]')
 		);
 	}
 
-	it('stacks at the shell compact width', () => {
-		expect(BREADCRUMB_STACK_QUERY).toBe('(max-width: 1024px)');
+	it('names it at the shell compact width', () => {
+		expect(BREADCRUMB_COMPACT_QUERY).toBe('(max-width: 1024px)');
 	});
 
-	it('plans the path alone: the current page has a line of its own and is never cut', async () => {
-		compactWindow();
-		// The path is 126 + 114 + 174 + 94 = 508: it fits at 510 though the
-		// whole trail (802) would not fit one line.
-		const { container } = await renderTrail(510);
-		expect(container.querySelector('nav')?.getAttribute('data-layout')).toBe('adaptive');
-		expect(readTrail(container)).toEqual([
+	it("is a button named the page's name that opens the path, marked as the current page", async () => {
+		const { container } = await renderTrail(300);
+		const button = pageButton(container);
+		expect(button.textContent?.trim()).toBe('QP-001 Document Control SOP');
+		expect(button.getAttribute('aria-haspopup')).toBe('menu');
+		expect(button.getAttribute('aria-expanded')).toBe('false');
+		expect(button.getAttribute('aria-current')).toBe('page');
+		expect(button.querySelector('.page-chevron')).not.toBeNull();
+		expect(screen.queryByRole('menu')).toBeNull();
+	});
+
+	it('lists every level from the top down, each a link to its level, the current page last and marked', async () => {
+		const { container } = await renderTrail(300);
+		const button = pageButton(container);
+		await fireEvent.click(button, { detail: 1 });
+		expect(button.getAttribute('aria-expanded')).toBe('true');
+		const menu = screen.getByRole('menu');
+		expect(button.getAttribute('aria-controls')).toBe(menu.id);
+		expect(menu.getAttribute('aria-labelledby')).toBe(button.id);
+		const rows = pathRows();
+		expect(rows.map((row) => row.textContent?.replace(/\s+/g, ' ').trim())).toEqual([
 			'Documents',
 			'Reference',
 			'Quality Systems',
 			'Package',
 			'QP-001 Document Control SOP'
 		]);
-		expect(screen.queryByRole('button', { name: 'Show the hidden levels' })).toBeNull();
-
-		// 126 + 48 + 94 = 268: the middle of the path folds, the page whole.
-		await resize(300);
-		expect(readTrail(container)).toEqual(['Documents', '…', 'Package', 'QP-001 Document Control SOP']);
-		const leaf = container.querySelector('nav > ol > li.leaf') as HTMLElement;
-		expect(leaf.querySelector('[title]')).toBeNull();
-		expect(leaf.classList.contains('cuts')).toBe(false);
-	});
-
-	it("cuts the page's parent last, naming it in the menu, and never the page", async () => {
-		compactWindow();
-		// 24 + 94 = 118 > 100: the button stands first and Package is cut.
-		const { container } = await renderTrail(100);
-		expect(readTrail(container)).toEqual(['…', 'Package', 'QP-001 Document Control SOP']);
-		const parent = container.querySelector('nav > ol > li[data-level="3"]') as HTMLElement;
-		expect(parent.classList.contains('cuts')).toBe(true);
-		expect(parent.style.getPropertyValue('--gawdux-breadcrumb-leaf-min')).toBe('64px');
-		expect(parent.querySelector('[title]')?.getAttribute('title')).toBe('Package');
-		const leaf = container.querySelector('nav > ol > li.leaf') as HTMLElement;
-		expect(leaf.querySelector('[title]')).toBeNull();
-		await fireEvent.click(moreButton(), { detail: 1 });
-		expect(menuRows().map((row) => row.textContent?.trim())).toEqual([
-			'Documents',
-			'Reference',
-			'Quality Systems',
-			'Package'
+		expect(rows.slice(0, 4).map((row) => row.getAttribute('href'))).toEqual([
+			'#/documents',
+			'#/documents/reference',
+			'#/documents/reference/7',
+			'#/documents/reference/9'
 		]);
+		const current = rows[4]!;
+		expect(current.getAttribute('aria-current')).toBe('page');
+		expect(current.getAttribute('aria-disabled')).toBe('true');
+		expect(rows.filter((row) => row.getAttribute('aria-current') === 'page')).toHaveLength(1);
 	});
 
-	it('keeps one line where the host asks for it', async () => {
-		compactWindow();
-		const { container } = render(BreadcrumbsHarness, { props: { items: TRAIL, layout: 'line' } });
-		await resize(510);
-		expect(container.querySelector('nav')?.getAttribute('data-layout')).toBe('line');
-		expect(readTrail(container)).toContain('…');
-	});
-
-	it("draws the page's words as runs that never break inside themselves", async () => {
+	it('reads each name whole, in runs that never break inside themselves', async () => {
 		const items = [
 			{ label: 'Change controls', href: '#/cc', icon: FolderOutline },
 			{ label: 'CC-0003 · Review deployment gate-shots', icon: ChevronRightOutline }
 		];
-		const { container } = await renderTrail(800, items);
+		const { container } = await renderTrail(300, items);
+		await fireEvent.click(pageButton(container), { detail: 1 });
 		const words = Array.from(
-			container.querySelectorAll<HTMLElement>('nav > ol > li.leaf .word'),
+			pathRows()[1]!.querySelectorAll<HTMLElement>('.word'),
 			(word) => word.textContent
 		);
 		expect(words).toEqual(['CC-0003\u00a0·', 'Review', 'deployment', 'gate-shots']);
 		expect(breadcrumbWords(' A  | B ')).toEqual(['A\u00a0|', 'B']);
+	});
+
+	it('opens from the keyboard into its first row; the arrows move and wrap over the links', async () => {
+		const { container } = await renderTrail(300);
+		const button = pageButton(container);
+		button.focus();
+		await fireEvent.click(button, { detail: 0 });
+		await settle();
+		const links = pathRows().filter((row) => row.getAttribute('aria-disabled') !== 'true');
+		expect(document.activeElement).toBe(links[0]);
+		await fireEvent.keyDown(screen.getByRole('menu'), { key: 'ArrowUp' });
+		expect(document.activeElement).toBe(links[3]);
+		await fireEvent.keyDown(screen.getByRole('menu'), { key: 'ArrowDown' });
+		expect(document.activeElement).toBe(links[0]);
+	});
+
+	it('closes on Escape and returns the focus to the button, the Escape taken', async () => {
+		const { container } = await renderTrail(300);
+		const button = pageButton(container);
+		button.focus();
+		await fireEvent.keyDown(button, { key: 'ArrowDown' });
+		await settle();
+		const escape = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+		(document.activeElement as HTMLElement).dispatchEvent(escape);
+		await tick();
+		expect(escape.defaultPrevented).toBe(true);
+		expect(screen.queryByRole('menu')).toBeNull();
+		expect(document.activeElement).toBe(button);
+	});
+
+	it('closes on a press outside it and returns the focus to the button', async () => {
+		const { container } = await renderTrail(300);
+		const button = pageButton(container);
+		await fireEvent.click(button, { detail: 1 });
+		expect(screen.getByRole('menu')).toBeTruthy();
+		await fireEvent.click(document.body);
+		expect(screen.queryByRole('menu')).toBeNull();
+		expect(document.activeElement).toBe(button);
+	});
+
+	it('leaves the focus on the control a press outside moved it to', async () => {
+		const { container } = await renderTrail(300);
+		await fireEvent.click(pageButton(container), { detail: 1 });
+		const outside = screen.getByTestId('outside');
+		outside.focus();
+		await fireEvent.click(outside);
+		expect(screen.queryByRole('menu')).toBeNull();
+		expect(document.activeElement).toBe(outside);
+	});
+
+	it('closes when a level is chosen and when the trail changes', async () => {
+		const { container, rerender } = await renderTrail(300);
+		await fireEvent.click(pageButton(container), { detail: 1 });
+		await fireEvent.click(pathRows()[1]!);
+		expect(screen.queryByRole('menu')).toBeNull();
+		await fireEvent.click(pageButton(container), { detail: 1 });
+		await rerender({ items: TRAIL.slice(0, 3) });
+		await tick();
+		expect(screen.queryByRole('menu')).toBeNull();
+		expect(pageButton(container).textContent?.trim()).toBe('Quality Systems');
+	});
+
+	it('shows a page that is its own path as its name, no button and no chevron', async () => {
+		const { container } = await renderTrail(300, [
+			{ label: 'Dashboard', href: '#/', icon: FolderOutline }
+		]);
+		const row = container.querySelector('nav > .page-row') as HTMLElement;
+		expect(row.querySelector('button')).toBeNull();
+		expect(row.querySelector('.page-chevron')).toBeNull();
+		expect(row.querySelector('[aria-current="page"]')?.textContent?.trim()).toBe('Dashboard');
+	});
+
+	it('draws no row where the host keeps one line', async () => {
+		const { container } = render(BreadcrumbsHarness, { props: { items: TRAIL, layout: 'line' } });
+		await resize(510);
+		expect(container.querySelector('nav')?.getAttribute('data-layout')).toBe('line');
+		expect(container.querySelector('nav > .page-row')).toBeNull();
+		expect(readTrail(container)).toContain('…');
 	});
 });
 
@@ -739,19 +799,22 @@ describe('Breadcrumbs: its layout', () => {
 		expect(rule('.word')).toMatchObject({ 'white-space': 'nowrap' });
 	});
 
-	it('is two lines at it: a smaller muted path, the page on a line of its own wrapping between its words', () => {
-		expect(rule(`${A} > .trail`, COMPACT)).toMatchObject({ 'flex-wrap': 'wrap' });
-		expect(rule(`${A} .crumb:not(.leaf) .breadcrumb-title`, COMPACT)).toMatchObject({
-			'font-size': '0.75rem',
-			color: 'var(--gawdux-text-muted)'
+	it('names the current page alone at it, on one line ending in an ellipsis, the trail not drawn', () => {
+		expect(rule('.page-row')).toMatchObject({ display: 'none' });
+		expect(rule(`${A} > .trail`, COMPACT)).toMatchObject({ display: 'none' });
+		expect(rule(`${A} > .page-row`, COMPACT)).toMatchObject({ display: 'flex' });
+		expect(rule('.page-name')).toMatchObject({
+			'white-space': 'nowrap',
+			overflow: 'hidden',
+			'text-overflow': 'ellipsis'
 		});
-		expect(rule(`${A} .crumb.leaf`, COMPACT)).toMatchObject({ flex: '1 0 100%' });
-		expect(rule(`${A} .crumb.leaf:not(:first-child) > .breadcrumb-chevron`, COMPACT)).toMatchObject({
-			display: 'none'
-		});
-		expect(rule(`${A} .crumb.leaf .breadcrumb-label`, COMPACT)).toMatchObject({
-			'white-space': 'normal',
-			overflow: 'visible'
+		expect(rule('.page-button')).toMatchObject({ 'min-height': '44px' });
+		// The path reads every name whole, inside the screen's gutter.
+		expect(rule('.menu.path')).toMatchObject({ left: '0.5rem', right: '0.5rem', 'overflow-y': 'auto' });
+		expect(rule('.menu.path .row')).toMatchObject({
+			display: 'block',
+			'min-height': '44px',
+			'overflow-wrap': 'normal'
 		});
 	});
 });

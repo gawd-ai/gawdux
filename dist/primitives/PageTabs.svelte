@@ -58,7 +58,7 @@
 >
 	<Tabs
 		tabStyle="underline"
-		class={`page-tabs-list ${className}`}
+		class={`page-tabs-list gawdux-tab-strip ${className}`}
 		{contentClass}
 		divider={divider || hasFeedback}
 	>

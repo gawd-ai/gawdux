@@ -113,7 +113,9 @@
 	     PageTabs' panel, `EditablePageScaffold`'s body, `.page-inset`, and a
 	     `MasterDetailShell` or `TabFillPanel scroll` no host encloses):
 	     `--gawdux-page-inset` on the top and sides (`pt-4 px-4`),
-	     `--gawdux-page-inset-bottom` above the command bar (`pb-1`);
+	     `--gawdux-page-inset-bottom` above the command bar (`pb-1`); at or
+	     below the compact width the top and sides are
+	     `--gawdux-compact-inset` (8px, "Tight levels zero and one" below);
 	   - the wide content column (`.panel-col-wide`, `MasterDetailShell`'s
 	     card, `.master-detail-card`): `max-w-6xl`;
 	   - a column header's icon (`.table-head-icon`, in DataTable,
@@ -133,6 +135,7 @@
 	--gawdux-tile-min-width: 9rem;
 	--gawdux-page-inset: calc(var(--spacing, 0.25rem) * 4);
 	--gawdux-page-inset-bottom: calc(var(--spacing, 0.25rem) * 1);
+	--gawdux-compact-inset: calc(var(--spacing, 0.25rem) * 2);
 	--gawdux-panel-wide-max-width: 72rem;
 	--gawdux-table-head-icon-size: 1rem;
 	--gawdux-table-head-icon-gap: 0.5rem;
@@ -374,25 +377,6 @@
 		@apply w-full rounded-lg border shadow-md;
 		background-color: var(--gawdux-surface-card);
 		border-color: var(--gawdux-border);
-	}
-
-	@media (max-width: 1024px) {
-		.page-tabs-list {
-			flex-wrap: nowrap !important;
-			justify-content: flex-start;
-			overflow-x: auto;
-			overflow-y: hidden;
-			overscroll-behavior-inline: contain;
-			scroll-snap-type: inline proximity;
-			-webkit-overflow-scrolling: touch;
-		}
-		.page-tabs-list > li {
-			flex: 0 0 auto;
-			scroll-snap-align: start;
-		}
-		.page-tabs-list [role='tab'] {
-			white-space: nowrap;
-		}
 	}
 
 	/* Fill-mode propagation. When the active tab's content uses TabFillPanel
@@ -926,12 +910,18 @@ div.inline-flex.items-center.justify-center.font-medium {
 /* Two layouts supported:
    (A) bar inside <main> alongside the surface — legacy
    (B) bar sibling of <main> in a `.page-shell` wrapper — fleet & new
-       consumers wanting a sticky-at-viewport-bottom bar */
-main:has(.page-command-bar) .context-surface,
-.page-shell:has(> .page-command-bar) > main .context-surface {
+       consumers wanting a sticky-at-viewport-bottom bar
+   A bar with nothing to hold is not drawn (below), and the surface then
+   keeps its own bottom edge: only a drawn bar takes it. The stretch holds
+   either way, so the panel reaches the bottom of the column. */
+main:has(.page-command-bar .cmd-bar-zone > *) .context-surface,
+.page-shell:has(> .page-command-bar .cmd-bar-zone > *) > main .context-surface {
 	border-bottom-left-radius: 0 !important;
 	border-bottom-right-radius: 0 !important;
 	border-bottom-width: 0 !important;
+}
+main:has(.page-command-bar) .context-surface,
+.page-shell:has(> .page-command-bar) > main .context-surface {
 	/* display:flex + overflow:hidden is what actually constrains the panel
 	   to its computed height: without it the surface stretches but its
 	   children (sticky tab strip + content div) stack as blocks and the
@@ -954,8 +944,8 @@ main:has(.page-command-bar) .context-surface,
    inner panel's own bottom rounding + border here (overflow:hidden is
    inherited from the rule above, so the table clips to the restored radius).
    Plain descendant selector (no :not) for processor portability. */
-main:has(.page-command-bar) .context-surface .context-surface,
-.page-shell:has(> .page-command-bar) > main .context-surface .context-surface {
+main:has(.page-command-bar .cmd-bar-zone > *) .context-surface .context-surface,
+.page-shell:has(> .page-command-bar .cmd-bar-zone > *) > main .context-surface .context-surface {
 	border-bottom-left-radius: 0.5rem !important;
 	border-bottom-right-radius: 0.5rem !important;
 	border-bottom-width: 1px !important;
@@ -1025,12 +1015,12 @@ main:has(.page-command-bar) *:has(> .context-surface),
 	grid-template-columns: 1fr auto 1fr;
 	align-items: center;
 	gap: 1rem;
-	/* Defaults are for the empty/standalone case (e.g. dashboards): a
-	   small pill just tall enough to show the corner radius. When any
-	   zone has content, the :has rule below expands to a full 52px bar
-	   with action-button padding. The merge rule above strips the top
-	   border + top rounding when a .context-surface sits above, so they
-	   read as one continuous panel.
+	/* A bar with nothing to hold is not drawn (the rule below): no empty
+	   strip closes a page that offers no command and no count. When any
+	   zone has content, the :has rule below makes it a full 52px bar with
+	   action-button padding. The merge rule above strips the top border +
+	   top rounding when a .context-surface sits above, so they read as
+	   one continuous panel.
 	   shadow-md applied via class on the element so both this bar and
 	   the .context-surface above use the identical Tailwind output —
 	   any inline box-shadow value here would diverge from how Tailwind
@@ -1044,6 +1034,10 @@ main:has(.page-command-bar) *:has(> .context-surface),
 .page-command-bar:has(.cmd-bar-zone > *) {
 	min-height: 52px;
 	padding: 0.5rem 0.75rem;
+}
+/* Nothing to hold, nothing drawn. */
+.page-command-bar:not(:has(.cmd-bar-zone > *)) {
+	display: none;
 }
 .dark .page-command-bar {
 	background-color: rgb(28 37 51);
@@ -1507,10 +1501,12 @@ main:has(.page-command-drawer) .page-command-bar,
 		border: 0;
 	}
 
+	/* The cards sit on the panel's level-one inset, 8px from its edge; each
+	   keeps its own padding. */
 	.responsive-card-table tbody {
 		display: grid;
 		gap: 0.625rem;
-		padding: 0.125rem 0;
+		padding: 0.125rem var(--gawdux-compact-inset);
 	}
 
 	.responsive-card-table tbody > tr {
@@ -1665,6 +1661,30 @@ main:has(.page-command-drawer) .page-command-bar,
 	}
 }
 
+/* ---------- A tab strip is one row ----------
+   At every width a strip of tabs is one row: when its tabs do not fit, it
+   scrolls sideways within itself and never wraps a tab onto a second row,
+   nor scrolls the page. PageTabs' strip carries the class; a host's own
+   strip (a document viewer's tabs) carries it to follow the same rule. */
+.gawdux-tab-strip {
+	flex-wrap: nowrap;
+	justify-content: flex-start;
+	min-width: 0;
+	max-width: 100%;
+	overflow-x: auto;
+	overflow-y: hidden;
+	overscroll-behavior-inline: contain;
+	scroll-snap-type: inline proximity;
+	-webkit-overflow-scrolling: touch;
+}
+.gawdux-tab-strip > * {
+	flex: 0 0 auto;
+	scroll-snap-align: start;
+}
+.gawdux-tab-strip :is([role='tab'], button, a) {
+	white-space: nowrap;
+}
+
 /* ---------- The page's status in its tab strip ----------
    A page whose tabs head its panel draws its status at the end of the strip
    (PageTabs, PAGE_STATUS_CONTEXT): the trail never carries it. Where the
@@ -1685,12 +1705,49 @@ main:has(.page-command-drawer) .page-command-bar,
 	}
 }
 
+/* ---------- Tight levels zero and one on a phone ----------
+   At or below the compact width the shell's nesting gives its width back to
+   the content. Level zero, between the screen and the page's panel, is none:
+   the outermost content surface and the command bar run edge to edge, with
+   no side border, no radius and no shadow, and a page's tabs nested in its
+   panel span it too. Level one, the panel's inset and the content inset of
+   the hosts directly inside it (every inset host, the filter row), is
+   --gawdux-compact-inset, 8px. Boxes nested in the content (a card, a field,
+   a tile) keep their own padding and gain the width. A host's own column
+   gives up its side gap at the same width. */
+@media (max-width: 1024px) {
+	:root {
+		--gawdux-page-inset: var(--gawdux-compact-inset);
+	}
+	main .context-surface:not(.context-surface .context-surface),
+	main .context-surface .page-tabs-shell.context-surface {
+		border-left-width: 0 !important;
+		border-right-width: 0 !important;
+		border-radius: 0 !important;
+		box-shadow: none !important;
+	}
+	main .context-surface:not(.context-surface .context-surface) > .surface-feedback:first-child {
+		border-radius: 0;
+	}
+	main .page-command-bar {
+		border-left-width: 0;
+		border-right-width: 0;
+		border-bottom-width: 0;
+		border-radius: 0;
+		box-shadow: none;
+	}
+	.filter-bar {
+		padding-inline: var(--gawdux-compact-inset);
+	}
+}
+
 /* ---------- The shell bar ----------
    The phone shell's one bar along the bottom of the screen (ShellBar): an
-   occupant's controls first (a chat rail), the host's at its end (notices,
-   theme, account). Its height and the safe-area inset below it
-   (--gawdux-shell-bar-space, on :root above) are the room a host leaves under
-   its page. */
+   occupant's controls first (a chat rail), sharing the room before the end,
+   and the host's at its right end (the notices, the account), side by side
+   in the same place whether anything occupies the bar or not. Its height and
+   the safe-area inset below it (--gawdux-shell-bar-space, on :root above)
+   are the room a host leaves under its page. */
 @media not all and (max-width: 1024px) {
 	/* A bar of the host's own is not drawn; a column keeps its owner's
 	   layout, and the host's end is in the header there. */
@@ -1711,7 +1768,6 @@ main:has(.page-command-drawer) .page-command-bar,
 		display: flex;
 		flex-direction: row;
 		align-items: center;
-		justify-content: space-around;
 		width: auto;
 		height: var(--gawdux-shell-bar-space);
 		padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
@@ -1727,8 +1783,23 @@ main:has(.page-command-drawer) .page-command-bar,
 	.gawdux-shell-bar[data-shell-bar]:has(.gawdux-shell-bar-sheet) {
 		z-index: 90;
 	}
-	.gawdux-shell-bar[data-shell-bar] > :is([data-shell-bar-group], .gawdux-shell-bar-end) {
+	/* The occupant's groups give their controls to the bar's one row, each
+	   control centred in an equal share of the room before the end. */
+	.gawdux-shell-bar[data-shell-bar] > [data-shell-bar-group] {
 		display: contents;
+	}
+	.gawdux-shell-bar[data-shell-bar] > [data-shell-bar-group] > * {
+		margin-inline: auto;
+	}
+	/* The host's end keeps to the bar's right end, its last control the last
+	   in the bar. */
+	.gawdux-shell-bar[data-shell-bar] > .gawdux-shell-bar-end {
+		display: flex;
+		flex: 0 0 auto;
+		align-items: center;
+		gap: 0.25rem;
+		margin-inline-start: auto;
+		padding-inline-end: 0.25rem;
 	}
 	.gawdux-shell-bar[data-shell-bar] > [data-shell-bar-column] {
 		display: none;

@@ -18,14 +18,12 @@
  * trail's box clips the end. The trail carries no status: the page's own
  * header wears it.
  *
- * At the shell's compact width a trail reads on two lines (Breadcrumbs,
- * `layout` "adaptive"): the current page on a line of its own, whole and
- * wrapping between its words, and the path above it. The path is planned
- * the same way, its last crumb (the current page's parent) standing for the
- * page above: it is the one that ellipsizes last.
+ * At the shell's compact width an adaptive trail is one row naming the
+ * current page alone, a button that opens the whole path (Breadcrumbs,
+ * `layout` "adaptive"); nothing is planned there.
  */
-/** The width at or below which an adaptive trail reads on two lines. */
-export const BREADCRUMB_STACK_QUERY = '(max-width: 1024px)';
+/** The width at or below which an adaptive trail names the current page alone, opening its path. */
+export const BREADCRUMB_COMPACT_QUERY = '(max-width: 1024px)';
 /** The current page's readable minimum, its separator in: four or five characters and the ellipsis. */
 export const BREADCRUMB_LEAF_MIN_PX = 64;
 /**
@@ -129,11 +127,11 @@ export function planBreadcrumbOverflow(measure) {
     return { ...shape, leafCut: leafGives };
 }
 /**
- * The current page's words, each a run that never breaks inside itself, so a
- * title on a line of its own wraps only between its words: an identifier
- * (CC-0003, a version, a date) stays whole. A separator standing alone
- * (" · ", " | ", " – ") joins the word before it with a no-break space, so no
- * line starts with it.
+ * A level's words, each a run that never breaks inside itself, so a name
+ * read in full (the path's rows) wraps only between its words: an
+ * identifier (CC-0003, a version, a date) stays whole. A separator standing
+ * alone (" · ", " | ", " – ") joins the word before it with a no-break
+ * space, so no line starts with it.
  */
 export function breadcrumbWords(label) {
     const words = [];

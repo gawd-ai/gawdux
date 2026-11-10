@@ -5,8 +5,8 @@ type $$ComponentProps = {
     /** The trail, first crumb first; the last is the current page. */
     items?: BreadcrumbCrumb[];
     /**
-     * "adaptive": one line above `BREADCRUMB_STACK_QUERY`, two at or below
-     * it (the path, then the current page on a line of its own); "line":
+     * "adaptive": one line above `BREADCRUMB_COMPACT_QUERY`; at or below it,
+     * one row naming the current page, which opens the whole path. "line":
      * one line at every width.
      */
     layout?: 'adaptive' | 'line';
@@ -24,7 +24,8 @@ type $$ComponentProps = {
 };
 /**
  * A breadcrumb trail that never clips a crumb: one line above the shell's
- * compact width, two at or below it.
+ * compact width; at or below it, one row naming the current page, which
+ * opens the whole path.
  *
  * One line. Every crumb shows in full while the trail fits. When it does not,
  * the trail gives way in this order, each step only when the one before is
@@ -42,16 +43,19 @@ type $$ComponentProps = {
  * page holds its minimum and the trail's box clips the end. The trail
  * carries no status: the page's own header wears it.
  *
- * Two lines (`layout` "adaptive", the default, at or below
- * `BREADCRUMB_STACK_QUERY`, 1024px). The current page reads on a line of its
- * own, whole: it wraps between its words and never inside one, so an
- * identifier (CC-0003, a version) never breaks, and a separator (" · ")
- * stays with the word before it. The path above it is a smaller muted line,
- * which gives way as one line does, its last crumb (the page's parent)
- * standing for the page: the crumbs between fold into the … button, then the
- * first shows as its icon, then folds, then the parent ellipsizes. Every
- * crumb stays reachable, in the path or in the menu. `layout` "line" keeps
- * one line at every width.
+ * The current page alone (`layout` "adaptive", the default, at or below
+ * `BREADCRUMB_COMPACT_QUERY`, 1024px). The row names the current page on
+ * one line, a name too long for it ending in an ellipsis, an identifier that
+ * fits never cut. With a path above the page, the name is a button with a
+ * chevron that opens the path under the row: every level from the top down,
+ * each a link to its level (words when it has none), the current page last
+ * and marked (`aria-current="page"`), every name whole and wrapping between
+ * its words (`breadcrumbWords`). A page that is its own path is its name, no
+ * button. The path is a menu, not a dialog: the menu button pattern below,
+ * Escape and a press outside close it and the focus returns to the button,
+ * choosing a level, the focus leaving, a new trail and the window growing
+ * past the compact width close it. `layout` "line" keeps one line at every
+ * width.
  *
  * The … button opens a small menu, not a dialog, listing in order every level
  * the trail does not name: the first crumb when it shows as its icon or is
@@ -76,12 +80,11 @@ type $$ComponentProps = {
  * Icons. The first crumb's `icon` stands in front of its words; on every
  * later crumb `icon` is the separator before it (a chevron when it has none),
  * and the … button takes the separator of the first crumb it folds, none when
- * it folds the first crumb itself. On two lines the current page has no
- * separator: its line is its own.
+ * it folds the first crumb itself. The row naming the current page carries
+ * no icon.
  *
  * Measurement. A hidden copy of the trail is measured once per trail, and
- * again when its size changes (a web font arriving, the trail crossing the
- * compact width, where the path is set smaller). A ResizeObserver on the
+ * again when its size changes (a web font arriving). A ResizeObserver on the
  * trail's box re-plans on every resize (a sidebar or a dock opening) from
  * those widths alone, so a resize reads no layout. The root grows into its
  * row (`flex: 1 1 0%`), so its width never depends on what it shows.
@@ -95,7 +98,7 @@ type $$ComponentProps = {
  *
  * Styling: the crumbs keep the token classes (`.breadcrumb-title`,
  * `.breadcrumb-section-icon`, `.breadcrumb-chevron`, `.breadcrumb-label`);
- * the layout and the menu are scoped CSS over the --gawdux-* tokens.
+ * the layout and the menus are scoped CSS over the --gawdux-* tokens.
  */
 declare const Breadcrumbs: Component<$$ComponentProps, {}, "room">;
 type Breadcrumbs = ReturnType<typeof Breadcrumbs>;

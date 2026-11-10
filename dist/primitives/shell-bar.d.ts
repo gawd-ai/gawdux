@@ -1,7 +1,7 @@
 /**
  * The phone shell's one bar along the bottom of the screen (ShellBar). At or
  * below the shell's compact width the controls a desktop header carries at
- * its end (the notices, the theme, the account) leave the top and sit in it,
+ * its end (the notices, the account) leave the top and sit at its right end,
  * after an occupant's own controls (a chat rail), so a phone has one bar, never
  * two stacked. Menus and panels open upward out of it (`.gawdux-shell-bar-sheet`).
  */
