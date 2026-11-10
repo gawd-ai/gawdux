@@ -56,6 +56,9 @@
 	--gawdux-surface-input: var(--color-gray-50);
 	--gawdux-surface-subtle: var(--color-gray-50); /* hovers, alt rows */
 	--gawdux-surface-card-header: var(--color-gray-50);
+	/* The command bar's surface, and the surface of a drawer that opens out
+	   of it: one value, so the two read as one surface. */
+	--gawdux-command-surface: rgb(249 250 251);
 	/* AppSidebar's inner panel. Defaults to --gawdux-surface so consumers
 	   keep the carved/elevated look (panel distinct from page canvas).
 	   Themed consumers whose canvas is already dark (e.g. sctlin's hacker
@@ -172,6 +175,7 @@
 	--gawdux-surface-input: var(--color-gray-900);
 	--gawdux-surface-subtle: var(--color-gray-700);
 	--gawdux-surface-card-header: var(--color-gray-700);
+	--gawdux-command-surface: rgb(28 37 51);
 	--gawdux-text-primary: var(--color-gray-200);
 	--gawdux-text-secondary: var(--color-gray-400);
 	--gawdux-text-muted: var(--color-gray-400);
@@ -1046,8 +1050,10 @@ main:has(.page-command-bar) *:has(> .context-surface),
 	   composes its var-based shadow stack. */
 	min-height: 0.5rem;
 	padding: 0;
-	background-color: rgb(249 250 251);
-	border: 1px solid rgb(229 231 235);
+	/* The content surface's own edge colour, so the bar, the card above it
+	   and a drawer between them draw one line. */
+	background-color: var(--gawdux-command-surface);
+	border: 1px solid var(--gawdux-border);
 	border-radius: 0.5rem;
 }
 .page-command-bar:has(.cmd-bar-zone > *) {
@@ -1058,11 +1064,6 @@ main:has(.page-command-bar) *:has(> .context-surface),
 .page-command-bar:not(:has(.cmd-bar-zone > *)) {
 	display: none;
 }
-.dark .page-command-bar {
-	background-color: rgb(28 37 51);
-	border-color: rgb(55 65 81);
-}
-
 .cmd-bar-zone {
 	display: flex;
 	align-items: center;
@@ -1087,25 +1088,39 @@ main:has(.page-command-bar) *:has(> .context-surface),
 }
 
 /* The command drawer: a decision or a small form rising out of the bar.
-   It sits between the content surface and the bar, on the bar's own
-   background, and the bar loses its top edge while one is open so the two
-   read as one panel that opened up. The drawer holds the words; the buttons
-   take the bar's center zone (PageCommandBarCenter). */
+   The drawer and the bar read as one surface that opened up out of the bar:
+   - on the bar's own surface (--gawdux-command-surface);
+   - the only line between the content and the drawer is the drawer's top
+     edge, the seam, in the content surface's edge colour (--gawdux-border),
+     the colour of the bar's and the card's own edges;
+   - no line between the drawer and the bar: the drawer has no bottom edge
+     and the bar loses its top edge and top corners while one is open;
+   - the drawer's sides continue the bar's: drawn by the drawer itself when
+     it stands in the column beside the content surface, by the content
+     surface when it opens at the bottom of that surface (below), and by
+     neither at the compact width, where the surface and the bar have none;
+   - no shadow of its own, and square: the content surface above already
+     gave up its bottom edge and corners to the bar, so the drawer meets it
+     flat.
+   The drawer holds the words; the buttons take the bar's center zone
+   (PageCommandBarCenter). */
 .page-command-drawer {
 	margin-top: auto;
 	flex-shrink: 0;
 	padding: 0.75rem 1rem;
 	text-align: center;
-	background-color: rgb(249 250 251);
-	/* Square: the content surface above already gave up its bottom edge to
-	   the bar, so the drawer meets it flat and its top border is the seam. */
-	border: 1px solid rgb(229 231 235);
+	background-color: var(--gawdux-command-surface);
+	border: 1px solid var(--gawdux-border);
 	border-bottom-width: 0;
 	border-radius: 0;
+	box-shadow: none;
 }
-.dark .page-command-drawer {
-	background-color: rgb(28 37 51);
-	border-color: rgb(55 65 81);
+/* Opened at the bottom of the content surface (a pane's own decision, inside
+   the card), the drawer leaves the sides to the surface: its own would be a
+   second line inside the card's, stopping where the bar begins. */
+.context-surface .page-command-drawer {
+	border-left-width: 0;
+	border-right-width: 0;
 }
 main:has(.page-command-drawer) .page-command-bar,
 .page-shell:has(> main .page-command-drawer) > .page-command-bar {
@@ -1114,8 +1129,6 @@ main:has(.page-command-drawer) .page-command-bar,
 	border-top-right-radius: 0;
 	border-top-width: 0;
 }
-/* A content surface above the drawer already gave up its bottom edge to
-   the bar; the drawer is what it now meets. */
 .page-command-drawer-title {
 	margin: 0;
 	font-size: 0.875rem;
@@ -1878,6 +1891,12 @@ main:has(.page-command-drawer) .page-command-bar,
 		border-bottom-width: 0;
 		border-radius: 0;
 		box-shadow: none;
+	}
+	/* A drawer opening out of the bar has no sides here either: the seam is
+	   its one line. */
+	main .page-command-drawer {
+		border-left-width: 0;
+		border-right-width: 0;
 	}
 	.filter-bar {
 		padding-inline: var(--gawdux-compact-inset);

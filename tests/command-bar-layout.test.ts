@@ -177,6 +177,45 @@ for (const [name, css] of [
 			expect(declarations([root], '.cmd-bar-center')).toMatchObject({ 'justify-content': 'center' });
 		});
 
+		it('draws the drawer on the bar surface, its seam and sides in the edge colour the bar and the card share', () => {
+			// One surface and one edge colour for the bar and the drawer, read
+			// from tokens defined for light and dark, never a literal per theme.
+			const bar = declarations([root], '.page-command-bar');
+			const drawer = declarations([root], '.page-command-drawer');
+			for (const rule of [bar, drawer]) {
+				expect(rule['background-color']).toBe('var(--gawdux-command-surface)');
+				expect(rule.border).toBe('1px solid var(--gawdux-border)');
+			}
+			for (const selector of ['.page-command-bar', '.page-command-drawer']) {
+				expect(declarations([root], `.dark ${selector}`), selector).toEqual({});
+			}
+			const tokens = (selector: string) => declarations([root], selector);
+			expect(tokens(':root')['--gawdux-command-surface']).toBe('rgb(249 250 251)');
+			expect(tokens('.dark')['--gawdux-command-surface']).toBe('rgb(28 37 51)');
+			// No shadow of its own, square, no bottom edge.
+			expect(drawer).toMatchObject({
+				'border-bottom-width': '0',
+				'border-radius': '0',
+				'box-shadow': 'none'
+			});
+		});
+
+		it('leaves the sides to the content surface a drawer opens at the bottom of, and to nobody on a phone', () => {
+			expect(declarations([root], '.context-surface .page-command-drawer')).toEqual({
+				'border-left-width': '0',
+				'border-right-width': '0'
+			});
+			expect(declarations(narrow, 'main .page-command-drawer')).toEqual({
+				'border-left-width': '0',
+				'border-right-width': '0'
+			});
+			// The bar gives up the same sides at the same width.
+			expect(declarations(narrow, 'main .page-command-bar')).toMatchObject({
+				'border-left-width': '0',
+				'border-right-width': '0'
+			});
+		});
+
 		it('still fuses an attached drawer with the bar', () => {
 			expect(declarations([root], '.page-command-drawer')['border-bottom-width']).toBe('0');
 			for (const selector of [

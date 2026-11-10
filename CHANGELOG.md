@@ -1,5 +1,32 @@
 # Changelog
 
+## 0.34.0 - a drawer and the bar read as one surface
+
+### Added
+
+- `--gawdux-command-surface`, the command bar's surface and the surface of a
+  drawer that opens out of it (rgb(249 250 251) in light, rgb(28 37 51) in
+  dark, the values the bar already drew): one value, so the two can never
+  differ.
+
+### Changed
+
+- The command bar and `.page-command-drawer` (what `PageCommandBarConfirm`
+  and the attached `CommandDrawer` render) take their surface from
+  `--gawdux-command-surface` and their edge from `--gawdux-border`, the
+  content surface's own edge colour, in place of a literal per theme. The
+  seam, the bar's sides and the card's sides are one colour.
+
+### Fixed
+
+- A drawer opened at the bottom of a content surface (a pane's own decision,
+  inside the card) no longer draws sides of its own: they stood 1px inside
+  the card's, so the drawer's edges read as a second, brighter line that
+  stopped where the bar began. The surface's sides continue into the bar's.
+- At or below the compact width a drawer has no sides, as the content
+  surface and the bar have none there: its seam is its one line.
+- `.page-command-drawer` has no shadow of its own (`box-shadow: none`).
+
 ## 0.33.0 - the one rule for long values, flat header controls, the bar from its start
 
 ### Added

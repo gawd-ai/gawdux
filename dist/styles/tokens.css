@@ -7,6 +7,7 @@
   --gawdux-surface-input: var(--color-gray-50);
   --gawdux-surface-subtle: var(--color-gray-50);
   --gawdux-surface-card-header: var(--color-gray-50);
+  --gawdux-command-surface: rgb(249 250 251);
   --gawdux-surface-sidebar: var(--gawdux-surface);
   --gawdux-text-primary: var(--color-gray-800);
   --gawdux-text-secondary: var(--color-gray-600);
@@ -66,6 +67,7 @@
   --gawdux-surface-input: var(--color-gray-900);
   --gawdux-surface-subtle: var(--color-gray-700);
   --gawdux-surface-card-header: var(--color-gray-700);
+  --gawdux-command-surface: rgb(28 37 51);
   --gawdux-text-primary: var(--color-gray-200);
   --gawdux-text-secondary: var(--color-gray-400);
   --gawdux-text-muted: var(--color-gray-400);
@@ -764,8 +766,8 @@ main:has(.page-command-bar) *:has(> .context-surface),
   gap: 1rem;
   min-height: 0.5rem;
   padding: 0;
-  background-color: rgb(249 250 251);
-  border: 1px solid rgb(229 231 235);
+  background-color: var(--gawdux-command-surface);
+  border: 1px solid var(--gawdux-border);
   border-radius: 0.5rem;
 }
 .page-command-bar:has(.cmd-bar-zone > *) {
@@ -774,10 +776,6 @@ main:has(.page-command-bar) *:has(> .context-surface),
 }
 .page-command-bar:not(:has(.cmd-bar-zone > *)) {
   display: none;
-}
-.dark .page-command-bar {
-  background-color: rgb(28 37 51);
-  border-color: rgb(55 65 81);
 }
 .cmd-bar-zone {
   display: flex;
@@ -803,14 +801,15 @@ main:has(.page-command-bar) *:has(> .context-surface),
   flex-shrink: 0;
   padding: 0.75rem 1rem;
   text-align: center;
-  background-color: rgb(249 250 251);
-  border: 1px solid rgb(229 231 235);
+  background-color: var(--gawdux-command-surface);
+  border: 1px solid var(--gawdux-border);
   border-bottom-width: 0;
   border-radius: 0;
+  box-shadow: none;
 }
-.dark .page-command-drawer {
-  background-color: rgb(28 37 51);
-  border-color: rgb(55 65 81);
+.context-surface .page-command-drawer {
+  border-left-width: 0;
+  border-right-width: 0;
 }
 main:has(.page-command-drawer) .page-command-bar,
 .page-shell:has(> main .page-command-drawer) > .page-command-bar {
@@ -1393,6 +1392,10 @@ main:has(.page-command-drawer) .page-command-bar,
     border-bottom-width: 0;
     border-radius: 0;
     box-shadow: none;
+  }
+  main .page-command-drawer {
+    border-left-width: 0;
+    border-right-width: 0;
   }
   .filter-bar {
     padding-inline: var(--gawdux-compact-inset);
