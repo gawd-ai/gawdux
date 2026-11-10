@@ -1,5 +1,35 @@
 # Changelog
 
+## 0.33.0 - the one rule for long values, flat header controls, the bar from its start
+
+### Added
+
+- `LongText` and `longTextRuns` (with `LongTextRun`): one rule for long
+  values in a line of text. An identifier (a record label, a document
+  number, a request's reference such as 4ab67d51-0ef, a range like "(A–Z)")
+  and a moment never break inside themselves; a hash (32 or more hexadecimal
+  characters) wraps inside its own box at any character; the words around
+  them wrap between words. Each run is a span of its own
+  (`.gawdux-long-text-whole`, `.gawdux-long-text-hash`), so only the
+  wrapping changes, never a character: copying the line gives it as written.
+- `--gawdux-header-control-hover-surface`, a header control's quiet fill
+  under the pointer (gray-200 in light, gray-800 in dark).
+
+### Changed
+
+- A strip's message (`SurfaceFeedback`, and `PageFeedback` in its `band`
+  layout) is drawn by `LongText`, so a reference in it never breaks at its
+  hyphen on a phone. A card keeps breaking an unbroken token anywhere, so a
+  provider's URL never widens it past its column.
+- `UserMenu` is flat while closed, in light and dark: no surface, border or
+  shadow of its own at rest, the header's surface showing through it, and
+  the header's quiet fill under the pointer. Open, it lifts as before
+  (border, shadow, the raised menu surface).
+- `ShellBar` lays its occupant's controls from the bar's start, 4px from its
+  edge and 4px apart, as the host's end keeps to its right end, in place of
+  centring each in an equal share of the room before the end: an occupant
+  of one or two controls (a chat toggle, a door) sits at the start.
+
 ## 0.32.0 - one sign that a strip scrolls, a status after its strip
 
 ### Added

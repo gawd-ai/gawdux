@@ -5,7 +5,7 @@
 	At or below the shell's compact width (`SHELL_BAR_QUERY`, 1024px) it is one
 	row fixed to the bottom of the screen, clear of the safe-area inset, every
 	control in it a 44px target: first what occupies it (`children`: a chat
-	rail's controls, in their order, sharing the room before the end), then the
+	rail's toggle, in their order, from the bar's start), then the
 	host's own controls side by side at its right end (`end`: the notices, the
 	account), in the same place whether anything occupies the bar or not. A
 	part of the occupant marked

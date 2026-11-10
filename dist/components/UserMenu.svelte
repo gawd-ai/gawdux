@@ -10,8 +10,10 @@
 	so the toolbar never reflows and the card holds no dead space. The open body
 	never widens the card (`contain: inline-size`): a long tenant truncates. The
 	trigger is identical open and closed (same colours, same boxes), so opening
-	never moves or recolours the avatar or the text; the card lifts (border,
-	shadow, the raised menu surface) on hover and while open. Below
+	never moves or recolours the avatar or the text. Closed, the card is flat
+	in light and dark, the header's surface showing through it, and takes the
+	header's quiet fill under the pointer (--gawdux-header-control-hover-surface),
+	never a shadow; open, it lifts (border, shadow, the raised menu surface). Below
 	`compactBelow` the closed card is the avatar alone; open, the panel grows to
 	the left from the avatar, which stays where it was (the trigger row is
 	mirrored), and never past the 16px gutter on the left. `compact` gives the
@@ -595,14 +597,19 @@
 		overflow: clip;
 		border: 1px solid transparent;
 		border-radius: 8px;
-		background-color: var(--gawdux-surface);
+		background-color: transparent;
 		transition:
 			border-color 150ms ease-out,
 			box-shadow 150ms ease-out,
 			background-color 150ms ease-out;
 	}
-	/* The lift: hover and open alike, so a click never changes the trigger. */
-	.panel:hover,
+	/* Closed, the card is a header control, flat in light and dark: the
+	   header's surface shows through it, and under the pointer it takes the
+	   header's quiet fill, never a shadow. */
+	.panel:not(.open):hover {
+		background-color: var(--gawdux-header-control-hover-surface);
+	}
+	/* Open, it is the menu: the raised menu surface. */
 	.panel.open {
 		border-color: var(--gawdux-border);
 		background-color: var(--gawdux-menu-surface);
@@ -610,7 +617,6 @@
 			0 10px 24px -6px rgb(0 0 0 / 0.14),
 			0 2px 4px rgb(0 0 0 / 0.05);
 	}
-	:global(.dark) .panel:hover,
 	:global(.dark) .panel.open {
 		box-shadow:
 			0 12px 28px -6px rgb(0 0 0 / 0.65),

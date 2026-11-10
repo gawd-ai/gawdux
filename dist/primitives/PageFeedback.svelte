@@ -43,6 +43,7 @@
 
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
+	import LongText from './LongText.svelte';
 	import {
 		CheckCircleOutline,
 		CloseOutline,
@@ -136,6 +137,10 @@
 			<div class="page-feedback-message">
 				{#if children}
 					{@render children()}
+				{:else if layout === 'band'}
+					<!-- The strip draws its message by the one rule for long values,
+					     so a reference in it never breaks at its hyphen. -->
+					<LongText text={normalizedMessage} />
 				{:else}
 					{normalizedMessage}
 				{/if}

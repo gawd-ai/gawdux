@@ -10,8 +10,10 @@ import type { UserMenuProps } from '../types/user-menu.types';
  * so the toolbar never reflows and the card holds no dead space. The open body
  * never widens the card (`contain: inline-size`): a long tenant truncates. The
  * trigger is identical open and closed (same colours, same boxes), so opening
- * never moves or recolours the avatar or the text; the card lifts (border,
- * shadow, the raised menu surface) on hover and while open. Below
+ * never moves or recolours the avatar or the text. Closed, the card is flat
+ * in light and dark, the header's surface showing through it, and takes the
+ * header's quiet fill under the pointer (--gawdux-header-control-hover-surface),
+ * never a shadow; open, it lifts (border, shadow, the raised menu surface). Below
  * `compactBelow` the closed card is the avatar alone; open, the panel grows to
  * the left from the avatar, which stays where it was (the trigger row is
  * mirrored), and never past the 16px gutter on the left. `compact` gives the

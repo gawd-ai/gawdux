@@ -29,6 +29,7 @@
   --gawdux-menu-item-hover: var(--color-gray-100);
   --gawdux-row-selected-surface: rgb(239 246 255);
   --gawdux-row-selected-text: rgb(37 99 235);
+  --gawdux-header-control-hover-surface: var(--color-gray-200);
   --gawdux-scroll-fade-size: 1.5rem;
   --gawdux-scroll-fade-mask: none;
   --gawdux-menu-divider: var(--color-gray-100);
@@ -85,6 +86,7 @@
   --gawdux-menu-item-hover: var(--color-gray-700);
   --gawdux-row-selected-surface: rgb(30 58 138 / 0.35);
   --gawdux-row-selected-text: rgb(147 197 253);
+  --gawdux-header-control-hover-surface: var(--color-gray-800);
   --gawdux-menu-divider: var(--color-gray-700);
   --gawdux-text-danger: var(--color-red-400);
   --gawdux-chip-surface: var(--color-gray-700);
@@ -1269,6 +1271,12 @@ main:has(.page-command-drawer) .page-command-bar,
 .gawdux-tab-strip.tabs-stick {
   scroll-padding-inline: 0.5rem;
 }
+.gawdux-long-text-whole {
+  white-space: nowrap;
+}
+.gawdux-long-text-hash {
+  word-break: break-all;
+}
 .gawdux-scroll-fade[data-scroll-fade='end'] {
   --gawdux-scroll-fade-mask: linear-gradient(
 		to right,
@@ -1426,7 +1434,8 @@ main:has(.page-command-drawer) .page-command-bar,
     align-items: center;
     width: auto;
     height: var(--gawdux-shell-bar-space);
-    padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
+    column-gap: 0.25rem;
+    padding-inline: calc(env(safe-area-inset-left, 0px) + 0.25rem) env(safe-area-inset-right, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
     border-top: 1px solid rgb(229 231 235 / 0.6);
     background-color: var(--gawdux-surface-card);
@@ -1442,7 +1451,7 @@ main:has(.page-command-drawer) .page-command-bar,
     display: contents;
   }
   .gawdux-shell-bar[data-shell-bar] > [data-shell-bar-group] > * {
-    margin-inline: auto;
+    margin-inline: 0;
   }
   .gawdux-shell-bar[data-shell-bar] > .gawdux-shell-bar-end {
     display: flex;

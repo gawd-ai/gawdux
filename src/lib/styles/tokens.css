@@ -99,6 +99,12 @@
 	   menu's current level): a blue tint and the accent's text. */
 	--gawdux-row-selected-surface: rgb(239 246 255); /* blue-50 */
 	--gawdux-row-selected-text: rgb(37 99 235); /* blue-600 */
+	/* Every header control is flat: a control in a header (an icon button,
+	   the account card, the notices) has no border, shadow or surface of its
+	   own at rest, in light and dark alike, and under the pointer takes this
+	   quiet fill, still with no shadow. An open menu is the menu's raised
+	   surface. */
+	--gawdux-header-control-hover-surface: var(--color-gray-200);
 	/* A strip that scrolls sideways fades this wide at the edge where more of
 	   it lies (scrollEdges, "Anything that scrolls sideways says so"); the
 	   mask each mark draws, none where nothing lies beyond. */
@@ -186,6 +192,7 @@
 	--gawdux-menu-item-hover: var(--color-gray-700);
 	--gawdux-row-selected-surface: rgb(30 58 138 / 0.35); /* blue-900 */
 	--gawdux-row-selected-text: rgb(147 197 253); /* blue-300 */
+	--gawdux-header-control-hover-surface: var(--color-gray-800);
 	--gawdux-menu-divider: var(--color-gray-700);
 	--gawdux-text-danger: var(--color-red-400);
 	--gawdux-chip-surface: var(--color-gray-700);
@@ -1703,6 +1710,18 @@ main:has(.page-command-drawer) .page-command-bar,
 	scroll-padding-inline: 0.5rem;
 }
 
+/* ---------- One rule for long values ----------
+   LongText draws a line's runs (`longTextRuns`): an identifier or a moment
+   never breaks inside itself, a hash wraps inside its own box at any
+   character. Only the wrapping changes, never a character, so copying the
+   line gives it as written. */
+.gawdux-long-text-whole {
+	white-space: nowrap;
+}
+.gawdux-long-text-hash {
+	word-break: break-all;
+}
+
 /* ---------- Anything that scrolls sideways says so ----------
    One sign, at every width: the edge where more of a strip lies fades out,
    drawn as the strip's own mask, so nothing is laid over the strip and no
@@ -1913,7 +1932,8 @@ main:has(.page-command-drawer) .page-command-bar,
 		align-items: center;
 		width: auto;
 		height: var(--gawdux-shell-bar-space);
-		padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
+		column-gap: 0.25rem;
+		padding-inline: calc(env(safe-area-inset-left, 0px) + 0.25rem) env(safe-area-inset-right, 0px);
 		padding-bottom: env(safe-area-inset-bottom, 0px);
 		border-top: 1px solid rgb(229 231 235 / 0.6);
 		background-color: var(--gawdux-surface-card);
@@ -1926,13 +1946,14 @@ main:has(.page-command-drawer) .page-command-bar,
 	.gawdux-shell-bar[data-shell-bar]:has(.gawdux-shell-bar-sheet) {
 		z-index: 90;
 	}
-	/* The occupant's groups give their controls to the bar's one row, each
-	   control centred in an equal share of the room before the end. */
+	/* The occupant's groups give their controls to the bar's one row, from
+	   the bar's start, 4px from its edge and 4px apart, as the host's end
+	   keeps to its right end. */
 	.gawdux-shell-bar[data-shell-bar] > [data-shell-bar-group] {
 		display: contents;
 	}
 	.gawdux-shell-bar[data-shell-bar] > [data-shell-bar-group] > * {
-		margin-inline: auto;
+		margin-inline: 0;
 	}
 	/* The host's end keeps to the bar's right end, its last control the last
 	   in the bar. */

@@ -78,14 +78,16 @@ for (const [name, css] of [
 				'align-items': 'center',
 				width: 'auto',
 				height: 'var(--gawdux-shell-bar-space)',
+				'column-gap': '0.25rem',
+				'padding-inline': 'calc(env(safe-area-inset-left, 0px) + 0.25rem) env(safe-area-inset-right, 0px)',
 				'padding-bottom': 'env(safe-area-inset-bottom, 0px)'
 			});
-			// The occupant's groups give their controls to the bar's one row, each
-			// centred in an equal share of the room; a part that belongs to a
-			// column is not drawn.
+			// The occupant's groups give their controls to the bar's one row, from
+			// the bar's start, 4px from its edge and 4px apart; a part that
+			// belongs to a column is not drawn.
 			expect(declarations(narrow, `${BAR} > [data-shell-bar-group]`)).toEqual({ display: 'contents' });
 			expect(declarations(narrow, `${BAR} > [data-shell-bar-group] > *`)).toEqual({
-				'margin-inline': 'auto'
+				'margin-inline': '0'
 			});
 			expect(declarations(narrow, `${BAR} > [data-shell-bar-column]`)).toEqual({ display: 'none' });
 		});

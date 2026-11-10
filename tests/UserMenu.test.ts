@@ -720,6 +720,19 @@ describe('UserMenu geometry', () => {
 		expect(userMenuSource).toMatch(/\.panel\.open \.chevron \{\s*transform: rotate\(180deg\);\s*\}/);
 	});
 
+	it('is a flat header control while closed, a quiet fill under the pointer, and lifts only open', () => {
+		// Every header control is flat in light and dark: no surface, border or
+		// shadow of its own at rest, the header's quiet fill under the pointer.
+		expect(userMenuSource).toMatch(
+			/\.panel \{[^}]*border: 1px solid transparent;[^}]*background-color: transparent;/
+		);
+		expect(userMenuSource).toMatch(
+			/\.panel:not\(\.open\):hover \{\s*background-color: var\(--gawdux-header-control-hover-surface\);\s*\}/
+		);
+		expect(userMenuSource).not.toMatch(/\.panel:hover[^{]*\{[^}]*box-shadow/);
+		expect(userMenuSource).toMatch(/\.panel\.open \{[^}]*box-shadow:/);
+	});
+
 	it('sizes the card from the trigger alone, between the two width knobs', () => {
 		expect(userMenuSource).toMatch(
 			/\.gawdux-user-menu \{[^}]*width: max-content;[^}]*min-width: var\(--gawdux-user-menu-min-width, 208px\);[^}]*max-width: var\(--gawdux-user-menu-width, 272px\);[^}]*height: 44px;/
