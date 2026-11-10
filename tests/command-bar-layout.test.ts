@@ -170,6 +170,13 @@ for (const [name, css] of [
 				});
 		});
 
+		it('centres the commands on a phone as it does above, every wrapped row centred too', () => {
+			// One rule at every width: the center zone's commands sit in the
+			// middle of the bar, and a row they wrap onto is centred the same way.
+			expect(declarations(narrow, CENTER)).toMatchObject({ 'justify-content': 'center' });
+			expect(declarations([root], '.cmd-bar-center')).toMatchObject({ 'justify-content': 'center' });
+		});
+
 		it('still fuses an attached drawer with the bar', () => {
 			expect(declarations([root], '.page-command-drawer')['border-bottom-width']).toBe('0');
 			for (const selector of [

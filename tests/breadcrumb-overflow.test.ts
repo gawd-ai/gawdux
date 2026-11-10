@@ -9,16 +9,15 @@ import {
 } from '../src/lib/primitives/breadcrumb-overflow';
 
 // A five-level trail: a first crumb with its icon (36px of icon), three
-// levels on the way, the current page, a chip beside it. Every separator is
-// 24px; the overflow button is 24px alone, 48px with its separator. Full
-// width: 126 + 114 + 174 + 94 + 294 + 80 = 882.
+// levels on the way, the current page. Every separator is 24px; the overflow
+// button is 24px alone, 48px with its separator. Full width: 126 + 114 + 174
+// + 94 + 294 = 802. The trail carries no status: the page's own header does.
 const TRAIL: BreadcrumbOverflowMeasure = {
 	available: Infinity,
 	crumbs: [126, 114, 174, 94, 294],
 	more: 48,
 	moreLead: 24,
-	firstCompact: 36,
-	trailing: 80
+	firstCompact: 36
 };
 
 const plan = (available: number, over: Partial<BreadcrumbOverflowMeasure> = {}) =>
@@ -50,92 +49,76 @@ describe('breadcrumbCollapseOrder', () => {
 	});
 });
 
-/** A plan: the folded crumbs, the first as its icon, the page cut, the chip off the line. */
-const P = (hidden: number[], compactFirst = false, leafCut = false, trailingHidden = false) => ({
+/** A plan: the folded crumbs, the first as its icon, the page cut. */
+const P = (hidden: number[], compactFirst = false, leafCut = false) => ({
 	hidden,
 	compactFirst,
-	leafCut,
-	trailingHidden
+	leafCut
 });
 
 describe('planBreadcrumbOverflow', () => {
-	it('folds nothing while the whole trail fits, its chip included', () => {
-		expect(plan(882)).toEqual(P([]));
+	it('folds nothing while the whole trail fits', () => {
+		expect(plan(802)).toEqual(P([]));
 		expect(plan(Infinity)).toEqual(P([]));
-	});
-
-	it('counts the chip beside the current page', () => {
-		expect(plan(882, { trailing: 0 }).hidden).toEqual([]);
-		expect(plan(881).hidden).toEqual([2]);
-		expect(plan(802, { trailing: 0 }).hidden).toEqual([]);
+		expect(plan(801).hidden).toEqual([2]);
 	});
 
 	it('folds the crumbs on the way from the inside out until the trail fits', () => {
-		// 882 - 174 + 48 = 756
-		expect(plan(756)).toEqual(P([2]));
-		// 756 - 114 = 642
-		expect(plan(755).hidden).toEqual([1, 2]);
-		expect(plan(642).hidden).toEqual([1, 2]);
-		// 642 - 94 = 548
-		expect(plan(641)).toEqual(P([1, 2, 3]));
-		expect(plan(548)).toEqual(P([1, 2, 3]));
+		// 802 - 174 + 48 = 676
+		expect(plan(676)).toEqual(P([2]));
+		// 676 - 114 = 562
+		expect(plan(675).hidden).toEqual([1, 2]);
+		expect(plan(562).hidden).toEqual([1, 2]);
+		// 562 - 94 = 468
+		expect(plan(561)).toEqual(P([1, 2, 3]));
+		expect(plan(468)).toEqual(P([1, 2, 3]));
 	});
 
 	it('shows the first crumb as its icon alone once every crumb on the way is folded', () => {
-		// 126 + 48 + 294 + 80 = 548 with the first crumb in words; 36 + 48 + 294 + 80 = 458 as its icon.
-		expect(plan(547)).toEqual(P([1, 2, 3], true));
-		expect(plan(458)).toEqual(P([1, 2, 3], true));
+		// 126 + 48 + 294 = 468 with the first crumb in words; 36 + 48 + 294 = 378 as its icon.
+		expect(plan(467)).toEqual(P([1, 2, 3], true));
+		expect(plan(378)).toEqual(P([1, 2, 3], true));
 	});
 
-	it('folds the first crumb into the button next, the page and its chip whole', () => {
-		// 24 + 294 + 80 = 398: the button alone, the page, the chip.
-		expect(plan(457)).toEqual(P([0, 1, 2, 3]));
-		expect(plan(398)).toEqual(P([0, 1, 2, 3]));
-	});
-
-	it('takes the chip off the line before it would cut the page, and never cuts the chip', () => {
-		// 24 + 294 = 318: the button and the page.
-		expect(plan(397)).toEqual(P([0, 1, 2, 3], false, false, true));
-		expect(plan(318)).toEqual(P([0, 1, 2, 3], false, false, true));
+	it('folds the first crumb into the button next, the page whole', () => {
+		// 24 + 294 = 318: the button alone, the page.
+		expect(plan(377)).toEqual(P([0, 1, 2, 3]));
+		expect(plan(318)).toEqual(P([0, 1, 2, 3]));
 	});
 
 	it('cuts the current page last of all', () => {
 		for (let available = 318; available <= 900; available += 1) {
 			expect(plan(available).leafCut, `${available}px`).toBe(false);
 		}
-		expect(plan(317)).toEqual(P([0, 1, 2, 3], false, true, true));
+		expect(plan(317)).toEqual(P([0, 1, 2, 3], false, true));
 	});
 
 	it('folds a first crumb without an icon from its words, before anything else gives way', () => {
-		expect(plan(548, { firstCompact: null })).toEqual(P([1, 2, 3]));
-		expect(plan(547, { firstCompact: null })).toEqual(P([0, 1, 2, 3]));
+		expect(plan(468, { firstCompact: null })).toEqual(P([1, 2, 3]));
+		expect(plan(467, { firstCompact: null })).toEqual(P([0, 1, 2, 3]));
 	});
 
 	it('gives way in a two-crumb trail without folding the middle, there being nothing to fold', () => {
 		const two = { crumbs: [126, 294] };
-		expect(plan(500, two)).toEqual(P([]));
-		// 36 + 294 + 80 = 410
-		expect(plan(499, two)).toEqual(P([], true));
-		expect(plan(410, two)).toEqual(P([], true));
-		// 24 + 294 + 80 = 398, then 24 + 294 = 318
-		expect(plan(409, two)).toEqual(P([0]));
-		expect(plan(398, two)).toEqual(P([0]));
-		expect(plan(397, two)).toEqual(P([0], false, false, true));
-		expect(plan(318, two)).toEqual(P([0], false, false, true));
-		expect(plan(317, two)).toEqual(P([0], false, true, true));
+		expect(plan(420, two)).toEqual(P([]));
+		// 36 + 294 = 330
+		expect(plan(419, two)).toEqual(P([], true));
+		expect(plan(330, two)).toEqual(P([], true));
+		// 24 + 294 = 318
+		expect(plan(329, two)).toEqual(P([0]));
+		expect(plan(318, two)).toEqual(P([0]));
+		expect(plan(317, two)).toEqual(P([0], false, true));
 	});
 
-	it('takes the chip off a single crumb first, then cuts it, and never compacts it', () => {
+	it('cuts a single crumb when it does not fit, and never compacts it', () => {
 		const one = { crumbs: [300] };
-		expect(plan(380, one)).toEqual(P([]));
-		expect(plan(379, one)).toEqual(P([], false, false, true));
-		expect(plan(300, one)).toEqual(P([], false, false, true));
-		expect(plan(299, one)).toEqual(P([], false, true, true));
-		expect(plan(100, { crumbs: [300], trailing: 0 })).toEqual(P([], false, true));
+		expect(plan(300, one)).toEqual(P([]));
+		expect(plan(299, one)).toEqual(P([], false, true));
+		expect(plan(100, one)).toEqual(P([], false, true));
 	});
 
 	it('rounds a sub-pixel crumb up and the room down, so a plan that fits never ellipsizes', () => {
-		const fractional = { crumbs: [10.2, 80.2], trailing: 0, firstCompact: null };
+		const fractional = { crumbs: [10.2, 80.2], firstCompact: null };
 		expect(plan(92, fractional).leafCut).toBe(false);
 		expect(plan(91.9, fractional).leafCut).toBe(true);
 	});
@@ -146,7 +129,7 @@ describe('planBreadcrumbOverflow', () => {
 });
 
 describe('the current page keeps a readable minimum', () => {
-	const NARROWEST = P([0, 1, 2, 3], false, true, true);
+	const NARROWEST = P([0, 1, 2, 3], false, true);
 
 	it('is the page at its own width, up to a few characters', () => {
 		expect(BREADCRUMB_LEAF_MIN_PX).toBe(64);
@@ -163,10 +146,9 @@ describe('the current page keeps a readable minimum', () => {
 	});
 
 	it('reads the page whole by folding the first crumb before it cuts the page', () => {
-		// The narrow-pane case: four levels, no chip. 36 + 48 + 94 = 178 with
-		// the first as its icon; below it the first crumb folds, and
-		// 24 + 94 = 118 holds the page whole.
-		const four = { crumbs: [126, 114, 174, 94], trailing: 0 };
+		// Four levels: 36 + 48 + 94 = 178 with the first as its icon; below it
+		// the first crumb folds, and 24 + 94 = 118 holds the page whole.
+		const four = { crumbs: [126, 114, 174, 94] };
 		expect(plan(178, four)).toEqual(P([1, 2], true));
 		expect(plan(177, four)).toEqual(P([0, 1, 2]));
 		expect(plan(118, four)).toEqual(P([0, 1, 2]));
@@ -176,37 +158,36 @@ describe('the current page keeps a readable minimum', () => {
 
 	it('never cuts a page no wider than its minimum', () => {
 		const short = { crumbs: [126, 114, 174, 94, 50] };
-		// 36 + 48 + 50 + 80 = 214 with the first crumb as its icon
-		expect(plan(214, short)).toEqual(P([1, 2, 3], true));
-		// 24 + 50 + 80 = 154 with the first crumb folded, then 24 + 50 = 74 without the chip
-		expect(plan(213, short)).toEqual(P([0, 1, 2, 3]));
-		expect(plan(154, short)).toEqual(P([0, 1, 2, 3]));
-		expect(plan(153, short)).toEqual(P([0, 1, 2, 3], false, false, true));
-		expect(plan(40, short)).toEqual(P([0, 1, 2, 3], false, false, true));
-		expect(plan(40, { crumbs: [50] })).toEqual(P([], false, false, true));
+		// 36 + 48 + 50 = 134 with the first crumb as its icon
+		expect(plan(134, short)).toEqual(P([1, 2, 3], true));
+		// 24 + 50 = 74 with the first crumb folded
+		expect(plan(133, short)).toEqual(P([0, 1, 2, 3]));
+		expect(plan(74, short)).toEqual(P([0, 1, 2, 3]));
+		expect(plan(40, short)).toEqual(P([0, 1, 2, 3]));
+		expect(plan(40, { crumbs: [50] })).toEqual(P([]));
 	});
 
 	it('keeps a first crumb that is narrower than the button alone', () => {
-		// 20 + 294 + 80 = 394; the button alone would be wider than the crumb.
+		// 20 + 294 = 314; the button alone would be wider than the crumb.
 		const tiny = { crumbs: [20, 294], firstCompact: null };
-		expect(plan(393, tiny)).toEqual(P([], false, false, true));
-		expect(plan(313, tiny)).toEqual(P([], false, true, true));
+		expect(plan(314, tiny)).toEqual(P([]));
+		expect(plan(313, tiny)).toEqual(P([], false, true));
 	});
 });
 
 describe('breadcrumbNeed: the room a trail needs, whatever room it has', () => {
-	it('needs every crumb and the chip to show whole: 882px', () => {
-		expect(breadcrumbNeed(TRAIL).whole).toBe(882);
-		expect(plan(882)).toEqual(P([]));
-		expect(plan(881).hidden).not.toEqual([]);
+	it('needs every crumb to show whole: 802px', () => {
+		expect(breadcrumbNeed(TRAIL).whole).toBe(802);
+		expect(plan(802)).toEqual(P([]));
+		expect(plan(801).hidden).not.toEqual([]);
 	});
 
-	it('needs the folded middle, the first as its icon, the page and the chip to show the page whole: 458px', () => {
-		// 36 (the first as its icon) + 48 (the … button) + 294 + 80.
-		expect(breadcrumbNeed(TRAIL).page).toBe(458);
-		expect(plan(458)).toEqual(P([1, 2, 3], true));
+	it('needs the folded middle, the first as its icon and the page to show the page whole: 378px', () => {
+		// 36 (the first as its icon) + 48 (the … button) + 294.
+		expect(breadcrumbNeed(TRAIL).page).toBe(378);
+		expect(plan(378)).toEqual(P([1, 2, 3], true));
 		// Below it the first crumb folds; the page is never the first to give way.
-		expect(plan(457)).toEqual(P([0, 1, 2, 3]));
+		expect(plan(377)).toEqual(P([0, 1, 2, 3]));
 	});
 
 	it('is the same at every width: it reads the measures, never the room', () => {
@@ -215,43 +196,43 @@ describe('breadcrumbNeed: the room a trail needs, whatever room it has', () => {
 			return breadcrumbNeed(measure);
 		};
 		expect(at(100)).toEqual(at(Infinity));
-		expect(at(0)).toEqual({ whole: 882, page: 458 });
+		expect(at(0)).toEqual({ whole: 802, page: 378 });
 	});
 
 	it('rounds the widths up as the plan does, so a trail given its need is never cut', () => {
-		const measure = { ...TRAIL, crumbs: [125.2, 113.5, 173.1, 93.9, 293.4], trailing: 79.6 };
+		const measure = { ...TRAIL, crumbs: [125.2, 113.5, 173.1, 93.9, 293.4] };
 		const need = breadcrumbNeed(measure);
-		expect(need).toEqual({ whole: 882, page: 458 });
+		expect(need).toEqual({ whole: 802, page: 378 });
 		expect(planBreadcrumbOverflow({ ...measure, available: need.whole }).hidden).toEqual([]);
 		expect(planBreadcrumbOverflow({ ...measure, available: need.page }).leafCut).toBe(false);
 	});
 
 	it('keeps the first crumb in words when it has no icon to stand for it', () => {
-		// 126 + 48 + 294 + 80.
-		expect(breadcrumbNeed({ ...TRAIL, firstCompact: null }).page).toBe(548);
-		expect(plan(548, { firstCompact: null })).toEqual(P([1, 2, 3]));
-		expect(plan(547, { firstCompact: null })).toEqual(P([0, 1, 2, 3]));
+		// 126 + 48 + 294.
+		expect(breadcrumbNeed({ ...TRAIL, firstCompact: null }).page).toBe(468);
+		expect(plan(468, { firstCompact: null })).toEqual(P([1, 2, 3]));
+		expect(plan(467, { firstCompact: null })).toEqual(P([0, 1, 2, 3]));
 	});
 
 	it('folds nothing on a two-level trail: the first as its icon beside the page', () => {
 		const two = { ...TRAIL, crumbs: [126, 294] };
-		expect(breadcrumbNeed(two)).toEqual({ whole: 500, page: 410 });
-		expect(planBreadcrumbOverflow({ ...two, available: 410 })).toEqual(P([], true));
-		expect(planBreadcrumbOverflow({ ...two, available: 409 })).toEqual(P([0]));
+		expect(breadcrumbNeed(two)).toEqual({ whole: 420, page: 330 });
+		expect(planBreadcrumbOverflow({ ...two, available: 330 })).toEqual(P([], true));
+		expect(planBreadcrumbOverflow({ ...two, available: 329 })).toEqual(P([0]));
 	});
 
 	it('never needs more to show the page than to show the whole trail', () => {
 		// One crumb on the way narrower than the … button, and no icon for the
 		// first: folding would widen the trail, so the page needs the whole of it.
 		const narrow = { ...TRAIL, crumbs: [126, 30, 294], firstCompact: null };
-		expect(breadcrumbNeed(narrow)).toEqual({ whole: 530, page: 530 });
-		expect(planBreadcrumbOverflow({ ...narrow, available: 530 })).toEqual(P([]));
-		// 24 + 294 + 80 = 398: the button alone stands before the page and its chip.
-		expect(planBreadcrumbOverflow({ ...narrow, available: 529 })).toEqual(P([0, 1]));
+		expect(breadcrumbNeed(narrow)).toEqual({ whole: 450, page: 450 });
+		expect(planBreadcrumbOverflow({ ...narrow, available: 450 })).toEqual(P([]));
+		// 24 + 294 = 318: the button alone stands before the page.
+		expect(planBreadcrumbOverflow({ ...narrow, available: 449 })).toEqual(P([0, 1]));
 	});
 
-	it('needs the page and its chip alone on a one-level trail, and nothing without a trail', () => {
-		expect(breadcrumbNeed({ ...TRAIL, crumbs: [294] })).toEqual({ whole: 374, page: 374 });
+	it('needs the page alone on a one-level trail, and nothing without a trail', () => {
+		expect(breadcrumbNeed({ ...TRAIL, crumbs: [294] })).toEqual({ whole: 294, page: 294 });
 		expect(breadcrumbNeed({ ...TRAIL, crumbs: [] })).toEqual({ whole: 0, page: 0 });
 	});
 });

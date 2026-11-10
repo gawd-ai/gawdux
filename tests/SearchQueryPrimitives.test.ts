@@ -1,6 +1,8 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/svelte';
 import { createRawSnippet } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import postcss, { type AtRule } from 'postcss';
+import listQueryBarSource from '../src/lib/primitives/ListQueryBar.svelte?raw';
 import FilterPillRow from '../src/lib/primitives/FilterPillRow.svelte';
 import ListQueryBar from '../src/lib/primitives/ListQueryBar.svelte';
 import SearchInput from '../src/lib/primitives/SearchInput.svelte';
@@ -213,5 +215,59 @@ describe('FilterPillRow', () => {
 		expect(screen.getByRole('button', { name: 'All 8' }).getAttribute('aria-pressed')).toBe('true');
 		await fireEvent.click(screen.getByRole('button', { name: 'Open 3' }));
 		expect(onSelect).toHaveBeenCalledWith('open');
+	});
+});
+
+
+describe('ListQueryBar on a phone: the filter button at the end of the pill row', () => {
+	const css = listQueryBarSource.slice(
+		listQueryBarSource.indexOf('<style>') + 7,
+		listQueryBarSource.lastIndexOf('</style>')
+	);
+	const root = postcss.parse(css);
+	const decls = (selector: string, media: string) => {
+		const found: Record<string, string> = {};
+		root.walkRules((rule) => {
+			const parent = rule.parent as AtRule | undefined;
+			if (parent?.type !== 'atrule' || parent.params !== media) return;
+			if (!rule.selectors.map((s) => s.trim()).includes(selector)) return;
+			rule.walkDecls((decl) => {
+				found[decl.prop] = decl.value;
+			});
+		});
+		return found;
+	};
+
+	it('gives the search its own line and the pills the room beside the filter button', () => {
+		// The search takes a line of its own only when pills follow it.
+		expect(decls('.list-query-search:has(~ .list-query-quick-filters)', '(max-width: 640px)')).toMatchObject({
+			'flex-basis': '100%'
+		});
+		// The pills take what the filter button leaves and scroll inside it;
+		// they never take the whole line and push the button onto one of its own.
+		expect(decls('.list-query-quick-filters', '(max-width: 640px)')).toEqual({
+			flex: '1 1 0%',
+			'min-width': '0'
+		});
+	});
+
+	it('marks the search box and keeps the button after the pills', () => {
+		render(ListQueryBar, {
+			props: {
+				quickFilters: createRawSnippet(() => ({ render: () => '<div data-testid="pills">pills</div>' })),
+				advancedFilters: createRawSnippet(() => ({ render: () => '<div>fields</div>' }))
+			}
+		});
+		const row = screen.getByTestId('pills').closest('.list-query-quick-filters')!.parentElement!;
+		const parts = Array.from(row.children, (child) =>
+			child.classList.contains('list-query-search')
+				? 'search'
+				: child.classList.contains('list-query-quick-filters')
+					? 'pills'
+					: child.classList.contains('list-query-filter-button')
+						? 'filter'
+						: 'other'
+		);
+		expect(parts).toEqual(['search', 'pills', 'filter']);
 	});
 });

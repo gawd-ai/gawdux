@@ -13,7 +13,7 @@ export type {
 	LedgerView
 } from './approvals-ledger';
 export { default as Breadcrumbs } from './Breadcrumbs.svelte';
-export { breadcrumbNeed } from './breadcrumb-overflow';
+export { BREADCRUMB_STACK_QUERY, breadcrumbNeed, breadcrumbWords } from './breadcrumb-overflow';
 export type { BreadcrumbNeed, BreadcrumbRoom } from './breadcrumb-overflow';
 export { default as CardContainer } from './CardContainer.svelte';
 export { default as ClearableInput } from './ClearableInput.svelte';
@@ -97,6 +97,13 @@ export { default as PageTabs } from './PageTabs.svelte';
 export { default as RailRowButton } from './RailRowButton.svelte';
 export { default as ReadonlyField } from './ReadonlyField.svelte';
 export { default as SearchInput } from './SearchInput.svelte';
+export { default as ShellBar } from './ShellBar.svelte';
+export {
+	SHELL_BAR_CONTEXT,
+	SHELL_BAR_QUERY,
+	SHELL_BAR_SPACE_VAR,
+	inShellBar
+} from './shell-bar';
 export { default as SectionLink } from './SectionLink.svelte';
 export type { SearchInputSize } from './SearchInput.svelte';
 export { default as ResizableSplitter } from './ResizableSplitter.svelte';
@@ -113,14 +120,20 @@ export { default as TableContainer } from './TableContainer.svelte';
 export { default as TabFillPanel } from './TabFillPanel.svelte';
 export { default as TabTitle } from './TabTitle.svelte';
 
-export { PAGE_COMMAND_BAR_CONTEXT, EMPTY_PAGE_COMMAND_BAR_SLOTS } from './page-chrome';
+export {
+	PAGE_COMMAND_BAR_CONTEXT,
+	EMPTY_PAGE_COMMAND_BAR_SLOTS,
+	PAGE_STATUS_CONTEXT,
+	createPageStatusHost
+} from './page-chrome';
 export { createPageCommandBarRegistry } from './page-command-bar-registry';
 export type {
 	AppBreadcrumbItem,
 	AppBreadcrumbData,
 	PageCommandBarZone,
 	PageCommandBarSlots,
-	PageCommandBarContext
+	PageCommandBarContext,
+	PageStatusHost
 } from './page-chrome';
 export type {
 	LifecycleAction,

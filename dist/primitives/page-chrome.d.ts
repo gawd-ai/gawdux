@@ -9,8 +9,27 @@ export type AppBreadcrumbItem = {
 };
 export type AppBreadcrumbData = {
     items: AppBreadcrumbItem[];
+    /**
+     * The page's state, stated with its trail. The trail never draws it: the
+     * page's own header does (`PAGE_STATUS_CONTEXT`), so a status shows once.
+     */
     status?: string | null;
 };
+/**
+ * The page's status as its host states it, for the page's own header to draw.
+ * A page whose tabs head its panel (PageTabs) draws it at the end of its tab
+ * strip; the first header to claim it draws it, so it shows once, never in
+ * the trail.
+ */
+export type PageStatusHost = {
+    /** What to draw: the host's status chip, or null for a page without one. */
+    readonly status: Snippet | null;
+    /** Claims the status for one header: a release, or null when another holds it. */
+    claim(): (() => void) | null;
+};
+export declare const PAGE_STATUS_CONTEXT: unique symbol;
+/** A host's page status, read live from `read`, drawn by the first header that claims it. */
+export declare function createPageStatusHost(read: () => Snippet | null): PageStatusHost;
 export type PageCommandBarZone = 'left' | 'center' | 'right';
 export type PageCommandBarSlots = {
     left: Snippet | null;

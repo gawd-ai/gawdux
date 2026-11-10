@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/svelte';
+import postcss, { type AtRule } from 'postcss';
 import { tick } from 'svelte';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ChevronRightOutline, FolderOutline } from 'flowbite-svelte-icons';
@@ -6,15 +7,15 @@ import Breadcrumbs from '../src/lib/primitives/Breadcrumbs.svelte';
 import breadcrumbsSource from '../src/lib/primitives/Breadcrumbs.svelte?raw';
 import BreadcrumbsHarness from './fixtures/BreadcrumbsHarness.svelte';
 import * as primitives from '../src/lib/primitives/index';
+import { BREADCRUMB_STACK_QUERY, breadcrumbWords } from '../src/lib/primitives/breadcrumb-overflow';
 import type { BreadcrumbCrumb } from '../src/lib/utils/url-breadcrumb';
 
 // jsdom lays nothing out, so the widths are a model: 10px a character, a
 // 36px icon in front of the first crumb, a 24px separator in front of every
 // other, 48px for the overflow button with its separator and 24px for it
 // alone.
-// The trail below is 126 + 114 + 174 + 94 + 294 = 802px, and its chip
-// ("In force") 80px: 882px in all. The thresholds are worked through in
-// breadcrumb-overflow.test.ts.
+// The trail below is 126 + 114 + 174 + 94 + 294 = 802px. The thresholds are
+// worked through in breadcrumb-overflow.test.ts.
 const CHAR = 10;
 
 const TRAIL: BreadcrumbCrumb[] = [
@@ -66,7 +67,6 @@ function modelWidth(el: Element): number {
 	if (measure === 'more') return 48;
 	if (measure === 'more-lead') return 24;
 	if (measure === 'first-compact') return 36;
-	if (el.classList.contains('trailing')) return CHAR * (el.textContent?.trim().length ?? 0);
 	return 0;
 }
 
@@ -94,8 +94,8 @@ function menuRows(): HTMLElement[] {
 	return Array.from(screen.getByRole('menu').querySelectorAll<HTMLElement>('[role="menuitem"]'));
 }
 
-async function renderTrail(width: number, items: BreadcrumbCrumb[] = TRAIL, status?: string | null) {
-	const result = render(BreadcrumbsHarness, { props: { items, ...(status === undefined ? {} : { status }) } });
+async function renderTrail(width: number, items: BreadcrumbCrumb[] = TRAIL) {
+	const result = render(BreadcrumbsHarness, { props: { items } });
 	await resize(width);
 	return result;
 }
@@ -129,8 +129,8 @@ afterEach(() => {
 });
 
 describe('Breadcrumbs: every crumb in full while they fit', () => {
-	it('shows the whole trail, its chip beside the current page, and no overflow button', async () => {
-		const { container } = await renderTrail(882);
+	it('shows the whole trail and no overflow button', async () => {
+		const { container } = await renderTrail(802);
 		expect(readTrail(container)).toEqual([
 			'Documents',
 			'Reference',
@@ -140,12 +140,11 @@ describe('Breadcrumbs: every crumb in full while they fit', () => {
 		]);
 		expect(screen.queryByRole('button', { name: 'Show the hidden levels' })).toBeNull();
 		const leaf = container.querySelector('nav > ol > li:last-child') as HTMLElement;
-		expect(leaf.querySelector('.chip')?.textContent).toBe('In force');
 		expect(leaf.querySelector('[title]')).toBeNull();
 	});
 
 	it('links every crumb that has an address and marks the page it stands on', async () => {
-		const { container } = await renderTrail(882);
+		const { container } = await renderTrail(802);
 		const links = Array.from(container.querySelectorAll<HTMLAnchorElement>('nav > ol a'));
 		expect(links.map((a) => a.getAttribute('href'))).toEqual([
 			'#/documents',
@@ -168,7 +167,7 @@ describe('Breadcrumbs: every crumb in full while they fit', () => {
 
 describe('Breadcrumbs: folding the crumbs on the way', () => {
 	it('folds the middle crumb first, into one … button standing where it was', async () => {
-		const { container } = await renderTrail(800);
+		const { container } = await renderTrail(720);
 		expect(readTrail(container)).toEqual([
 			'Documents',
 			'Reference',
@@ -182,45 +181,36 @@ describe('Breadcrumbs: folding the crumbs on the way', () => {
 	});
 
 	it('folds outward from the middle, the root side first, and keeps the first crumb and the page', async () => {
-		const { container } = await renderTrail(700);
+		const { container } = await renderTrail(620);
 		expect(readTrail(container)).toEqual(['Documents', '…', 'Package', 'QP-001 Document Control SOP']);
-		await resize(600);
+		await resize(520);
 		expect(readTrail(container)).toEqual(['Documents', '…', 'QP-001 Document Control SOP']);
 		const leaf = container.querySelector('nav > ol > li:last-child') as HTMLElement;
 		expect(leaf.querySelector('[title]')).toBeNull();
-		expect(leaf.querySelector('.chip')).not.toBeNull();
 	});
 
 	it('re-plans on every resize of its box, giving the crumbs back as room returns', async () => {
-		const { container } = await renderTrail(600);
+		const { container } = await renderTrail(520);
 		expect(readTrail(container)).toHaveLength(3);
-		await resize(756);
+		await resize(676);
 		expect(readTrail(container)).toHaveLength(5);
-		await resize(882);
+		await resize(802);
 		expect(readTrail(container)).toHaveLength(5);
 		expect(screen.queryByRole('button', { name: 'Show the hidden levels' })).toBeNull();
 	});
 
-	it('counts the chip beside the current page', async () => {
-		const { container, rerender } = await renderTrail(882);
-		expect(readTrail(container)).toHaveLength(5);
-		await rerender({ items: TRAIL, status: 'In force since today' });
-		await resize(882);
-		expect(readTrail(container)).toContain('…');
-	});
-
 	it('measures a new trail when the page changes', async () => {
-		const { container, rerender } = await renderTrail(600);
+		const { container, rerender } = await renderTrail(520);
 		expect(readTrail(container)).toEqual(['Documents', '…', 'QP-001 Document Control SOP']);
 		await rerender({ items: TRAIL.slice(0, 3).map((c, i) => (i === 2 ? { ...c, href: undefined } : c)) });
-		await resize(600);
+		await resize(520);
 		expect(readTrail(container)).toEqual(['Documents', 'Reference', 'Quality Systems']);
 	});
 });
 
 describe('Breadcrumbs: the overflow menu', () => {
 	it('is a menu button that lists the folded levels in order, as links', async () => {
-		await renderTrail(600);
+		await renderTrail(520);
 		const button = moreButton();
 		expect(button.getAttribute('aria-haspopup')).toBe('menu');
 		expect(button.getAttribute('aria-expanded')).toBe('false');
@@ -246,7 +236,7 @@ describe('Breadcrumbs: the overflow menu', () => {
 
 	it('lists a level without an address as words, which the arrows pass over', async () => {
 		const items = TRAIL.map((crumb, i) => (i === 2 ? { ...crumb, href: undefined } : crumb));
-		await renderTrail(600, items);
+		await renderTrail(520, items);
 		await fireEvent.click(moreButton(), { detail: 0 });
 		await tick();
 		const rows = menuRows();
@@ -258,7 +248,7 @@ describe('Breadcrumbs: the overflow menu', () => {
 	});
 
 	it('opens from the keyboard into its first row; the arrows move and wrap, Home and End jump', async () => {
-		await renderTrail(600);
+		await renderTrail(520);
 		// Enter and Space on a button are a click with no pointer detail.
 		await fireEvent.click(moreButton(), { detail: 0 });
 		await tick();
@@ -278,7 +268,7 @@ describe('Breadcrumbs: the overflow menu', () => {
 	});
 
 	it('opens on ArrowDown into the first row and on ArrowUp into the last', async () => {
-		await renderTrail(600);
+		await renderTrail(520);
 		await fireEvent.keyDown(moreButton(), { key: 'ArrowDown' });
 		await tick();
 		expect(document.activeElement).toBe(menuRows()[0]);
@@ -290,7 +280,7 @@ describe('Breadcrumbs: the overflow menu', () => {
 	});
 
 	it('closes on Escape and returns the focus to the button', async () => {
-		await renderTrail(600);
+		await renderTrail(520);
 		const button = moreButton();
 		await fireEvent.click(button, { detail: 0 });
 		await tick();
@@ -302,7 +292,7 @@ describe('Breadcrumbs: the overflow menu', () => {
 	});
 
 	it('takes the Escape that closes a menu the pointer opened, wherever the focus is', async () => {
-		await renderTrail(600);
+		await renderTrail(520);
 		await fireEvent.click(moreButton(), { detail: 1 });
 		const outside = screen.getByTestId('outside');
 		outside.focus();
@@ -320,7 +310,7 @@ describe('Breadcrumbs: the overflow menu', () => {
 	});
 
 	it('closes on a press outside it, on a chosen row, and when nothing is folded any more', async () => {
-		await renderTrail(600);
+		await renderTrail(520);
 		await fireEvent.click(moreButton(), { detail: 1 });
 		await fireEvent.click(screen.getByTestId('outside'));
 		await tick();
@@ -333,17 +323,17 @@ describe('Breadcrumbs: the overflow menu', () => {
 
 		await fireEvent.click(moreButton(), { detail: 1 });
 		expect(screen.queryByRole('menu')).not.toBeNull();
-		await resize(882);
+		await resize(802);
 		expect(screen.queryByRole('menu')).toBeNull();
 	});
 
 	it('stays closed when the trail folds again: an unfolding closes the menu, it does not hide it', async () => {
-		await renderTrail(600);
+		await renderTrail(520);
 		await fireEvent.click(moreButton(), { detail: 1 });
 		expect(screen.queryByRole('menu')).not.toBeNull();
-		await resize(882);
+		await resize(802);
 		expect(screen.queryByRole('menu')).toBeNull();
-		await resize(600);
+		await resize(520);
 		expect(screen.queryByRole('menu')).toBeNull();
 		expect(moreButton().getAttribute('aria-expanded')).toBe('false');
 		// Closed, it listens for nothing: an Escape elsewhere leaves the focus.
@@ -355,7 +345,7 @@ describe('Breadcrumbs: the overflow menu', () => {
 
 	it('takes the host wording for its button', async () => {
 		render(BreadcrumbsHarness, { props: { items: TRAIL, moreLabel: 'Show the full path' } });
-		await resize(600);
+		await resize(520);
 		const button = screen.getByRole('button', { name: 'Show the full path' });
 		expect(button.getAttribute('title')).toBe('Show the full path');
 	});
@@ -363,7 +353,7 @@ describe('Breadcrumbs: the overflow menu', () => {
 
 describe('Breadcrumbs: the current page gives way last', () => {
 	it('shows the first crumb as its icon alone once the folding is not enough, still a link, named in the menu', async () => {
-		const { container } = await renderTrail(500);
+		const { container } = await renderTrail(420);
 		expect(readTrail(container)).toEqual(['Documents', '…', 'QP-001 Document Control SOP']);
 		const first = container.querySelector('nav > ol > li:first-child') as HTMLElement;
 		const link = first.querySelector('a') as HTMLAnchorElement;
@@ -386,13 +376,12 @@ describe('Breadcrumbs: the current page gives way last', () => {
 		expect(menuRows()[0]?.getAttribute('href')).toBe('#/documents');
 	});
 
-	it('folds the first crumb before the page gives way, the page and its chip whole', async () => {
-		// 24 + 294 + 80 = 398: the button alone, the page, the chip.
-		const { container } = await renderTrail(400);
+	it('folds the first crumb before the page gives way, the page whole', async () => {
+		// 24 + 294 = 318: the button alone and the page.
+		const { container } = await renderTrail(320);
 		expect(readTrail(container)).toEqual(['…', 'QP-001 Document Control SOP']);
 		const leaf = container.querySelector('nav > ol > li:last-child') as HTMLElement;
 		expect(leaf.querySelector('[title]')).toBeNull();
-		expect(leaf.querySelector('.trailing')?.classList.contains('yielded')).toBe(false);
 	});
 
 	it('cuts the current page last of all, naming it in full in its tooltip and in the menu', async () => {
@@ -400,10 +389,6 @@ describe('Breadcrumbs: the current page gives way last', () => {
 		expect(readTrail(container)).toEqual(['…', 'QP-001 Document Control SOP']);
 		const leaf = container.querySelector('nav > ol > li:last-child') as HTMLElement;
 		expect(leaf.querySelector('[title]')?.getAttribute('title')).toBe('QP-001 Document Control SOP');
-		// The chip left the line before the page was cut, out of sight, never cut.
-		const chip = leaf.querySelector('.trailing') as HTMLElement;
-		expect(chip.classList.contains('yielded')).toBe(true);
-		expect(chip.getAttribute('aria-hidden')).toBe('true');
 
 		await fireEvent.click(moreButton(), { detail: 1 });
 		const rows = menuRows();
@@ -421,11 +406,11 @@ describe('Breadcrumbs: the current page gives way last', () => {
 
 	it('keeps the first crumb in words when it has no icon, then folds it before the page gives way', async () => {
 		const items = TRAIL.map((crumb, i) => (i === 0 ? { ...crumb, icon: undefined } : crumb));
-		const { container } = await renderTrail(548, items);
+		const { container } = await renderTrail(468, items);
 		const first = container.querySelector('nav > ol > li:first-child') as HTMLElement;
 		expect(first.querySelector('.visually-hidden')).toBeNull();
 		expect(readTrail(container)).toEqual(['Documents', '…', 'QP-001 Document Control SOP']);
-		await resize(480);
+		await resize(400);
 		expect(readTrail(container)).toEqual(['…', 'QP-001 Document Control SOP']);
 		const leaf = container.querySelector('nav > ol > li:last-child') as HTMLElement;
 		expect(leaf.querySelector('[title]')).toBeNull();
@@ -433,7 +418,7 @@ describe('Breadcrumbs: the current page gives way last', () => {
 });
 
 describe('Breadcrumbs: the current page keeps a readable minimum', () => {
-	// Four levels, no chip: the pane a chat dock leaves the trail. Package's
+	// Four levels: the pane a chat dock leaves the trail. Package's
 	// crumb is 94px; the icon, the button and the page at its 64px minimum
 	// are 148px, more than the 97px the trail has.
 	const FOUR: BreadcrumbCrumb[] = [
@@ -444,7 +429,7 @@ describe('Breadcrumbs: the current page keeps a readable minimum', () => {
 	];
 
 	it('folds the first crumb into the menu before the page would go below its minimum', async () => {
-		const { container } = await renderTrail(97, FOUR, null);
+		const { container } = await renderTrail(97, FOUR);
 		expect(readTrail(container)).toEqual(['…', 'Package']);
 		// The button stands first: no separator before it.
 		const more = container.querySelector('nav > ol > li:first-child') as HTMLElement;
@@ -471,7 +456,7 @@ describe('Breadcrumbs: the current page keeps a readable minimum', () => {
 	it('reads the page whole again when folding the first crumb frees the room', async () => {
 		// 24 + 94 = 118 holds the page whole; 36 + 48 + 94 = 178 brings the
 		// first crumb back as its icon.
-		const { container } = await renderTrail(147, FOUR, null);
+		const { container } = await renderTrail(147, FOUR);
 		expect(readTrail(container)).toEqual(['…', 'Package']);
 		const leaf = container.querySelector('nav > ol > li:last-child') as HTMLElement;
 		expect(leaf.querySelector('[title]')).toBeNull();
@@ -481,24 +466,9 @@ describe('Breadcrumbs: the current page keeps a readable minimum', () => {
 		expect(readTrail(container)).toEqual(['Documents', '…', 'Package']);
 	});
 
-	it('takes the chip off the line before it cuts the page, and brings it back with the room', async () => {
-		// 24 + 294 = 318: the button and the page; the chip leaves the line below 398.
-		const { container } = await renderTrail(318);
-		expect(readTrail(container)).toEqual(['…', 'QP-001 Document Control SOP']);
-		const leaf = container.querySelector('nav > ol > li:last-child') as HTMLElement;
-		expect(leaf.querySelector('[title]')).toBeNull();
-		expect(leaf.querySelector('.trailing')?.classList.contains('yielded')).toBe(true);
-		// The page's minimum no longer reserves the chip's width.
-		await resize(168);
-		expect(leaf.style.getPropertyValue('--gawdux-breadcrumb-leaf-min')).toBe('64px');
-		await resize(398);
-		expect(leaf.querySelector('.trailing')?.classList.contains('yielded')).toBe(false);
-		expect(leaf.querySelector('.chip')).not.toBeNull();
-	});
-
 	it('never sets a page no wider than the minimum wider than itself', async () => {
 		const short = FOUR.map((crumb, i) => (i === 3 ? { ...crumb, label: 'QC' } : crumb));
-		const { container } = await renderTrail(60, short, null);
+		const { container } = await renderTrail(60, short);
 		const leaf = container.querySelector('nav > ol > li:last-child') as HTMLElement;
 		// 24 + 2 characters
 		expect(leaf.style.getPropertyValue('--gawdux-breadcrumb-leaf-min')).toBe('44px');
@@ -508,13 +478,13 @@ describe('Breadcrumbs: the current page keeps a readable minimum', () => {
 
 describe('Breadcrumbs: the focus follows its level when the trail re-plans', () => {
 	it('moves from a menu row to its crumb when the trail unfolds and the menu closes', async () => {
-		const { container } = await renderTrail(600);
+		const { container } = await renderTrail(520);
 		await fireEvent.click(moreButton(), { detail: 0 });
 		await tick();
 		await fireEvent.keyDown(menuRows()[0]!, { key: 'ArrowDown' });
 		expect(document.activeElement?.textContent?.trim()).toBe('Quality Systems');
 
-		await resize(882);
+		await resize(802);
 		await settle();
 		expect(screen.queryByRole('menu')).toBeNull();
 		expect(document.activeElement).toBe(trailLink(container, '#/documents/reference/7'));
@@ -522,11 +492,11 @@ describe('Breadcrumbs: the focus follows its level when the trail re-plans', () 
 
 	it('moves to the current page when the level it stood on has no link', async () => {
 		const items = TRAIL.map((crumb, i) => (i === 2 ? { ...crumb, href: undefined } : crumb));
-		const { container } = await renderTrail(600, items);
+		const { container } = await renderTrail(520, items);
 		await fireEvent.click(moreButton(), { detail: 1 });
 		menuRows()[1]!.focus();
 
-		await resize(882);
+		await resize(802);
 		await settle();
 		const page = container.querySelector('nav > ol [aria-current="page"]');
 		expect(page).not.toBeNull();
@@ -534,13 +504,13 @@ describe('Breadcrumbs: the focus follows its level when the trail re-plans', () 
 	});
 
 	it('moves to the crumb and closes the menu when its level alone comes back to the trail', async () => {
-		const { container } = await renderTrail(500);
+		const { container } = await renderTrail(420);
 		await fireEvent.click(moreButton(), { detail: 0 });
 		await tick();
 		expect(document.activeElement?.textContent?.trim()).toBe('Documents');
 
 		// The first crumb shows in words again; the rest stays folded.
-		await resize(600);
+		await resize(520);
 		await settle();
 		expect(readTrail(container)).toEqual(['Documents', '…', 'QP-001 Document Control SOP']);
 		expect(screen.queryByRole('menu')).toBeNull();
@@ -548,20 +518,20 @@ describe('Breadcrumbs: the focus follows its level when the trail re-plans', () 
 	});
 
 	it('stays on the … button when the button moves', async () => {
-		await renderTrail(800);
+		await renderTrail(720);
 		moreButton().focus();
 		// The button stood for Quality Systems; it now stands for Reference too.
-		await resize(700);
+		await resize(620);
 		await settle();
 		expect(document.activeElement).toBe(moreButton());
 	});
 
 	it('stays on the … button when the trail widens and the button moves on', async () => {
-		const { container } = await renderTrail(700);
+		const { container } = await renderTrail(620);
 		expect(readTrail(container)).toEqual(['Documents', '…', 'Package', 'QP-001 Document Control SOP']);
 		moreButton().focus();
 		// Reference comes back to the trail; the button now stands for Quality Systems.
-		await resize(800);
+		await resize(720);
 		await settle();
 		expect(readTrail(container)).toEqual([
 			'Documents',
@@ -574,12 +544,12 @@ describe('Breadcrumbs: the focus follows its level when the trail re-plans', () 
 	});
 
 	it('keeps a menu opened by the pointer open, the focus on its button, as the trail widens', async () => {
-		await renderTrail(700);
+		await renderTrail(620);
 		// A press on the button focuses it before its click (jsdom only clicks).
 		moreButton().focus();
 		await fireEvent.click(moreButton(), { detail: 1 });
 		expect(document.activeElement).toBe(moreButton());
-		await resize(800);
+		await resize(720);
 		await settle();
 		expect(screen.getByRole('menu')).not.toBeNull();
 		expect(menuRows().map((row) => row.textContent?.trim())).toEqual(['Quality Systems']);
@@ -587,28 +557,28 @@ describe('Breadcrumbs: the focus follows its level when the trail re-plans', () 
 	});
 
 	it('stays on the … button when the first crumb comes back in front of it', async () => {
-		const { container } = await renderTrail(457);
+		const { container } = await renderTrail(377);
 		expect(readTrail(container)[0]).toBe('…');
 		moreButton().focus();
-		await resize(458);
+		await resize(378);
 		await settle();
 		expect(readTrail(container)[0]).toBe('Documents');
 		expect(document.activeElement).toBe(moreButton());
 	});
 
 	it('moves from a crumb that folds to the … button standing for it', async () => {
-		const { container } = await renderTrail(882);
+		const { container } = await renderTrail(802);
 		trailLink(container, '#/documents/reference/7').focus();
-		await resize(800);
+		await resize(720);
 		await settle();
 		expect(document.activeElement).toBe(moreButton());
 	});
 
 	it('leaves the focus where it is when it was not in the trail', async () => {
-		await renderTrail(600);
+		await renderTrail(520);
 		const outside = screen.getByTestId('outside');
 		outside.focus();
-		await resize(882);
+		await resize(802);
 		await settle();
 		expect(document.activeElement).toBe(outside);
 	});
@@ -624,57 +594,165 @@ describe('Breadcrumbs: the room it needs', () => {
 	});
 
 	it('reports the room it has, the room it needs to show whole and the room it needs to show its page whole', async () => {
-		await renderTrail(600);
-		// Whole: 802 + the 80px chip. The page whole: the first as its icon
-		// (36), the … button (48), the page (294) and the chip (80).
-		expect(report()).toBe('600 882 458');
+		await renderTrail(520);
+		// Whole: 802. The page whole: the first as its icon (36), the …
+		// button (48) and the page (294).
+		expect(report()).toBe('520 802 378');
 	});
 
 	it('needs the same whatever room it has: a resize changes only the room it has', async () => {
-		await renderTrail(600);
+		await renderTrail(520);
 		await resize(300);
-		expect(report()).toBe('300 882 458');
+		expect(report()).toBe('300 802 378');
 		await resize(1200);
-		expect(report()).toBe('1200 882 458');
-	});
-
-	it('counts the chip only when the page has one', async () => {
-		await renderTrail(600, TRAIL, null);
-		expect(report()).toBe('600 802 378');
+		expect(report()).toBe('1200 802 378');
 	});
 
 	it("reports a new trail's need as soon as it is measured", async () => {
-		const { rerender } = await renderTrail(600);
+		const { rerender } = await renderTrail(520);
 		await rerender({ items: TRAIL.slice(0, 2) });
 		await tick();
-		// 126 + 114 + 80 whole; the first as its icon, 36 + 114 + 80, with the page whole.
-		expect(report()).toBe('600 320 230');
+		// 126 + 114 whole; the first as its icon, 36 + 114, with the page whole.
+		expect(report()).toBe('520 240 150');
 	});
 });
 
-describe('Breadcrumbs: one line', () => {
-	const css = breadcrumbsSource.slice(breadcrumbsSource.indexOf('<style>'));
-	const rule = (selector: string) => {
-		const at = css.indexOf(`${selector} {`);
-		expect(at, selector).toBeGreaterThan(-1);
-		return css.slice(at, css.indexOf('}', at));
-	};
+describe('Breadcrumbs: two lines at the compact width', () => {
+	/** The window at or below the compact width, for this test. */
+	function compactWindow(matches = true) {
+		vi.stubGlobal(
+			'matchMedia',
+			vi.fn((query: string) => ({
+				matches: matches && query === BREADCRUMB_STACK_QUERY,
+				media: query,
+				onchange: null,
+				addEventListener: () => {},
+				removeEventListener: () => {},
+				addListener: () => {},
+				removeListener: () => {},
+				dispatchEvent: () => false
+			}))
+		);
+	}
 
-	it('never wraps the trail and ellipsizes only a label', () => {
-		expect(rule('.trail')).toMatch(/flex-wrap:\s*nowrap/);
-		expect(rule('.trail')).toMatch(/white-space:\s*nowrap/);
-		expect(rule('.breadcrumb-label')).toMatch(/text-overflow:\s*ellipsis/);
-		expect(css).not.toMatch(/flex-wrap:\s*wrap/);
+	it('stacks at the shell compact width', () => {
+		expect(BREADCRUMB_STACK_QUERY).toBe('(max-width: 1024px)');
 	});
 
-	it('keeps every crumb but the current page at its own width', () => {
-		expect(rule('.crumb')).toMatch(/flex:\s*0 0 auto/);
-		expect(rule('.crumb.leaf')).toMatch(/flex:\s*0 1 auto/);
-		// ...and never below its readable minimum, which the plan sets.
-		expect(rule('.crumb.leaf')).toMatch(/min-width:\s*var\(--gawdux-breadcrumb-leaf-min,\s*0px\)/);
-		// ...and never below its readable minimum, which the plan sets.
-		expect(rule('.crumb.leaf')).toMatch(/min-width:\s*var\(--gawdux-breadcrumb-leaf-min,\s*0px\)/);
-		expect(rule('.trailing')).toMatch(/flex:\s*0 0 auto/);
+	it('plans the path alone: the current page has a line of its own and is never cut', async () => {
+		compactWindow();
+		// The path is 126 + 114 + 174 + 94 = 508: it fits at 510 though the
+		// whole trail (802) would not fit one line.
+		const { container } = await renderTrail(510);
+		expect(container.querySelector('nav')?.getAttribute('data-layout')).toBe('adaptive');
+		expect(readTrail(container)).toEqual([
+			'Documents',
+			'Reference',
+			'Quality Systems',
+			'Package',
+			'QP-001 Document Control SOP'
+		]);
+		expect(screen.queryByRole('button', { name: 'Show the hidden levels' })).toBeNull();
+
+		// 126 + 48 + 94 = 268: the middle of the path folds, the page whole.
+		await resize(300);
+		expect(readTrail(container)).toEqual(['Documents', '…', 'Package', 'QP-001 Document Control SOP']);
+		const leaf = container.querySelector('nav > ol > li.leaf') as HTMLElement;
+		expect(leaf.querySelector('[title]')).toBeNull();
+		expect(leaf.classList.contains('cuts')).toBe(false);
+	});
+
+	it("cuts the page's parent last, naming it in the menu, and never the page", async () => {
+		compactWindow();
+		// 24 + 94 = 118 > 100: the button stands first and Package is cut.
+		const { container } = await renderTrail(100);
+		expect(readTrail(container)).toEqual(['…', 'Package', 'QP-001 Document Control SOP']);
+		const parent = container.querySelector('nav > ol > li[data-level="3"]') as HTMLElement;
+		expect(parent.classList.contains('cuts')).toBe(true);
+		expect(parent.style.getPropertyValue('--gawdux-breadcrumb-leaf-min')).toBe('64px');
+		expect(parent.querySelector('[title]')?.getAttribute('title')).toBe('Package');
+		const leaf = container.querySelector('nav > ol > li.leaf') as HTMLElement;
+		expect(leaf.querySelector('[title]')).toBeNull();
+		await fireEvent.click(moreButton(), { detail: 1 });
+		expect(menuRows().map((row) => row.textContent?.trim())).toEqual([
+			'Documents',
+			'Reference',
+			'Quality Systems',
+			'Package'
+		]);
+	});
+
+	it('keeps one line where the host asks for it', async () => {
+		compactWindow();
+		const { container } = render(BreadcrumbsHarness, { props: { items: TRAIL, layout: 'line' } });
+		await resize(510);
+		expect(container.querySelector('nav')?.getAttribute('data-layout')).toBe('line');
+		expect(readTrail(container)).toContain('…');
+	});
+
+	it("draws the page's words as runs that never break inside themselves", async () => {
+		const items = [
+			{ label: 'Change controls', href: '#/cc', icon: FolderOutline },
+			{ label: 'CC-0003 · Review deployment gate-shots', icon: ChevronRightOutline }
+		];
+		const { container } = await renderTrail(800, items);
+		const words = Array.from(
+			container.querySelectorAll<HTMLElement>('nav > ol > li.leaf .word'),
+			(word) => word.textContent
+		);
+		expect(words).toEqual(['CC-0003\u00a0·', 'Review', 'deployment', 'gate-shots']);
+		expect(breadcrumbWords(' A  | B ')).toEqual(['A\u00a0|', 'B']);
+	});
+});
+
+describe('Breadcrumbs: its layout', () => {
+	const css = breadcrumbsSource.slice(
+		breadcrumbsSource.indexOf('<style>') + 7,
+		breadcrumbsSource.lastIndexOf('</style>')
+	);
+	const root = postcss.parse(css.replace(/:global\(([^()]*)\)/g, '$1'));
+	/** The declarations of the rule for `selector`, at the top level or in a media block. */
+	function rule(selector: string, media: string | null = null): Record<string, string> {
+		const found: Record<string, string> = {};
+		root.walkRules((node) => {
+			const parent = node.parent as AtRule | undefined;
+			const inMedia = parent?.type === 'atrule' ? parent.params : null;
+			if (inMedia !== media || !node.selectors.map((s) => s.trim()).includes(selector)) return;
+			node.walkDecls((decl) => {
+				found[decl.prop] = decl.value;
+			});
+		});
+		return found;
+	}
+	const COMPACT = '(max-width: 1024px)';
+	const A = ".gawdux-breadcrumbs[data-layout='adaptive']";
+
+	it('is one line above the compact width and ellipsizes only a label', () => {
+		expect(rule('.trail')).toMatchObject({ 'flex-wrap': 'nowrap', 'white-space': 'nowrap' });
+		expect(rule('.breadcrumb-label')).toMatchObject({ 'text-overflow': 'ellipsis' });
+		expect(rule('.crumb')).toMatchObject({ flex: '0 0 auto' });
+		// The crumb cut last never goes below its readable minimum, which the plan sets.
+		expect(rule('.crumb.cuts')).toMatchObject({
+			flex: '0 1 auto',
+			'min-width': 'var(--gawdux-breadcrumb-leaf-min, 0px)'
+		});
+		expect(rule('.word')).toMatchObject({ 'white-space': 'nowrap' });
+	});
+
+	it('is two lines at it: a smaller muted path, the page on a line of its own wrapping between its words', () => {
+		expect(rule(`${A} > .trail`, COMPACT)).toMatchObject({ 'flex-wrap': 'wrap' });
+		expect(rule(`${A} .crumb:not(.leaf) .breadcrumb-title`, COMPACT)).toMatchObject({
+			'font-size': '0.75rem',
+			color: 'var(--gawdux-text-muted)'
+		});
+		expect(rule(`${A} .crumb.leaf`, COMPACT)).toMatchObject({ flex: '1 0 100%' });
+		expect(rule(`${A} .crumb.leaf:not(:first-child) > .breadcrumb-chevron`, COMPACT)).toMatchObject({
+			display: 'none'
+		});
+		expect(rule(`${A} .crumb.leaf .breadcrumb-label`, COMPACT)).toMatchObject({
+			'white-space': 'normal',
+			overflow: 'visible'
+		});
 	});
 });
 

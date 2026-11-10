@@ -12,14 +12,21 @@
  *   2. the first crumb shows as its icon alone (when it has one);
  *   3. the first crumb folds into the button too, which then stands first
  *      with no separator before it (when that narrows the trail);
- *   4. the trailing content beside the current page (a status chip) leaves
- *      the line: a chip is never cut, and the page's own header carries the
- *      state it repeats;
- *   5. the current page ellipsizes, down to its readable minimum
+ *   4. the current page ellipsizes, down to its readable minimum
  *      (`breadcrumbLeafMin`), never below it.
  * Past the narrowest the trail can go, the page holds its minimum and the
- * trail's box clips the end.
+ * trail's box clips the end. The trail carries no status: the page's own
+ * header wears it.
+ *
+ * At the shell's compact width a trail reads on two lines (Breadcrumbs,
+ * `layout` "adaptive"): the current page on a line of its own, whole and
+ * wrapping between its words, and the path above it. The path is planned
+ * the same way, its last crumb (the current page's parent) standing for the
+ * page above: it is the one that ellipsizes last.
  */
+
+/** The width at or below which an adaptive trail reads on two lines. */
+export const BREADCRUMB_STACK_QUERY = '(max-width: 1024px)';
 
 /** The current page's readable minimum, its separator in: four or five characters and the ellipsis. */
 export const BREADCRUMB_LEAF_MIN_PX = 64;
@@ -44,8 +51,6 @@ export type BreadcrumbOverflowMeasure = {
 	moreLead: number;
 	/** The first crumb as its icon alone; null when it has no icon to stand for it. */
 	firstCompact: number | null;
-	/** What rides beside the current page (a status chip); 0 when nothing does. */
-	trailing: number;
 };
 
 export type BreadcrumbOverflowPlan = {
@@ -58,15 +63,12 @@ export type BreadcrumbOverflowPlan = {
 	compactFirst: boolean;
 	/** The current page does not fit whole and ends in an ellipsis. */
 	leafCut: boolean;
-	/** The trailing content leaves the line (step 4); it is never cut. */
-	trailingHidden: boolean;
 };
 
 const NOTHING: BreadcrumbOverflowPlan = {
 	hidden: [],
 	compactFirst: false,
-	leafCut: false,
-	trailingHidden: false
+	leafCut: false
 };
 
 /**
@@ -75,12 +77,11 @@ const NOTHING: BreadcrumbOverflowPlan = {
  * decide again without the decision undoing itself.
  */
 export type BreadcrumbNeed = {
-	/** Every crumb in full, the trailing content beside the current page. */
+	/** Every crumb in full. */
 	whole: number;
 	/**
-	 * The current page whole, its trailing content beside it: the crumbs on
-	 * the way folded and the first as its icon. From this width up the plan
-	 * never cuts the page.
+	 * The current page whole: the crumbs on the way folded and the first as
+	 * its icon. From this width up the plan never cuts the page.
 	 */
 	page: number;
 };
@@ -96,14 +97,13 @@ export function breadcrumbNeed(measure: Omit<BreadcrumbOverflowMeasure, 'availab
 	const count = measure.crumbs.length;
 	if (count === 0) return { whole: 0, page: 0 };
 	const crumbs = measure.crumbs.map((width) => Math.ceil(width));
-	const trailing = Math.ceil(measure.trailing);
-	const whole = crumbs.reduce((sum, width) => sum + width, 0) + trailing;
+	const whole = crumbs.reduce((sum, width) => sum + width, 0);
 	if (count === 1) return { whole, page: whole };
 	const first = measure.firstCompact === null ? crumbs[0]! : Math.ceil(measure.firstCompact);
 	const folded = count > 2 ? Math.ceil(measure.more) : 0;
 	// Folding can widen a trail (a crumb narrower than the … button): the
 	// page then needs no more than the whole trail.
-	return { whole, page: Math.min(whole, first + folded + crumbs[count - 1]! + trailing) };
+	return { whole, page: Math.min(whole, first + folded + crumbs[count - 1]!) };
 }
 
 /**
@@ -126,24 +126,17 @@ export function planBreadcrumbOverflow(measure: BreadcrumbOverflowMeasure): Brea
 	// a sub-pixel overflow for the ellipsis to show.
 	const available = Math.floor(measure.available);
 	const crumbs = measure.crumbs.map((width) => Math.ceil(width));
-	const trailing = Math.ceil(measure.trailing);
 	const last = count - 1;
 	const leaf = crumbs[last]!;
 	const leafMin = Math.ceil(breadcrumbLeafMin(measure.crumbs[last]!));
 	/** The page can give way at all: it is wider than its minimum. */
 	const leafGives = leaf > leafMin;
 	/** Before the current page there is `before`: the page does not fit whole. */
-	const overflows = (before: number) => before + leaf + trailing > available;
-
-	/** The trailing content can leave the line at all. */
-	const trailingGives = trailing > 0;
-	/** The page fits whole after `before`, the trailing content off the line. */
-	const fitsAlone = (before: number) => before + leaf <= available;
+	const overflows = (before: number) => before + leaf > available;
 
 	if (count === 1) {
 		if (!overflows(0)) return NOTHING;
-		if (fitsAlone(0)) return { ...NOTHING, trailingHidden: trailingGives };
-		return { ...NOTHING, leafCut: leafGives, trailingHidden: trailingGives };
+		return { ...NOTHING, leafCut: leafGives };
 	}
 
 	const hidden = new Set<number>();
@@ -179,9 +172,24 @@ export function planBreadcrumbOverflow(measure: BreadcrumbOverflowMeasure): Brea
 		: { hidden: folded(), compactFirst };
 	if (foldFirst && !overflows(head)) return { ...NOTHING, ...shape };
 
-	// 4. The trailing content leaves the line.
-	if (fitsAlone(head)) return { ...shape, leafCut: false, trailingHidden: trailingGives };
+	// 4. The current page ellipsizes, down to its minimum.
+	return { ...shape, leafCut: leafGives };
+}
 
-	// 5. The current page ellipsizes, down to its minimum.
-	return { ...shape, leafCut: leafGives, trailingHidden: trailingGives };
+/**
+ * The current page's words, each a run that never breaks inside itself, so a
+ * title on a line of its own wraps only between its words: an identifier
+ * (CC-0003, a version, a date) stays whole. A separator standing alone
+ * (" · ", " | ", " – ") joins the word before it with a no-break space, so no
+ * line starts with it.
+ */
+export function breadcrumbWords(label: string): string[] {
+	const words: string[] = [];
+	for (const token of label.trim().split(/\s+/)) {
+		if (!token) continue;
+		const previous = words.length - 1;
+		if (previous >= 0 && /^[·•|–—/:]+$/.test(token)) words[previous] += ` ${token}`;
+		else words.push(token);
+	}
+	return words;
 }

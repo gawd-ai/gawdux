@@ -1,5 +1,7 @@
 /*! tailwindcss v4.0.2 | MIT License | https://tailwindcss.com */
 :root {
+  --gawdux-shell-bar-height: 48px;
+  --gawdux-shell-bar-space: calc(var(--gawdux-shell-bar-height) + env(safe-area-inset-bottom, 0px));
   --gawdux-surface: var(--color-white);
   --gawdux-surface-card: var(--color-white);
   --gawdux-surface-input: var(--color-gray-50);
@@ -915,6 +917,9 @@ main:has(.page-command-drawer) .page-command-bar,
   .cmd-bar-zone:not(:has(> *)) {
     display: none;
   }
+  .page-command-bar > .cmd-bar-center {
+    justify-content: center;
+  }
   .cmd-bar-zone > * {
     flex: 0 1 auto;
     min-width: 0;
@@ -1246,6 +1251,83 @@ main:has(.page-command-drawer) .page-command-bar,
 		textarea
 	) {
     font-size: 16px;
+  }
+}
+.page-tabs-list > .page-tabs-status {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-inline-start: auto;
+  padding-inline: 0.5rem;
+}
+@media (max-width: 1024px) {
+  .page-tabs-list > .page-tabs-status {
+    position: sticky;
+    right: 0;
+    z-index: 1;
+    background-color: var(--gawdux-surface-card);
+  }
+}
+@media not all and (max-width: 1024px) {
+  .gawdux-shell-bar[data-shell-bar='hidden'] {
+    display: none;
+  }
+  .gawdux-shell-bar > .gawdux-shell-bar-end {
+    display: none;
+  }
+}
+@media (max-width: 1024px) {
+  .gawdux-shell-bar[data-shell-bar] {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 40;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    width: auto;
+    height: var(--gawdux-shell-bar-space);
+    padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    border-top: 1px solid rgb(229 231 235 / 0.6);
+    background-color: var(--gawdux-surface-card);
+    box-shadow: 0 -4px 12px rgb(15 23 42 / 0.06);
+  }
+  .dark .gawdux-shell-bar[data-shell-bar] {
+    border-top-color: rgb(31 41 55 / 0.8);
+  }
+  .gawdux-shell-bar[data-shell-bar]:has(.gawdux-shell-bar-sheet) {
+    z-index: 90;
+  }
+  .gawdux-shell-bar[data-shell-bar] > :is([data-shell-bar-group], .gawdux-shell-bar-end) {
+    display: contents;
+  }
+  .gawdux-shell-bar[data-shell-bar] > [data-shell-bar-column] {
+    display: none;
+  }
+  .gawdux-shell-bar[data-shell-bar] :is(button, a[href], [role='button']):not(.gawdux-shell-bar-sheet *) {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .gawdux-shell-bar-sheet {
+    position: fixed;
+    inset-inline: 0.5rem;
+    bottom: calc(var(--gawdux-shell-bar-space) + 0.5rem);
+    box-sizing: border-box;
+    max-height: calc(100dvh - var(--gawdux-shell-bar-space) - 4.5rem);
+    overflow-y: auto;
+    border: 1px solid var(--gawdux-border);
+    border-radius: 0.5rem;
+    background-color: var(--gawdux-menu-surface, var(--gawdux-surface-card));
+    box-shadow: 0 -8px 24px -6px rgb(0 0 0 / 0.14),
+			0 2px 4px rgb(0 0 0 / 0.05);
+    text-align: left;
+  }
+  .dark .gawdux-shell-bar-sheet {
+    box-shadow: 0 -12px 28px -6px rgb(0 0 0 / 0.65),
+			0 2px 4px rgb(0 0 0 / 0.4);
   }
 }
 @property --tw-border-style {

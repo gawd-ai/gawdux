@@ -173,7 +173,7 @@
 	aria-busy={busy}
 >
 	<div class="flex min-w-0 flex-wrap items-center gap-2">
-		<div class="min-w-0 flex-1">
+		<div class="list-query-search min-w-0 flex-1">
 			<SearchInput
 				id={searchId}
 				size="standard"
@@ -313,10 +313,15 @@
 			grid-template-columns: minmax(0, 1fr);
 		}
 
-		/* Inline filters get their own full-width line rather than competing
-		   with the search input for a phone-width row. */
+		/* The search takes a line of its own; the pills take what the filter
+		   button leaves on the next and scroll inside it, so the button sits at
+		   the end of the pill row instead of alone on a line of its own. */
+		.list-query-search:has(~ .list-query-quick-filters) {
+			flex-basis: 100%;
+		}
 		.list-query-quick-filters {
-			width: 100%;
+			flex: 1 1 0%;
+			min-width: 0;
 		}
 	}
 

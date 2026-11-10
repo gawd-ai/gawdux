@@ -1,5 +1,55 @@
 # Changelog
 
+## 0.29.0 - the phone shell: one bar at the bottom, a two-line trail, a status shown once
+
+### Added
+
+- `ShellBar`, the phone shell's one bar along the bottom of the screen. At or
+  below the shell's compact width (`SHELL_BAR_QUERY`, 1024px) it is one row
+  fixed to the bottom, clear of the safe-area inset, every control in it a
+  44px target: an occupant's controls first (a chat rail, in its order), then
+  the host's at its end (`end`: the notices, the theme, the account), so a
+  phone has one bar, never two stacked. Above the compact width the host's end
+  is hidden and the element is not drawn (`wide` "hidden") or left to its
+  occupant's layout (`wide` "column"). An occupant marks the parts that give
+  their controls to the row `data-shell-bar-group` and a part of its column
+  alone `data-shell-bar-column`. The bar's height and the inset below it are
+  `--gawdux-shell-bar-space` (`SHELL_BAR_SPACE_VAR`), which a host leaves under
+  its page. What it holds reads `inShellBar()` as true; a menu there opens
+  upward as `.gawdux-shell-bar-sheet`, above the bar inside the screen's
+  gutter, never a modal, and while one is open the bar stands above the
+  page's floating layers. The layout is the stylesheet's (tokens.css).
+- `PAGE_STATUS_CONTEXT`, `createPageStatusHost` and `PageStatusHost`: a host
+  states the page's status once, and the page's own header draws it.
+  `PageTabs` claims it and draws it at the end of its tab strip
+  (`data-page-status`), in sight at the strip's end where the tabs scroll; a
+  second set of tabs inside the first draws nothing.
+- `BREADCRUMB_STACK_QUERY` and `breadcrumbWords`.
+- `UserMenu` in a `ShellBar` is the avatar alone and opens its body upward as
+  the bar's sheet.
+
+### Changed
+
+- `Breadcrumbs` reads on two lines at or below the compact width (`layout`
+  "adaptive", the default): the current page on a line of its own, whole,
+  wrapping between its words and never inside one (an identifier such as
+  CC-0003 never breaks; a separator stays with the word before it), and
+  the path above it on a smaller muted line, which folds its middle crumbs
+  into the … menu, then shows the first crumb as its icon, then folds it, then
+  cuts the page's parent, every crumb reachable. Above it the trail keeps one
+  line; `layout` "line" keeps one line at every width.
+- The page command bar centres its commands on a phone as it does above the
+  compact width, and centres every row they wrap onto.
+- `ListQueryBar` on a phone keeps the filter button at the end of the pill
+  row: the search takes a line of its own and the pills scroll beside the
+  button, instead of the button standing alone on a third line.
+
+### Removed
+
+- `Breadcrumbs`' `trailing` and the plan's `trailingHidden`, and
+  `BreadcrumbOverflowMeasure.trailing`: the trail carries no status, the
+  page's own header does (`PAGE_STATUS_CONTEXT`).
+
 ## 0.28.1 - an empty state says what is so
 
 ### Changed

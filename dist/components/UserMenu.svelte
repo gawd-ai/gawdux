@@ -20,6 +20,10 @@
 	probe (`data-room-full`) laid out at full size whatever the menu shows. The
 	closed card names the person in its tooltip at every size.
 
+	In a ShellBar (`inShellBar()`, the phone shell's bar along the bottom of
+	the screen) the closed card is the avatar alone and the open body rises
+	above the bar as its sheet (`.gawdux-shell-bar-sheet`), never a modal.
+
 	Keyboard: the WAI-ARIA menu button pattern. Enter, Space or ArrowDown on the
 	trigger opens and focuses the first row, ArrowUp the last; in the menu the
 	arrows wrap, Home and End jump, Escape closes and returns focus to the
@@ -36,6 +40,7 @@
 	import { onDestroy, tick } from 'svelte';
 	import { ArrowRightToBracketOutline } from 'flowbite-svelte-icons';
 	import type { UserMenuProps } from '../types/user-menu.types';
+	import { inShellBar } from '../primitives/shell-bar';
 
 	let {
 		name,
@@ -82,6 +87,8 @@
 	/** How the menu was opened: only a pointer-opened menu closes when the pointer leaves. */
 	let openedBy: 'pointer' | 'keyboard' = 'pointer';
 	let leaveTimer: ReturnType<typeof setTimeout> | undefined;
+	/** In the phone shell's bar: the avatar alone, the body a sheet above the bar. */
+	const inBar = inShellBar();
 
 	function rootAction(node: HTMLElement) {
 		root = node;
@@ -345,6 +352,7 @@
 <div
 	class="gawdux-user-menu {compactClass}"
 	class:compact
+	class:in-bar={inBar}
 	data-user-menu
 	data-state={open ? 'open' : 'closed'}
 	style:--gawdux-user-menu-room={room === undefined ? undefined : `${room}px`}
@@ -396,7 +404,13 @@
 			</svg>
 		</button>
 
-		<div class="body" id="{id}-body" inert={!open} bind:this={body}>
+		<div
+			class="body"
+			class:gawdux-shell-bar-sheet={inBar && open}
+			id="{id}-body"
+			inert={!open}
+			bind:this={body}
+		>
 			<div class="body-inner">
 				<div class="rule" aria-hidden="true"></div>
 
@@ -1006,6 +1020,34 @@
 				var(--gawdux-user-menu-room, calc(100vw - 32px))
 			);
 		}
+	}
+
+	/* ── In the shell bar: the avatar alone, the body a sheet above the bar ─ */
+	.in-bar {
+		width: 44px;
+		min-width: 0;
+		max-width: none;
+	}
+	.in-bar .room-full {
+		width: 44px;
+		min-width: 0;
+		max-width: none;
+		padding: 0;
+	}
+	.in-bar .panel,
+	.in-bar .panel.open {
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 100%;
+	}
+	.in-bar .trigger {
+		justify-content: center;
+		padding: 0;
+	}
+	.in-bar .identity,
+	.in-bar .chevron {
+		display: none;
 	}
 
 	@media (prefers-reduced-motion: reduce) {

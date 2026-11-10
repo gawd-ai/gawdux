@@ -1,34 +1,45 @@
 <!--
 	@component
-	A breadcrumb trail on one line that never wraps and never clips a crumb.
+	A breadcrumb trail that never clips a crumb: one line above the shell's
+	compact width, two at or below it.
 
-	Every crumb shows in full while the trail fits. When it does not, the trail
-	gives way in this order, each step only when the one before is not enough,
-	so the current page keeps its title readable while anything else can give
-	way:
-	1. the crumbs between the first and the current page fold, from the inside
-	   out, into one … button;
+	One line. Every crumb shows in full while the trail fits. When it does not,
+	the trail gives way in this order, each step only when the one before is
+	not enough, so the current page keeps its title readable while anything
+	else can give way:
+	1. the crumbs between the first and the current page fold, from the
+	   inside out, into one … button;
 	2. the first crumb shows as its icon alone;
 	3. the first crumb folds into the … button too, which then stands first:
 	   the trail reads "… › Package";
-	4. `trailing` (a status chip beside the current page) leaves the line,
-	   never cut: the page's own header carries the state it repeats;
-	5. the current page ellipsizes, with its full name in a tooltip, down to
+	4. the current page ellipsizes, with its full name in a tooltip, down to
 	   its readable minimum: its own width up to `BREADCRUMB_LEAF_MIN_PX`
 	   (64px, four or five characters), never below it.
 	The current page always stays. Past the narrowest the trail can go, the
-	page holds its minimum and the trail's box clips the end.
+	page holds its minimum and the trail's box clips the end. The trail
+	carries no status: the page's own header wears it.
+
+	Two lines (`layout` "adaptive", the default, at or below
+	`BREADCRUMB_STACK_QUERY`, 1024px). The current page reads on a line of its
+	own, whole: it wraps between its words and never inside one, so an
+	identifier (CC-0003, a version) never breaks, and a separator (" · ")
+	stays with the word before it. The path above it is a smaller muted line,
+	which gives way as one line does, its last crumb (the page's parent)
+	standing for the page: the crumbs between fold into the … button, then the
+	first shows as its icon, then folds, then the parent ellipsizes. Every
+	crumb stays reachable, in the path or in the menu. `layout` "line" keeps
+	one line at every width.
 
 	The … button opens a small menu, not a dialog, listing in order every level
 	the trail does not name: the first crumb when it shows as its icon or is
-	folded, the folded crumbs, the current page when it is cut. A level with an
-	`href` is a link; one without is words. Keyboard: the WAI-ARIA menu button
-	pattern. Enter, Space or ArrowDown opens on the first link, ArrowUp on the
-	last; the arrows wrap, Home and End jump, Escape closes and returns the
-	focus to the button, Tab closes and moves on. A press outside, the focus
-	leaving and a new trail close it. An Escape from anywhere closes a menu
-	the pointer opened and is taken (`preventDefault`), so a page handler
-	reading `defaultPrevented` leaves it alone.
+	folded, the folded crumbs, the crumb that is cut. A level with an `href` is
+	a link; one without is words. Keyboard: the WAI-ARIA menu button pattern.
+	Enter, Space or ArrowDown opens on the first link, ArrowUp on the last; the
+	arrows wrap, Home and End jump, Escape closes and returns the focus to the
+	button, Tab closes and moves on. A press outside, the focus leaving and a
+	new trail close it. An Escape from anywhere closes a menu the pointer
+	opened and is taken (`preventDefault`), so a page handler reading
+	`defaultPrevented` leaves it alone.
 
 	The focus follows its level when the trail re-plans. A focused menu row
 	whose level comes back to the trail (the trail unfolding closes the menu)
@@ -42,10 +53,12 @@
 	Icons. The first crumb's `icon` stands in front of its words; on every
 	later crumb `icon` is the separator before it (a chevron when it has none),
 	and the … button takes the separator of the first crumb it folds, none when
-	it folds the first crumb itself.
+	it folds the first crumb itself. On two lines the current page has no
+	separator: its line is its own.
 
 	Measurement. A hidden copy of the trail is measured once per trail, and
-	again when its size changes (a web font arriving). A ResizeObserver on the
+	again when its size changes (a web font arriving, the trail crossing the
+	compact width, where the path is set smaller). A ResizeObserver on the
 	trail's box re-plans on every resize (a sidebar or a dock opening) from
 	those widths alone, so a resize reads no layout. The root grows into its
 	row (`flex: 1 1 0%`), so its width never depends on what it shows.
@@ -62,13 +75,15 @@
 	the layout and the menu are scoped CSS over the --gawdux-* tokens.
 -->
 <script lang="ts">
-	import { tick, untrack, type Component, type Snippet } from 'svelte';
+	import { tick, untrack, type Component } from 'svelte';
 	import { ChevronRightOutline } from 'flowbite-svelte-icons';
 	import type { BreadcrumbCrumb } from '../utils/url-breadcrumb';
 	import { createDisclosureController } from '../utils/disclosure';
 	import {
+		BREADCRUMB_STACK_QUERY,
 		breadcrumbLeafMin,
 		breadcrumbNeed,
+		breadcrumbWords,
 		planBreadcrumbOverflow,
 		type BreadcrumbOverflowPlan,
 		type BreadcrumbRoom
@@ -76,7 +91,7 @@
 
 	let {
 		items = [],
-		trailing,
+		layout = 'adaptive',
 		label = 'Breadcrumb',
 		moreLabel = 'Show the hidden levels',
 		className = '',
@@ -84,8 +99,12 @@
 	}: {
 		/** The trail, first crumb first; the last is the current page. */
 		items?: BreadcrumbCrumb[];
-		/** Beside the current page, never cut (a status chip). */
-		trailing?: Snippet;
+		/**
+		 * "adaptive": one line above `BREADCRUMB_STACK_QUERY`, two at or below
+		 * it (the path, then the current page on a line of its own); "line":
+		 * one line at every width.
+		 */
+		layout?: 'adaptive' | 'line';
 		/** The navigation landmark's name. */
 		label?: string;
 		/** The … button's name and tooltip. */
@@ -110,8 +129,7 @@
 	const NOTHING: BreadcrumbOverflowPlan = {
 		hidden: [],
 		compactFirst: false,
-		leafCut: false,
-		trailingHidden: false
+		leafCut: false
 	};
 	/** The menu's gap below the button. */
 	const MENU_OFFSET_PX = 4;
@@ -122,39 +140,46 @@
 
 	let root = $state<HTMLElement>();
 	let ruler = $state<HTMLElement>();
-	let trailingBox = $state<HTMLElement>();
 	let button = $state<HTMLButtonElement>();
 	let menu = $state<HTMLElement>();
 	let measured = $state.raw<Measured | null>(null);
 	let available = $state<number | null>(null);
-	let trailingWidth = $state(0);
 	let open = $state(false);
+	/** At or below the compact width an adaptive trail reads on two lines. */
+	let stacked = $state(false);
 	/** The menu's last input was the pointer: the focused row shows no ring. */
 	let pointerInput = $state(false);
 	let menuPosition = $state<{ top: number; left: number } | null>(null);
 
 	const last = $derived(items.length - 1);
+	/**
+	 * The crumb that ellipsizes last: the current page on one line, its parent
+	 * on two, where the path is planned as a trail of its own.
+	 */
+	const cutLevel = $derived(stacked ? last - 1 : last);
 	const plan = $derived.by<BreadcrumbOverflowPlan>(() => {
 		// Until this trail is measured it shows whole: a plan from another
 		// trail's widths would fold the wrong crumbs.
 		if (available === null || !measured || measured.items !== items) return NOTHING;
+		// On two lines the current page has a line of its own: only the path
+		// above it is planned.
+		const crumbs = stacked ? measured.crumbs.slice(0, last) : measured.crumbs;
+		if (crumbs.length === 0) return NOTHING;
 		return planBreadcrumbOverflow({
 			available,
-			crumbs: measured.crumbs,
+			crumbs,
 			more: measured.more,
 			moreLead: measured.moreLead,
-			firstCompact: measured.firstCompact,
-			trailing: trailing ? trailingWidth : 0
+			firstCompact: measured.firstCompact
 		});
 	});
 	const hidden = $derived(new Set(plan.hidden));
 	const folded = $derived(plan.hidden.length > 0);
 	const menuOpen = $derived(open && folded);
-	/** The narrowest the current page goes, its chip beside it; null until measured. */
-	const leafMinWidth = $derived(
-		measured && measured.items === items
-			? breadcrumbLeafMin(measured.crumbs[last] ?? 0) +
-					(trailing && !plan.trailingHidden ? trailingWidth : 0)
+	/** The narrowest the crumb that is cut last goes; null until measured. */
+	const cutMinWidth = $derived(
+		measured && measured.items === items && cutLevel >= 0
+			? breadcrumbLeafMin(measured.crumbs[cutLevel] ?? 0)
 			: null
 	);
 
@@ -167,8 +192,7 @@
 				crumbs: measured.crumbs,
 				more: measured.more,
 				moreLead: measured.moreLead,
-				firstCompact: measured.firstCompact,
-				trailing: trailing ? trailingWidth : 0
+				firstCompact: measured.firstCompact
 			})
 		};
 	});
@@ -199,8 +223,21 @@
 	const menuEntries = $derived([
 		...(plan.compactFirst ? [0] : []),
 		...plan.hidden,
-		...(plan.leafCut && folded ? [last] : [])
+		...(plan.leafCut && folded ? [cutLevel] : [])
 	]);
+
+	// An adaptive trail follows the compact width.
+	$effect(() => {
+		if (layout !== 'adaptive' || typeof window.matchMedia !== 'function') {
+			stacked = false;
+			return;
+		}
+		const query = window.matchMedia(BREADCRUMB_STACK_QUERY);
+		const sync = () => (stacked = query.matches);
+		sync();
+		query.addEventListener?.('change', sync);
+		return () => query.removeEventListener?.('change', sync);
+	});
 
 	const widthOf = (el: Element | null | undefined) => (el ? el.getBoundingClientRect().width : 0);
 
@@ -238,14 +275,6 @@
 		});
 		observer.observe(box);
 		observer.observe(list);
-		return () => observer.disconnect();
-	});
-
-	$effect(() => {
-		const box = trailingBox;
-		if (!box || typeof ResizeObserver === 'undefined') return;
-		const observer = new ResizeObserver(() => (trailingWidth = widthOf(box)));
-		observer.observe(box);
 		return () => observer.disconnect();
 	});
 
@@ -441,16 +470,23 @@
 	<Separator class="breadcrumb-chevron" aria-hidden="true" />
 {/snippet}
 
-<!-- No whitespace between the icon and the words: it would lead the name. -->
+<!-- No whitespace between the icon and the words: it would lead the name.
+     The current page's words are runs that never break inside themselves, so
+     on two lines it wraps only between its words. -->
 {#snippet words(item: BreadcrumbCrumb, index: number, compact: boolean)}
 	{#if index === 0 && item.icon}<item.icon
 			class="breadcrumb-section-icon"
 			aria-hidden="true"
-		/>{/if}<span class="breadcrumb-label" class:visually-hidden={compact}>{item.label}</span>
+		/>{/if}<span class="breadcrumb-label" class:visually-hidden={compact}
+		>{#if index === last}{#each breadcrumbWords(item.label) as word, i}{#if i > 0}{' '}{/if}<span
+					class="word">{word}</span
+				>{/each}{:else}{item.label}{/if}</span
+	>
 {/snippet}
 
 <nav
 	class="gawdux-breadcrumbs {className}"
+	data-layout={layout}
 	aria-label={label}
 	bind:this={root}
 	onfocusout={onRootFocusOut}
@@ -478,14 +514,15 @@
 				{/if}
 			{:else}
 				{@const compact = index === 0 && index !== last && plan.compactFirst}
-				{@const named = compact || (index === last && plan.leafCut) ? item.label : undefined}
+				{@const named = compact || (index === cutLevel && plan.leafCut) ? item.label : undefined}
 				{@const current = index === last ? 'page' : undefined}
 				<li
 					class="crumb"
 					class:leaf={index === last}
+					class:cuts={index === cutLevel}
 					data-level={index}
-					style:--gawdux-breadcrumb-leaf-min={index === last && leafMinWidth !== null
-						? `${leafMinWidth}px`
+					style:--gawdux-breadcrumb-leaf-min={index === cutLevel && cutMinWidth !== null
+						? `${cutMinWidth}px`
 						: undefined}
 				>
 					{#if index > 0}{@render separator(item.icon)}{/if}
@@ -500,16 +537,6 @@
 						>
 					{:else}
 						<span class="breadcrumb-title" title={named}>{@render words(item, index, compact)}</span>
-					{/if}
-					{#if index === last && trailing}
-						<!-- Off the line (plan step 4) it keeps its width out of sight,
-						     so the plan still knows the room it needs to come back. -->
-						<span
-							class="trailing"
-							class:yielded={plan.trailingHidden}
-							aria-hidden={plan.trailingHidden || undefined}
-							bind:this={trailingBox}>{@render trailing()}</span
-						>
 					{/if}
 				</li>
 			{/if}
@@ -619,10 +646,11 @@
 		min-width: 0;
 	}
 
-	/* The current page alone gives up width, its words before its chip, and
-	   never below its readable minimum (its own width up to 64px, its chip
-	   added), which the plan sets. Past it the trail's box clips the end. */
-	.crumb.leaf {
+	/* The crumb the plan cuts last (the current page on one line, its parent
+	   on two) alone gives up width, never below its readable minimum (its own
+	   width up to 64px), which the plan sets. Past it the trail's box clips
+	   the end. */
+	.crumb.cuts {
 		flex: 0 1 auto;
 		min-width: var(--gawdux-breadcrumb-leaf-min, 0px);
 	}
@@ -642,19 +670,9 @@
 		white-space: nowrap;
 	}
 
-	.trailing {
-		display: inline-flex;
-		flex: 0 0 auto;
-		align-items: center;
-		padding-inline-start: 0.5rem;
-	}
-
-	/* The chip off the line: never cut, out of the flow and out of sight, its
-	   width still measured. */
-	.trailing.yielded {
-		position: absolute;
-		visibility: hidden;
-		pointer-events: none;
+	/* A word of the current page never breaks inside itself. */
+	.word {
+		white-space: nowrap;
 	}
 
 	/* The … button reads as a crumb (the title's type and ink) and lifts on
@@ -696,6 +714,61 @@
 		clip: rect(0 0 0 0);
 		white-space: nowrap;
 		border: 0;
+	}
+
+	/* ── Two lines at the compact width (layout "adaptive") ────────────────
+	   The path is a smaller muted line; the current page takes a line of its
+	   own below it, whole, wrapping between its words. The hidden copy is
+	   set the same way, so the path is planned at the size it is drawn. */
+	@media (max-width: 1024px) {
+		.gawdux-breadcrumbs[data-layout='adaptive'] > .trail {
+			flex-wrap: wrap;
+			align-content: center;
+			row-gap: 0.125rem;
+		}
+		.gawdux-breadcrumbs[data-layout='adaptive'] .crumb:not(.leaf) .breadcrumb-title {
+			font-size: 0.75rem;
+			font-weight: 500;
+			line-height: 1rem;
+			color: var(--gawdux-text-muted);
+		}
+		.gawdux-breadcrumbs[data-layout='adaptive'] .crumb:not(.leaf) :global(.breadcrumb-section-icon) {
+			width: 0.875rem !important;
+			height: 0.875rem !important;
+			margin-right: 0.25rem;
+			color: var(--gawdux-text-muted);
+		}
+		.gawdux-breadcrumbs[data-layout='adaptive'] .crumb:not(.leaf) :global(.breadcrumb-chevron) {
+			width: 0.875rem !important;
+			height: 0.875rem !important;
+			margin: 0 0.125rem;
+		}
+		.gawdux-breadcrumbs[data-layout='adaptive'] .crumb:not(.leaf) .more-button {
+			min-width: 1.25rem;
+			height: 1rem;
+			padding: 0 0.25rem;
+		}
+		/* The current page: a line of its own, no separator before it. */
+		.gawdux-breadcrumbs[data-layout='adaptive'] .crumb.leaf {
+			flex: 1 0 100%;
+			min-width: 0;
+		}
+		.gawdux-breadcrumbs[data-layout='adaptive'] .crumb.leaf:not(:first-child) > :global(.breadcrumb-chevron) {
+			display: none;
+		}
+		.gawdux-breadcrumbs[data-layout='adaptive'] .crumb.leaf .breadcrumb-title {
+			font-size: 1rem;
+			line-height: 1.25rem;
+		}
+		.gawdux-breadcrumbs[data-layout='adaptive'] .crumb.leaf :global(.breadcrumb-section-icon) {
+			width: 1.25rem !important;
+			height: 1.25rem !important;
+		}
+		.gawdux-breadcrumbs[data-layout='adaptive'] .crumb.leaf .breadcrumb-label {
+			overflow: visible;
+			text-overflow: clip;
+			white-space: normal;
+		}
 	}
 
 	/* ── The menu: the house dropdown (UserMenu's surface and rows) ────────── */

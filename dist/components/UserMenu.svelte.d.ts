@@ -20,6 +20,10 @@ import type { UserMenuProps } from '../types/user-menu.types';
  * probe (`data-room-full`) laid out at full size whatever the menu shows. The
  * closed card names the person in its tooltip at every size.
  *
+ * In a ShellBar (`inShellBar()`, the phone shell's bar along the bottom of
+ * the screen) the closed card is the avatar alone and the open body rises
+ * above the bar as its sheet (`.gawdux-shell-bar-sheet`), never a modal.
+ *
  * Keyboard: the WAI-ARIA menu button pattern. Enter, Space or ArrowDown on the
  * trigger opens and focuses the first row, ArrowUp the last; in the menu the
  * arrows wrap, Home and End jump, Escape closes and returns focus to the

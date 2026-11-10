@@ -8,6 +8,8 @@
 		type SurfaceFeedbackHost,
 		type SurfaceFeedbackState
 	} from './surface-feedback-context';
+	import { PAGE_STATUS_CONTEXT, type PageStatusHost } from './page-chrome';
+	import PageStatusOutlet from './PageStatusOutlet.svelte';
 	export let className: string = 'w-full tabs-underline tabs-stick';
 	export let contentClass: string = 'tab-content scroll-surface !mt-0 rounded-b-lg';
 	export let shellClass: string = 'page-tabs-shell';
@@ -22,6 +24,12 @@
 	const release = host?.claim() ?? null;
 	const feedback = release && host ? host.state : readable<SurfaceFeedbackState | null>(null);
 	onDestroy(() => release?.());
+
+	/* The page's status, as its host states it: the tabs head the page's panel,
+	   so the first strip draws it at its end, once (the trail never does). */
+	const statusHost = getContext<PageStatusHost | undefined>(PAGE_STATUS_CONTEXT);
+	const releaseStatus = statusHost?.claim() ?? null;
+	onDestroy(() => releaseStatus?.());
 	$: hasFeedback = Boolean(
 		$feedback?.loadError?.trim() || $feedback?.actionError?.trim() || $feedback?.notice?.trim()
 	);
@@ -53,6 +61,11 @@
 		divider={divider || hasFeedback}
 	>
 		<slot />
+		{#if releaseStatus && statusHost?.status}
+			<li class="page-tabs-status" role="presentation" data-page-status>
+				<PageStatusOutlet host={statusHost} />
+			</li>
+		{/if}
 		<svelte:fragment slot="divider">
 			{#if hasFeedback && $feedback}
 				<SurfaceFeedback {...$feedback} />
