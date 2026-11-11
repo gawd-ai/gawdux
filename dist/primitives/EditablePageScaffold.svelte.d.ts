@@ -38,6 +38,10 @@ declare const EditablePageScaffold: $$__sveltets_2_IsomorphicComponent<$$__svelt
             + bar-merge as PageTabs / ListSurface pages. Detail pages that
             already render their own `<PageTabs>` (which carries the wrapper)
             should leave this false. */ surface?: boolean;
+    /** With `surface`: the surface hosts panes, not content (a list beside a
+            reader), so its body takes no inset and the panes run to the panel's
+            edges, as a two-pane card's do. The inset stays the one value the
+            knob gives every other inset host; nothing sets it to zero. */ panes?: boolean;
     className?: string;
 }, {
     actions: {};

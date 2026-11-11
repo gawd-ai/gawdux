@@ -25,7 +25,7 @@
 	{...rest}
 	class={`flex w-full items-center gap-2.5 rounded-md border px-2.5 py-2 text-left transition-colors ${
 		selected
-			? 'border-blue-300 bg-white shadow-sm dark:border-blue-800 dark:bg-gray-900'
+			? 'border-blue-300 bg-white dark:border-blue-800 dark:bg-gray-900'
 			: 'border-transparent hover:border-gray-200 hover:bg-white dark:hover:border-gray-800 dark:hover:bg-gray-900'
 	} ${extraClass}`}
 >

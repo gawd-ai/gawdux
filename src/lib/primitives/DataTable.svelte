@@ -11,7 +11,7 @@
        tint); a click on a control inside the row stays the control's.
      - `title` (and the `header` snippet beside it) gives the panel a card
        header; `link` ends that header with the go-to icon (SectionLink), the
-       one place the panel leads to another section. `framed={false}` drops the container's border and shadow for
+       one place the panel leads to another section. `framed={false}` drops the container's border for
        a table that already sits inside a card.
      - `row` replaces the per-column cells for a row the host lays out
        itself (cells it writes are still TableBodyCell).

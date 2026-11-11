@@ -6,7 +6,6 @@ type $$ComponentProps = {
     busy?: boolean;
     autoFocusSelector?: string;
     maxHeight?: string;
-    variant?: 'attached' | 'card';
     dismissible?: boolean;
     class?: string;
     onclose?: (() => void) | undefined;

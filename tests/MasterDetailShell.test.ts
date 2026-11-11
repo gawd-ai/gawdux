@@ -148,7 +148,7 @@ describe('MasterDetailShell content inset', () => {
 		expect(widths, card?.className).toEqual([]);
 	});
 
-	it("the frame's height is in tokens.css, so the shadow room inside a host can add to it", () => {
+	it("the frame's height is in tokens.css, so the compact rule can add the host's padding to it", () => {
 		const { container } = render(MasterDetailShell, {
 			props: { rail, detail, detailKey: null, detailLabel: 'Item details' }
 		});

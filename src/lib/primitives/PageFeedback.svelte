@@ -191,7 +191,6 @@
 		padding: 0.625rem 0.75rem;
 		border: 1px solid;
 		border-radius: 0.5rem;
-		box-shadow: 0 1px 2px rgb(15 23 42 / 0.06);
 	}
 
 	.page-feedback-card.compact {
@@ -199,7 +198,6 @@
 		gap: 0.5rem;
 		padding: 0.375rem 0.5rem;
 		border-radius: 0.375rem;
-		box-shadow: none;
 	}
 
 	.page-feedback-card.error {
@@ -314,7 +312,6 @@
 		padding: 0.5rem 1rem;
 		border: 0;
 		border-radius: 0;
-		box-shadow: none;
 	}
 
 	.page-feedback-card.band .page-feedback-icon {

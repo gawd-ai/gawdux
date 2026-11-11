@@ -182,14 +182,12 @@ describe('content inset: one inset, owned once by the host', () => {
 		return match?.[1] ?? '';
 	}
 
-	const HOST_PADDING =
-		'padding: var(--gawdux-page-inset) var(--gawdux-page-inset) var(--gawdux-page-inset-bottom);';
+	const HOST_PADDING = 'padding: var(--gawdux-page-inset);';
 
 	it('declares the inset and wide-column knobs at the geometry that shipped', () => {
 		const expected: Record<string, string> = {
-			// pt-4 px-4 on the top and sides, pb-1 above the command bar
+			// p-4: one value on all four sides, above the command bar too
 			'--gawdux-page-inset': step(4),
-			'--gawdux-page-inset-bottom': step(1),
 			// max-w-6xl
 			'--gawdux-panel-wide-max-width': '72rem'
 		};
@@ -212,22 +210,15 @@ describe('content inset: one inset, owned once by the host', () => {
 		expect(ruleOf('.tab-fill-scroll')).toContain('overflow-y: auto;');
 	});
 
-	it("inside every host the shell's frame adds no inset, only its card's shadow room", () => {
+	it("inside every host the shell's frame adds no inset: the host's padding is the one inset", () => {
 		const body = ruleOf(
 			':is(.scroll-surface, .editable-page-body, .page-inset, .tab-fill-scroll) .master-detail-inset'
 		).replace(/\s+/g, ' ');
-		const room = 'min(0.25rem, var(--gawdux-page-inset))';
-		const roomBottom = 'min(0.25rem, var(--gawdux-page-inset-bottom))';
-		// The frame reaches the room past the card and pads it back, so the
-		// card sits on the host's inset (no second inset) and the frame's clip
-		// leaves the card's shadow whole. The room never exceeds the host's own
-		// inset, so the frame stays inside the host's padding box.
-		expect(body).toContain(
-			`margin: calc(-1 * ${room}) calc(-1 * ${room}) calc(-1 * ${roomBottom});`
-		);
-		expect(body).toContain(`padding: ${room} ${room} ${roomBottom};`);
-		expect(body).toContain(`height: calc( 100% + ${room} + ${roomBottom} );`);
+		// The card draws no shadow, so the frame needs no room past it: the
+		// card sits on the host's inset, the same on all four sides.
+		expect(body.trim()).toBe('padding: 0;');
 		expect(ruleOf('.master-detail-inset')).toContain('height: 100%;');
+		expect(tokens).not.toContain('--gawdux-page-inset-bottom');
 	});
 
 	it("the shell's card reads the wide-column knob", () => {
@@ -236,9 +227,7 @@ describe('content inset: one inset, owned once by the host', () => {
 
 	it("the scrolling fill panel spans its host's padding box", () => {
 		const body = ruleOf(':is(.scroll-surface, .editable-page-body, .page-inset) .tab-fill-scroll');
-		expect(body.replace(/\s+/g, ' ').trim()).toBe(
-			'margin: calc(-1 * var(--gawdux-page-inset)) calc(-1 * var(--gawdux-page-inset)) calc(-1 * var(--gawdux-page-inset-bottom));'
-		);
+		expect(body.replace(/\s+/g, ' ').trim()).toBe('margin: calc(-1 * var(--gawdux-page-inset));');
 	});
 
 	it('the fill-mode chain and the list chrome are untouched', () => {

@@ -81,7 +81,13 @@
 	--gawdux-border-strong: var(--color-gray-400);
 	/* Accent / focus */
 	--gawdux-focus-ring: rgb(37 99 235);
-	--gawdux-hover-shadow-rgb: 148 163 184;
+	/* The one elevation of the page: the content surface and the command bar
+	   it fuses with stand on the shell's background with it. Nothing inside
+	   the content surface draws a shadow (a card, a panel, a pane, a table's
+	   box, a tile, a drawer, a notice); only what floats above the page and
+	   closes (a menu, a popover, a picker's list, a toast, the palette) draws
+	   its own, and a focus ring its ring. */
+	--gawdux-surface-elevation: 0 1px 3px 0 rgb(0 0 0 / 0.08), 0 1px 2px -1px rgb(0 0 0 / 0.04);
 	/* Tab states. Hover changes the text colour only; the active tab keeps
 	   its colour and its underline, so a hovered tab never reads as a second
 	   selected one. */
@@ -131,9 +137,9 @@
 	   - the content inset of every inset host (`.scroll-surface`, which is
 	     PageTabs' panel, `EditablePageScaffold`'s body, `.page-inset`, and a
 	     `MasterDetailShell` or `TabFillPanel scroll` no host encloses):
-	     `--gawdux-page-inset` on the top and sides (`pt-4 px-4`),
-	     `--gawdux-page-inset-bottom` above the command bar (`pb-1`); at or
-	     below the compact width the top and sides are
+	     `--gawdux-page-inset`, one value on all four sides (`p-4`), so a
+	     card in a panel stands as far above the command bar as below the
+	     tab strip and in from the sides; at or below the compact width it is
 	     `--gawdux-compact-inset` (8px, "Tight levels zero and one" below);
 	   - the wide content column (`.panel-col-wide`, `MasterDetailShell`'s
 	     card, `.master-detail-card`): `max-w-6xl`;
@@ -153,7 +159,6 @@
 	--gawdux-tile-gap: calc(var(--spacing, 0.25rem) * 3);
 	--gawdux-tile-min-width: 9rem;
 	--gawdux-page-inset: calc(var(--spacing, 0.25rem) * 4);
-	--gawdux-page-inset-bottom: calc(var(--spacing, 0.25rem) * 1);
 	--gawdux-compact-inset: calc(var(--spacing, 0.25rem) * 2);
 	--gawdux-panel-wide-max-width: 72rem;
 	--gawdux-table-head-icon-size: 1rem;
@@ -187,7 +192,7 @@
 	--gawdux-table-separator: rgb(75 85 99 / 0.34);
 	--gawdux-border-input: var(--color-gray-700);
 	--gawdux-border-strong: var(--color-gray-500);
-	--gawdux-hover-shadow-rgb: 107 114 128;
+	--gawdux-surface-elevation: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
 	--gawdux-tab-text: var(--color-gray-400);
 	--gawdux-tab-text-hover: var(--color-gray-200);
 	--gawdux-tab-text-active: rgb(96 165 250); /* blue-400 */
@@ -350,25 +355,17 @@
 		background-color: var(--gawdux-surface-subtle);
 	}
 
+	/* A surface in the page that opens something: its edge darkens under the
+	   pointer, never a shadow (no shadow inside the page). */
 	.interactive-surface {
 		cursor: pointer;
 		transition:
 			background-color 120ms ease,
-			border-color 120ms ease,
-			box-shadow 120ms ease;
+			border-color 120ms ease;
 	}
 
 	.interactive-surface:hover {
 		border-color: var(--gawdux-border-strong) !important;
-		box-shadow:
-			0 0 0 1px rgb(var(--gawdux-hover-shadow-rgb) / 0.28),
-			0 2px 6px rgb(15 23 42 / 0.12) !important;
-	}
-
-	.dark .interactive-surface:hover {
-		box-shadow:
-			0 0 0 1px rgb(var(--gawdux-hover-shadow-rgb) / 0.35),
-			0 2px 6px rgb(0 0 0 / 0.28) !important;
 	}
 
 	.interactive-surface:focus-visible {
@@ -397,7 +394,7 @@
 	}
 
 	.page-tabs-shell {
-		@apply w-full rounded-lg border shadow-md;
+		@apply w-full rounded-lg border;
 		background-color: var(--gawdux-surface-card);
 		border-color: var(--gawdux-border);
 	}
@@ -445,9 +442,16 @@
 		min-height: 0;
 	}
 
-	/* ---------- Card system ---------- */
+	/* ---------- Card system ----------
+	   CardContainer's surface, the house card: the card surface, the house
+	   edge and radius, the muted text the body inherits, and no shadow (a
+	   card sits in the page; no shadow inside the page). A utility a host
+	   passes (a height, an overflow) wins over it. */
 	.card-container {
-		@apply max-w-none !p-0 overflow-hidden w-full block;
+		@apply flex w-full max-w-none flex-col overflow-hidden rounded-lg border p-0;
+		background-color: var(--gawdux-surface-card);
+		border-color: var(--gawdux-border);
+		color: var(--gawdux-text-muted);
 	}
 
 	.card-header {
@@ -467,7 +471,7 @@
 
 	/* ---------- Table + list scaffolding ---------- */
 	.table-container {
-		@apply border rounded-lg shadow-md;
+		@apply border rounded-lg;
 		background-color: var(--gawdux-surface-card);
 		border-color: var(--gawdux-border);
 	}
@@ -562,39 +566,29 @@
 	   inside it pads itself toward its edges. */
 	.scroll-surface {
 		@apply min-h-0 flex-1 overflow-auto;
-		padding: var(--gawdux-page-inset) var(--gawdux-page-inset) var(--gawdux-page-inset-bottom);
+		padding: var(--gawdux-page-inset);
 		background-color: var(--gawdux-surface-card);
 	}
 
 	/* A surface of a product's own that hosts content the way a tab panel
 	   does: the same inset, from the same knobs. */
 	.page-inset {
-		padding: var(--gawdux-page-inset) var(--gawdux-page-inset) var(--gawdux-page-inset-bottom);
+		padding: var(--gawdux-page-inset);
 	}
 
 	/* MasterDetailShell's frame. Its own inset applies only where no host
-	   encloses the shell (a bare, unpadded panel); inside a host the host's
-	   padding is the one inset, never a second. The frame clips (it scrolls
-	   below a 48rem container and clips above), so inside a host it reaches
-	   a shadow's room (0.25rem, never more than the host's own inset) past
-	   the card on every side and pads that room back: the card sits on the
-	   host's inset and its shadow is drawn whole. The reach stays inside the
-	   host's padding and inside any sibling gap of 0.25rem or more, so it
-	   never covers what sits beside the shell. The height lives here, not in
-	   an h-full utility, because the reach has to add to it. */
+	   encloses the shell (a bare, unpadded panel), the one value on all four
+	   sides; inside a host the host's padding is the one inset, never a
+	   second, and the frame adds none. The card draws no shadow (no shadow
+	   inside the page), so the frame clips at the card's own edge. The
+	   height lives here, not in an h-full utility, because the compact rule
+	   below adds the host's padding to it. */
 	.master-detail-inset {
 		height: 100%;
-		padding: var(--gawdux-page-inset) var(--gawdux-page-inset) var(--gawdux-page-inset-bottom);
+		padding: var(--gawdux-page-inset);
 	}
 	:is(.scroll-surface, .editable-page-body, .page-inset, .tab-fill-scroll) .master-detail-inset {
-		margin: calc(-1 * min(0.25rem, var(--gawdux-page-inset)))
-			calc(-1 * min(0.25rem, var(--gawdux-page-inset)))
-			calc(-1 * min(0.25rem, var(--gawdux-page-inset-bottom)));
-		padding: min(0.25rem, var(--gawdux-page-inset)) min(0.25rem, var(--gawdux-page-inset))
-			min(0.25rem, var(--gawdux-page-inset-bottom));
-		height: calc(
-			100% + min(0.25rem, var(--gawdux-page-inset)) + min(0.25rem, var(--gawdux-page-inset-bottom))
-		);
+		padding: 0;
 	}
 
 	/* MasterDetailShell's card: the wide content column, the knob
@@ -607,15 +601,13 @@
 
 	/* TabFillPanel's scrolling form: a fill tab whose content scrolls. Inside
 	   a host it spans the host's padding box (the negative margins) and pads
-	   itself with the same knobs, so its scrollbar sits at the panel's edge
-	   and a hovered tile's shadow has the whole inset to draw in. */
+	   itself with the same knob, so its scrollbar sits at the panel's edge. */
 	.tab-fill-scroll {
 		overflow-y: auto;
-		padding: var(--gawdux-page-inset) var(--gawdux-page-inset) var(--gawdux-page-inset-bottom);
+		padding: var(--gawdux-page-inset);
 	}
 	:is(.scroll-surface, .editable-page-body, .page-inset) .tab-fill-scroll {
-		margin: calc(-1 * var(--gawdux-page-inset)) calc(-1 * var(--gawdux-page-inset))
-			calc(-1 * var(--gawdux-page-inset-bottom));
+		margin: calc(-1 * var(--gawdux-page-inset));
 	}
 
 	/* Reusable compact list table with edge padding */
@@ -818,19 +810,17 @@ div.inline-flex.items-center.justify-center.font-medium {
 	border-radius: 9999px !important;
 }
 
-/* App-wide soft shadow: every panel/card uses the same subtle elevation
-   (CardContainer, TableContainer, Flowbite Card, etc.). Replaces
-   Tailwind's heavier .shadow-md default in light mode; dark mode keeps
-   Tailwind's stack since it reads fine against the dark bg. */
-.shadow-md {
-	box-shadow:
-		0 1px 3px 0 rgb(0 0 0 / 0.08),
-		0 1px 2px -1px rgb(0 0 0 / 0.04) !important;
+/* The page's one elevation (--gawdux-surface-elevation): the outermost
+   content surface, the page's panel on the shell's background, and the
+   command bar it fuses with (below). A surface nested in it draws none: a
+   card, a panel, a pane, a table's box, a tile, a drawer, a notice. The
+   level-zero rule at the compact width takes it away on a phone. Tailwind's
+   .shadow-md reads the same token, softer than Tailwind's own in light. */
+.context-surface:not(.context-surface .context-surface) {
+	box-shadow: var(--gawdux-surface-elevation);
 }
-.dark .shadow-md {
-	box-shadow:
-		0 4px 6px -1px rgb(0 0 0 / 0.1),
-		0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+.shadow-md {
+	box-shadow: var(--gawdux-surface-elevation) !important;
 }
 
 /* ---------- Tabs underline system ---------- */
@@ -924,9 +914,9 @@ div.inline-flex.items-center.justify-center.font-medium {
    page's outermost rounded panel — applied implicitly by PageTabs, or
    manually by single-card / form-only pages), the two merge into one
    unified panel. The surface loses its bottom rounding/border, the bar
-   loses its top rounding, and both keep `shadow-md` so the merged stack
-   has a uniform shadow profile (the seam doubles for ~1px but with the
-   soft global shadow it's invisible).
+   loses its top rounding, and both keep the one elevation
+   (--gawdux-surface-elevation) so the merged stack has a uniform shadow
+   profile.
    `flex: 1` lets the surface stretch to fill available vertical space
    so its bottom edge is always flush against the bar (otherwise the
    bar's `mt-auto` would leave a gap on short pages). */
@@ -1043,11 +1033,8 @@ main:has(.page-command-bar) *:has(> .context-surface),
 	   zone has content, the :has rule below makes it a full 52px bar with
 	   action-button padding. The merge rule above strips the top border +
 	   top rounding when a .context-surface sits above, so they read as
-	   one continuous panel.
-	   shadow-md applied via class on the element so both this bar and
-	   the .context-surface above use the identical Tailwind output —
-	   any inline box-shadow value here would diverge from how Tailwind
-	   composes its var-based shadow stack. */
+	   one continuous panel. The bar and the content surface above it draw
+	   the one elevation, --gawdux-surface-elevation. */
 	min-height: 0.5rem;
 	padding: 0;
 	/* The content surface's own edge colour, so the bar, the card above it
@@ -1055,6 +1042,7 @@ main:has(.page-command-bar) *:has(> .context-surface),
 	background-color: var(--gawdux-command-surface);
 	border: 1px solid var(--gawdux-border);
 	border-radius: 0.5rem;
+	box-shadow: var(--gawdux-surface-elevation);
 }
 .page-command-bar:has(.cmd-bar-zone > *) {
 	min-height: 52px;
@@ -1550,7 +1538,6 @@ main:has(.page-command-drawer) .page-command-bar,
 		border: 1px solid var(--gawdux-border);
 		border-radius: 0.5rem;
 		background-color: var(--gawdux-surface-card);
-		box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
 	}
 
 	.responsive-card-table tbody > tr > td {
@@ -1584,7 +1571,6 @@ main:has(.page-command-drawer) .page-command-bar,
 		padding: 0;
 		border: 0;
 		background: transparent;
-		box-shadow: none;
 	}
 
 	.responsive-card-table tbody > tr > td[colspan] {
@@ -1782,7 +1768,6 @@ main:has(.page-command-drawer) .page-command-bar,
 	line-height: 1rem;
 	font-weight: 500;
 	white-space: nowrap;
-	box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 	cursor: pointer;
 	outline: none;
 }
@@ -1822,7 +1807,6 @@ main:has(.page-command-drawer) .page-command-bar,
 	gap: 0;
 	border-color: transparent;
 	background-color: transparent;
-	box-shadow: none;
 	color: rgb(107 114 128); /* gray-500 */
 }
 .dark .gawdux-fit-labels[data-labels='icons'] .gawdux-tool-button {
@@ -2102,22 +2086,23 @@ main:has(.page-command-drawer) .page-command-bar,
 	}
 	/* MasterDetailShell's card is the panel's content here, not a box inside
 	   it: it spans its host edge to edge, inside an inset host across the
-	   host's padding, and its panes carry level one. */
+	   host's padding, and its panes carry level one. It is at least as tall
+	   as its frame, so a short list or detail still reaches the bar's seam
+	   (or an open drawer's) with no band of the panel under it. */
 	.master-detail-inset {
 		margin: 0;
 		padding: 0;
 		height: 100%;
 	}
 	:is(.scroll-surface, .editable-page-body, .page-inset, .tab-fill-scroll) .master-detail-inset {
-		margin: calc(-1 * var(--gawdux-page-inset)) calc(-1 * var(--gawdux-page-inset))
-			calc(-1 * var(--gawdux-page-inset-bottom));
+		margin: calc(-1 * var(--gawdux-page-inset));
 		padding: 0;
-		height: calc(100% + var(--gawdux-page-inset) + var(--gawdux-page-inset-bottom));
+		height: calc(100% + 2 * var(--gawdux-page-inset));
 	}
 	.master-detail-card {
+		min-height: 100%;
 		border-width: 0;
 		border-radius: 0;
-		box-shadow: none;
 	}
 }
 

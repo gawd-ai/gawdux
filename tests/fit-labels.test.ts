@@ -206,8 +206,7 @@ for (const [name, css] of [
 				height: '2rem',
 				padding: '0',
 				'border-color': 'transparent',
-				'background-color': 'transparent',
-				'box-shadow': 'none'
+				'background-color': 'transparent'
 			});
 			expect(
 				decls(".gawdux-fit-labels[data-labels='icons'] .gawdux-tool-button", '(max-width: 1024px)')

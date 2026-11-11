@@ -102,8 +102,7 @@ by overriding component classes:
 | `--gawdux-card-body-px` / `-py` | `px-6` / `py-3` | `CardContainer` body |
 | `--gawdux-tile-padding` / `-nested` | `p-3` / `p-2.5` | `StatTile` |
 | `--gawdux-tile-gap` / `--gawdux-tile-min-width` | `gap-3` / `9rem` | `StatTileStrip` |
-| `--gawdux-page-inset` | `pt-4 px-4` (1rem) | the content inset of every host, top and sides |
-| `--gawdux-page-inset-bottom` | `pb-1` (0.25rem) | the content inset of every host, above the command bar |
+| `--gawdux-page-inset` | `p-4` (1rem) | the content inset of every host, one value on all four sides |
 | `--gawdux-panel-wide-max-width` | `max-w-6xl` (72rem) | `.panel-col-wide`, `MasterDetailShell`'s card |
 | `--gawdux-table-head-icon-size` | `1rem` (`h-4 w-4`) | a column header's icon, square |
 | `--gawdux-table-head-icon-gap` | `0.5rem` (`gap-2`) | between a header's icon and its label |
@@ -160,22 +159,44 @@ hosts the content sets it. The hosts are `.scroll-surface` (PageTabs' panel),
 the `page-inset` class. Nothing inside a host pads itself toward the host's
 edges: a tab body opens on a plain `space-y-3` div, `MasterDetailShell` adds
 no inset inside a host (its own inset is the fallback for a shell in a bare,
-unpadded panel; inside a host its frame only reaches 0.25rem past the card so
-the card's shadow is drawn whole), and `TabFillPanel` adds none. The shell's
+unpadded panel), and `TabFillPanel` adds none. The inset is one value on all
+four sides, so a card in a panel stands as far above the command bar (or an
+open drawer's seam) as below the tab strip and in from the sides. The shell's
 card is `.master-detail-card`, capped by `--gawdux-panel-wide-max-width` like
 `.panel-col-wide`. A fill tab whose content
 scrolls is `<TabFillPanel scroll>`: the panel becomes the one scroller, spans
-its host's padding box and pads itself with the same knobs, so the scrollbar
-sits at the panel's edge and a hovered tile's shadow is never clipped.
+its host's padding box and pads itself with the same knob, so the scrollbar
+sits at the panel's edge.
 
-For 16px on all four sides, and two-pane cards that fill the panel:
+For two-pane cards that fill the panel:
 
 ```css
 :root {
-	--gawdux-page-inset-bottom: 1rem; /* default 0.25rem */
 	--gawdux-panel-wide-max-width: none; /* default 72rem */
 }
 ```
+
+### No shadow inside the page
+
+The page has one elevation, `--gawdux-surface-elevation`: the outermost
+content surface (the page's panel on the shell's background) and the command
+bar fused with it draw it, and tokens.css draws it for them. A surface that
+sits in the page draws no shadow, in light or dark: a card (`CardContainer`,
+on its own house surface, `.card-container`), a panel, a pane, a table's box
+(`TableContainer`), a tile (`StatTile`), the two-pane card
+(`MasterDetailShell`), a drawer, a notice (`PageFeedback`), a selected rail
+row or pill. A shadow belongs only to what floats above the page and closes
+(a menu, a popover, a picker's list, a toast, the command palette) and to a
+focus ring.
+
+`gawdux/utils` carries the rules' reader for a static guard:
+`surfaceShadows(source)` lists every shadow a source writes (a Tailwind
+shadow utility with any variant, a `box-shadow` that draws one, a
+`drop-shadow` filter), comments excluded; `shadowedFlowbiteImports(source)`
+lists an in-page Flowbite component that hard-codes a shadow (Card); and
+`insetOverrides(source)` lists every read of the inset knob and every
+fill-height calc. A host's suite holds its files to an allow-list of the
+floating ones; this library's own does (`tests/house-surface-rules.test.ts`).
 
 ## Account menu
 
@@ -437,35 +458,31 @@ gawdux is presentation and interaction only. The host application owns routing, 
 
 ### Confirmation presentation
 
-`ConfirmationCommandSurface` retains its existing drawer when `presentation` is
-omitted. Hosts that already use a persistent page command bar can opt into the
-same request/busy/error contract with `CommandBarConfirmationPresentation`:
+`ConfirmationCommandSurface` has one presentation, the house drawer at the
+command bar (`CommandBarConfirmationPresentation`, `PageCommandBarConfirm`):
 
 ```svelte
 <script lang="ts">
-  import { ConfirmationCommandSurface, CommandBarConfirmationPresentation } from 'gawdux/primitives';
+  import { ConfirmationCommandSurface } from 'gawdux/primitives';
   let { request, busy, error, confirm, cancel } = $props();
 </script>
 
-<ConfirmationCommandSurface
-  {request} {busy} {error}
-  presentation={CommandBarConfirmationPresentation}
-  onconfirm={confirm} oncancel={cancel}
-/>
+<ConfirmationCommandSurface {request} {busy} {error} onconfirm={confirm} oncancel={cancel} />
 ```
 
-The opt-in presentation uses `PageCommandBarConfirm`: the question stays at the
-content edge while Cancel/Confirm take the bar's center registration. Existing
-page actions return when the request closes. Without a bar context the buttons
-render beside the question. Both presentations block busy interaction, prevent
-duplicate dispatch, allow retry after a settled attempt and restore the request's
-invoking control or fallback. Request ids define distinct decisions and remount
-an injected presentation; hosts must give a new decision a new id.
-
-Custom presentations accept `ConfirmationCommandPresentationProps` and own
-markup, keyboard interaction and focus. The surface supplies guarded callbacks;
-the host still owns the action, authorization and outcome. `ConfirmationCommandRequest`
-and `createPageCommandBarRegistry` are shared exports, not host-local copies.
+The question stays at the content edge in the house `.page-command-drawer`
+while Cancel/Confirm take the bar's center registration. Existing page actions
+return when the request closes. Without a bar context the buttons render
+beside the question. The surface blocks busy interaction, prevents duplicate
+dispatch, allows retry after a settled attempt and restores the request's
+invoking control or fallback. Request ids define distinct decisions and
+remount the presentation; hosts must give a new decision a new id.
+`DiscardNavigationCommandSurface` is the same drawer, worded for unsaved
+changes ("Keep editing", the destination's confirm), and `CommandDrawer` is
+the house drawer for a decision that takes words or fields. None has chrome
+of its own or a shadow. The surface supplies guarded callbacks; the host still
+owns the action, authorization and outcome. `ConfirmationCommandRequest` and
+`createPageCommandBarRegistry` are shared exports, not host-local copies.
 
 ## Development Workflow
 

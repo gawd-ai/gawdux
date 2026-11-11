@@ -88,15 +88,14 @@ for (const [name, css] of [
 					':is(.scroll-surface, .editable-page-body, .page-inset, .tab-fill-scroll) .master-detail-inset'
 				)
 			).toEqual({
-				margin:
-					'calc(-1 * var(--gawdux-page-inset)) calc(-1 * var(--gawdux-page-inset)) calc(-1 * var(--gawdux-page-inset-bottom))',
+				margin: 'calc(-1 * var(--gawdux-page-inset))',
 				padding: '0',
-				height: 'calc(100% + var(--gawdux-page-inset) + var(--gawdux-page-inset-bottom))'
+				height: 'calc(100% + 2 * var(--gawdux-page-inset))'
 			});
 			expect(declarations(narrow, '.master-detail-card')).toEqual({
+				'min-height': '100%',
 				'border-width': '0',
-				'border-radius': '0',
-				'box-shadow': 'none'
+				'border-radius': '0'
 			});
 		});
 	});

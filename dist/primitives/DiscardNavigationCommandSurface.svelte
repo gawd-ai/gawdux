@@ -1,23 +1,16 @@
 <script lang="ts">
 	import { tick } from 'svelte';
-	import { Button } from 'flowbite-svelte';
-	import { ExclamationCircleOutline } from 'flowbite-svelte-icons';
+	import PageCommandBarConfirm from './PageCommandBarConfirm.svelte';
 	import type { DiscardNavigationRequest } from '../utils/discard-navigation.svelte';
 	import type { DiscardNavigationCommandSurfaceProps } from './discard-navigation-command';
 
 	let {
 		request,
 		pending = $bindable(false),
-		anchorBottom = false,
-		presentation: Presentation,
 		oncancel,
 		oncomplete
 	}: DiscardNavigationCommandSurfaceProps = $props();
-	const componentId = $props.id();
-	const titleId = `${componentId}-title`;
-	const messageId = `${componentId}-message`;
 
-	let stripEl = $state<HTMLElement | null>(null);
 	let error = $state<string | null>(null);
 	let restoreFocusTo: HTMLElement | null = null;
 	let focusedRequest: DiscardNavigationRequest | number | null = null;
@@ -32,11 +25,6 @@
 		restoreFocusTo =
 			current.focusOnCancel?.() ??
 			(document.activeElement instanceof HTMLElement ? document.activeElement : null);
-		if (!Presentation) void tick().then(() => {
-			const confirm = stripEl?.querySelector<HTMLButtonElement>('button[data-action-confirm]');
-			if (confirm && !confirm.disabled) confirm.focus();
-			else stripEl?.querySelector<HTMLElement>('button[data-action-cancel]')?.focus();
-		});
 	});
 
 	$effect(() => {
@@ -102,89 +90,29 @@
 			pending = false;
 		}
 	}
-
-	function onKeydown(event: KeyboardEvent) {
-		if (Presentation || !request || pending || event.isComposing || event.key !== 'Escape') return;
-		event.preventDefault();
-		cancel();
-	}
 </script>
 
-<svelte:window on:keydown={onKeydown} />
-
+<!--
+	Discarding unsaved changes is a decision at the command bar like every
+	other: the house drawer (PageCommandBarConfirm) rises out of the bar with
+	the words, and Keep editing / the destination's confirm take the bar's
+	center zone. One presentation, with no chrome of its own. Escape keeps
+	editing; focus returns to the control that asked.
+-->
 {#if request}
-	{#if Presentation}
-		{#key request.id ?? request}
-			<Presentation {request} {pending} error={error ?? request.disabledMessage ?? null} onconfirm={() => void continueAfterDiscard()} oncancel={cancel} />
-		{/key}
-	{:else}
-	<section
-		bind:this={stripEl}
-		data-workflow-role="command-drawer"
-		aria-labelledby={titleId}
-		aria-busy={pending}
-		class:mt-auto={anchorBottom}
-		class="discard-navigation-command-drawer shrink-0 border-t border-gray-200 bg-gray-50/95 px-4 py-3 shadow-[0_-8px_20px_-18px_rgba(15,23,42,0.8)] dark:border-gray-700 dark:bg-gray-900/95"
-	>
-		<div
-			class="mx-auto flex w-full max-w-5xl flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:gap-4"
-		>
-			<ExclamationCircleOutline
-				class="hidden h-5 w-5 shrink-0 text-amber-600 sm:block dark:text-amber-400"
-			/>
-			<div class="min-w-0 flex-1">
-				<h3 id={titleId} class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-					Discard unsaved changes?
-				</h3>
-				<p id={messageId} class="text-xs text-gray-600 dark:text-gray-300">
-					{request.message}
-				</p>
-				{#if request.disabledMessage}
-					<p class="mt-1 text-xs font-medium text-amber-700 dark:text-amber-300" role="status">
-						{request.disabledMessage}
-					</p>
-				{/if}
-				{#if error}
-					<p class="mt-1 text-xs font-medium text-red-600 dark:text-red-400" role="alert">
-						{error}
-					</p>
-				{/if}
-			</div>
-			<div class="flex shrink-0 flex-wrap items-center justify-end gap-2">
-				<Button
-					color="alternative"
-					size="sm"
-					data-action-cancel
-					disabled={pending}
-					on:click={cancel}
-				>
-					Keep editing
-				</Button>
-				<Button
-					color="red"
-					size="sm"
-					data-action-confirm
-					disabled={pending || request.disabled}
-					aria-describedby={messageId}
-					on:click={() => void continueAfterDiscard()}
-				>
-					{pending ? 'Continuing…' : request.confirmLabel}
-				</Button>
-			</div>
-		</div>
-	</section>
-	{/if}
+	{#key request.id ?? request}
+		<PageCommandBarConfirm
+			title="Discard unsaved changes?"
+			message={request.message}
+			error={error ?? request.disabledMessage ?? null}
+			cancelLabel="Keep editing"
+			confirmLabel={request.confirmLabel}
+			busyLabel="Continuing…"
+			confirmColor="red"
+			busy={pending}
+			disabled={request.disabled}
+			onconfirm={() => void continueAfterDiscard()}
+			oncancel={cancel}
+		/>
+	{/key}
 {/if}
-
-<style>
-	@media (max-width: 1024px) {
-		.discard-navigation-command-drawer {
-			max-height: min(45dvh, 20rem);
-			overflow-y: auto;
-		}
-
-		:global(.discard-navigation-command-drawer button) {
-			min-height: 44px;
-		}
-	}
-</style>

@@ -8,11 +8,9 @@
 
 	let {
 		busy = false,
-		variant = 'attached',
 		extraAttr = undefined
 	}: {
 		busy?: boolean;
-		variant?: 'attached' | 'card';
 		extraAttr?: string | undefined;
 	} = $props();
 
@@ -35,7 +33,6 @@
 <CommandDrawer
 	open={isOpen}
 	{busy}
-	{variant}
 	onclose={() => closeCount++}
 	{...extraAttr ? { 'data-probe': extraAttr } : {}}
 >

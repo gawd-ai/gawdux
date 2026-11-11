@@ -1,5 +1,5 @@
 /** Strict neutral consumer of the compiled package's public entrypoints only. */
-import type { Component, ComponentProps, Snippet } from 'svelte';
+import type { ComponentProps, Snippet } from 'svelte';
 import {
 	UserMenu,
 	type UserMenuPresentation,
@@ -9,8 +9,6 @@ import type { UserMenuPresentation as MenuPresentationFromTypes } from 'gawdux/t
 import {
 	ConfirmationCommandSurface,
 	DiscardNavigationCommandSurface,
-	type ConfirmationCommandPresentationProps,
-	type DiscardNavigationCommandPresentationProps,
 	type DiscardNavigationCommandSurfaceProps
 } from 'gawdux/primitives';
 import {
@@ -149,18 +147,13 @@ export function publicUtilitiesFixture(
 	};
 }
 
-export function publicPresentationFixture(
-	discardPresenter: Component<DiscardNavigationCommandPresentationProps>,
-	confirmationPresenter: Component<ConfirmationCommandPresentationProps>,
-	accountPresenter: Snippet<[UserMenuPresentation]>
-) {
+export function publicPresentationFixture(accountPresenter: Snippet<[UserMenuPresentation]>) {
 	const discard: DiscardNavigationCommandSurfaceProps = {
 		request: {
 			message: 'Leave this draft?',
 			confirmLabel: 'Continue',
 			continue: async () => {}
 		},
-		presentation: discardPresenter,
 		oncancel: () => {},
 		oncomplete: () => {}
 	};
@@ -168,7 +161,6 @@ export function publicPresentationFixture(
 		discard;
 	const confirmationProps: ComponentProps<typeof ConfirmationCommandSurface> = {
 		request: null,
-		presentation: confirmationPresenter,
 		onconfirm: () => {},
 		oncancel: () => {}
 	};

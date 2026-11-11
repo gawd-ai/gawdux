@@ -103,18 +103,18 @@
 <div class="master-detail-shell @container min-h-0 w-full flex-1">
 	<!-- The host owns the content inset: inside a tab panel (.scroll-surface),
 	     an EditablePageScaffold body or a .page-inset surface the shell adds
-	     none, and the frame only reaches a shadow's room past the card so its
-	     clip never cuts the card's shadow. `master-detail-inset` (tokens.css)
-	     is the fallback for a shell no host encloses (a bare, unpadded
-	     panel), read from the same knobs, so it is the one inset there and
-	     never a second one. It also carries the frame's height. The card's
-	     width cap (`master-detail-card`) is the wide-column knob that
-	     .panel-col-wide reads too. -->
+	     none. `master-detail-inset` (tokens.css) is the fallback for a shell
+	     no host encloses (a bare, unpadded panel), read from the same knob
+	     on all four sides, so it is the one inset there and never a second
+	     one. It also carries the frame's height. The card draws no shadow
+	     (no shadow inside the page). The card's width cap
+	     (`master-detail-card`) is the wide-column knob that .panel-col-wide
+	     reads too. -->
 	<div
 		class="master-detail-inset min-h-0 overflow-auto @3xl:flex @3xl:flex-col @3xl:overflow-hidden"
 	>
 		<div
-			class="master-detail-card mx-auto grid min-h-[30rem] w-full grid-cols-1 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900 @3xl:min-h-0 @3xl:flex-1 @3xl:grid-cols-[18rem_minmax(0,1fr)] @3xl:grid-rows-[minmax(0,1fr)]"
+			class="master-detail-card mx-auto grid min-h-[30rem] w-full grid-cols-1 overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 @3xl:min-h-0 @3xl:flex-1 @3xl:grid-cols-[18rem_minmax(0,1fr)] @3xl:grid-rows-[minmax(0,1fr)]"
 		>
 			<aside
 				bind:this={railElement}

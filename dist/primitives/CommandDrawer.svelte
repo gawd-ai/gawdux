@@ -32,13 +32,13 @@
 	the bar it belongs to. If a host needs it elsewhere, fix the shell — do not
 	reach for a portal.
 
-	The `attached` variant renders the house `.page-command-drawer` (tokens.css),
+	It renders the house `.page-command-drawer` (tokens.css),
 	the same element `PageCommandBarConfirm` renders: the bar loses its top edge
 	while one is open, so drawer and bar read as one panel that opened up out of
 	the bar. Its text is centred like every bar decision; a form body sets
 	`text-left` on itself. Titles, messages and errors inside it use
-	`.page-command-drawer-title`, `-message` and `-error`. The `card` variant
-	keeps its own rounded panel floating just above the bar.
+	`.page-command-drawer-title`, `-message` and `-error`. It is the only
+	presentation: a drawer has no chrome of its own and no shadow.
 
 	## Focus
 
@@ -65,11 +65,6 @@
 		autoFocusSelector = 'button[data-action-confirm]',
 		/** Narrow-viewport height cap. Bodies with a form want more room than a confirmation. */
 		maxHeight = '20rem',
-		/**
-		 * `attached` — the house `.page-command-drawer`, fused with the bar.
-		 * `card`     — a rounded panel floating just above it.
-		 */
-		variant = 'attached',
 		/** Escape closes unless this is false — a busy surface should not vanish mid-write. */
 		dismissible = true,
 		class: className = '',
@@ -89,7 +84,6 @@
 		busy?: boolean;
 		autoFocusSelector?: string;
 		maxHeight?: string;
-		variant?: 'attached' | 'card';
 		dismissible?: boolean;
 		class?: string;
 		onclose?: (() => void) | undefined;
@@ -149,19 +143,13 @@
 		aria-describedby={describedBy}
 		aria-busy={busy || undefined}
 		style:--command-drawer-max-height={maxHeight}
-		class="command-drawer command-drawer--{variant} {variant === 'card'
-			? 'shrink-0 border border-gray-200 bg-gray-50/95 px-4 py-3 shadow-sm dark:border-gray-700 dark:bg-gray-900/95'
-			: 'page-command-drawer'} {className}"
+		class="command-drawer page-command-drawer {className}"
 	>
 		{@render children()}
 	</section>
 {/if}
 
 <style>
-	.command-drawer--card {
-		border-radius: 0.5rem;
-	}
-
 	/*
 	  Narrow viewports: cap the height and let the body scroll inside itself, so
 	  a drawer with a form can never push the command bar off-screen — the bar is

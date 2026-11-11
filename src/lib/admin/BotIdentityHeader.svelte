@@ -24,7 +24,7 @@
 
 <div class="flex min-w-0 items-center gap-3" data-bot-identity>
 	<span
-		class={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white shadow-sm ${bot.color ?? 'bg-slate-500 dark:bg-slate-600'}`}
+		class={`flex h-12 w-12 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white ${bot.color ?? 'bg-slate-500 dark:bg-slate-600'}`}
 		aria-hidden="true">{botInitials(bot)}</span
 	>
 	<div class="min-w-0">

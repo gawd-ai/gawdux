@@ -14,7 +14,7 @@
 	export function filterPillClass(active: boolean): string {
 		return `filter-pill shrink-0 whitespace-nowrap rounded border px-2.5 py-1 text-xs font-medium transition-colors focus:outline-none focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-blue-500 ${
 			active
-				? 'border-gray-200 bg-white text-gray-900 shadow-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100'
+				? 'border-gray-200 bg-white text-gray-900 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100'
 				: 'border-transparent text-gray-600 hover:bg-white hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-gray-100'
 		}`;
 	}

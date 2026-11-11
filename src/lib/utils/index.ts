@@ -159,3 +159,10 @@ export {
 	toggleColorTheme,
 	watchColorTheme
 } from './color-theme';
+
+export {
+	insetOverrides,
+	shadowedFlowbiteImports,
+	surfaceShadows,
+	withoutComments
+} from './surface-rules';

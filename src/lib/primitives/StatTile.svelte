@@ -108,7 +108,7 @@
 			'stat-tile min-w-0 rounded-lg',
 			nested
 				? `p-[var(--gawdux-tile-padding-nested,0.625rem)] ${NESTED_TONE[tone]}`
-				: `border p-[var(--gawdux-tile-padding,0.75rem)] transition-shadow hover:shadow-md ${TILE_TONE[tone]}`,
+				: `border p-[var(--gawdux-tile-padding,0.75rem)] ${TILE_TONE[tone]}`,
 			className
 		]
 			.filter(Boolean)

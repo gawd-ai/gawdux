@@ -8,11 +8,10 @@ import {
 import { tick } from "svelte";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import DiscardNavigationCommandSurface from "../src/lib/primitives/DiscardNavigationCommandSurface.svelte";
-import CustomDiscardPresentation from "./fixtures/CustomDiscardPresentation.svelte";
 
 afterEach(cleanup);
 
-describe("custom discard presentation", () => {
+describe("the house discard presentation (PageCommandBarConfirm)", () => {
   it("shares single-flight continuation, completion and destination focus", async () => {
     let resolve!: () => void;
     const gate = new Promise<void>((done) => {
@@ -31,7 +30,6 @@ describe("custom discard presentation", () => {
     render(DiscardNavigationCommandSurface, {
       props: {
         request,
-        presentation: CustomDiscardPresentation,
         oncancel: vi.fn(),
         oncomplete,
       },
@@ -50,7 +48,7 @@ describe("custom discard presentation", () => {
     destination.remove();
   });
 
-  it("cancels once via presenter Escape and restores the original focus", async () => {
+  it("cancels once on Escape and restores the original focus", async () => {
     const trigger = document.createElement("button");
     document.body.append(trigger);
     trigger.focus();
@@ -63,7 +61,6 @@ describe("custom discard presentation", () => {
     render(DiscardNavigationCommandSurface, {
       props: {
         request,
-        presentation: CustomDiscardPresentation,
         oncancel,
         oncomplete: vi.fn(),
       },
@@ -91,7 +88,6 @@ describe("custom discard presentation", () => {
     render(DiscardNavigationCommandSurface, {
       props: {
         request,
-        presentation: CustomDiscardPresentation,
         oncancel: vi.fn(),
         oncomplete: vi.fn(),
       },

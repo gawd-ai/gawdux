@@ -1,5 +1,60 @@
 # Changelog
 
+## 0.36.0 - no shadow inside the page, one inset on all four sides, one drawer
+
+### Changed
+
+- No shadow inside the page. The page has one elevation,
+  `--gawdux-surface-elevation` (light and dark): tokens.css draws it on the
+  outermost content surface (`.context-surface` not nested in another) and
+  on `.page-command-bar`, and `.shadow-md` reads it. A surface that sits in
+  the page draws none: `.page-tabs-shell` and `.table-container` lose their
+  `shadow-md`, as do `TableContainer`, `MasterDetailShell`'s card,
+  `StatTile` (no hover shadow), `PageFeedback`'s card, `FilterPillRow`'s
+  current pill, `ListQueryBar`'s Filters button, `RailRowButton`'s selected
+  row, `ProviderHealthBar`, `BotIdentityHeader`'s avatar, a
+  `.responsive-card-table` row, a labelled `.gawdux-tool-button` and an
+  `.interactive-surface` under the pointer (its edge darkens instead).
+- `CardContainer` draws its own house surface (`.card-container`: the card
+  surface, the house edge and radius, the muted text, no shadow) in place of
+  Flowbite's `Card`, whose frame hard-codes a shadow. An invalid card
+  doubles its red edge with an outline.
+- One inset on all four sides. `--gawdux-page-inset` is the content inset of
+  every inset host on its four sides (`.scroll-surface`, `.page-inset`,
+  `EditablePageScaffold`'s body, `MasterDetailShell`'s frame,
+  `TabFillPanel scroll`), so a card in a panel stands as far above the
+  command bar, or an open drawer's seam, as below the tab strip and in from
+  the sides; 8px at or below the compact width. Inside a host the
+  two-pane frame adds nothing (the card has no shadow to make room for); at
+  the compact width it spans the host's padding box on every side, and the
+  two-pane card is at least as tall as its frame, so a short list or detail
+  still reaches the command bar's seam (or an open drawer's) with no band of
+  the panel under it.
+- `ConfirmationCommandSurface` has one presentation, the house drawer at the
+  command bar (`CommandBarConfirmationPresentation`); `DiscardNavigationCommandSurface`
+  is the same drawer (`PageCommandBarConfirm`, "Keep editing" and the
+  destination's confirm). Neither draws chrome of its own.
+
+### Added
+
+- `EditablePageScaffold`'s `panes`: with `surface`, a surface that hosts
+  panes, not content (a list beside a reader), whose body takes no inset, so
+  a host never sets the inset's knob to zero.
+- `gawdux/utils`: `surfaceShadows`, `shadowedFlowbiteImports`,
+  `insetOverrides` and `withoutComments`, the house surface rules as a
+  source reads them, for a static guard over a library's or a host's own
+  files. `tests/house-surface-rules.test.ts` holds this library to them.
+
+### Removed
+
+- `--gawdux-page-inset-bottom` (the inset is one value) and
+  `--gawdux-hover-shadow-rgb`.
+- `CommandDrawer`'s `card` variant: a drawer is the house
+  `.page-command-drawer`, with no rounded panel floating above the bar.
+- The `presentation` prop of `ConfirmationCommandSurface` and of
+  `DiscardNavigationCommandSurface` (`anchorBottom` too), and the
+  `DiscardNavigationCommandPresentationProps` type.
+
 ## 0.35.0 - a tab is an icon and its label, a trail ends at the item's place
 
 ### Added

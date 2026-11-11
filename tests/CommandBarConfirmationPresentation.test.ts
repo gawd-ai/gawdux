@@ -1,7 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import ConfirmationCommandSurface from '../src/lib/primitives/ConfirmationCommandSurface.svelte';
-import CommandBarConfirmationPresentation from '../src/lib/primitives/CommandBarConfirmationPresentation.svelte';
 import ConfirmationCommandBarHarness from './fixtures/ConfirmationCommandBarHarness.svelte';
 import type { ConfirmationCommandRequest } from '../src/lib/primitives/confirmation-command';
 
@@ -22,12 +21,11 @@ afterEach(() => {
 	document.body.innerHTML = '';
 });
 
-describe('opt-in command-bar confirmation presentation', () => {
+describe('the command-bar confirmation presentation, the one presentation', () => {
 	it('uses the command bar contract without rendering the default drawer', async () => {
 		render(ConfirmationCommandSurface, {
 			props: {
 				request: request(),
-				presentation: CommandBarConfirmationPresentation,
 				onconfirm: vi.fn(),
 				oncancel: vi.fn()
 			}
@@ -60,7 +58,7 @@ describe('opt-in command-bar confirmation presentation', () => {
 	it('guards duplicate dispatch and re-arms after the host reports failure', async () => {
 		const onconfirm = vi.fn();
 		const view = render(ConfirmationCommandSurface, {
-			props: { request: request(), presentation: CommandBarConfirmationPresentation, onconfirm, oncancel: vi.fn() }
+			props: { request: request(), onconfirm, oncancel: vi.fn() }
 		});
 		const confirm = screen.getByRole('button', { name: 'Archive' });
 		await fireEvent.click(confirm);
@@ -84,7 +82,6 @@ describe('opt-in command-bar confirmation presentation', () => {
 		const view = render(ConfirmationCommandSurface, {
 			props: {
 				request: request({ focusTarget: trigger, focusFallback: () => fallback }),
-				presentation: CommandBarConfirmationPresentation,
 				busy: true,
 				onconfirm,
 				oncancel
@@ -105,7 +102,7 @@ describe('opt-in command-bar confirmation presentation', () => {
 	it('remounts a new request id and does not retain the previous dispatch guard', async () => {
 		const onconfirm = vi.fn();
 		const view = render(ConfirmationCommandSurface, {
-			props: { request: request(), presentation: CommandBarConfirmationPresentation, onconfirm, oncancel: vi.fn() }
+			props: { request: request(), onconfirm, oncancel: vi.fn() }
 		});
 		const first = screen.getByRole('button', { name: 'Archive' });
 		await fireEvent.click(first);
@@ -118,11 +115,11 @@ describe('opt-in command-bar confirmation presentation', () => {
 		expect(onconfirm).toHaveBeenCalledTimes(2);
 	});
 
-	it('keeps the existing drawer as the default for hosts that do not opt in', () => {
+	it('is the one presentation: no card of its own, nothing floating above the bar', () => {
 		render(ConfirmationCommandSurface, {
 			props: { request: request(), onconfirm: vi.fn(), oncancel: vi.fn() }
 		});
-		expect(document.querySelector('.command-drawer--card')).not.toBeNull();
-		expect(document.querySelector('.page-command-drawer')).toBeNull();
+		expect(document.querySelector('.page-command-drawer')).not.toBeNull();
+		expect(document.querySelector('.command-drawer--card')).toBeNull();
 	});
 });

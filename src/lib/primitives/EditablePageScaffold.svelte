@@ -35,6 +35,11 @@
 	    already render their own `<PageTabs>` (which carries the wrapper)
 	    should leave this false. */
 	export let surface = false;
+	/** With `surface`: the surface hosts panes, not content (a list beside a
+	    reader), so its body takes no inset and the panes run to the panel's
+	    edges, as a two-pane card's do. The inset stays the one value the
+	    knob gives every other inset host; nothing sets it to zero. */
+	export let panes = false;
 	export let className = '';
 
 	const dispatch = createEventDispatcher<{ dismiss: void }>();
@@ -87,7 +92,7 @@
 	{#if surface}
 		<div class="context-surface page-tabs-shell editable-page-surface">
 			<SurfaceFeedback {...$feedback} />
-			<div class="editable-page-body">
+			<div class="editable-page-body" class:editable-page-body--panes={panes}>
 				<slot />
 			</div>
 		</div>
@@ -113,8 +118,8 @@
 	}
 
 	/* The body is an inset host: the content inset is its padding, read from
-	   the same knobs as .scroll-surface (1rem on the top and sides, 0.25rem
-	   above the command bar by default). Every surface reads the same
+	   the same knob as .scroll-surface (1rem on all four sides by default,
+	   8px at or below the compact width). Every surface reads the same
 	   because none of them chooses. The inset is on the body, not the panel,
 	   so the feedback strip above it runs edge to edge like the tab strip and
 	   the filter bar do. A MasterDetailShell inside the body adds no inset of
@@ -124,7 +129,9 @@
 		flex-direction: column;
 		flex: 1 1 auto;
 		min-height: 0;
-		padding: var(--gawdux-page-inset, 1rem) var(--gawdux-page-inset, 1rem)
-			var(--gawdux-page-inset-bottom, 0.25rem);
+		padding: var(--gawdux-page-inset, 1rem);
+	}
+	.editable-page-body--panes {
+		padding: 0;
 	}
 </style>
