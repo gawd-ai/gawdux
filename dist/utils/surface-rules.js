@@ -454,13 +454,14 @@ export function handSetCardPadding(source) {
     return found;
 }
 /**
- * Every body cell of a register (a component drawing a `ListSurface` or a
- * `ListPageScaffold`) that names neither its column (`data-label`) nor its
- * place in the card (`data-card`), and spans no columns (an empty row).
+ * Every body cell of a register (a component drawing a `ListSurface`, a
+ * `ListPageScaffold` or a list's scroller of its own, `.list-table-scroll`)
+ * that names neither its column (`data-label`) nor its place in the card
+ * (`data-card`), and spans no columns (an empty row).
  */
 export function unlabelledRegisterCells(source) {
     const markup = markupOf(source);
-    if (!/<(?:ListSurface|ListPageScaffold)\b/.test(markup))
+    if (!/<(?:ListSurface|ListPageScaffold)\b|\blist-table-scroll\b/.test(markup))
         return [];
     const found = [];
     for (const tag of markupTags(markup)) {

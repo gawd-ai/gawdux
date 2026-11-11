@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.38.1 - a register with a scroller of its own is a register
+
+### Fixed
+
+- `unlabelledRegisterCells` reads a component that draws a list's scroller
+  of its own (`.list-table-scroll`, whose table reads as cards at or below
+  the compact width as a `ListSurface`'s does) as a register, as it reads one
+  drawing a `ListSurface` or a `ListPageScaffold`; 0.38.0 read only the two
+  components, so such a register's unlabelled cells went unread.
+
 ## 0.38.0 - one icon size, a rail row's own layout, one padding inside a card, no choice of one, a register on a phone
 
 ### Changed

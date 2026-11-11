@@ -301,5 +301,9 @@ describe('a register reads on a phone', () => {
 		expect(unlabelledRegisterCells(register('<TableBodyCell data-card="title">A</TableBodyCell>'))).toEqual([]);
 		expect(unlabelledRegisterCells(register('<td colspan={6}>None</td>'))).toEqual([]);
 		expect(unlabelledRegisterCells('<Table><TableBodyCell>A</TableBodyCell></Table>')).toEqual([]);
+		// A register that draws a list's scroller of its own is a register.
+		expect(
+			unlabelledRegisterCells('<div class="list-table-scroll"><Table><TableBodyCell>A</TableBodyCell></Table></div>')
+		).toHaveLength(1);
 	});
 });

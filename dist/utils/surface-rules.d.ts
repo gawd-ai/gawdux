@@ -96,8 +96,9 @@ export declare function handRolledRailRows(source: string): string[];
  */
 export declare function handSetCardPadding(source: string): string[];
 /**
- * Every body cell of a register (a component drawing a `ListSurface` or a
- * `ListPageScaffold`) that names neither its column (`data-label`) nor its
- * place in the card (`data-card`), and spans no columns (an empty row).
+ * Every body cell of a register (a component drawing a `ListSurface`, a
+ * `ListPageScaffold` or a list's scroller of its own, `.list-table-scroll`)
+ * that names neither its column (`data-label`) nor its place in the card
+ * (`data-card`), and spans no columns (an empty row).
  */
 export declare function unlabelledRegisterCells(source: string): string[];
