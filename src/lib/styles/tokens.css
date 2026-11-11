@@ -1445,7 +1445,8 @@ main:has(.page-command-drawer) .page-command-bar,
      words (column vocabulary is the host's); a cell with none shows its
      value alone.
    - `data-card="title"` is the row's name (a task's title, a record's
-     number): it spans the card's width, with no label, as the card's head.
+     number): it heads the card, first whatever its column, across the
+     card's width with no label.
    - `data-card="wide"` spans the card's width under its label (a long text).
    - `data-card="end"` is a row's own control (a chevron that opens its
      detail): it sits at the card's top right, beside the row's name.
@@ -1610,6 +1611,7 @@ main:has(.page-command-drawer) .page-command-bar,
 	/* The row's name heads its card across both columns, with no label. */
 	:is(.responsive-card-table, .list-table-scroll) tbody > tr > td[data-card='title'] {
 		grid-column: 1 / -1;
+		order: -1;
 		font-size: 0.875rem;
 		line-height: 1.25rem;
 	}

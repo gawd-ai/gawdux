@@ -21,7 +21,7 @@ describe('a register on a phone', () => {
 
 	it("labels a cell with its column's name and heads the card with the row's name", () => {
 		expect(section).toContain("td[data-label]::before {\n\t\tcontent: attr(data-label);");
-		expect(section).toContain("td[data-card='title'] {\n\t\tgrid-column: 1 / -1;");
+		expect(section).toContain("td[data-card='title'] {\n\t\tgrid-column: 1 / -1;\n\t\torder: -1;");
 		expect(section).toContain("td[data-card='wide'] {\n\t\tgrid-column: 1 / -1;");
 		// No column vocabulary of the library's own.
 		expect(section).not.toMatch(/content:\s*'[A-Z]/);

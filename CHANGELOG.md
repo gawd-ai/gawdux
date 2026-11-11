@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.38.2 - a register's card is headed by the row's name
+
+### Fixed
+
+- A register's card on a phone is headed by the row's name: the cell marked
+  `data-card="title"` comes first in its card (`order: -1`), whatever its
+  column, so a register whose first column is its status still reads its
+  name first; 0.38.0 placed it where its column fell.
+
 ## 0.38.1 - a register with a scroller of its own is a register
 
 ### Fixed

@@ -1148,6 +1148,7 @@ main:has(.page-command-drawer) .page-command-bar,
   }
   :is(.responsive-card-table, .list-table-scroll) tbody > tr > td[data-card='title'] {
     grid-column: 1 / -1;
+    order: -1;
     font-size: 0.875rem;
     line-height: 1.25rem;
   }
