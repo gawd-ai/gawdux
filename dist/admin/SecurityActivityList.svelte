@@ -51,7 +51,7 @@
 							<th class="py-2 pr-3 font-semibold">{@render head('detail', 'Detail')}</th>
 						</tr>
 					</thead>
-					<tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+					<tbody class="divide-y divide-gray-100 dark:divide-gray-700">
 						{#each events as event (event.id)}
 							<tr>
 								<td class="telemetry-readout whitespace-nowrap py-2 pr-3 text-gray-500 dark:text-gray-400"

@@ -4,7 +4,8 @@ import { describe, expect, it } from 'vitest';
 import {
 	insetOverrides,
 	shadowedFlowbiteImports,
-	surfaceShadows
+	surfaceShadows,
+	vanishingDarkEdges
 } from '../src/lib/utils/surface-rules';
 
 // The house surface rules over this library's own markup and styles, read
@@ -14,7 +15,10 @@ import {
 //   ring or a hard line, a layer with no blur, is an edge and not a shadow);
 // - one inset on all four sides: the content inset's knob is read only by
 //   the inset hosts that own it, there is no separate bottom inset, and the
-//   frame's fill-height calc lives only in tokens.css.
+//   frame's fill-height calc lives only in tokens.css;
+// - light and dark draw the same lines: an edge drawn in light in a colour
+//   of its own is never, in dark, transparent, of no width, or the colour of
+//   the dark surface it is drawn on.
 
 const ROOT = path.resolve(import.meta.dirname, '../src/lib');
 
@@ -97,9 +101,10 @@ describe('no shadow inside the page', () => {
 });
 
 describe('one inset on all four sides', () => {
-	/** The inset hosts that own the knob, and the reader of the rule itself. */
+	/** The inset hosts that own the knob (the filter bar at a list's top among
+	 * them), and the reader of the rule itself. */
 	const OWNERS: Record<string, number> = {
-		'styles/tokens.css': 10,
+		'styles/tokens.css': 11,
 		'primitives/EditablePageScaffold.svelte': 1,
 		'utils/surface-rules.ts': 1
 	};
@@ -118,5 +123,50 @@ describe('one inset on all four sides', () => {
 			rel === 'utils/surface-rules.ts' ? false : /--gawdux-page-inset-bottom/.test(source)
 		).map(({ rel }) => rel);
 		expect(bottom).toEqual([]);
+	});
+});
+
+describe('light and dark draw the same lines', () => {
+	it('draws in dark every edge it draws in light', () => {
+		const vanishing: Record<string, string[]> = {};
+		for (const { rel, source } of FILES) {
+			if (rel === 'utils/surface-rules.ts') continue;
+			const found = vanishingDarkEdges(source, rel);
+			if (found.length > 0) vanishing[rel] = found;
+		}
+		expect(vanishing).toEqual({});
+	});
+
+	it('reads the edge a theme removes, and the surface each edge is drawn on', () => {
+		const card = (inner: string) =>
+			`<CardContainer title="T"><div slot="content">${inner}</div></CardContainer>`;
+		// The line between rows in the card's own dark colour is not drawn.
+		expect(
+			vanishingDarkEdges(card('<div class="divide-y divide-gray-100 dark:divide-gray-800"></div>'))
+		).toHaveLength(1);
+		expect(
+			vanishingDarkEdges(card('<div class="border border-gray-100 dark:border-gray-800"></div>'))
+		).toHaveLength(1);
+		// On the page's surface a gray-800 line is drawn; a gray-900 one is not.
+		expect(vanishingDarkEdges('<div class="border border-gray-200 dark:border-gray-800"></div>')).toEqual([]);
+		expect(vanishingDarkEdges('<div class="border border-gray-200 dark:border-gray-900"></div>')).toHaveLength(1);
+		// An element's own dark surface holds its rows' line.
+		expect(
+			vanishingDarkEdges('<ul class="divide-y divide-gray-100 dark:bg-gray-700 dark:divide-gray-700"></ul>')
+		).toHaveLength(1);
+		// A theme that removes the edge, in markup or in a module's class string.
+		expect(vanishingDarkEdges('<div class="border border-gray-200 dark:border-transparent"></div>')).toHaveLength(1);
+		expect(vanishingDarkEdges('<div class="border-b border-gray-200 dark:border-0"></div>')).toHaveLength(1);
+		expect(vanishingDarkEdges("const c = 'border border-gray-200 dark:border-transparent';", 'x.ts')).toHaveLength(1);
+		// The house edge in dark, a cut-out in the surface's colour in both themes, and no light edge.
+		expect(vanishingDarkEdges(card('<div class="border border-gray-100 dark:border-gray-700"></div>'))).toEqual([]);
+		expect(vanishingDarkEdges('<span class="ring-2 ring-white dark:ring-gray-900 border-white dark:border-gray-900"></span>')).toEqual([]);
+		expect(vanishingDarkEdges('<div class="border-transparent dark:border-gray-900"></div>')).toEqual([]);
+		// An expression's arrow is not a tag's end.
+		expect(
+			vanishingDarkEdges(
+				card('<button onclick={() => go()} class="border border-gray-100 dark:border-gray-800">x</button>')
+			)
+		).toHaveLength(1);
 	});
 });

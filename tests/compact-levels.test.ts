@@ -48,9 +48,25 @@ for (const [name, css] of [
 			expect(declarations(narrow, ':root')).toMatchObject({
 				'--gawdux-page-inset': 'var(--gawdux-compact-inset)'
 			});
-			expect(declarations(narrow, '.filter-bar')).toEqual({
-				'padding-inline': 'var(--gawdux-compact-inset)'
+			// The filter bar reads the knob at every width: no rule of its own here.
+			expect(declarations(narrow, '.filter-bar')).toEqual({});
+		});
+
+		it("gives a list's toolbar the page inset at its top and its sides, 8px to the list", () => {
+			const wide: Record<string, string> = {};
+			root.walkRules((rule) => {
+				if (rule.parent?.type === 'atrule' && (rule.parent as AtRule).name === 'media') return;
+				if (!rule.selectors.map((s) => s.trim()).includes('.filter-bar')) return;
+				rule.each((child) => {
+					if (child.type === 'decl') wide[child.prop] = child.value.replace(/\s+/g, ' ');
+				});
 			});
+			expect(wide).toMatchObject({
+				padding: 'var(--gawdux-page-inset)',
+				'padding-bottom': 'calc(var(--spacing, 0.25rem) * 2)'
+			});
+			expect(wide).not.toHaveProperty('padding-top');
+			expect(wide).not.toHaveProperty('padding-inline');
 		});
 
 		it('runs the outermost panel, the tabs nested in it and the command bar edge to edge', () => {

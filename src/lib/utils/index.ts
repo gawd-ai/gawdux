@@ -164,5 +164,6 @@ export {
 	insetOverrides,
 	shadowedFlowbiteImports,
 	surfaceShadows,
+	vanishingDarkEdges,
 	withoutComments
 } from './surface-rules';

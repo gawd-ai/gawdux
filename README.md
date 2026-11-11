@@ -166,7 +166,10 @@ card is `.master-detail-card`, capped by `--gawdux-panel-wide-max-width` like
 `.panel-col-wide`. A fill tab whose content
 scrolls is `<TabFillPanel scroll>`: the panel becomes the one scroller, spans
 its host's padding box and pads itself with the same knob, so the scrollbar
-sits at the panel's edge.
+sits at the panel's edge. A list's toolbar (`FilterBar`, which `ListSurface`
+draws at the top of every list's surface: the saved views rail and the filter
+row) takes the knob at its top and its sides, so its first control stands as
+far below the surface's top as in from its side.
 
 For two-pane cards that fill the panel:
 
@@ -197,6 +200,20 @@ lists an in-page Flowbite component that hard-codes a shadow (Card); and
 `insetOverrides(source)` lists every read of the inset knob and every
 fill-height calc. A host's suite holds its files to an allow-list of the
 floating ones; this library's own does (`tests/house-surface-rules.test.ts`).
+
+### Light and dark draw the same lines
+
+A theme changes an edge's colour, never whether it is drawn. An edge a class
+list draws in light in a colour of its own (a border, the line between a
+list's rows) is drawn in dark too: never transparent, of no width or style,
+or the colour of the dark surface it sits on (`--gawdux-surface-card`,
+gray-800, on a card; `--gawdux-surface`, gray-900, on the page), the house's
+dark edge being gray-700 (`--gawdux-border`). `vanishingDarkEdges(source,
+file)` lists every edge a component's markup draws in light and not in dark,
+reading each element's dark surface where the markup names it (a
+`CardContainer`, a `.card-container`, an element's own `dark:bg-*`, else the
+page's), and in a module's class strings the edges a theme removes; a guard
+holds its files to none.
 
 ## Account menu
 

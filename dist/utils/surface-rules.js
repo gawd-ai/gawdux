@@ -16,9 +16,16 @@
  * - One inset on all four sides. The content inset of an inset host is one
  *   value, `--gawdux-page-inset`, owned by Gawdux's inset hosts
  *   (`.scroll-surface`, `.page-inset`, `EditablePageScaffold`'s body,
- *   `MasterDetailShell`'s frame, `TabFillPanel scroll`); `insetOverrides`
- *   lists every place a source reads or sets that knob or writes the frame's
- *   fill-height calc, so a guard holds them to the owners.
+ *   `MasterDetailShell`'s frame, `TabFillPanel scroll`, and `FilterBar`, the
+ *   toolbar at the top of a list's surface); `insetOverrides` lists every
+ *   place a source reads or sets that knob or writes the frame's fill-height
+ *   calc, so a guard holds them to the owners.
+ * - Light and dark draw the same lines. A theme changes an edge's colour,
+ *   never whether it is drawn: an edge (a border or the line between a
+ *   list's rows) that a class list draws in light in a colour of its own is,
+ *   in dark, neither transparent, nor of no width or style, nor the colour of
+ *   the dark surface it is drawn on. `vanishingDarkEdges` lists every such
+ *   edge, so a guard holds a source to none.
  */
 /** A source with its comments removed, so prose about a shadow is not one. */
 export function withoutComments(source) {
@@ -114,4 +121,164 @@ export function insetOverrides(source) {
         ...code.matchAll(/--gawdux-page-inset(?:-bottom)?\b/g),
         ...code.matchAll(/(?:height\s*:\s*|h-\[)calc\(\s*100%\s*\+/g)
     ].map((match) => match[0]);
+}
+const VOID_ELEMENTS = new Set([
+    'area',
+    'base',
+    'br',
+    'col',
+    'embed',
+    'hr',
+    'img',
+    'input',
+    'link',
+    'meta',
+    'source',
+    'track',
+    'wbr'
+]);
+/** The tags of a component's markup, in order; an expression's `>` is not a tag's end. */
+function markupTags(markup) {
+    const tags = [];
+    let i = 0;
+    while (i < markup.length) {
+        const lt = markup.indexOf('<', i);
+        if (lt < 0)
+            break;
+        if (markup.startsWith('<!--', lt)) {
+            const end = markup.indexOf('-->', lt);
+            i = end < 0 ? markup.length : end + 3;
+            continue;
+        }
+        if (!/[A-Za-z/]/.test(markup[lt + 1] ?? '')) {
+            i = lt + 1;
+            continue;
+        }
+        let j = lt + 1;
+        let depth = 0;
+        let quote = null;
+        for (; j < markup.length; j++) {
+            const char = markup[j];
+            if (quote) {
+                if (char === quote)
+                    quote = null;
+                continue;
+            }
+            if (depth === 0 && (char === '"' || char === "'"))
+                quote = char;
+            else if (char === '{')
+                depth++;
+            else if (char === '}')
+                depth--;
+            else if (char === '>' && depth === 0)
+                break;
+        }
+        const raw = markup.slice(lt, j + 1);
+        const name = raw.match(/^<\/?([A-Za-z][\w:.-]*)/)?.[1];
+        if (name)
+            tags.push({
+                name,
+                raw,
+                close: raw.startsWith('</'),
+                selfClosing: raw.endsWith('/>') || VOID_ELEMENTS.has(name.toLowerCase()),
+                at: lt
+            });
+        i = j + 1;
+    }
+    return tags;
+}
+/**
+ * An edge utility and its theme: `border`, a side (`border-t`, `border-x`),
+ * or the line between a list's rows (`divide`, `divide-y`), with its colour,
+ * its width (`border-0`) or its style (`border-none`), light or `dark:`.
+ */
+const EDGE_UTILITY = /(?<![\w:/[-])(dark:)?(border(?:-[trblxyse])?|divide(?:-[xy])?)-((?:[a-z]+-\d{2,3}|white|black|transparent|current|inherit)(?:\/\d+)?|0|none)(?![\w/-])/g;
+const DARK_BACKGROUND = /(?<![\w:/[-])dark:bg-([a-z]+-\d{2,3}|white|black)(?![\w/-])/;
+/** The dark card surface (`--gawdux-surface-card`) and the page's (`--gawdux-surface`). */
+const DARK_CARD_SURFACE = 'gray-800';
+const DARK_PAGE_SURFACE = 'gray-900';
+function edgeThemes(classList) {
+    const light = new Map();
+    const dark = new Map();
+    for (const match of classList.matchAll(EDGE_UTILITY)) {
+        const [, isDark, property, value] = match;
+        const key = property.startsWith('divide') ? 'divide' : property;
+        const themes = isDark ? dark : light;
+        const theme = themes.get(key) ?? {};
+        if (value === '0' || value === 'none')
+            theme.none = true;
+        else
+            theme.colour = value.replace(/\/\d+$/, '');
+        themes.set(key, theme);
+    }
+    return { light, dark };
+}
+/** Whether a light edge is drawn in a colour of its own, not the light surface's or none. */
+function drawsInLight(theme) {
+    return Boolean(theme?.colour && !theme.none && !/^(white|transparent|current|inherit)$/.test(theme.colour));
+}
+/**
+ * Every edge the source draws in light and not in dark: transparent, of no
+ * width or style, or the colour of the dark surface it is drawn on. A
+ * component's markup is read element by element: an element's surface in
+ * dark is its own `dark:bg-*`, else its nearest enclosing element's, a
+ * Gawdux card (`CardContainer`, `.card-container`) being the card surface,
+ * else the page's content surface. A border is drawn on the surface around
+ * its element; the line between a list's rows on the list's own. Any other
+ * source (a module's class strings, `file` not a `.svelte` file) is read for
+ * the edges a theme removes.
+ */
+export function vanishingDarkEdges(source, file = 'Component.svelte') {
+    // Comments blanked in place, so a line the guard names is the source's line.
+    const code = source
+        .replace(/<!--[\s\S]*?-->|\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, ' '))
+        .replace(/(^|[^:\\'"`])\/\/[^\n]*/g, (line, lead) => lead + ' '.repeat(line.length - lead.length));
+    const found = [];
+    const lineOf = (at) => code.slice(0, at).split('\n').length;
+    const report = (key, dark, light, surface, at) => found.push(`${key}-${light.colour} is dark:${key}-${dark.none ? 'none' : dark.colour} on ${surface} (line ${lineOf(at)})`);
+    if (!file.endsWith('.svelte')) {
+        for (const match of code.matchAll(/(["'`])([^"'`\n]*?)\1/g)) {
+            const { light, dark } = edgeThemes(match[2]);
+            for (const [key, theme] of dark) {
+                const lit = light.get(key) ?? (key.startsWith('border-') ? light.get('border') : undefined);
+                if (!drawsInLight(lit))
+                    continue;
+                if (theme.none || theme.colour === 'transparent')
+                    report(key, theme, lit, 'any surface', match.index);
+            }
+        }
+        return found;
+    }
+    const blank = (text) => text.replace(/[^\n]/g, ' ');
+    const markup = code
+        .replace(/<script[\s\S]*?<\/script>/g, blank)
+        .replace(/<style[\s\S]*?<\/style>/g, blank);
+    const open = [];
+    for (const tag of markupTags(markup)) {
+        if (tag.close) {
+            const at = open.map((entry) => entry.name).lastIndexOf(tag.name);
+            if (at >= 0)
+                open.length = at;
+            continue;
+        }
+        let own = null;
+        if (tag.name === 'CardContainer' || /\bcard-container\b/.test(tag.raw))
+            own = DARK_CARD_SURFACE;
+        const background = tag.raw.match(DARK_BACKGROUND)?.[1];
+        if (background)
+            own = background;
+        const around = [...open].reverse().find((entry) => entry.surface)?.surface ?? DARK_PAGE_SURFACE;
+        const { light, dark } = edgeThemes(tag.raw);
+        for (const [key, theme] of dark) {
+            const lit = light.get(key) ?? (key.startsWith('border-') ? light.get('border') : undefined);
+            if (!drawsInLight(lit))
+                continue;
+            const surface = key === 'divide' ? (own ?? around) : around;
+            if (theme.none || theme.colour === 'transparent' || theme.colour === surface)
+                report(key, theme, lit, surface, tag.at);
+        }
+        if (!tag.selfClosing)
+            open.push({ name: tag.name, surface: own });
+    }
+    return found;
 }

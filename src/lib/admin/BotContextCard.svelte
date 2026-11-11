@@ -53,7 +53,7 @@
 		{#if block === ''}
 			<p class="py-3 text-center text-sm text-gray-500 dark:text-gray-400">{emptyText}</p>
 		{:else if parts && parts.length > 0}
-			<ul class="divide-y divide-gray-100 dark:divide-gray-800">
+			<ul class="divide-y divide-gray-100 dark:divide-gray-700">
 				{#each parts as part, index (index)}
 					<li class="flex items-center justify-between gap-3 py-1.5 text-sm">
 						<span class="flex min-w-0 items-center gap-2">

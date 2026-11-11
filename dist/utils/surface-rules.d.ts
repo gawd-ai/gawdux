@@ -16,9 +16,16 @@
  * - One inset on all four sides. The content inset of an inset host is one
  *   value, `--gawdux-page-inset`, owned by Gawdux's inset hosts
  *   (`.scroll-surface`, `.page-inset`, `EditablePageScaffold`'s body,
- *   `MasterDetailShell`'s frame, `TabFillPanel scroll`); `insetOverrides`
- *   lists every place a source reads or sets that knob or writes the frame's
- *   fill-height calc, so a guard holds them to the owners.
+ *   `MasterDetailShell`'s frame, `TabFillPanel scroll`, and `FilterBar`, the
+ *   toolbar at the top of a list's surface); `insetOverrides` lists every
+ *   place a source reads or sets that knob or writes the frame's fill-height
+ *   calc, so a guard holds them to the owners.
+ * - Light and dark draw the same lines. A theme changes an edge's colour,
+ *   never whether it is drawn: an edge (a border or the line between a
+ *   list's rows) that a class list draws in light in a colour of its own is,
+ *   in dark, neither transparent, nor of no width or style, nor the colour of
+ *   the dark surface it is drawn on. `vanishingDarkEdges` lists every such
+ *   edge, so a guard holds a source to none.
  */
 /** A source with its comments removed, so prose about a shadow is not one. */
 export declare function withoutComments(source: string): string;
@@ -31,3 +38,15 @@ export declare function shadowedFlowbiteImports(source: string): string[];
  * separate bottom inset, or writes the frame's fill-height calc.
  */
 export declare function insetOverrides(source: string): string[];
+/**
+ * Every edge the source draws in light and not in dark: transparent, of no
+ * width or style, or the colour of the dark surface it is drawn on. A
+ * component's markup is read element by element: an element's surface in
+ * dark is its own `dark:bg-*`, else its nearest enclosing element's, a
+ * Gawdux card (`CardContainer`, `.card-container`) being the card surface,
+ * else the page's content surface. A border is drawn on the surface around
+ * its element; the line between a list's rows on the list's own. Any other
+ * source (a module's class strings, `file` not a `.svelte` file) is read for
+ * the edges a theme removes.
+ */
+export declare function vanishingDarkEdges(source: string, file?: string): string[];

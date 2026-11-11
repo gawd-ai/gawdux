@@ -56,7 +56,7 @@
 			{#if members.length === 0}
 				<p class="py-3 text-center text-sm text-gray-500 dark:text-gray-400">{emptyText}</p>
 			{:else}
-				<ul class="divide-y divide-gray-100 dark:divide-gray-800">
+				<ul class="divide-y divide-gray-100 dark:divide-gray-700">
 					{#each members as member (member.ref)}
 						<li class="flex items-center justify-between gap-3 py-1.5 text-sm">
 							<span class="min-w-0">

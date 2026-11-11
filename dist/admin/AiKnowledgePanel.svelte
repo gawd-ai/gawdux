@@ -648,7 +648,7 @@
 										{model.sourcePolicy.emptySources}
 									</p>
 								{:else}
-									<div class="divide-y divide-gray-100 dark:divide-gray-800">
+									<div class="divide-y divide-gray-100 dark:divide-gray-700">
 										{#each rows as source (source.id)}
 											{@const status = source.status}
 											<div class="flex flex-wrap items-center gap-x-3 gap-y-1 py-2">
@@ -754,7 +754,7 @@
 								{/if}
 
 								<div
-									class="flex flex-wrap items-center gap-2 border-t border-gray-100 pt-3 dark:border-gray-800"
+									class="flex flex-wrap items-center gap-2 border-t border-gray-100 pt-3 dark:border-gray-700"
 								>
 									<Button
 										size="xs"
@@ -786,7 +786,7 @@
 								{/if}
 
 								{#if addMode === 'resource'}
-									<div class="space-y-2 rounded-lg border border-gray-200 p-3 dark:border-gray-800">
+									<div class="space-y-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
 										<p class="text-xs text-gray-600 dark:text-gray-300">
 											{model.sourcePolicy.disclosure}
 										</p>
@@ -804,7 +804,7 @@
 												{model.sourcePolicy.emptySearch}
 											</p>
 										{:else}
-											<div class="divide-y divide-gray-100 dark:divide-gray-800">
+											<div class="divide-y divide-gray-100 dark:divide-gray-700">
 												{#each resourceResults as row (row.id)}
 													<div class="flex items-center gap-3 py-1.5">
 														<span class="min-w-0 flex-1">
@@ -832,7 +832,7 @@
 										{/if}
 									</div>
 								{:else if addMode === 'upload'}
-									<div class="space-y-2 rounded-lg border border-gray-200 p-3 dark:border-gray-800">
+									<div class="space-y-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
 										<label for="kb-upload" class="readonly-label"
 											>{model.sourcePolicy.uploadLabel}</label
 										>
@@ -892,7 +892,7 @@
 												<a
 													href={intent.href}
 													onclick={(event) => openUsage(event, intent)}
-													class="flex min-h-11 items-center justify-between gap-3 rounded-md border border-gray-100 px-3 py-2 hover:border-gray-200 hover:bg-gray-50 min-[1025px]:min-h-0 dark:border-gray-800 dark:hover:border-gray-700 dark:hover:bg-gray-950"
+													class="flex min-h-11 items-center justify-between gap-3 rounded-md border border-gray-100 px-3 py-2 hover:border-gray-200 hover:bg-gray-50 min-[1025px]:min-h-0 dark:border-gray-700 dark:hover:border-gray-600 dark:hover:bg-gray-950"
 												>
 													<span
 														class="min-w-0 truncate text-sm font-medium text-gray-900 dark:text-gray-100"

@@ -69,7 +69,7 @@
 			{#if roles.length === 0}
 				<div class="py-4 text-center text-sm text-gray-400">{copy.noRoles}</div>
 			{:else}
-				<div class="divide-y divide-gray-100 dark:divide-gray-800">
+				<div class="divide-y divide-gray-100 dark:divide-gray-700">
 					{#each roles as role (role.id)}
 						<div class="flex items-center justify-between gap-3 py-2" data-role-row={role.id}>
 							<div class="min-w-0">

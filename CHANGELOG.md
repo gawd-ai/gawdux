@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.37.0 - a list's toolbar on the page inset, the same lines in light and dark
+
+### Changed
+
+- A list's toolbar has the page inset at its top. `FilterBar` (the saved
+  views rail and the filter row, which `ListSurface` draws at the top of
+  every list's surface) takes `--gawdux-page-inset` at its top and its
+  sides, so its first control stands as far below the surface's top as in
+  from its side (16px above the compact width, 8px at or below), for every
+  register; 8px below it to the list. It was 8px at its top against 16px at
+  its sides above the compact width. The compact width's own
+  `padding-inline` for it is removed (the knob is 8px there).
+- Light and dark draw the same lines. Where a card's rows were divided, or a
+  box inside a card was edged, in a light colour and in dark in gray-800,
+  the dark card surface's own colour, the dark edge is gray-700, the house's
+  dark edge: `AiKnowledgePanel` (its lists, its boxes and its rows, whose
+  dark hover edge is gray-600), `AiSkillsPanel`, `BotContextCard`,
+  `BotToolAccess`, `MemberAccessCard`, `RoleMembersCard` and
+  `SecurityActivityList`.
+
+### Added
+
+- `vanishingDarkEdges(source, file)` in `gawdux/utils`, the surface rules'
+  reader for the rule a theme changes an edge's colour and never whether it
+  is drawn: every edge a component's markup draws in light in a colour of
+  its own and in dark transparent, of no width or style, or in the colour of
+  the dark surface it is drawn on (an element's own `dark:bg-*`, else its
+  nearest enclosing one's, a `CardContainer` or `.card-container` being the
+  card surface, gray-800, else the page's, gray-900; a border on the surface
+  around its element, the line between a list's rows on the list's own),
+  and in a module's class strings the edges a theme removes.
+  `tests/house-surface-rules.test.ts` holds the library's files to none.
+
 ## 0.36.0 - no shadow inside the page, one inset on all four sides, one drawer
 
 ### Changed

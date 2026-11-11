@@ -139,7 +139,9 @@
 	     `MasterDetailShell` or `TabFillPanel scroll` no host encloses):
 	     `--gawdux-page-inset`, one value on all four sides (`p-4`), so a
 	     card in a panel stands as far above the command bar as below the
-	     tab strip and in from the sides; at or below the compact width it is
+	     tab strip and in from the sides; the filter bar at the top of a
+	     list's surface (`.filter-bar`, FilterBar) takes it at its top and
+	     sides; at or below the compact width it is
 	     `--gawdux-compact-inset` (8px, "Tight levels zero and one" below);
 	   - the wide content column (`.panel-col-wide`, `MasterDetailShell`'s
 	     card, `.master-detail-card`): `max-w-6xl`;
@@ -683,11 +685,16 @@
 	}
 
 	/* ---------- Filter bar ---------- */
-	/* Symmetric vertical padding. The table header below contributes its own
-	   padding, so an asymmetric `pt-2 pb-4` read as roughly double the gap
-	   above the row — the bar looked as though it were sinking into the table. */
+	/* The toolbar at the top of a list's surface (the saved views rail, the
+	   filter row) is an inset host at its top and its sides: the content
+	   inset, --gawdux-page-inset, as far below the surface's top as in from
+	   its sides (16px above the compact width, 8px at or below), for every
+	   register. Below it 8px to the list, whose header row brings its own
+	   padding. */
 	.filter-bar {
-		@apply px-4 py-2 space-y-4;
+		@apply space-y-4;
+		padding: var(--gawdux-page-inset);
+		padding-bottom: calc(var(--spacing, 0.25rem) * 2);
 	}
 
 	/* The rail row (saved views) sits above the filter fields as its own
@@ -2049,7 +2056,7 @@ main:has(.page-command-drawer) .page-command-bar,
    the outermost content surface and the command bar run edge to edge, with
    no side border, no radius and no shadow, and a page's tabs nested in its
    panel span it too. Level one, the panel's inset and the content inset of
-   the hosts directly inside it (every inset host, the filter row), is
+   the hosts directly inside it (every inset host, the filter bar), is
    --gawdux-compact-inset, 8px. MasterDetailShell's card is that content, so
    it spans the panel too. Boxes nested in the content (a card, a field, a
    tile) keep their own padding and gain the width. A host's own column
@@ -2080,9 +2087,6 @@ main:has(.page-command-drawer) .page-command-bar,
 	main .page-command-drawer {
 		border-left-width: 0;
 		border-right-width: 0;
-	}
-	.filter-bar {
-		padding-inline: var(--gawdux-compact-inset);
 	}
 	/* MasterDetailShell's card is the panel's content here, not a box inside
 	   it: it spans its host edge to edge, inside an inset host across the

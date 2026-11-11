@@ -406,7 +406,7 @@
 								{#each botCatalog as bot (bot.id)}
 									{@const granted = isGranted(selected.id, bot.id)}
 									<div
-										class="flex items-center justify-between gap-3 rounded-md border border-gray-100 px-3 py-2 dark:border-gray-800"
+										class="flex items-center justify-between gap-3 rounded-md border border-gray-100 px-3 py-2 dark:border-gray-700"
 									>
 										<span class="flex min-w-0 items-center gap-2">
 											<span
@@ -640,7 +640,7 @@
 								{#each selected.tools as tool (tool.tool)}
 									{@const def = toolStatus.get(tool.tool)}
 									<div
-										class="flex items-center justify-between gap-3 rounded-md border border-gray-100 px-3 py-2 dark:border-gray-800"
+										class="flex items-center justify-between gap-3 rounded-md border border-gray-100 px-3 py-2 dark:border-gray-700"
 									>
 										<span class="min-w-0">
 											<span
@@ -697,7 +697,7 @@
 								{/if}
 							</div>
 							<pre
-								class="max-h-72 overflow-auto whitespace-pre-wrap rounded-md border border-gray-200 bg-gray-50 p-3 font-mono text-[11px] leading-relaxed text-gray-700 dark:border-gray-800 dark:bg-gray-950 dark:text-gray-300">{previewTuned
+								class="max-h-72 overflow-auto whitespace-pre-wrap rounded-md border border-gray-200 bg-gray-50 p-3 font-mono text-[11px] leading-relaxed text-gray-700 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-300">{previewTuned
 									? tunedPreview
 									: selected.instructionPack}</pre>
 						</div>

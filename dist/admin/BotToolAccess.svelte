@@ -36,7 +36,7 @@
 				{group.tools.filter((t) => t.allowed).length} of {group.tools.length}
 			</span>
 			<svelte:fragment slot="content">
-				<div class="divide-y divide-gray-100 dark:divide-gray-800">
+				<div class="divide-y divide-gray-100 dark:divide-gray-700">
 					{#each group.tools as tool (tool.id)}
 						<div class="flex items-center justify-between gap-3 py-2" data-tool={tool.id}>
 							<div class="min-w-0">
