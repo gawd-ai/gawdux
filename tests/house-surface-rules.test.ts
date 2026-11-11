@@ -6,6 +6,10 @@ import {
 	handSetCardPadding,
 	handSizedIcons,
 	insetOverrides,
+	itemActsInCards,
+	miscasedActionLabels,
+	questioningConfirmations,
+	registersWithoutPhoneSort,
 	shadowedFlowbiteImports,
 	surfaceShadows,
 	unlabelledRegisterCells,
@@ -30,9 +34,18 @@ import {
 //   card's size by hand, the card padding being CardContainer's and
 //   `.card-content`'s;
 // - a register reads on a phone: every register body cell names its column
-//   or its place in the card.
+//   or its place in the card;
+// - one question in a confirmation: the line under a confirmation's title
+//   never asks again;
+// - one case for action labels: every action's label is sentence case;
+// - an item's acts sit in the command bar: no act on the selected item is a
+//   button in its card;
+// - a phone sort on every sorted register: a register that sorts by its
+//   heads gives its query bar the sort, and no host draws a phone sort.
 
-const ROOT = path.resolve(import.meta.dirname, '../src/lib');
+// The tree read; another tree's src/lib (an archive of an earlier tag) can be
+// read for a fail-first run.
+const ROOT = process.env['HOUSE_RULES_SRC'] ?? path.resolve(import.meta.dirname, '../src/lib');
 
 function sources(dir: string): string[] {
 	return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -304,6 +317,107 @@ describe('a register reads on a phone', () => {
 		// A register that draws a list's scroller of its own is a register.
 		expect(
 			unlabelledRegisterCells('<div class="list-table-scroll"><Table><TableBodyCell>A</TableBodyCell></Table></div>')
+		).toHaveLength(1);
+	});
+});
+
+/** Every file's findings by a reader, the files with none left out. */
+function findings(read: (source: string, rel: string) => string[], skip: Record<string, string> = {}) {
+	return Object.fromEntries(
+		FILES.filter(({ rel }) => !(rel in skip))
+			.map(({ rel, source }) => [rel, read(source, rel)])
+			.filter(([, found]) => found.length > 0)
+	);
+}
+
+describe('one question in a confirmation', () => {
+	it('asks no question under a confirmation\'s title', () => {
+		expect(findings((source, rel) => questioningConfirmations(source, rel))).toEqual({});
+	});
+
+	it('reads a line under the title that is or opens with a question', () => {
+		const request = (message: string) =>
+			`const r = { title: 'Archive role?', message: ${message}, confirmLabel: 'Archive role' };`;
+		expect(questioningConfirmations(request("`Archive “${name}”? Its members keep access.`"), 'a.ts')).toHaveLength(1);
+		expect(questioningConfirmations(request("'Remove this member?'"), 'a.ts')).toHaveLength(1);
+		expect(questioningConfirmations(request("'Its members keep access.'"), 'a.ts')).toEqual([]);
+		expect(questioningConfirmations(request("'Version 1.0 stays. Continue?'"), 'a.ts')).toEqual([]);
+		expect(
+			questioningConfirmations("submit({ confirmTitle: 'A?', confirm: `Remove ${m} from this role?`, confirmLabel: 'Remove' })", 'a.ts')
+		).toHaveLength(1);
+		expect(
+			questioningConfirmations('<PageCommandBarConfirm title="Delete it?" message="Delete it?" confirmLabel="Delete" />')
+		).toHaveLength(1);
+		expect(
+			questioningConfirmations("const g = { label: 'Draft', isDirty: () => true, message: 'Leave without saving?' };", 'a.ts')
+		).toHaveLength(1);
+	});
+});
+
+describe('one case for action labels', () => {
+	it('writes every action label in sentence case', () => {
+		expect(findings((source, rel) => miscasedActionLabels(source, { file: rel }))).toEqual({});
+	});
+
+	it('reads a label in title case, keeping acronyms, proper nouns and an item\'s name', () => {
+		const read = (source: string, words: string[] = []) => miscasedActionLabels(source, { words });
+		expect(read('<Button>Save as Draft</Button>')).toHaveLength(1);
+		expect(read("<script>const a = [{ kind: 'add', label: 'New Role', onClick }];</script>")).toHaveLength(1);
+		expect(read("<script>const a = { label: 'List Roles', execute };</script>")).toHaveLength(1);
+		expect(read('<X confirmLabel="Archive Role" />')).toHaveLength(1);
+		expect(read('<IconButton label="Open Channel" />')).toHaveLength(1);
+		expect(read('<button>show more</button>')).toHaveLength(1);
+		expect(read('<Button>{busy ? \'Saving…\' : \'Save Changes\'}</Button>')).toHaveLength(1);
+		expect(read('<Button>Export CSV</Button>')).toEqual([]);
+		expect(read('<Button>Download PDF</Button>')).toEqual([]);
+		expect(read('<Button>Revoke System key</Button>', ['System'])).toEqual([]);
+		expect(read('<Button>Archive {role.name}</Button>')).toEqual([]);
+		expect(read('<Button>{#if archived}Restore{:else}Archive{/if}</Button>')).toEqual([]);
+		expect(read("<script>const a = { label: `Sign ${step}`, onClick };</script>")).toEqual([]);
+		expect(read("<script>const nav = { label: 'Work Orders', href: '/w' };</script>")).toEqual([]);
+		expect(read('<button><span class="font-bold">B</span></button>')).toEqual([]);
+	});
+});
+
+describe('an item\'s acts sit in the command bar', () => {
+	it('draws no act on a selected item as a button in its card', () => {
+		expect(findings((source, rel) => (rel.endsWith('.svelte') ? itemActsInCards(source) : []))).toEqual({});
+	});
+
+	it('reads a delete in a card or a detail, and leaves a row\'s own act on its row', () => {
+		expect(itemActsInCards('<div class="card-content"><Button color="red">Delete</Button></div>')).toHaveLength(1);
+		expect(
+			itemActsInCards('<MasterDetailShell>{#snippet detail()}<Button>Archive workspace</Button>{/snippet}</MasterDetailShell>')
+		).toHaveLength(1);
+		expect(
+			itemActsInCards('<CardContainer>{#each members as m}<Button>Remove</Button><Button>Delete</Button>{/each}</CardContainer>')
+		).toEqual([]);
+		expect(itemActsInCards('<div class="card-content"><Button>Save changes</Button></div>')).toEqual([]);
+	});
+});
+
+describe('a phone sort on every sorted register', () => {
+	/** Tables whose heads stay drawn: no register's cards, so the heads sort on a phone. */
+	const HEADS_DRAWN: Record<string, string> = {
+		'primitives/DataTable.svelte':
+			"a card's or a panel's table, whose heads stay drawn; a register drawing it gives its own query bar the sort"
+	};
+
+	it('gives every register that sorts by its heads the house phone sort', () => {
+		expect(
+			findings((source, rel) => (rel.endsWith('.svelte') ? registersWithoutPhoneSort(source) : []), HEADS_DRAWN)
+		).toEqual({});
+		for (const rel of Object.keys(HEADS_DRAWN))
+			expect(registersWithoutPhoneSort(FILES.find((file) => file.rel === rel)!.source), rel).not.toEqual([]);
+	});
+
+	it('reads sortable heads with a query bar that takes no sort, and a phone sort of its own', () => {
+		const heads = '<SortableHeadCell field="name" label="Name" {sortField} onSort={toggle} />';
+		expect(registersWithoutPhoneSort(`<ListQueryBar value="" />${heads}`)).toHaveLength(1);
+		expect(registersWithoutPhoneSort(`<ListQueryBar value="" sort={sort} />${heads}`)).toEqual([]);
+		expect(registersWithoutPhoneSort(heads)).toHaveLength(1);
+		expect(
+			registersWithoutPhoneSort('<ListQueryBar>{#snippet mobileSort()}<select></select>{/snippet}</ListQueryBar>')
 		).toHaveLength(1);
 	});
 });

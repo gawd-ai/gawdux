@@ -2,7 +2,14 @@ import { goto } from '$app/navigation';
 import type { BeforeNavigate } from '@sveltejs/kit';
 export interface DiscardNavigationRequest {
     id?: number;
-    message: string;
+    /**
+     * The one question, naming the act and what it discards ("Discard the
+     * unsaved skill settings and open another skill?"), or the state while
+     * the drawer only reports (saved, continuing).
+     */
+    title: string;
+    /** Only what follows, drawn under the title; absent when nothing does. */
+    message?: string;
     confirmLabel: string;
     continue: () => void | Promise<void>;
     focusAfter?: () => HTMLElement | null;
@@ -17,7 +24,8 @@ export interface DiscardGuardRegistration {
     isDirty: () => boolean;
     isBusy?: () => boolean;
     allowsNavigation?: (navigation: BeforeNavigate) => boolean;
-    message?: string;
+    /** The drawer's question when this guard alone holds changes ("Discard the unsaved product changes?"). */
+    title?: string;
 }
 export interface DiscardNavigationRuntime {
     goto: typeof goto;

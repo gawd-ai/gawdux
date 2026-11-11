@@ -24,4 +24,4 @@ export { APP_MESSAGE_CENTER_CONTEXT, getAppMessageCenter } from './message-cente
 export { DiscardNavigationController, DISCARD_NAVIGATION_CONTEXT, navigationTargets, useGuardedGoto } from './discard-navigation.svelte';
 // The colour theme: one place sets and keeps it (DarkModeToggle, UserMenuThemeRow)
 export { COLOR_THEME_STORAGE_KEY, isDarkTheme, setColorTheme, toggleColorTheme, watchColorTheme } from './color-theme';
-export { handRolledRailRows, handSetCardPadding, handSizedIcons, insetOverrides, shadowedFlowbiteImports, surfaceShadows, unlabelledRegisterCells, vanishingDarkEdges, withoutComments } from './surface-rules';
+export { ACTION_LABEL_WORDS, handRolledRailRows, handSetCardPadding, handSizedIcons, insetOverrides, itemActsInCards, miscasedActionLabels, questioningConfirmations, registersWithoutPhoneSort, shadowedFlowbiteImports, surfaceShadows, unlabelledRegisterCells, vanishingDarkEdges, withoutComments } from './surface-rules';

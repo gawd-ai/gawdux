@@ -102,8 +102,8 @@
 {#if request}
 	{#key request.id ?? request}
 		<PageCommandBarConfirm
-			title="Discard unsaved changes?"
-			message={request.message}
+			title={request.title}
+			message={request.message ?? null}
 			error={error ?? request.disabledMessage ?? null}
 			cancelLabel="Keep editing"
 			confirmLabel={request.confirmLabel}

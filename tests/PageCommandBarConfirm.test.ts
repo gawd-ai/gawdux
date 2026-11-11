@@ -131,3 +131,30 @@ describe('PageCommandBarConfirm', () => {
 		focusTarget.remove();
 	});
 });
+
+describe('one question in a confirmation', () => {
+	it('draws its title alone when nothing follows the act, and the line under it when something does', () => {
+		const props = { confirmLabel: 'Remove member', onconfirm: vi.fn(), oncancel: vi.fn() };
+		const bare = render(PageCommandBarConfirm, {
+			props: { ...props, title: 'Remove Alex Kim from this role?' }
+		});
+		const group = bare.container.querySelector('[data-confirmation-command]')!;
+		expect(group.querySelector('h3')?.textContent).toBe('Remove Alex Kim from this role?');
+		expect(group.querySelector('.page-command-drawer-message')).toBeNull();
+		expect(group.getAttribute('aria-describedby')).toBeNull();
+		bare.unmount();
+
+		const followed = render(PageCommandBarConfirm, {
+			props: {
+				...props,
+				title: 'Archive “Draft cleaners”?',
+				message: 'Its members keep any access they have from other sources.'
+			}
+		});
+		const line = followed.container.querySelector('.page-command-drawer-message')!;
+		expect(line.textContent?.trim()).toBe('Its members keep any access they have from other sources.');
+		expect(
+			followed.container.querySelector('[data-confirmation-command]')!.getAttribute('aria-describedby')
+		).toBe(line.id);
+	});
+});

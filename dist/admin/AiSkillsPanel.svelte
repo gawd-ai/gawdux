@@ -167,7 +167,7 @@
 		if (selected?.id === skillId) return;
 		if (paramsDirty) {
 			actions.requestDiscard({
-				message: 'Discard the unsaved skill settings and open another skill?',
+				title: 'Discard the unsaved skill settings and open another skill?',
 				confirmLabel: 'Discard and open skill',
 				continue: () => navigateToSkill(skillId),
 				focusAfter: () => root?.querySelector<HTMLElement>('[aria-label="Skill details"]') ?? null

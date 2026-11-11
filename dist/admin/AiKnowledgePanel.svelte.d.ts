@@ -1,8 +1,28 @@
+import type { ConfirmationCommandRequest } from '../primitives/confirmation-command';
 import type { AiKnowledgeBase, AiKnowledgePanelProps } from './knowledge-types';
 declare function $$render<KnowledgeId extends string | number = number, SourceId extends string | number = number, ResourceId extends string | number = number, Knowledge extends AiKnowledgeBase<KnowledgeId> = AiKnowledgeBase<KnowledgeId>>(): {
     props: AiKnowledgePanelProps<KnowledgeId, SourceId, ResourceId, Knowledge>;
     exports: {
         openCreate: () => void;
+        /**
+             * Delete knowledge base, an act on the selected knowledge base: the host
+             * draws it in its command bar, last in the bar's lifecycle order, and
+             * opens the pending delete out of the bar (`ConfirmationCommandSurface`).
+             * Shown while a knowledge base is selected; held while a write runs, while
+             * the editor holds changes, or while a skill uses it (`reason`).
+             */ deletion: {
+            readonly shown: boolean;
+            readonly disabled: boolean;
+            readonly reason: string | null;
+            readonly request: (ConfirmationCommandRequest & {
+                knowledgeId: KnowledgeId;
+            }) | null;
+            readonly busy: boolean;
+            readonly error: string | null;
+            open(focusTarget?: HTMLElement | null): void;
+            confirm: () => undefined;
+            cancel(): void;
+        };
     };
     bindings: "editorDirty" | "editorBusy";
     slots: {};
@@ -15,6 +35,25 @@ declare class __sveltets_Render<KnowledgeId extends string | number = number, So
     bindings(): "editorDirty" | "editorBusy";
     exports(): {
         openCreate: () => void;
+        /**
+             * Delete knowledge base, an act on the selected knowledge base: the host
+             * draws it in its command bar, last in the bar's lifecycle order, and
+             * opens the pending delete out of the bar (`ConfirmationCommandSurface`).
+             * Shown while a knowledge base is selected; held while a write runs, while
+             * the editor holds changes, or while a skill uses it (`reason`).
+             */ deletion: {
+            readonly shown: boolean;
+            readonly disabled: boolean;
+            readonly reason: string | null;
+            readonly request: (ConfirmationCommandRequest & {
+                knowledgeId: KnowledgeId;
+            }) | null;
+            readonly busy: boolean;
+            readonly error: string | null;
+            open(focusTarget?: HTMLElement | null): void;
+            confirm: () => undefined;
+            cancel(): void;
+        };
     };
 }
 interface $$IsomorphicComponent {

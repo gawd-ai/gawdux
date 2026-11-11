@@ -48,6 +48,22 @@
  *   a phone"); each body cell names its column (`data-label`) or its place
  *   in the card (`data-card`). `unlabelledRegisterCells` lists every body
  *   cell of a register that does neither.
+ * - One question in a confirmation. A confirmation's title asks once, naming
+ *   the act and the item; the line under it gives only what follows, or is
+ *   absent. `questioningConfirmations` lists every line under a title that is
+ *   or opens with a question.
+ * - One case for action labels. An action's label is sentence case, its
+ *   acronyms, the host's proper nouns and an item's own name kept as they
+ *   are. `miscasedActionLabels` lists every action label that is not.
+ * - An item's acts sit in the command bar. An act on the selected item
+ *   (delete, archive, retire) is a command bar action, never a button in its
+ *   card; a row's own act in a list stays on its row. `itemActsInCards` lists
+ *   every such button in a card or a master-detail page's detail.
+ * - A phone sort on every sorted register. A register that sorts by its
+ *   column heads gives its query bar the sort (`ListQueryBar`'s `sort`), the
+ *   house phone sort at or below the compact width, where the heads are
+ *   hidden. `registersWithoutPhoneSort` lists every register that does not,
+ *   and every phone sort a host draws itself.
  */
 
 /** A source with its comments removed, so prose about a shadow is not one. */
@@ -481,5 +497,560 @@ export function unlabelledRegisterCells(source: string): string[] {
 		if (/\s(?:data-label|data-card|colspan)\b/.test(tag.raw)) continue;
 		found.push(`${tag.name} (line ${lineAt(markup, tag.at)})`);
 	}
+	return found;
+}
+
+/** What stands in a literal for a value it interpolates (an item's name, a count). */
+const VALUE = '⁣';
+
+/** A string literal of a source's code, its interpolations read as `VALUE`. */
+interface CodeString {
+	start: number;
+	end: number;
+	text: string;
+}
+
+interface CodeScan {
+	code: string;
+	strings: CodeString[];
+	/** Each bracket's opening position to its closing one. */
+	close: Map<number, number>;
+}
+
+/**
+ * A source's code with everything else blanked in place: a module's whole
+ * text, or a component's scripts and the expressions of its markup (a
+ * block's keyword blanked, so `{/if}` reads as no regular expression).
+ */
+function codeView(source: string, file: string): string {
+	if (!file.endsWith('.svelte')) return source;
+	const out = source.replace(/[^\n]/g, ' ').split('');
+	const keep = (from: number, to: number) => {
+		for (let k = from; k < to; k++) out[k] = source[k]!;
+	};
+	const scripts = [...source.matchAll(/(<script\b[^>]*>)([\s\S]*?)<\/script>/g)];
+	for (const match of scripts) keep(match.index! + match[1]!.length, match.index! + match[1]!.length + match[2]!.length);
+	const markup = markupOf(source).replace(/<style[\s\S]*?<\/style>/g, (text) => text.replace(/[^\n]/g, ' '));
+	let i = 0;
+	while (i < markup.length) {
+		const at = markup.indexOf('{', i);
+		if (at < 0) break;
+		let depth = 0;
+		let quote: string | null = null;
+		let j = at;
+		for (; j < markup.length; j++) {
+			const char = markup[j]!;
+			if (quote) {
+				if (char === '\\') j++;
+				else if (char === quote) quote = null;
+				continue;
+			}
+			if (char === '"' || char === "'" || char === '`') quote = char;
+			else if (char === '{') depth++;
+			else if (char === '}' && --depth === 0) break;
+		}
+		keep(at, j + 1);
+		const block = markup.slice(at + 1).match(/^\s*([#:/@][a-z]+(?:\s+if\b)?)/);
+		if (block) {
+			const from = at + 1 + markup.slice(at + 1).indexOf(block[1]!);
+			if (block[1]!.startsWith('/')) for (let k = at + 1; k < j; k++) out[k] = ' ';
+			else for (let k = from; k < from + block[1]!.length; k++) out[k] = ' ';
+		}
+		i = j + 1;
+	}
+	return out.join('');
+}
+
+/** The string literals and bracket pairs of a code view, comments and regular expressions read through. */
+function scanCode(code: string): CodeScan {
+	const strings: CodeString[] = [];
+	const close = new Map<number, number>();
+	const readString = (at: number): number => {
+		const quote = code[at]!;
+		let j = at + 1;
+		let text = '';
+		while (j < code.length && code[j] !== quote) {
+			if (quote !== '`' && code[j] === '\n') break;
+			if (code[j] === '\\') {
+				text += code[j + 1] ?? '';
+				j += 2;
+				continue;
+			}
+			if (quote === '`' && code[j] === '$' && code[j + 1] === '{') {
+				j = scan(j + 2, true) + 1;
+				text += VALUE;
+				continue;
+			}
+			text += code[j];
+			j++;
+		}
+		strings.push({ start: at, end: j + 1, text });
+		return j + 1;
+	};
+	const readRegex = (at: number): number => {
+		let j = at + 1;
+		let inClass = false;
+		for (; j < code.length && code[j] !== '\n'; j++) {
+			const char = code[j];
+			if (char === '\\') j++;
+			else if (char === '[') inClass = true;
+			else if (char === ']') inClass = false;
+			else if (char === '/' && !inClass) return j + 1;
+		}
+		return j;
+	};
+	function scan(from: number, untilBrace: boolean): number {
+		const opens: number[] = [];
+		let prev = '';
+		let j = from;
+		while (j < code.length) {
+			const char = code[j]!;
+			if (char === '"' || char === "'" || char === '`') {
+				j = readString(j);
+				prev = 'a';
+				continue;
+			}
+			if (char === '/' && code[j + 1] === '/') {
+				const end = code.indexOf('\n', j);
+				j = end < 0 ? code.length : end;
+				continue;
+			}
+			if (char === '/' && code[j + 1] === '*') {
+				const end = code.indexOf('*/', j + 2);
+				j = end < 0 ? code.length : end + 2;
+				continue;
+			}
+			if (char === '/' && (prev === '' || /[(,=:[!&|?{};]/.test(prev))) {
+				j = readRegex(j);
+				prev = 'a';
+				continue;
+			}
+			if (char === '{' || char === '(' || char === '[') opens.push(j);
+			else if (char === '}' || char === ')' || char === ']') {
+				if (opens.length === 0) {
+					if (untilBrace && char === '}') return j;
+				} else close.set(opens.pop()!, j);
+			}
+			if (!/\s/.test(char)) prev = char;
+			j++;
+		}
+		return j;
+	}
+	scan(0, false);
+	strings.sort((a, b) => a.start - b.start);
+	return { code, strings, close };
+}
+
+interface CodeProperty {
+	key: string;
+	at: number;
+	valueStart: number;
+	valueEnd: number;
+}
+
+/** An object literal's own properties (`key: value`, a shorthand `key` with no value), spreads left out. */
+function objectProperties(scan: CodeScan, open: number): CodeProperty[] {
+	const { code, close } = scan;
+	const end = close.get(open) ?? code.length;
+	const stringAt = new Map(scan.strings.map((token) => [token.start, token]));
+	const properties: CodeProperty[] = [];
+	let expectKey = true;
+	let current: CodeProperty | null = null;
+	let j = open + 1;
+	while (j < end) {
+		const char = code[j]!;
+		if (/\s/.test(char)) {
+			j++;
+			continue;
+		}
+		if (expectKey) {
+			expectKey = false;
+			const ident = code.slice(j).match(/^([A-Za-z_$][\w$]*)\s*:(?!:)/);
+			const shorthand = code.slice(j).match(/^([A-Za-z_$][\w$]*)\s*(?=[,}])/);
+			const quoted = stringAt.get(j);
+			if (shorthand) {
+				current = null;
+				properties.push({ key: shorthand[1]!, at: j, valueStart: j, valueEnd: j });
+				j += shorthand[0].length;
+				continue;
+			}
+			if (ident) {
+				current = { key: ident[1]!, at: j, valueStart: j + ident[0].length, valueEnd: end };
+				properties.push(current);
+				j += ident[0].length;
+				continue;
+			}
+			if (quoted && /^\s*:(?!:)/.test(code.slice(quoted.end))) {
+				const colon = code.indexOf(':', quoted.end);
+				current = { key: quoted.text, at: j, valueStart: colon + 1, valueEnd: end };
+				properties.push(current);
+				j = colon + 1;
+				continue;
+			}
+			current = null;
+		}
+		const token = stringAt.get(j);
+		if (token) {
+			j = token.end;
+			continue;
+		}
+		if (close.has(j)) {
+			j = close.get(j)! + 1;
+			continue;
+		}
+		if (char === ',') {
+			if (current) current.valueEnd = j;
+			current = null;
+			expectKey = true;
+		}
+		j++;
+	}
+	return properties;
+}
+
+/** The string literals in a range of the code, those inside an interpolation included. */
+function literalsIn(scan: CodeScan, from: number, to: number): CodeString[] {
+	return scan.strings.filter((token) => token.start >= from && token.end <= to);
+}
+
+/** Every object literal of the code, as its properties. */
+function codeObjects(scan: CodeScan): CodeProperty[][] {
+	return [...scan.close.keys()]
+		.filter((open) => scan.code[open] === '{')
+		.map((open) => objectProperties(scan, open))
+		.filter((properties) => properties.length > 0);
+}
+
+/** An attribute's value in a tag as its literals: a quoted value, or the strings of a braced one. */
+function attributeLiterals(tag: Tag, name: string, scan: CodeScan): CodeString[] {
+	const match = tag.raw.match(new RegExp(`\\s${name}=(?:"([^"]*)"|'([^']*)'|\\{)`));
+	if (!match) return [];
+	const at = tag.at + match.index! + match[0].length;
+	if (match[1] !== undefined || match[2] !== undefined) {
+		const text = match[1] ?? match[2]!;
+		return [{ start: at - text.length - 1, end: at, text: text.replace(/\{[^}]*\}/g, VALUE) }];
+	}
+	const open = at - 1;
+	return literalsIn(scan, open, (scan.close.get(open) ?? open) + 1);
+}
+
+/** Whether a line opens with a question: its first sentence ends in a question mark. */
+function opensWithQuestion(text: string): boolean {
+	const first = text.trim().match(/^[\s\S]*?([.?!])(?=\s|$)/);
+	return first?.[1] === '?';
+}
+
+/**
+ * Every confirmation whose line under its title asks a question. A
+ * confirmation (a request or a tag carrying `confirmLabel`, or a discard
+ * guard) asks once, in its title, naming the act and the item; the line under
+ * it (`message`, or a host's `confirm`) gives only what follows, or is
+ * absent.
+ */
+export function questioningConfirmations(source: string, file = 'Component.svelte'): string[] {
+	const scan = scanCode(codeView(source, file));
+	const found: string[] = [];
+	const report = (token: CodeString) =>
+		found.push(`"${token.text.replaceAll(VALUE, '…')}" (line ${lineAt(scan.code, token.start)})`);
+	for (const properties of codeObjects(scan)) {
+		if (!properties.some((property) => property.key === 'confirmLabel' || property.key === 'isDirty'))
+			continue;
+		for (const property of properties) {
+			if (!['message', 'confirm', 'confirmMessage'].includes(property.key)) continue;
+			for (const token of literalsIn(scan, property.valueStart, property.valueEnd))
+				if (opensWithQuestion(token.text)) report(token);
+		}
+	}
+	if (file.endsWith('.svelte'))
+		for (const tag of markupTags(markupOf(source))) {
+			if (tag.close || !/\sconfirmLabel=/.test(tag.raw)) continue;
+			for (const token of attributeLiterals(tag, 'message', scan))
+				if (opensWithQuestion(token.text)) report(token);
+		}
+	return found;
+}
+
+/**
+ * The acronyms and initialisms an action's label keeps in capitals. A host
+ * passes its own proper nouns (a product's name, the System) beside them.
+ */
+export const ACTION_LABEL_WORDS: readonly string[] = [
+	'A4',
+	'AI',
+	'API',
+	'CC',
+	'COA',
+	'CSV',
+	'DM',
+	'HTML',
+	'I',
+	'ID',
+	'IQ',
+	'JSON',
+	'MFA',
+	'OK',
+	'OQ',
+	'PDF',
+	'PNG',
+	'PQ',
+	'QA',
+	'QC',
+	'SMS',
+	'SOP',
+	'SSO',
+	'SVG',
+	'TOTP',
+	'URL',
+	'UTC',
+	'XML'
+];
+
+/** The keys and attributes that name an action's words wherever they stand. */
+const ACTION_LABEL_KEYS = new Set([
+	'confirmLabel',
+	'busyLabel',
+	'saveLabel',
+	'saveAsDraftLabel',
+	'restoreLabel',
+	'submitLabel',
+	'actionLabel',
+	'cancelLabel',
+	'retryLabel'
+]);
+/** The keys that make an object with a `label` an action. */
+const ACTION_KEYS = new Set([
+	'onClick',
+	'onclick',
+	'onSelect',
+	'onselect',
+	'execute',
+	'actionId',
+	'perform',
+	'handler',
+	'run'
+]);
+/** A command bar action's kinds (`LifecycleAction`). */
+const LIFECYCLE_KINDS = new Set(['add', 'view', 'pdf', 'archive', 'status', 'custom']);
+/** The elements whose words are an action's label. */
+const ACTION_ELEMENTS = new Set(['Button', 'button', 'DropdownItem']);
+/** The components whose `label` is an action's label. */
+const ACTION_LABEL_COMPONENTS = new Set(['IconButton']);
+
+/** The words of a label not in sentence case: a first word in lower case, a later one capitalised. */
+function caseFaults(text: string, allowed: ReadonlySet<string>): string[] {
+	// A single word in lower case is a key, a class or a token, never a label.
+	// A glyph's letters (`x²`, `B`) are no words: a label holds a word of two letters.
+	if (/^[a-z][\w-]*$/.test(text.trim()) || !/\p{L}{2}/u.test(text)) return [];
+	const bare = text.replace(/“[^”]*”|‘[^’]*’|"[^"]*"/g, VALUE);
+	const faults: string[] = [];
+	let sentenceStart = true;
+	for (const word of bare.split(/[\s/]+/)) {
+		if (!word) continue;
+		const ends = /[.:!?·|]$/.test(word) || /^[·|–—-]$/.test(word);
+		// A word holding a value (an item's name, `v${version}`) is the value's.
+		if (word.includes(VALUE)) {
+			sentenceStart = ends;
+			continue;
+		}
+		const core = word.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '');
+		if (!core) {
+			sentenceStart = ends || sentenceStart;
+			continue;
+		}
+		const keeps = allowed.has(core) || allowed.has(core.replace(/s$/, ''));
+		if (sentenceStart) {
+			if (/^\p{Ll}/u.test(core) && !keeps) faults.push(core);
+		} else if (/^\p{Lu}/u.test(core) && !keeps) faults.push(core);
+		sentenceStart = ends;
+	}
+	return faults;
+}
+
+/** A Svelte element's words: its text and its expressions' strings, a block's branches each a label of its own. */
+function elementLabels(markup: string, from: number, to: number, scan: CodeScan): string[] {
+	const inner = markup.slice(from, to);
+	const labels: string[] = [];
+	let text = '';
+	let i = 0;
+	const flush = () => {
+		if (text.trim()) labels.push(text.trim());
+		text = '';
+	};
+	while (i < inner.length) {
+		const char = inner[i]!;
+		if (char === '<') {
+			let end = i + 1;
+			let depth = 0;
+			let quote: string | null = null;
+			for (; end < inner.length; end++) {
+				const next = inner[end]!;
+				if (quote) {
+					if (next === quote) quote = null;
+				} else if (depth === 0 && (next === '"' || next === "'")) quote = next;
+				else if (next === '{') depth++;
+				else if (next === '}') depth--;
+				else if (next === '>' && depth === 0) break;
+			}
+			text += ' ';
+			i = end + 1;
+			continue;
+		}
+		if (char === '{') {
+			const open = from + i;
+			const closeAt = scan.close.get(open);
+			const end = closeAt === undefined ? inner.length : closeAt - from + 1;
+			const body = inner.slice(i + 1, end - 1);
+			if (/^\s*[#:/@]/.test(markup.slice(open + 1, open + 4)) || /^\s*$/.test(body)) {
+				flush();
+			} else text += VALUE;
+			for (const token of literalsIn(scan, open, from + end)) labels.push(token.text);
+			i = end;
+			continue;
+		}
+		text += char;
+		i++;
+	}
+	flush();
+	return labels.filter((label) => label.replaceAll(VALUE, '').trim());
+}
+
+/**
+ * Every action's label not in sentence case. An action's label (a command
+ * bar action, a confirmation's confirm, a button, a menu item, a prompt's or
+ * an agent's action) capitalises its first word and writes the rest in lower
+ * case, but for acronyms and initialisms (`ACTION_LABEL_WORDS`), the host's
+ * proper nouns (`words`) and an item's own name (an interpolated value or a
+ * quoted one). Read in a component's markup (a `Button`'s, a `button`'s and a
+ * `DropdownItem`'s words, an `IconButton`'s `label`, a `confirmLabel`) and in
+ * its code (an object with a `label` and a handler or a command bar kind, a
+ * `confirmLabel` or another action's label key).
+ */
+export function miscasedActionLabels(
+	source: string,
+	options: { file?: string; words?: readonly string[] } = {}
+): string[] {
+	const file = options.file ?? 'Component.svelte';
+	const allowed = new Set([...ACTION_LABEL_WORDS, ...(options.words ?? [])]);
+	const scan = scanCode(codeView(source, file));
+	const found = new Set<string>();
+	const check = (text: string, at: number) => {
+		const faults = caseFaults(text, allowed);
+		if (faults.length > 0)
+			found.add(`"${text.replaceAll(VALUE, '…').trim()}" (${faults.join(', ')}, line ${lineAt(scan.code, at)})`);
+	};
+	for (const properties of codeObjects(scan)) {
+		const keys = new Set(properties.map((property) => property.key));
+		const kind = properties.find((property) => property.key === 'kind');
+		const kindValue = kind ? literalsIn(scan, kind.valueStart, kind.valueEnd)[0]?.text : undefined;
+		const isAction = [...ACTION_KEYS].some((key) => keys.has(key)) || (kindValue !== undefined && LIFECYCLE_KINDS.has(kindValue));
+		for (const property of properties) {
+			if (!ACTION_LABEL_KEYS.has(property.key) && !(property.key === 'label' && isAction)) continue;
+			for (const token of literalsIn(scan, property.valueStart, property.valueEnd)) check(token.text, token.start);
+		}
+	}
+	if (file.endsWith('.svelte')) {
+		const markup = markupOf(source);
+		const tags = markupTags(markup);
+		tags.forEach((tag, index) => {
+			if (tag.close) return;
+			for (const name of ACTION_LABEL_KEYS)
+				for (const token of attributeLiterals(tag, name, scan)) check(token.text, token.start);
+			if (ACTION_LABEL_COMPONENTS.has(tag.name))
+				for (const token of attributeLiterals(tag, 'label', scan)) check(token.text, token.start);
+			if (!ACTION_ELEMENTS.has(tag.name) || tag.selfClosing) return;
+			let depth = 0;
+			const end = tags.slice(index + 1).find((next) => {
+				if (next.name !== tag.name) return false;
+				if (!next.close) {
+					if (!next.selfClosing) depth++;
+					return false;
+				}
+				return depth-- === 0;
+			});
+			if (!end) return;
+			for (const label of elementLabels(markup, tag.at + tag.raw.length, end.at, scan)) check(label, tag.at);
+		});
+	}
+	return [...found];
+}
+
+/** The verbs of an act on a selected item. */
+const ITEM_ACTS = /^(?:Delete|Archive|Retire|Restore|Unarchive|Unretire|Deactivate)\b/;
+
+/**
+ * Every act on a selected item (delete, archive, retire and the like) drawn
+ * as a button inside a card or a master-detail page's detail, where it is a
+ * command bar action. A row's own act inside a list (a button inside an
+ * `{#each}` block) stays on its row and is not one.
+ */
+export function itemActsInCards(source: string): string[] {
+	const markup = markupOf(source);
+	const scan = scanCode(codeView(source, 'Component.svelte'));
+	const ranges = (openRe: RegExp, closeRe: RegExp) => {
+		const out: [number, number][] = [];
+		const stack: number[] = [];
+		const marks = [
+			...[...markup.matchAll(openRe)].map((m) => ({ at: m.index!, open: true })),
+			...[...markup.matchAll(closeRe)].map((m) => ({ at: m.index!, open: false }))
+		].sort((a, b) => a.at - b.at);
+		for (const mark of marks) {
+			if (mark.open) stack.push(mark.at);
+			else if (stack.length) out.push([stack.pop()!, mark.at]);
+		}
+		return out;
+	};
+	const eachRanges = ranges(/\{#each\b/g, /\{\/each\}/g);
+	const detailRanges = ranges(/\{#snippet\s/g, /\{\/snippet\}/g).filter(([from]) =>
+		/^\{#snippet\s+detail\b/.test(markup.slice(from, from + 24))
+	);
+	const inside = (at: number, list: [number, number][]) => list.some(([from, to]) => at > from && at < to);
+	const found: string[] = [];
+	const tags = markupTags(markup);
+	const open: { name: string; card: boolean }[] = [];
+	tags.forEach((tag, index) => {
+		if (tag.close) {
+			const at = open.map((entry) => entry.name).lastIndexOf(tag.name);
+			if (at >= 0) open.length = at;
+			return;
+		}
+		const card =
+			tag.name === 'CardContainer' || /\bclass=(?:"[^"]*|\{[^}]*)\bcard-(?:content|container)\b/.test(tag.raw);
+		const inCard = card || open.some((entry) => entry.card) || inside(tag.at, detailRanges);
+		if (ACTION_ELEMENTS.has(tag.name) && !tag.selfClosing && inCard && !inside(tag.at, eachRanges)) {
+			let depth = 0;
+			const end = tags.slice(index + 1).find((next) => {
+				if (next.name !== tag.name) return false;
+				if (!next.close) {
+					if (!next.selfClosing) depth++;
+					return false;
+				}
+				return depth-- === 0;
+			});
+			const labels = end ? elementLabels(markup, tag.at + tag.raw.length, end.at, scan) : [];
+			const act = labels.find((label) => ITEM_ACTS.test(label.trim()));
+			if (act) found.push(`${tag.name} "${act.replaceAll(VALUE, '…').trim()}" (line ${lineAt(markup, tag.at)})`);
+		}
+		if (!tag.selfClosing) open.push({ name: tag.name, card });
+	});
+	return found;
+}
+
+/**
+ * Every register that sorts by its column heads and offers no house phone
+ * sort: a component drawing `SortableHeadCell` whose `ListQueryBar` takes no
+ * `sort`, or that draws no `ListQueryBar` (its query bar is another file's,
+ * which a guard then reads), and every phone sort a host draws itself (a
+ * `mobileSort` snippet).
+ */
+export function registersWithoutPhoneSort(source: string): string[] {
+	const markup = markupOf(source);
+	const found: string[] = [];
+	for (const match of markup.matchAll(/\{#snippet\s+mobileSort\b/g))
+		found.push(`a phone sort of its own (line ${lineAt(markup, match.index!)})`);
+	if (!/<SortableHeadCell\b/.test(markup)) return found;
+	const bars = markupTags(markup).filter((tag) => !tag.close && tag.name === 'ListQueryBar');
+	if (bars.length === 0) found.push('sortable heads with no query bar of its own');
+	for (const bar of bars)
+		if (!/\ssort=|\s\{sort\}/.test(bar.raw)) found.push(`a ListQueryBar with no sort (line ${lineAt(markup, bar.at)})`);
 	return found;
 }

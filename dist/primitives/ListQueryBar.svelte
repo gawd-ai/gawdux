@@ -1,6 +1,6 @@
 <script module lang="ts">
 	import type { Snippet } from 'svelte';
-	import type { ActiveFilterDescriptor } from './list-query';
+	import type { ActiveFilterDescriptor, ListSort } from './list-query';
 
 	export interface ListQueryBarProps {
 		value?: string;
@@ -24,7 +24,15 @@
 		onResetFilters?: () => void;
 		quickFilters?: Snippet;
 		advancedFilters?: Snippet;
-		mobileSort?: Snippet;
+		/**
+		 * The register's sort. At or below the compact width, where a
+		 * register's column heads are hidden (its rows read as cards), the
+		 * bar offers it as the house phone sort, "Sort by" and one choice per
+		 * key and direction, behind the filter button (or a Sort button when
+		 * the bar has no other filters). Above the compact width the heads
+		 * sort and the bar draws none.
+		 */
+		sort?: ListSort;
 	}
 
 	const QUERY_BAR_SELECTOR = '[data-gawdux-list-query-bar]';
@@ -66,6 +74,7 @@
 	import { ChevronDownOutline, FilterOutline, SortOutline } from 'flowbite-svelte-icons';
 	import ActiveFilterChip from './ActiveFilterChip.svelte';
 	import SearchInput from './SearchInput.svelte';
+	import { listSortOptions } from './list-query';
 
 	let {
 		value = $bindable(''),
@@ -89,7 +98,7 @@
 		onResetFilters,
 		quickFilters,
 		advancedFilters,
-		mobileSort
+		sort
 	}: ListQueryBarProps = $props();
 
 	const instanceId = $props.id();
@@ -97,8 +106,19 @@
 
 	const panelId = $derived(filterPanelId ?? `${instanceId}-filters`);
 	const filterCount = $derived(Math.max(0, activeFilterCount ?? activeFilters.length));
-	const hasFilterPanel = $derived(Boolean(advancedFilters || mobileSort));
-	const isSortOnlyPanel = $derived(Boolean(mobileSort && !advancedFilters));
+	const hasSort = $derived(Boolean(sort && sort.keys.length > 0));
+	const hasFilterPanel = $derived(Boolean(advancedFilters || hasSort));
+	const isSortOnlyPanel = $derived(Boolean(hasSort && !advancedFilters));
+	const sortOptions = $derived(sort ? listSortOptions(sort.keys) : []);
+	const sortValue = $derived(sort ? `${sort.field}:${sort.direction}` : '');
+	const sortId = $derived(`${instanceId}-sort`);
+
+	function chooseSort(event: Event) {
+		const option = sortOptions.find(
+			(entry) => entry.value === (event.currentTarget as HTMLSelectElement).value
+		);
+		if (option) sort?.onsort(option.field, option.direction);
+	}
 	const disclosureLabel = $derived(isSortOnlyPanel ? 'Sort' : filtersLabel);
 	const filterButtonLabel = $derived(
 		filterCount > 0
@@ -242,9 +262,30 @@
 					{@render advancedFilters()}
 				</div>
 			{/if}
-			{#if mobileSort}
-				<div class="list-query-mobile-sort mt-2 border-t border-gray-100 pt-2 dark:border-gray-700">
-					{@render mobileSort()}
+			{#if hasSort}
+				<div
+					class="list-query-mobile-sort border-gray-100 dark:border-gray-700"
+					class:list-query-sort-after={Boolean(advancedFilters)}
+					data-list-phone-sort
+				>
+					<label for={sortId} class="shrink-0 text-xs font-medium text-gray-600 dark:text-gray-300">
+						Sort by
+					</label>
+					<select
+						id={sortId}
+						class="list-query-sort-select min-w-0 flex-1 rounded-md border border-gray-200 bg-white px-3 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+						value={sortValue}
+						{disabled}
+						onchange={chooseSort}
+					>
+						{#if !sortOptions.some((option) => option.value === sortValue)}
+							<!-- The register's own order, before a key is chosen. -->
+							<option value={sortValue} disabled>Default order</option>
+						{/if}
+						{#each sortOptions as option (option.value)}
+							<option value={option.value}>{option.label}</option>
+						{/each}
+					</select>
 				</div>
 			{/if}
 		</div>
@@ -299,6 +340,15 @@
 		.list-query-mobile-sort {
 			display: flex;
 			align-items: center;
+			gap: 0.5rem;
+		}
+		.list-query-sort-after {
+			margin-top: 0.5rem;
+			padding-top: 0.5rem;
+			border-top-width: 1px;
+		}
+		.list-query-sort-select {
+			min-height: 44px;
 		}
 	}
 

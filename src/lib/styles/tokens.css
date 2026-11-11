@@ -1847,10 +1847,12 @@ main:has(.page-command-drawer) .page-command-bar,
 .gawdux-tool-button:focus-visible {
 	box-shadow: 0 0 0 2px rgb(59 130 246); /* blue-500 */
 }
+/* Its icon is the house icon, labelled or not: every icon on a tab strip's
+   row (a tab's, a tool's) is one size. */
 .gawdux-tool-button .gawdux-control-icon {
 	flex: none;
-	width: 0.8125rem;
-	height: 0.8125rem;
+	width: var(--gawdux-icon-size);
+	height: var(--gawdux-icon-size);
 }
 .dark .gawdux-tool-button {
 	border-color: rgb(55 65 81); /* gray-700 */
@@ -1908,10 +1910,6 @@ main:has(.page-command-drawer) .page-command-bar,
 	.gawdux-tool-button:is([aria-pressed='true'], [aria-expanded='true']) {
 	color: var(--gawdux-row-selected-text);
 	background-color: var(--gawdux-row-selected-surface);
-}
-.gawdux-fit-labels[data-labels='icons'] .gawdux-tool-button .gawdux-control-icon {
-	width: var(--gawdux-icon-size);
-	height: var(--gawdux-icon-size);
 }
 
 /* A choice after a tab strip (the version a pane reads): its value whole

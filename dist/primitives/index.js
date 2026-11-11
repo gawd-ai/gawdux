@@ -77,3 +77,4 @@ export { scrollEdges, scrollFadeOf } from './scroll-edges';
 export { fitLabels, labelsFit } from './fit-labels';
 export { default as LongText } from './LongText.svelte';
 export { longTextRuns } from './long-text';
+export { listSortOptions } from './list-query';

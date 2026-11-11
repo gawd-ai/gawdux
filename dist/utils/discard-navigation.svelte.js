@@ -259,7 +259,8 @@ export class DiscardNavigationController {
                 return;
             this.request = {
                 id: pending.id,
-                message: 'Your changes are saved. Continuing…',
+                title: 'Your changes are saved',
+                message: 'Continuing…',
                 confirmLabel: 'Continue',
                 continue: () => this.#retry(pending.id),
                 focusOnCancel: () => pending.focusTarget,
@@ -269,15 +270,16 @@ export class DiscardNavigationController {
         }
         const dirty = blockers.filter((guard) => guard.dirty);
         const busy = blockers.filter((guard) => guard.busy);
-        const message = dirty.length === 1 && dirty[0]?.message
-            ? dirty[0].message
+        const title = dirty.length === 1
+            ? (dirty[0]?.title ?? 'Discard unsaved changes?')
             : dirty.length > 1
-                ? `You have unsaved changes in ${dirty.map((guard) => guard.label).join(', ')}. Discard them and continue?`
-                : 'A change is still being saved. Wait for it to finish before leaving this page.';
+                ? `Discard the unsaved changes in ${dirty.map((guard) => guard.label).join(', ')}?`
+                : 'A change is still being saved';
         const requestId = pending.id;
         this.request = {
             id: requestId,
-            message,
+            title,
+            ...(dirty.length === 0 ? { message: 'Wait for it to finish before leaving this page.' } : {}),
             confirmLabel: pending.willUnload ? 'Discard and leave' : 'Discard and continue',
             continue: () => this.#retry(requestId),
             focusOnCancel: () => pending.focusTarget,
@@ -303,7 +305,8 @@ export class DiscardNavigationController {
                 return;
             hosted.request = {
                 ...baseRequest,
-                message: 'Your changes are saved. Continuing…',
+                title: 'Your changes are saved',
+                message: 'Continuing…',
                 confirmLabel: 'Continue',
                 disabled: baseDisabled,
                 autoContinue: !baseDisabled,

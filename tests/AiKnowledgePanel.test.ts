@@ -83,7 +83,7 @@ function model(): AiKnowledgePanelModel<string, string, HostKnowledge> {
 			emptyMessage: 'No connected capabilities.',
 			blockedMessage: 'Disconnect the host usage before deleting.',
 			deleteBlockedReason: 'Host usage prevents deletion.',
-			discardMessage: 'Discard and open the host capability?',
+			discardTitle: 'Discard and open the host capability?',
 			discardConfirmLabel: 'Discard and open guidance'
 		}
 	};
@@ -347,7 +347,7 @@ describe('shared Knowledge host contract', () => {
 		});
 		await fireEvent.click(link);
 		const request = vi.mocked(adapter.requestDiscard).mock.calls[0]![0];
-		expect(request.message).toBe('Discard and open the host capability?');
+		expect(request.title).toBe('Discard and open the host capability?');
 		await request.continue();
 		expect(adapter.navigateUsage).toHaveBeenCalledWith(loaded.usage!.entries[0]);
 	});
@@ -443,13 +443,27 @@ describe('shared Knowledge host contract', () => {
 		expect(adapter.refreshKnowledgeBases).not.toHaveBeenCalled();
 	});
 
-	it('requires an inline delete confirmation and navigates only after authoritative deletion', async () => {
+	it("opens the delete out of the host's bar and navigates only after authoritative deletion", async () => {
 		const adapter = actions();
-		render(Host, { model: { ...model(), usage: null }, actions: adapter });
-		await fireEvent.click(screen.getByRole('button', { name: 'Delete knowledge base' }));
+		const { container } = render(Host, { model: { ...model(), usage: null }, actions: adapter });
+		// No act on the knowledge base is drawn in its card: the host's bar holds it.
+		expect(container.querySelectorAll('.master-detail-card button')).not.toContain(
+			container.querySelector('[data-host-bar-delete]')
+		);
+		expect(
+			[...container.querySelectorAll('.master-detail-card button')].some((button) =>
+				/Delete knowledge base/.test(button.textContent ?? '')
+			)
+		).toBe(false);
+		await fireEvent.click(container.querySelector('[data-host-bar-delete]')!);
 		expect(adapter.delete).not.toHaveBeenCalled();
 		expect(screen.queryByRole('dialog')).toBeNull();
-		await fireEvent.click(screen.getByRole('button', { name: 'Delete knowledge base' }));
+		const drawer = container.querySelector('[data-confirmation-command]')!;
+		expect(drawer.querySelector('h3')?.textContent).toBe('Delete “Library”?');
+		expect(drawer.querySelector('.page-command-drawer-message')?.textContent?.trim()).toMatch(
+			/^Its \d+ sources? and all ingested content are removed immediately\.$/
+		);
+		await fireEvent.click(container.querySelector('[data-action-confirm]')!);
 		expect(adapter.delete).toHaveBeenCalledWith('library-a');
 		expect(vi.mocked(adapter.knowledgeBasesChanged).mock.calls[0]![0].map((kb) => kb.id)).toEqual([
 			'library-b'

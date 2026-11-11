@@ -17,9 +17,16 @@ const quickFilters = createRawSnippet(() => ({
 	render: () => '<div data-testid="quick-filters">Quick filters</div>'
 }));
 
-const mobileSort = createRawSnippet(() => ({
-	render: () => '<button type="button">Sort records</button>'
-}));
+const sort = {
+	keys: [
+		{ key: 'issued', label: 'Issued', order: 'date' as const },
+		{ key: 'name', label: 'Name' },
+		{ key: 'total', label: 'Total', order: 'number' as const }
+	],
+	field: 'issued',
+	direction: 'desc' as const,
+	onsort: vi.fn()
+};
 
 afterEach(() => cleanup());
 
@@ -117,7 +124,7 @@ describe('ListQueryBar', () => {
 			props: {
 				advancedFilters,
 				quickFilters,
-				mobileSort,
+				sort,
 				activeFilters: [{ id: 'status', label: 'Status', value: 'Open' }],
 				onRemoveFilter,
 				onResetFilters
@@ -125,7 +132,7 @@ describe('ListQueryBar', () => {
 		});
 
 		expect(screen.getByTestId('quick-filters')).toBeTruthy();
-		expect(screen.queryByRole('button', { name: 'Sort records' })).toBeNull();
+		expect(screen.queryByLabelText('Sort by')).toBeNull();
 		// The result count belongs to the pagination pill alone. The query bar
 		// used to carry a duplicate of it; asserting the absence keeps it gone.
 		expect(screen.queryAllByRole('status')).toHaveLength(0);
@@ -134,7 +141,7 @@ describe('ListQueryBar', () => {
 		await fireEvent.click(screen.getByRole('button', { name: 'Filters, 1 active filter' }));
 		expect(screen.getByRole('region', { name: 'Filters' })).toBeTruthy();
 		expect(screen.getByLabelText('Owner').closest('.list-query-advanced-grid')).toBeTruthy();
-		expect(screen.getByRole('button', { name: 'Sort records' })).toBeTruthy();
+		expect(screen.getByLabelText('Sort by')).toBeTruthy();
 
 		const input = screen.getByRole('textbox', { name: 'Search' });
 		await fireEvent.click(screen.getByRole('button', { name: 'Remove Status: Open filter' }));
@@ -174,18 +181,51 @@ describe('ListQueryBar', () => {
 		outside.remove();
 	});
 
-	it('marks a mobile-sort-only disclosure as tablet-only', async () => {
-		render(ListQueryBar, { props: { mobileSort } });
+	it('marks a sort-only disclosure as tablet-only', async () => {
+		render(ListQueryBar, { props: { sort } });
 
 		const disclosure = screen.getByRole('button', { name: 'Sort' });
 		expect(disclosure.classList.contains('list-query-sort-only')).toBe(true);
 		expect(disclosure.getAttribute('title')).toBe('Sort');
-		expect(screen.queryByRole('button', { name: 'Sort records' })).toBeNull();
+		expect(screen.queryByLabelText('Sort by')).toBeNull();
 
 		await fireEvent.click(disclosure);
 		const panel = screen.getByRole('region', { name: 'Sort' });
 		expect(panel.classList.contains('list-query-sort-only')).toBe(true);
-		expect(screen.getByRole('button', { name: 'Sort records' })).toBeTruthy();
+		expect(screen.getByLabelText('Sort by')).toBeTruthy();
+	});
+
+	it("offers the register's sort as the house phone sort: its keys, its field and direction", async () => {
+		const onsort = vi.fn();
+		render(ListQueryBar, { props: { sort: { ...sort, onsort }, filtersOpen: true } });
+
+		const select = screen.getByLabelText('Sort by') as HTMLSelectElement;
+		expect([...select.options].map((option) => option.textContent)).toEqual([
+			'Issued: latest first',
+			'Issued: earliest first',
+			'Name: A to Z',
+			'Name: Z to A',
+			'Total: highest first',
+			'Total: lowest first'
+		]);
+		expect(select.value).toBe('issued:desc');
+		expect(select.closest('[data-list-phone-sort]')).toBeTruthy();
+
+		select.value = 'name:desc';
+		await fireEvent.change(select);
+		expect(onsort).toHaveBeenCalledWith('name', 'desc');
+	});
+
+	it("reads the register's own order before a key is chosen", () => {
+		render(ListQueryBar, { props: { sort: { ...sort, field: '' }, filtersOpen: true } });
+		const select = screen.getByLabelText('Sort by') as HTMLSelectElement;
+		expect(select.selectedOptions[0]?.textContent).toBe('Default order');
+		expect(select.selectedOptions[0]?.disabled).toBe(true);
+	});
+
+	it('draws no phone sort for a register with no sort keys', () => {
+		render(ListQueryBar, { props: { sort: { ...sort, keys: [] } } });
+		expect(screen.queryByRole('button', { name: 'Sort' })).toBeNull();
 	});
 
 	it('assigns the slash shortcut to only the first visible mounted bar', async () => {

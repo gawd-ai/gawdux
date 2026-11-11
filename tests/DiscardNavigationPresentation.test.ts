@@ -21,7 +21,7 @@ describe("the house discard presentation (PageCommandBarConfirm)", () => {
     document.body.append(destination);
     const continuation = vi.fn(() => gate);
     const request = {
-      message: "Leave this draft?",
+      title: "Leave this draft?",
       confirmLabel: "Discard and continue",
       continue: continuation,
       focusAfter: () => destination,
@@ -53,7 +53,7 @@ describe("the house discard presentation (PageCommandBarConfirm)", () => {
     document.body.append(trigger);
     trigger.focus();
     const request = {
-      message: "Leave this draft?",
+      title: "Leave this draft?",
       confirmLabel: "Discard and continue",
       continue: vi.fn(),
     };
@@ -80,7 +80,7 @@ describe("the house discard presentation (PageCommandBarConfirm)", () => {
     );
     const request = {
       id: 42,
-      message: "Continue after saving?",
+      title: "Continue after saving?",
       confirmLabel: "Continue",
       continue: continuation,
       autoContinue: true,

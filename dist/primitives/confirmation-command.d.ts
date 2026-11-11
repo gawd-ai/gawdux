@@ -1,8 +1,10 @@
 export type ConfirmationCommandColor = 'red' | 'green' | 'blue';
 export interface ConfirmationCommandRequest {
     id: number;
+    /** The one question: the act and the item it acts on. */
     title: string;
-    message: string;
+    /** Only what follows the act, or absent when nothing does. */
+    message?: string | undefined;
     confirmLabel: string;
     busyLabel?: string;
     confirmColor?: ConfirmationCommandColor;

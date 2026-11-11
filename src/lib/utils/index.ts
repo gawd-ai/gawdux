@@ -161,10 +161,15 @@ export {
 } from './color-theme';
 
 export {
+	ACTION_LABEL_WORDS,
 	handRolledRailRows,
 	handSetCardPadding,
 	handSizedIcons,
 	insetOverrides,
+	itemActsInCards,
+	miscasedActionLabels,
+	questioningConfirmations,
+	registersWithoutPhoneSort,
 	shadowedFlowbiteImports,
 	surfaceShadows,
 	unlabelledRegisterCells,

@@ -76,7 +76,8 @@ export interface AiKnowledgeUsage {
 	emptyMessage: string;
 	blockedMessage: string;
 	deleteBlockedReason: string;
-	discardMessage: string;
+	/** The discard drawer's one question before following a usage link. */
+	discardTitle: string;
 	discardConfirmLabel: string;
 }
 
@@ -95,7 +96,8 @@ export interface AiKnowledgePanelModel<
 }
 
 export interface AiKnowledgeDiscardRequest {
-	message: string;
+	/** The one question, naming the act and what it discards. */
+	title: string;
 	confirmLabel: string;
 	continue: () => void | Promise<void>;
 	focusAfter: () => HTMLElement | null;

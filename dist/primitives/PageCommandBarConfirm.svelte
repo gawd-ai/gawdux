@@ -15,7 +15,7 @@
 	 */
 	let {
 		title = null,
-		message,
+		message = null,
 		error = null,
 		live = null,
 		kind = null,
@@ -33,8 +33,10 @@
 	}: {
 		// Optional props accept `undefined` explicitly so consumers compiled
 		// with exactOptionalPropertyTypes can forward their own optionals.
+		/** The one question: the act and the item it acts on. */
 		title?: string | null | undefined;
-		message: string;
+		/** Only what follows the act, drawn under the title; absent when nothing does. */
+		message?: string | null | undefined;
 		/** Shown under the message, in the error tone, until the next attempt. */
 		error?: string | null | undefined;
 		/** `status` announces the message politely (a result to acknowledge). */
@@ -145,15 +147,17 @@
 	data-confirmation-command
 	data-kind={kind ?? undefined}
 	aria-labelledby={title ? titleId : undefined}
-	aria-describedby={messageId}
+	aria-describedby={message ? messageId : undefined}
 	aria-busy={busy}
 >
 	{#if title}
 		<h3 id={titleId} class="page-command-drawer-title">{title}</h3>
 	{/if}
-	<p id={messageId} class="page-command-drawer-message" role={live ?? undefined}>
-		{message}
-	</p>
+	{#if message}
+		<p id={messageId} class="page-command-drawer-message" role={live ?? undefined}>
+			{message}
+		</p>
+	{/if}
 	{#if code}
 		<code class="page-command-drawer-code select-all" data-access-code>{code}</code>
 	{/if}
@@ -172,7 +176,7 @@
 			color={confirmColor}
 			data-action-confirm
 			data-confirm-for={componentId}
-			aria-describedby={messageId}
+			aria-describedby={message ? messageId : undefined}
 			disabled={busy || disabled}
 			onclick={confirm}
 		>

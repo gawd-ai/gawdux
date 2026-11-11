@@ -150,7 +150,7 @@ export function publicUtilitiesFixture(
 export function publicPresentationFixture(accountPresenter: Snippet<[UserMenuPresentation]>) {
 	const discard: DiscardNavigationCommandSurfaceProps = {
 		request: {
-			message: 'Leave this draft?',
+			title: 'Leave this draft?',
 			confirmLabel: 'Continue',
 			continue: async () => {}
 		},

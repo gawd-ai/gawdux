@@ -48,6 +48,22 @@
  *   a phone"); each body cell names its column (`data-label`) or its place
  *   in the card (`data-card`). `unlabelledRegisterCells` lists every body
  *   cell of a register that does neither.
+ * - One question in a confirmation. A confirmation's title asks once, naming
+ *   the act and the item; the line under it gives only what follows, or is
+ *   absent. `questioningConfirmations` lists every line under a title that is
+ *   or opens with a question.
+ * - One case for action labels. An action's label is sentence case, its
+ *   acronyms, the host's proper nouns and an item's own name kept as they
+ *   are. `miscasedActionLabels` lists every action label that is not.
+ * - An item's acts sit in the command bar. An act on the selected item
+ *   (delete, archive, retire) is a command bar action, never a button in its
+ *   card; a row's own act in a list stays on its row. `itemActsInCards` lists
+ *   every such button in a card or a master-detail page's detail.
+ * - A phone sort on every sorted register. A register that sorts by its
+ *   column heads gives its query bar the sort (`ListQueryBar`'s `sort`), the
+ *   house phone sort at or below the compact width, where the heads are
+ *   hidden. `registersWithoutPhoneSort` lists every register that does not,
+ *   and every phone sort a host draws itself.
  */
 /** A source with its comments removed, so prose about a shadow is not one. */
 export declare function withoutComments(source: string): string;
@@ -102,3 +118,46 @@ export declare function handSetCardPadding(source: string): string[];
  * (`data-card`), and spans no columns (an empty row).
  */
 export declare function unlabelledRegisterCells(source: string): string[];
+/**
+ * Every confirmation whose line under its title asks a question. A
+ * confirmation (a request or a tag carrying `confirmLabel`, or a discard
+ * guard) asks once, in its title, naming the act and the item; the line under
+ * it (`message`, or a host's `confirm`) gives only what follows, or is
+ * absent.
+ */
+export declare function questioningConfirmations(source: string, file?: string): string[];
+/**
+ * The acronyms and initialisms an action's label keeps in capitals. A host
+ * passes its own proper nouns (a product's name, the System) beside them.
+ */
+export declare const ACTION_LABEL_WORDS: readonly string[];
+/**
+ * Every action's label not in sentence case. An action's label (a command
+ * bar action, a confirmation's confirm, a button, a menu item, a prompt's or
+ * an agent's action) capitalises its first word and writes the rest in lower
+ * case, but for acronyms and initialisms (`ACTION_LABEL_WORDS`), the host's
+ * proper nouns (`words`) and an item's own name (an interpolated value or a
+ * quoted one). Read in a component's markup (a `Button`'s, a `button`'s and a
+ * `DropdownItem`'s words, an `IconButton`'s `label`, a `confirmLabel`) and in
+ * its code (an object with a `label` and a handler or a command bar kind, a
+ * `confirmLabel` or another action's label key).
+ */
+export declare function miscasedActionLabels(source: string, options?: {
+    file?: string;
+    words?: readonly string[];
+}): string[];
+/**
+ * Every act on a selected item (delete, archive, retire and the like) drawn
+ * as a button inside a card or a master-detail page's detail, where it is a
+ * command bar action. A row's own act inside a list (a button inside an
+ * `{#each}` block) stays on its row and is not one.
+ */
+export declare function itemActsInCards(source: string): string[];
+/**
+ * Every register that sorts by its column heads and offers no house phone
+ * sort: a component drawing `SortableHeadCell` whose `ListQueryBar` takes no
+ * `sort`, or that draws no `ListQueryBar` (its query bar is another file's,
+ * which a guard then reads), and every phone sort a host draws itself (a
+ * `mobileSort` snippet).
+ */
+export declare function registersWithoutPhoneSort(source: string): string[];

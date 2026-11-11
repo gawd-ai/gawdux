@@ -12,6 +12,7 @@
 		UploadOutline
 	} from 'flowbite-svelte-icons';
 	import CardContainer from '../primitives/CardContainer.svelte';
+	import type { ConfirmationCommandRequest } from '../primitives/confirmation-command';
 	import MasterDetailShell from '../primitives/MasterDetailShell.svelte';
 	import RailRowButton from '../primitives/RailRowButton.svelte';
 	import SearchInput from '../primitives/SearchInput.svelte';
@@ -68,7 +69,10 @@
 	let saving = $state(false);
 	let deletingKb = $state(false);
 	let actionError = $state<string | null>(null);
-	let confirmingDeleteKb = $state(false);
+	// The pending delete, which the host opens out of its command bar.
+	let deleteRequest = $state<(ConfirmationCommandRequest & { knowledgeId: KnowledgeId }) | null>(null);
+	let deleteError = $state<string | null>(null);
+	let deleteRequestId = 0;
 	// Per-row in-place strips (no modals).
 	let confirmingRemoveId = $state<SourceId | null>(null);
 	let busySourceId = $state<SourceId | null>(null);
@@ -95,7 +99,8 @@
 		seededKbId = kb?.id ?? null;
 		seededCreating = isCreating;
 		actionError = null;
-		confirmingDeleteKb = false;
+		deleteRequest = null;
+		deleteError = null;
 		confirmingRemoveId = null;
 		cancelResourceSearch();
 		addMode = 'none';
@@ -144,7 +149,7 @@
 		if (!creating && selected?.id === id) return;
 		if (navigationDirty) {
 			actions.requestDiscard({
-				message: 'Discard the unsaved knowledge-base changes and open another knowledge base?',
+				title: 'Discard the unsaved knowledge-base changes and open another knowledge base?',
 				confirmLabel: 'Discard and open knowledge base',
 				continue: () => navigateToKb(id),
 				focusAfter: () =>
@@ -169,7 +174,7 @@
 		if (writeBusy || !model) return;
 		if (navigationDirty && usage) {
 			actions.requestDiscard({
-				message: usage.discardMessage,
+				title: usage.discardTitle,
 				confirmLabel: usage.discardConfirmLabel,
 				continue: () => actions.navigateUsage(intent),
 				focusAfter: actions.usageFocusTarget
@@ -184,7 +189,8 @@
 		if (creating) {
 			cancelResourceSearch();
 			actionError = null;
-			confirmingDeleteKb = false;
+			deleteRequest = null;
+		deleteError = null;
 			confirmingRemoveId = null;
 			addMode = 'none';
 			resourceSearch = '';
@@ -202,7 +208,7 @@
 		if (!model || knowledgeBases.length >= (limits?.maxKnowledgeBases ?? 0) || writeBusy) return;
 		if (navigationDirty) {
 			actions.requestDiscard({
-				message: 'Discard the unsaved knowledge-base changes and start a new knowledge base?',
+				title: 'Discard the unsaved knowledge-base changes and start a new knowledge base?',
 				confirmLabel: 'Discard and start new knowledge base',
 				continue: startNewKnowledgeBase,
 				focusAfter: () => root?.querySelector<HTMLElement>('#kb-name') ?? null
@@ -305,25 +311,79 @@
 		editName = selected.name;
 		editDescription = selected.description;
 		actionError = null;
-		confirmingDeleteKb = false;
+		deleteRequest = null;
+		deleteError = null;
 	}
 
+	const deleteBlocked = $derived((usage?.entries.length ?? 0) > 0);
+
+	/**
+	 * Delete knowledge base, an act on the selected knowledge base: the host
+	 * draws it in its command bar, last in the bar's lifecycle order, and
+	 * opens the pending delete out of the bar (`ConfirmationCommandSurface`).
+	 * Shown while a knowledge base is selected; held while a write runs, while
+	 * the editor holds changes, or while a skill uses it (`reason`).
+	 */
+	export const deletion = {
+		get shown() {
+			return !creating && selected != null;
+		},
+		get disabled() {
+			return writeBusy || navigationDirty || deleteBlocked;
+		},
+		get reason() {
+			return deleteBlocked ? (usage?.deleteBlockedReason ?? null) : null;
+		},
+		get request() {
+			return deleteRequest && deleteRequest.knowledgeId === selected?.id ? deleteRequest : null;
+		},
+		get busy() {
+			return deletingKb;
+		},
+		get error() {
+			return deleteError;
+		},
+		open(focusTarget: HTMLElement | null = null) {
+			const kb = selected;
+			if (!kb || creating || writeBusy || navigationDirty || deleteBlocked) return;
+			const count = kb.rollup.sourceCount;
+			deleteError = null;
+			deleteRequest = {
+				id: ++deleteRequestId,
+				knowledgeId: kb.id,
+				title: `Delete “${kb.name}”?`,
+				message: `Its ${count} ${count === 1 ? 'source' : 'sources'} and all ingested content are removed immediately.`,
+				confirmLabel: 'Delete knowledge base',
+				busyLabel: 'Deleting…',
+				focusTarget,
+				focusFallback: () =>
+					root?.querySelector<HTMLElement>('[aria-label="Knowledge base details"]') ?? null
+			};
+		},
+		confirm: () => void confirmDeleteKb(),
+		cancel() {
+			if (deletingKb) return;
+			deleteRequest = null;
+			deleteError = null;
+		}
+	};
+
 	async function confirmDeleteKb() {
-		if (!selected || deletingKb) return;
-		const kbId = selected.id;
+		const request = deleteRequest;
+		if (!request || deletingKb) return;
+		const kbId = request.knowledgeId;
 		deletingKb = true;
+		deleteError = null;
 		actionError = null;
 		try {
 			await actions.delete(kbId);
 			if (!alive || !model) return;
 			actions.knowledgeBasesChanged(knowledgeBases.filter((kb) => kb.id !== kbId));
-			confirmingDeleteKb = false;
+			if (deleteRequest?.id === request.id) deleteRequest = null;
 			if (selected?.id === kbId || selected == null) await actions.navigate();
 		} catch (err) {
-			if (alive && model != null && selected?.id === kbId) {
-				confirmingDeleteKb = false;
-				actionError = actions.errorMessage(err, 'Could not delete the knowledge base.');
-			}
+			if (alive && model != null && deleteRequest?.id === request.id)
+				deleteError = actions.errorMessage(err, 'Could not delete the knowledge base.');
 		} finally {
 			deletingKb = false;
 		}
@@ -913,54 +973,6 @@
 							</CardContainer>
 						{/if}
 
-						{#if confirmingDeleteKb}
-							<!-- In-place destructive confirm (no modals). -->
-							<div
-								class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 dark:border-red-900/80 dark:bg-red-950/40"
-								role="alert"
-							>
-								<p class="min-w-0 text-sm text-red-800 dark:text-red-300">
-									Delete "{selected.name}"? Its {selected.rollup.sourceCount}
-									{selected.rollup.sourceCount === 1 ? 'source' : 'sources'} and all ingested content
-									are removed immediately.
-								</p>
-								<div class="flex shrink-0 items-center gap-2">
-									<Button size="sm" color="red" disabled={deletingKb} onclick={confirmDeleteKb}>
-										<TrashBinOutline class="me-1.5 h-3.5 w-3.5" />
-										{deletingKb ? 'Deleting…' : 'Delete knowledge base'}
-									</Button>
-									<Button
-										size="sm"
-										color="alternative"
-										disabled={deletingKb}
-										onclick={() => (confirmingDeleteKb = false)}
-									>
-										Cancel
-									</Button>
-								</div>
-							</div>
-						{:else}
-							<div class="flex justify-end">
-								<Button
-									size="sm"
-									color="red"
-									outline
-									disabled={saving ||
-										deletingKb ||
-										sourceWriteBusy ||
-										uploading ||
-										navigationDirty ||
-										(usage?.entries.length ?? 0) > 0}
-									title={(usage?.entries.length ?? 0) > 0
-										? usage?.deleteBlockedReason
-										: 'Delete this knowledge base'}
-									onclick={() => (confirmingDeleteKb = true)}
-								>
-									<TrashBinOutline class="me-1.5 h-3.5 w-3.5" />
-									Delete knowledge base
-								</Button>
-							</div>
-						{/if}
 					{/if}
 				{:else}
 					<p class="text-sm text-gray-500 dark:text-gray-400">

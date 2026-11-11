@@ -147,5 +147,12 @@ export type {
 	LifecycleKindRenderers
 } from './PageActionBar.svelte';
 export type { ListQueryBarProps } from './ListQueryBar.svelte';
-export type { ActiveFilterDescriptor } from './list-query';
+export type {
+	ActiveFilterDescriptor,
+	ListSort,
+	ListSortDirection,
+	ListSortKey,
+	ListSortOrder
+} from './list-query';
+export { listSortOptions } from './list-query';
 export type { FilterPill } from './FilterPillRow.svelte';

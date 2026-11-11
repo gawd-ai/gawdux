@@ -123,7 +123,7 @@
 			<Button outline color="blue" on:click={editMode.onSaveAsDraft} disabled={editMode.saving}>
 				<ClockOutline class="top-action-icons" />{editMode.saving
 					? 'Saving…'
-					: (editMode.saveAsDraftLabel ?? 'Save as Draft')}
+					: (editMode.saveAsDraftLabel ?? 'Save as draft')}
 			</Button>
 		{/if}
 		<Button outline color="green" on:click={editMode.onSave} disabled={editMode.saving}>

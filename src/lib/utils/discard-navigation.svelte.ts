@@ -4,7 +4,14 @@ import { getContext, onDestroy } from 'svelte';
 
 export interface DiscardNavigationRequest {
 	id?: number;
-	message: string;
+	/**
+	 * The one question, naming the act and what it discards ("Discard the
+	 * unsaved skill settings and open another skill?"), or the state while
+	 * the drawer only reports (saved, continuing).
+	 */
+	title: string;
+	/** Only what follows, drawn under the title; absent when nothing does. */
+	message?: string;
 	confirmLabel: string;
 	continue: () => void | Promise<void>;
 	focusAfter?: () => HTMLElement | null;
@@ -21,7 +28,8 @@ export interface DiscardGuardRegistration {
 	isDirty: () => boolean;
 	isBusy?: () => boolean;
 	allowsNavigation?: (navigation: BeforeNavigate) => boolean;
-	message?: string;
+	/** The drawer's question when this guard alone holds changes ("Discard the unsaved product changes?"). */
+	title?: string;
 }
 
 interface RegisteredGuard extends DiscardGuardRegistration {
@@ -350,7 +358,8 @@ export class DiscardNavigationController {
 			if (this.surfacePending) return;
 			this.request = {
 				id: pending.id,
-				message: 'Your changes are saved. Continuing…',
+				title: 'Your changes are saved',
+				message: 'Continuing…',
 				confirmLabel: 'Continue',
 				continue: () => this.#retry(pending.id),
 				focusOnCancel: () => pending.focusTarget,
@@ -360,16 +369,17 @@ export class DiscardNavigationController {
 		}
 		const dirty = blockers.filter((guard) => guard.dirty);
 		const busy = blockers.filter((guard) => guard.busy);
-		const message =
-			dirty.length === 1 && dirty[0]?.message
-				? dirty[0].message
+		const title =
+			dirty.length === 1
+				? (dirty[0]?.title ?? 'Discard unsaved changes?')
 				: dirty.length > 1
-					? `You have unsaved changes in ${dirty.map((guard) => guard.label).join(', ')}. Discard them and continue?`
-					: 'A change is still being saved. Wait for it to finish before leaving this page.';
+					? `Discard the unsaved changes in ${dirty.map((guard) => guard.label).join(', ')}?`
+					: 'A change is still being saved';
 		const requestId = pending.id;
 		this.request = {
 			id: requestId,
-			message,
+			title,
+			...(dirty.length === 0 ? { message: 'Wait for it to finish before leaving this page.' } : {}),
 			confirmLabel: pending.willUnload ? 'Discard and leave' : 'Discard and continue',
 			continue: () => this.#retry(requestId),
 			focusOnCancel: () => pending.focusTarget,
@@ -395,7 +405,8 @@ export class DiscardNavigationController {
 			if (this.surfacePending) return;
 			hosted.request = {
 				...baseRequest,
-				message: 'Your changes are saved. Continuing…',
+				title: 'Your changes are saved',
+				message: 'Continuing…',
 				confirmLabel: 'Continue',
 				disabled: baseDisabled,
 				autoContinue: !baseDisabled,

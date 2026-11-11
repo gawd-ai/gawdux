@@ -1,5 +1,61 @@
 # Changelog
 
+## 0.39.0 - one question in a confirmation, one case for action labels, an item's acts in the command bar, the house icon on a tab strip's row, a phone sort on every sorted register
+
+### Changed
+
+- One question in a confirmation. `PageCommandBarConfirm` takes its
+  `message` as optional and draws the line under the title only when there
+  is one, describing the decision by it only then; `ConfirmationCommandRequest`'s
+  `message` is optional. The title asks once, naming the act and the item;
+  the line under it gives only what follows. A discard request carries its
+  question as its `title` (`DiscardNavigationRequest.title`, required) and
+  only what follows as its `message`; a discard guard names its question as
+  its `title` (`DiscardGuardRegistration.message` is removed for `title`).
+  `DiscardNavigationCommandSurface` draws the request's title, no longer a
+  fixed "Discard unsaved changes?" over a second question. With several
+  guards holding changes the title is "Discard the unsaved changes in …?";
+  the saved and busy states read as a title and the line that follows.
+  `AiKnowledgeUsage.discardMessage` is `discardTitle`, and the knowledge and
+  skills panels' discard requests and their request types carry `title`.
+- One case for action labels. An action's label is sentence case: the edit
+  bar's default draft save reads "Save as draft".
+- An item's acts sit in the command bar. `AiKnowledgePanel` draws no Delete
+  knowledge base in its card and no in-place confirmation strip; it exports
+  `deletion` (`shown`, `disabled`, `reason`, `open(focusTarget)`, `request`,
+  `busy`, `error`, `confirm`, `cancel`), which the host draws as its command
+  bar's last action and opens out of the bar with
+  `ConfirmationCommandSurface` ("Delete “name”?", its sources and content
+  removed as the line under it).
+- The house icon on a tab strip's row. A tool after a tab strip
+  (`.gawdux-tool-button`) draws its icon at `--gawdux-icon-size` whether its
+  label shows or not, the size of the tabs' icons beside it; it drew 13px
+  while labelled.
+- A phone sort on every sorted register. `ListQueryBar` takes `sort`
+  (`ListSort`: `keys`, `field`, `direction`, `onsort`) and offers it at or
+  below the compact width, where a register's heads are hidden, as the house
+  phone sort: "Sort by" and one choice per key and direction behind the
+  filter button, or a Sort button when the bar has no other filters, 44px
+  tall, the register's own order read as "Default order" until a key is
+  chosen. Each key names its column and its order (`ListSortKey.order`:
+  words "A to Z" and "Z to A", a date latest or earliest first, a number
+  highest or lowest first, a sequence in its order or in reverse); the
+  choices come from `listSortOptions`. The `mobileSort` snippet is removed:
+  no host draws a phone sort of its own.
+
+### Added
+
+- Readers in `gawdux/utils` for the rules: `questioningConfirmations` (a
+  line under a confirmation's title that is or opens with a question),
+  `miscasedActionLabels` with `ACTION_LABEL_WORDS` (an action's label not in
+  sentence case, its acronyms and a host's proper nouns kept),
+  `itemActsInCards` (an act on a selected item drawn as a button in a card
+  or a master-detail page's detail, a row's own act in a list left on its
+  row) and `registersWithoutPhoneSort` (sortable heads whose query bar takes
+  no sort, or a phone sort a host draws itself). The library's own
+  house-surface-rules test holds its files to each, each shown failing on
+  0.38.2.
+
 ## 0.38.2 - a register's card is headed by the row's name
 
 ### Fixed

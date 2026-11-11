@@ -44,12 +44,15 @@ describe('DiscardNavigationCommandSurface', () => {
 
 	it('shows the pending target and focuses its destructive action', async () => {
 		active = setup({
-			message: 'Discard the unsaved config changes and open another tab?',
+			title: 'Discard the unsaved config changes and open another tab?',
 			confirmLabel: 'Discard and open Settings',
 			continue: vi.fn()
 		});
-		expect(strip()?.textContent).toContain('Discard unsaved changes?');
-		expect(strip()?.textContent).toContain('open another tab');
+		// The request's one question is the drawer's title, and nothing under it asks again.
+		expect(strip()?.querySelector('h3')?.textContent).toBe(
+			'Discard the unsaved config changes and open another tab?'
+		);
+		expect(strip()?.querySelector('.page-command-drawer-message')).toBeNull();
 		expect(confirmButton()?.textContent).toContain('Discard and open Settings');
 		await tick();
 		await tick();
@@ -63,7 +66,7 @@ describe('DiscardNavigationCommandSurface', () => {
 		destination.textContent = 'Destination';
 		document.body.append(destination);
 		const request: DiscardNavigationRequest = {
-			message: 'Discard this draft?',
+			title: 'Discard this draft?',
 			confirmLabel: 'Discard and continue',
 			continue: continuation,
 			focusAfter: () => destination
@@ -86,7 +89,7 @@ describe('DiscardNavigationCommandSurface', () => {
 		document.body.append(trigger);
 		trigger.focus();
 		const request: DiscardNavigationRequest = {
-			message: 'Discard this draft?',
+			title: 'Discard this draft?',
 			confirmLabel: 'Discard and continue',
 			continue: vi.fn()
 		};
@@ -104,7 +107,7 @@ describe('DiscardNavigationCommandSurface', () => {
 
 	it('keeps the surface open and reports a failed continuation', async () => {
 		active = setup({
-			message: 'Discard this draft?',
+			title: 'Discard this draft?',
 			confirmLabel: 'Discard and continue',
 			continue: () => Promise.reject(new Error('navigation failed'))
 		});
@@ -120,7 +123,8 @@ describe('DiscardNavigationCommandSurface', () => {
 		const continuation = vi.fn(() => Promise.reject(new Error('navigation failed')));
 		active = setup({
 			id: 42,
-			message: 'Your changes are saved. Continuing...',
+			title: 'Your changes are saved',
+			message: 'Continuing...',
 			confirmLabel: 'Continue',
 			continue: continuation,
 			autoContinue: true
@@ -142,7 +146,7 @@ describe('DiscardNavigationCommandSurface', () => {
 		document.body.append(trigger);
 		trigger.focus();
 		active = setup({
-			message: 'Discard this draft?',
+			title: 'Discard this draft?',
 			confirmLabel: 'Discard and continue',
 			continue: vi.fn(),
 			disabled: true,

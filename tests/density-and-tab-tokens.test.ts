@@ -338,3 +338,11 @@ describe('the selected row and the header icon button', () => {
 		});
 	});
 });
+
+describe('one icon size on a tab strip\'s row', () => {
+	it("draws a tool's icon on the tabs' row at the house icon size, labelled or not", () => {
+		expect(blockOf('.gawdux-tool-button .gawdux-control-icon')).toMatch(/width:\s*var\(--gawdux-icon-size\)/);
+		expect(blockOf('.gawdux-tool-button .gawdux-control-icon')).toMatch(/height:\s*var\(--gawdux-icon-size\)/);
+		expect(tokens).not.toMatch(/\.gawdux-tool-button \.gawdux-control-icon \{[^}]*0\.8125rem/);
+	});
+});

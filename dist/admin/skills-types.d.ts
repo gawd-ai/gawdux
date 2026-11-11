@@ -67,7 +67,8 @@ export interface AiSkillsPanelModel<KnowledgeId extends string | number = number
     }[];
 }
 export interface AiSkillDiscardRequest {
-    message: string;
+    /** The one question, naming the act and what it discards. */
+    title: string;
     confirmLabel: string;
     continue: () => Promise<void>;
     focusAfter: () => HTMLElement | null;

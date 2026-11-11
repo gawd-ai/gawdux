@@ -98,7 +98,7 @@ function registerDirty(controller: DiscardNavigationController, overrides = {}) 
 	return controller.register({
 		label: 'Draft',
 		isDirty: () => true,
-		message: 'You have unsaved draft changes.',
+		title: 'Discard the unsaved draft changes?',
 		...overrides
 	});
 }
@@ -112,7 +112,8 @@ describe('DiscardNavigationController', () => {
 		controller.intercept(first.navigation);
 		const request = controller.request;
 		expect(first.cancelled).toBe(true);
-		expect(request?.message).toContain('unsaved draft');
+		expect(request?.title).toBe('Discard the unsaved draft changes?');
+		expect(request?.message).toBeUndefined();
 
 		const competing = makeNavigation({ to: 'https://app.example/other' });
 		controller.intercept(competing.navigation);
@@ -264,7 +265,7 @@ describe('DiscardNavigationController', () => {
 		const continueAction = vi.fn();
 		expect(
 			controller.requestGuardedAction('workspace-switch', {
-				message: 'Discard changes and switch?',
+				title: 'Discard changes and switch?',
 				confirmLabel: 'Discard and switch',
 				continue: continueAction
 			})
@@ -305,7 +306,7 @@ describe('DiscardNavigationController', () => {
 		const continueAction = vi.fn();
 		expect(
 			controller.requestGuardedAction('workspace-switch', {
-				message: 'Wait to switch workspace.',
+				title: 'Wait to switch workspace.',
 				confirmLabel: 'Switch workspace',
 				continue: continueAction
 			})
@@ -330,7 +331,7 @@ describe('DiscardNavigationController', () => {
 			isBusy: () => busy
 		});
 		controller.requestGuardedAction('disabled-action', {
-			message: 'Wait for access.',
+			title: 'Wait for access.',
 			confirmLabel: 'Continue',
 			continue: vi.fn(),
 			disabled: true,

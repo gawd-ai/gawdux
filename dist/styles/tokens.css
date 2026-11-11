@@ -1338,8 +1338,8 @@ main:has(.page-command-drawer) .page-command-bar,
 }
 .gawdux-tool-button .gawdux-control-icon {
   flex: none;
-  width: 0.8125rem;
-  height: 0.8125rem;
+  width: var(--gawdux-icon-size);
+  height: var(--gawdux-icon-size);
 }
 .dark .gawdux-tool-button {
   border-color: rgb(55 65 81);
@@ -1397,10 +1397,6 @@ main:has(.page-command-drawer) .page-command-bar,
 	.gawdux-tool-button:is([aria-pressed='true'], [aria-expanded='true']) {
   color: var(--gawdux-row-selected-text);
   background-color: var(--gawdux-row-selected-surface);
-}
-.gawdux-fit-labels[data-labels='icons'] .gawdux-tool-button .gawdux-control-icon {
-  width: var(--gawdux-icon-size);
-  height: var(--gawdux-icon-size);
 }
 .gawdux-tool-select {
   position: relative;

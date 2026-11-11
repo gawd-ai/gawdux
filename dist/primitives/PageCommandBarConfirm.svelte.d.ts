@@ -1,6 +1,8 @@
 type $$ComponentProps = {
+    /** The one question: the act and the item it acts on. */
     title?: string | null | undefined;
-    message: string;
+    /** Only what follows the act, drawn under the title; absent when nothing does. */
+    message?: string | null | undefined;
     /** Shown under the message, in the error tone, until the next attempt. */
     error?: string | null | undefined;
     /** `status` announces the message politely (a result to acknowledge). */
