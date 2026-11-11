@@ -110,7 +110,7 @@
 			{:else}
 				{#each silences as silence (silence.id)}
 					<tr
-						class="border-b border-gray-100 last:border-0 dark:border-gray-800"
+						class="border-b border-gray-100 last:border-0 dark:border-gray-700"
 						data-testid="silence-row"
 					>
 						<td data-label={copy.silenceColumnState} class="whitespace-nowrap px-4 py-2.5">

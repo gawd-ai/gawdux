@@ -67,7 +67,7 @@
 			<tbody>
 				{#each signatures as signature (signature.id)}
 					<tr
-						class="border-t border-gray-200 align-top dark:border-gray-800"
+						class="border-t border-gray-200 align-top dark:border-gray-700"
 						data-signature-meaning={signature.meaning}
 					>
 						<td

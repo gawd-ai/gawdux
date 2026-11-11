@@ -21,11 +21,13 @@
  *   place a source reads or sets that knob or writes the frame's fill-height
  *   calc, so a guard holds them to the owners.
  * - Light and dark draw the same lines. A theme changes an edge's colour,
- *   never whether it is drawn: an edge (a border or the line between a
- *   list's rows) that a class list draws in light in a colour of its own is,
- *   in dark, neither transparent, nor of no width or style, nor the colour of
- *   the dark surface it is drawn on. `vanishingDarkEdges` lists every such
- *   edge, so a guard holds a source to none.
+ *   never whether it is drawn: an edge (a border, a ring or the line
+ *   between a list's rows) that a class list draws in light in a colour of
+ *   its own is, in dark, neither transparent, nor of no width or style, nor
+ *   the colour of the dark surface it is drawn on (the card surface, which
+ *   the page's content surface draws too, unless the markup states another).
+ *   `vanishingDarkEdges` lists every such edge, so a guard holds a source to
+ *   none.
  */
 /** A source with its comments removed, so prose about a shadow is not one. */
 export declare function withoutComments(source: string): string;
@@ -44,8 +46,9 @@ export declare function insetOverrides(source: string): string[];
  * component's markup is read element by element: an element's surface in
  * dark is its own `dark:bg-*`, else its nearest enclosing element's, a
  * Gawdux card (`CardContainer`, `.card-container`) being the card surface,
- * else the page's content surface. A border is drawn on the surface around
- * its element; the line between a list's rows on the list's own. Any other
+ * else the page's content surface, which in dark is the card surface too. A
+ * border or a ring is drawn on the surface around its element; the line
+ * between a list's rows on the list's own. Any other
  * source (a module's class strings, `file` not a `.svelte` file) is read for
  * the edges a theme removes.
  */

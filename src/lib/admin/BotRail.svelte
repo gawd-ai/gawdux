@@ -69,7 +69,7 @@
 		<p class="px-2 py-3 text-sm text-gray-500 dark:text-gray-400">No bots match.</p>
 	{:else}
 		{#each lanes as lane, laneIndex (laneIndex)}
-			<div class={laneIndex === 0 ? 'space-y-1' : 'mt-2 space-y-1 border-t border-gray-200/70 pt-2 dark:border-gray-800'}>
+			<div class={laneIndex === 0 ? 'space-y-1' : 'mt-2 space-y-1 border-t border-gray-200/70 pt-2 dark:border-gray-700'}>
 				{#each lane as bot (bot.id)}
 					<RailRowButton selected={bot.id === selected} {disabled} onclick={() => onselect(bot.id)}>
 						<span

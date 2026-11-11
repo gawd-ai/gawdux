@@ -204,16 +204,18 @@ floating ones; this library's own does (`tests/house-surface-rules.test.ts`).
 ### Light and dark draw the same lines
 
 A theme changes an edge's colour, never whether it is drawn. An edge a class
-list draws in light in a colour of its own (a border, the line between a
-list's rows) is drawn in dark too: never transparent, of no width or style,
-or the colour of the dark surface it sits on (`--gawdux-surface-card`,
-gray-800, on a card; `--gawdux-surface`, gray-900, on the page), the house's
-dark edge being gray-700 (`--gawdux-border`). `vanishingDarkEdges(source,
-file)` lists every edge a component's markup draws in light and not in dark,
-reading each element's dark surface where the markup names it (a
-`CardContainer`, a `.card-container`, an element's own `dark:bg-*`, else the
-page's), and in a module's class strings the edges a theme removes; a guard
-holds its files to none.
+list draws in light in a colour of its own (a border, a ring, the line
+between a list's rows) is drawn in dark too: never transparent, of no width
+or style, or the colour of the dark surface it sits on, the house's dark edge
+being gray-700 (`--gawdux-border`). In dark a card and the page's content
+surface (`.page-tabs-shell`, `.table-container`, a list's surface) both draw
+`--gawdux-surface-card`, gray-800; `--gawdux-surface`, gray-900, is the
+shell's background around them. `vanishingDarkEdges(source, file)` lists
+every edge a component's markup draws in light and not in dark, reading each
+element's dark surface where the markup names it (an element's own
+`dark:bg-*` or its nearest enclosing one's), else the card surface, and in a
+module's class strings the edges a theme removes; a guard holds its files to
+none.
 
 ## Account menu
 

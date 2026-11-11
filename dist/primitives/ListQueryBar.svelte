@@ -243,7 +243,7 @@
 				</div>
 			{/if}
 			{#if mobileSort}
-				<div class="list-query-mobile-sort mt-2 border-t border-gray-100 pt-2 dark:border-gray-800">
+				<div class="list-query-mobile-sort mt-2 border-t border-gray-100 pt-2 dark:border-gray-700">
 					{@render mobileSort()}
 				</div>
 			{/if}
@@ -252,7 +252,7 @@
 
 	{#if activeFilters.length > 0 || (filterCount > 0 && onResetFilters)}
 		<div
-			class="flex min-w-0 flex-wrap items-center gap-1.5 border-t border-gray-100 pt-2 dark:border-gray-800"
+			class="flex min-w-0 flex-wrap items-center gap-1.5 border-t border-gray-100 pt-2 dark:border-gray-700"
 		>
 			{#each activeFilters as filter (filter.id)}
 				<ActiveFilterChip

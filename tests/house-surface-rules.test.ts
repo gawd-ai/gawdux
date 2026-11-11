@@ -147,9 +147,20 @@ describe('light and dark draw the same lines', () => {
 		expect(
 			vanishingDarkEdges(card('<div class="border border-gray-100 dark:border-gray-800"></div>'))
 		).toHaveLength(1);
-		// On the page's surface a gray-800 line is drawn; a gray-900 one is not.
-		expect(vanishingDarkEdges('<div class="border border-gray-200 dark:border-gray-800"></div>')).toEqual([]);
-		expect(vanishingDarkEdges('<div class="border border-gray-200 dark:border-gray-900"></div>')).toHaveLength(1);
+		// The page's content surface is the card surface in dark: where a file
+		// states no surface, a gray-800 line is not drawn and a gray-900 one is.
+		expect(vanishingDarkEdges('<div class="border border-gray-200 dark:border-gray-800"></div>')).toHaveLength(1);
+		expect(vanishingDarkEdges('<div class="divide-y divide-gray-100 dark:divide-gray-800"></div>')).toHaveLength(1);
+		expect(vanishingDarkEdges('<div class="border border-gray-200 dark:border-gray-900"></div>')).toEqual([]);
+		// A surface the markup states holds the edges drawn on it.
+		expect(
+			vanishingDarkEdges('<div class="dark:bg-gray-900"><p class="border-b border-gray-100 dark:border-gray-800"></p></div>')
+		).toEqual([]);
+		expect(vanishingDarkEdges('<ul class="divide-y divide-gray-100 dark:bg-gray-900 dark:divide-gray-800"></ul>')).toEqual([]);
+		// A ring is an edge: drawn in light, it is drawn in dark.
+		expect(vanishingDarkEdges('<div class="ring-1 ring-gray-200 dark:ring-gray-800"></div>')).toHaveLength(1);
+		expect(vanishingDarkEdges('<div class="ring-1 ring-gray-200 dark:ring-0"></div>')).toHaveLength(1);
+		expect(vanishingDarkEdges('<div class="ring-1 ring-gray-200 dark:ring-gray-700"></div>')).toEqual([]);
 		// An element's own dark surface holds its rows' line.
 		expect(
 			vanishingDarkEdges('<ul class="divide-y divide-gray-100 dark:bg-gray-700 dark:divide-gray-700"></ul>')

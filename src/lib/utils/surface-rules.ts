@@ -21,11 +21,13 @@
  *   place a source reads or sets that knob or writes the frame's fill-height
  *   calc, so a guard holds them to the owners.
  * - Light and dark draw the same lines. A theme changes an edge's colour,
- *   never whether it is drawn: an edge (a border or the line between a
- *   list's rows) that a class list draws in light in a colour of its own is,
- *   in dark, neither transparent, nor of no width or style, nor the colour of
- *   the dark surface it is drawn on. `vanishingDarkEdges` lists every such
- *   edge, so a guard holds a source to none.
+ *   never whether it is drawn: an edge (a border, a ring or the line
+ *   between a list's rows) that a class list draws in light in a colour of
+ *   its own is, in dark, neither transparent, nor of no width or style, nor
+ *   the colour of the dark surface it is drawn on (the card surface, which
+ *   the page's content surface draws too, unless the markup states another).
+ *   `vanishingDarkEdges` lists every such edge, so a guard holds a source to
+ *   none.
  */
 
 /** A source with its comments removed, so prose about a shadow is not one. */
@@ -196,16 +198,22 @@ function markupTags(markup: string): Tag[] {
 
 /**
  * An edge utility and its theme: `border`, a side (`border-t`, `border-x`),
- * or the line between a list's rows (`divide`, `divide-y`), with its colour,
- * its width (`border-0`) or its style (`border-none`), light or `dark:`.
+ * the line between a list's rows (`divide`, `divide-y`) or a ring (`ring`),
+ * with its colour, its width (`border-0`, `ring-0`) or its style
+ * (`border-none`), light or `dark:`.
  */
 const EDGE_UTILITY =
-	/(?<![\w:/[-])(dark:)?(border(?:-[trblxyse])?|divide(?:-[xy])?)-((?:[a-z]+-\d{2,3}|white|black|transparent|current|inherit)(?:\/\d+)?|0|none)(?![\w/-])/g;
+	/(?<![\w:/[-])(dark:)?(border(?:-[trblxyse])?|divide(?:-[xy])?|ring)-((?:[a-z]+-\d{2,3}|white|black|transparent|current|inherit)(?:\/\d+)?|0|none)(?![\w/-])/g;
 const DARK_BACKGROUND = /(?<![\w:/[-])dark:bg-([a-z]+-\d{2,3}|white|black)(?![\w/-])/;
 
-/** The dark card surface (`--gawdux-surface-card`) and the page's (`--gawdux-surface`). */
+/**
+ * The dark card surface, `--gawdux-surface-card`. The page's content surface
+ * draws it too (`.page-tabs-shell`, `.table-container`, a list's surface), so
+ * it is the surface an element is drawn on wherever its own file states none:
+ * `--gawdux-surface`, gray-900, is the shell's background around the content
+ * surface, never the surface of a component in the page.
+ */
 const DARK_CARD_SURFACE = 'gray-800';
-const DARK_PAGE_SURFACE = 'gray-900';
 
 type EdgeKey = string;
 
@@ -243,8 +251,9 @@ function drawsInLight(theme: EdgeTheme | undefined): boolean {
  * component's markup is read element by element: an element's surface in
  * dark is its own `dark:bg-*`, else its nearest enclosing element's, a
  * Gawdux card (`CardContainer`, `.card-container`) being the card surface,
- * else the page's content surface. A border is drawn on the surface around
- * its element; the line between a list's rows on the list's own. Any other
+ * else the page's content surface, which in dark is the card surface too. A
+ * border or a ring is drawn on the surface around its element; the line
+ * between a list's rows on the list's own. Any other
  * source (a module's class strings, `file` not a `.svelte` file) is read for
  * the edges a theme removes.
  */
@@ -286,7 +295,7 @@ export function vanishingDarkEdges(source: string, file = 'Component.svelte'): s
 		if (tag.name === 'CardContainer' || /\bcard-container\b/.test(tag.raw)) own = DARK_CARD_SURFACE;
 		const background = tag.raw.match(DARK_BACKGROUND)?.[1];
 		if (background) own = background;
-		const around = [...open].reverse().find((entry) => entry.surface)?.surface ?? DARK_PAGE_SURFACE;
+		const around = [...open].reverse().find((entry) => entry.surface)?.surface ?? DARK_CARD_SURFACE;
 		const { light, dark } = edgeThemes(tag.raw);
 		for (const [key, theme] of dark) {
 			const lit = light.get(key) ?? (key.startsWith('border-') ? light.get('border') : undefined);

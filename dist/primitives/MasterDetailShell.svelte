@@ -114,7 +114,7 @@
 		class="master-detail-inset min-h-0 overflow-auto @3xl:flex @3xl:flex-col @3xl:overflow-hidden"
 	>
 		<div
-			class="master-detail-card mx-auto grid min-h-[30rem] w-full grid-cols-1 overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 @3xl:min-h-0 @3xl:flex-1 @3xl:grid-cols-[18rem_minmax(0,1fr)] @3xl:grid-rows-[minmax(0,1fr)]"
+			class="master-detail-card mx-auto grid min-h-[30rem] w-full grid-cols-1 overflow-hidden rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900 @3xl:min-h-0 @3xl:flex-1 @3xl:grid-cols-[18rem_minmax(0,1fr)] @3xl:grid-rows-[minmax(0,1fr)]"
 		>
 			<aside
 				bind:this={railElement}

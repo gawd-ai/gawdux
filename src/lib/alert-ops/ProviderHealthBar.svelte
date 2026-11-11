@@ -43,7 +43,7 @@
 </script>
 
 <section
-	class="alert-ops-provider-health flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-800 dark:bg-gray-900"
+	class="alert-ops-provider-health flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-gray-200 bg-white px-3 py-2 dark:border-gray-700 dark:bg-gray-900"
 	aria-label={copy.providerHealthLabel}
 	data-testid="alert-ops-provider-health"
 >

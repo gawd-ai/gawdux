@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.37.1 - every surface in the page is the card surface in dark
+
+### Fixed
+
+- `vanishingDarkEdges` reads an element whose file states no dark surface as
+  drawn on the card surface, gray-800, which the page's content surface
+  (`.page-tabs-shell`, `.table-container`, a list's surface) draws in dark as
+  a card does; it read it as drawn on gray-900, `--gawdux-surface`, the
+  shell's background around the content surface, and so missed every gray-800
+  edge outside a card the same file draws. A ring (`ring-*`) is read as an
+  edge, as a border is.
+- Light and dark draw the same lines. The edges a light theme draws and the
+  dark theme drew in gray-800 on the content surface are gray-700, the
+  house's dark edge: `MasterDetailShell`'s card, `ListQueryBar`'s phone sort
+  row and active filter row, `PasswordWithRequirements`' rules panel,
+  `ApprovalsLedgerSignatures`, `BotRail`'s lanes, and `AlertDetailPanel`,
+  `AlertGroupTable`, `ProviderHealthBar` and `SilenceTable`.
+
 ## 0.37.0 - a list's toolbar on the page inset, the same lines in light and dark
 
 ### Changed

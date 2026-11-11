@@ -158,7 +158,7 @@
 					</thead>
 					<tbody>
 						{#each labelEntries as [name, value] (name)}
-							<tr class="border-b border-gray-100 last:border-0 dark:border-gray-800">
+							<tr class="border-b border-gray-100 last:border-0 dark:border-gray-700">
 								<th scope="row" class={keyCellClass}>{name}</th>
 								<td class={valueCellClass}>{value}</td>
 							</tr>
@@ -182,7 +182,7 @@
 					</thead>
 					<tbody>
 						{#each annotationEntries as [name, value] (name)}
-							<tr class="border-b border-gray-100 last:border-0 dark:border-gray-800">
+							<tr class="border-b border-gray-100 last:border-0 dark:border-gray-700">
 								<th scope="row" class={keyCellClass}>{name}</th>
 								<td class={valueCellClass}>{value}</td>
 							</tr>

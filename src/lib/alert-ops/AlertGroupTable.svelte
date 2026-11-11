@@ -108,7 +108,7 @@
 						data-fingerprint={alert.fingerprint}
 						tabindex="0"
 						aria-selected={selected}
-						class={`cursor-pointer border-b border-gray-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 dark:border-gray-800 ${selected ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-800/60'}`}
+						class={`cursor-pointer border-b border-gray-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 dark:border-gray-700 ${selected ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-800/60'}`}
 						onclick={() => select(alert.fingerprint)}
 						onkeydown={(event) => handleRowKeydown(event, alert.fingerprint)}
 					>
