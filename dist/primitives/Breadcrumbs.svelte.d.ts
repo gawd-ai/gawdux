@@ -43,6 +43,12 @@ type $$ComponentProps = {
  * page holds its minimum and the trail's box clips the end. The trail
  * carries no status: the page's own header wears it.
  *
+ * A level the page's header names. A last level marked `namedByHeader` is
+ * the item a page's own header names beside its status: the line leaves it
+ * out and ends at the item's place, every level a link and none marked as
+ * the current page, so the name shows once. The row at the compact width,
+ * where the header carries no title, names it and opens the whole path.
+ *
  * The current page alone (`layout` "adaptive", the default, at or below
  * `BREADCRUMB_COMPACT_QUERY`, 1024px). The row names the current page on
  * one line, a name too long for it ending in an ellipsis, an identifier that

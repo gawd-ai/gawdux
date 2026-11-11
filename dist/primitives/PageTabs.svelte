@@ -11,6 +11,7 @@
 	import { PAGE_STATUS_CONTEXT, type PageStatusHost } from './page-chrome';
 	import PageStatusOutlet from './PageStatusOutlet.svelte';
 	import { scrollEdges } from './scroll-edges';
+	import { fitLabels } from './fit-labels';
 	export let className: string = 'w-full tabs-underline tabs-stick';
 	export let contentClass: string = 'tab-content scroll-surface !mt-0 rounded-b-lg';
 	export let shellClass: string = 'page-tabs-shell';
@@ -38,12 +39,15 @@
 		$feedback?.loadError?.trim() || $feedback?.actionError?.trim() || $feedback?.notice?.trim()
 	);
 
-	/* The strip and the status after it: the strip fades where more of its
-	   tabs lie (scrollEdges), and ends where the status begins, which stands
-	   as tall as the strip beside it (tokens.css, "The page's status after its
-	   tab strip"), so a tab's label is never under the status. */
+	/* The strip and the status after it: the strip shows its tabs' labels
+	   while they fit its box and each tab's icon alone when they do not
+	   (fitLabels), fades where more of its tabs lie (scrollEdges), and ends
+	   where the status begins, which stands as tall as the strip beside it
+	   (tokens.css, "The page's status after its tab strip"), so a tab's label
+	   is never under the status. */
 	function stripChrome(node: HTMLElement) {
 		const strip = node.querySelector<HTMLElement>(':scope > .page-tabs-list');
+		const labels = strip ? fitLabels(strip) : null;
 		const edges = strip ? scrollEdges(strip) : null;
 		const measure = () => {
 			const status = node.querySelector<HTMLElement>(':scope > .page-tabs-status');
@@ -77,6 +81,7 @@
 		measure();
 		return {
 			destroy() {
+				labels?.destroy();
 				edges?.destroy();
 				sized?.disconnect();
 				changed?.disconnect();

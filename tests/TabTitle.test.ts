@@ -35,9 +35,29 @@ describe('TabTitle', () => {
 		expect(iconBox(container)?.className).toContain('inline-flex');
 	});
 
+	it('marks the icon and the label the strip hides while its labels do not fit', () => {
+		// A strip whose labels do not fit shows each tab's icon alone
+		// (fitLabels): the label is kept as the tab's accessible name, so it
+		// must stay in the tab, marked to hide, never removed.
+		const { container } = render(TabTitle, { props: { icon: EyeOutline, label: 'History' } });
+		const root = container.querySelector('.gawdux-tab-title');
+		expect(root).toBeTruthy();
+		expect(root?.querySelector('.gawdux-control-icon svg')).toBeTruthy();
+		expect(root?.querySelector('.gawdux-control-icon')?.getAttribute('aria-hidden')).toBe('true');
+		expect(root?.querySelector('.gawdux-control-label')?.textContent).toBe('History');
+	});
+
+	it('never hides the label of a tab with no icon, which would leave the tab empty', () => {
+		const { container } = render(TabTitle, { props: { label: 'Channels' } });
+		expect(container.querySelector('.gawdux-tab-title')).toBeTruthy();
+		expect(container.querySelector('.gawdux-control-label')).toBeNull();
+		expect(screen.getByText('Channels')).toBeTruthy();
+	});
+
 	it('appends a caller class without dropping the layout classes', () => {
 		const { container } = render(TabTitle, { props: { label: 'Rules', className: 'text-xs' } });
-		const root = container.querySelector('div');
+		const root = container.querySelector('.gawdux-tab-title');
+		expect(root?.tagName).toBe('SPAN');
 		expect(root?.className).toContain('text-xs');
 		expect(root?.className).toContain('items-center');
 	});

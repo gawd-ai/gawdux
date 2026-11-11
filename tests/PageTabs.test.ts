@@ -149,6 +149,14 @@ describe("a tab strip is one row", () => {
     expect(strip.classList.contains("gawdux-tab-strip")).toBe(true);
   });
 
+  it("shows its labels while they fit and each tab's icon alone when they do not (fitLabels)", () => {
+    const { container } = render(PageTabsBelowHarness, {
+      props: { withBelow: false },
+    });
+    const strip = container.querySelector(".page-tabs-list") as HTMLElement;
+    expect(strip.classList.contains("gawdux-fit-labels")).toBe(true);
+  });
+
   it("scrolls sideways within itself at every width, never wrapping a tab onto a second row", () => {
     expect(decls(".gawdux-tab-strip")).toMatchObject({
       "flex-wrap": "nowrap",

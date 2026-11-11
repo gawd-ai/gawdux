@@ -28,7 +28,8 @@ export function createBreadcrumbBuilder(options) {
             return {
                 label: item.label,
                 ...(item.href ? { href: item.href } : {}),
-                ...(icon ? { icon } : {})
+                ...(icon ? { icon } : {}),
+                ...(item.namedByHeader ? { namedByHeader: true } : {})
             };
         });
     }

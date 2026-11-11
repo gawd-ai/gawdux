@@ -7,6 +7,12 @@ export type AppBreadcrumbItem = {
         Kept as a plain string so each app can define its own taxonomy
         (e.g. one consumer uses 'analysis'/'stability'/'transactions'; another uses its own). */
     iconKey?: string;
+    /**
+     * The last level only: the page's own header names this item beside its
+     * status, so above the compact width the trail ends at the item's place;
+     * at the compact width the trail's current page names it.
+     */
+    namedByHeader?: boolean;
 };
 export type AppBreadcrumbData = {
     items: AppBreadcrumbItem[];

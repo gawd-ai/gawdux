@@ -1,5 +1,51 @@
 # Changelog
 
+## 0.35.0 - a tab is an icon and its label, a trail ends at the item's place
+
+### Added
+
+- `fitLabels`, with `labelsFit`: a row of controls each carrying an icon and
+  a label (a tab strip, or a row holding a strip and the tools after it)
+  shows its labels while they fit its own box and its icons alone when they
+  do not. It reads, with the labels shown, the width the controls need
+  against the width the row has, never the viewport's, and marks the row
+  `data-labels="icons"` when they do not fit, again whenever the row or
+  anything in it changes size, a control comes or goes, or a web font
+  arrives. While the labels are hidden each control whose label hid carries
+  it as its tooltip, unless it has a title of its own.
+- tokens.css, "Icons alone while the labels do not fit": a hidden label
+  (`.gawdux-control-label`) stays as words a screen reader reads; a tab
+  shows its icon alone on a 44px target, its accent and underline marking
+  the current one as before.
+- `.gawdux-tool-button`, a tool after a tab strip: a labelled button while
+  its row's labels fit, the house icon button at a header's size (32px, a
+  44px target at or below the compact width, flat) once the row shows
+  icons; pressed (`aria-pressed`, or `aria-expanded` for a panel it opens)
+  it reads in the accent, the selected row's tint once it shows its icon.
+- `.gawdux-tool-select`, a choice after a tab strip: its value whole while
+  its row's labels fit, the host's short form of it
+  (`.gawdux-tool-select-short`) on a flat control as tall as the icon
+  buttons once the row shows icons, the choice laid over it, so a press
+  opens it and a screen reader reads the full value.
+- `namedByHeader` on `AppBreadcrumbItem` and `BreadcrumbCrumb`, carried by
+  `createBreadcrumbBuilder().fromItems`: the last level is the item the
+  page's own header names beside its status.
+
+### Changed
+
+- `PageTabs`' strip shows its tabs' labels while they fit and each tab's
+  icon alone when they do not (`fitLabels`), and still scrolls within itself
+  with its fade when even the icons do not fit.
+- `TabTitle` marks its icon (`.gawdux-control-icon`, hidden from the screen
+  reader) and its label (`.gawdux-control-label`) for the strip to hide; a
+  tab with no icon carries no mark, so its label never hides. Written with
+  runes.
+- `Breadcrumbs` leaves a last level marked `namedByHeader` out of its line:
+  above the compact width the trail ends at the item's place, every level a
+  link and none marked as the current page, so the item's name shows once,
+  in its header; at the compact width the page's row names it and opens the
+  whole path, as before.
+
 ## 0.34.0 - a drawer and the bar read as one surface
 
 ### Added

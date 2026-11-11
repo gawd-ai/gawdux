@@ -1,24 +1,35 @@
+<!-- A tab's title: its icon and its label. A strip whose labels do not fit
+     shows each tab's icon alone (fitLabels, tokens.css "Icons alone while the
+     labels do not fit"), the label kept in the tab as its accessible name and
+     marked to hide (`.gawdux-control-label`). The icon is optional: a tab set
+     that carries no icons is a legitimate design, and reserving the 20x20 box
+     for one anyway would indent every label by the box and the gap. A tab
+     with no icon never hides its label, which would leave it empty, so its
+     label carries no mark. Its root is a span, so a tab's button holds
+     phrasing content only. -->
 <script lang="ts">
 	import type { Component } from 'svelte';
 
-	/**
-	 * Optional. A tab set that carries no icons is a legitimate design, and
-	 * reserving the 20×20 box for one anyway pushes every label out by
-	 * `w-5` plus the flex gap — a visible indent around nothing. Rendering the
-	 * wrapper only when there is something to put in it lets an icon-less tab
-	 * set sit flush, while a mixed set still aligns its labels, because every
-	 * icon that does exist occupies the same fixed box.
-	 */
-	export let icon: Component | null = null;
-	export let label: string;
-	export let className = '';
+	let {
+		icon = null,
+		label,
+		className = ''
+	}: {
+		/** The tab's icon, from the house set: one meaning, one icon. */
+		icon?: Component | null;
+		label: string;
+		className?: string;
+	} = $props();
 </script>
 
-<div class="flex items-center gap-2 {className}">
+<span class="gawdux-tab-title flex items-center gap-2 {className}">
 	{#if icon}
-		<span class="inline-flex items-center justify-center w-5 h-5">
-			<svelte:component this={icon} size="lg" />
+		{@const Icon = icon}
+		<span class="gawdux-control-icon inline-flex items-center justify-center w-5 h-5" aria-hidden="true">
+			<Icon size="lg" />
 		</span>
+		<span class="gawdux-control-label">{label}</span>
+	{:else}
+		<span>{label}</span>
 	{/if}
-	<span>{label}</span>
-</div>
+</span>

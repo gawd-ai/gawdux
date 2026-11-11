@@ -4,6 +4,13 @@ export type BreadcrumbCrumb = {
     label: string;
     href?: string;
     icon?: Component;
+    /**
+     * The last level only: the page's own header names it beside its status,
+     * so above the compact width the trail's line leaves it out and ends at
+     * the item's place; at the compact width, where the header carries no
+     * title, the page's row names it (Breadcrumbs).
+     */
+    namedByHeader?: boolean;
 };
 export type BreadcrumbBuilderOptions = {
     /** Map of first-segment string → icon component. Consumer apps own this taxonomy. */

@@ -74,5 +74,6 @@ export { default as TabTitle } from './TabTitle.svelte';
 export { PAGE_COMMAND_BAR_CONTEXT, EMPTY_PAGE_COMMAND_BAR_SLOTS, PAGE_STATUS_CONTEXT, createPageStatusHost } from './page-chrome';
 export { createPageCommandBarRegistry } from './page-command-bar-registry';
 export { scrollEdges, scrollFadeOf } from './scroll-edges';
+export { fitLabels, labelsFit } from './fit-labels';
 export { default as LongText } from './LongText.svelte';
 export { longTextRuns } from './long-text';

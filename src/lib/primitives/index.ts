@@ -130,6 +130,8 @@ export {
 export { createPageCommandBarRegistry } from './page-command-bar-registry';
 export { scrollEdges, scrollFadeOf } from './scroll-edges';
 export type { ScrollFade } from './scroll-edges';
+export { fitLabels, labelsFit } from './fit-labels';
+export type { FitLabels } from './fit-labels';
 export { default as LongText } from './LongText.svelte';
 export { longTextRuns } from './long-text';
 export type { LongTextRun } from './long-text';

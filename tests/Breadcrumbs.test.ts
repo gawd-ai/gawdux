@@ -8,7 +8,7 @@ import breadcrumbsSource from '../src/lib/primitives/Breadcrumbs.svelte?raw';
 import BreadcrumbsHarness from './fixtures/BreadcrumbsHarness.svelte';
 import * as primitives from '../src/lib/primitives/index';
 import { BREADCRUMB_COMPACT_QUERY, breadcrumbWords } from '../src/lib/primitives/breadcrumb-overflow';
-import type { BreadcrumbCrumb } from '../src/lib/utils/url-breadcrumb';
+import { createBreadcrumbBuilder, type BreadcrumbCrumb } from '../src/lib/utils/url-breadcrumb';
 
 // jsdom lays nothing out, so the widths are a model: 10px a character, a
 // 36px icon in front of the first crumb, a 24px separator in front of every
@@ -581,6 +581,66 @@ describe('Breadcrumbs: the focus follows its level when the trail re-plans', () 
 		await resize(802);
 		await settle();
 		expect(document.activeElement).toBe(outside);
+	});
+});
+
+describe("Breadcrumbs: a level the page's own header names", () => {
+	// A document's trail as its page states it: the document is the last
+	// level, and its pane header names it beside its status above the
+	// compact width, so the line ends at its place; at the compact width the
+	// header carries no title, and the page's button names it.
+	const ITEM_TRAIL: BreadcrumbCrumb[] = [
+		...TRAIL.slice(0, 4),
+		{ label: 'QP-001 Document Control SOP', icon: ChevronRightOutline, namedByHeader: true }
+	];
+
+	it('ends the line at the place, every level a link and none marked as the page', async () => {
+		const { container } = await renderTrail(802, ITEM_TRAIL);
+		expect(readTrail(container)).toEqual(['Documents', 'Reference', 'Quality Systems', 'Package']);
+		const links = Array.from(container.querySelectorAll<HTMLAnchorElement>('nav > ol a'));
+		expect(links.map((a) => a.getAttribute('href'))).toEqual([
+			'#/documents',
+			'#/documents/reference',
+			'#/documents/reference/7',
+			'#/documents/reference/9'
+		]);
+		expect(container.querySelector('nav > ol [aria-current]')).toBeNull();
+		expect(container.querySelector('.ruler')?.textContent).not.toContain('QP-001');
+	});
+
+	it("names the item at the compact width, the page's button opening the whole path", async () => {
+		const { container } = await renderTrail(300, ITEM_TRAIL);
+		const button = container.querySelector('nav > .page-row button') as HTMLButtonElement;
+		expect(button.textContent?.trim()).toBe('QP-001 Document Control SOP');
+		expect(button.getAttribute('aria-current')).toBe('page');
+		await fireEvent.click(button, { detail: 1 });
+		const rows = Array.from(
+			screen.getByRole('menu').querySelectorAll<HTMLElement>('[role="menuitem"]')
+		);
+		expect(rows.map((row) => row.textContent?.replace(/\s+/g, ' ').trim())).toEqual([
+			'Documents',
+			'Reference',
+			'Quality Systems',
+			'Package',
+			'QP-001 Document Control SOP'
+		]);
+		expect(rows[4]?.getAttribute('aria-current')).toBe('page');
+	});
+
+	it('keeps a trail of one level whole, the page being its own place', async () => {
+		const { container } = await renderTrail(802, [
+			{ label: 'Dashboard', icon: FolderOutline, namedByHeader: true }
+		]);
+		expect(readTrail(container)).toEqual(['Dashboard']);
+		expect(container.querySelector('nav > ol [aria-current="page"]')?.textContent).toBe('Dashboard');
+	});
+
+	it('carries the mark from the page data to the crumb', () => {
+		const crumbs = createBreadcrumbBuilder({ moduleIcons: {} }).fromItems([
+			{ label: 'Documents', href: '/documents' },
+			{ label: 'SOP', namedByHeader: true }
+		]);
+		expect(crumbs.map((crumb) => crumb.namedByHeader ?? false)).toEqual([false, true]);
 	});
 });
 

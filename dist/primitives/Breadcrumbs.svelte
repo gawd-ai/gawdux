@@ -20,6 +20,12 @@
 	page holds its minimum and the trail's box clips the end. The trail
 	carries no status: the page's own header wears it.
 
+	A level the page's header names. A last level marked `namedByHeader` is
+	the item a page's own header names beside its status: the line leaves it
+	out and ends at the item's place, every level a link and none marked as
+	the current page, so the name shows once. The row at the compact width,
+	where the header carries no title, names it and opens the whole path.
+
 	The current page alone (`layout` "adaptive", the default, at or below
 	`BREADCRUMB_COMPACT_QUERY`, 1024px). The row names the current page on
 	one line, a name too long for it ending in an ellipsis, an identifier that
@@ -161,15 +167,27 @@
 	let pathPointerInput = $state(false);
 	let pathTop = $state<number | null>(null);
 
-	const last = $derived(items.length - 1);
-	/** The crumb that ellipsizes last: the current page. */
+	/**
+	 * The line's levels: the trail, less a last level the page's own header
+	 * names (`namedByHeader`), so above the compact width the line ends at
+	 * the item's place; the page's row at the compact width names it.
+	 */
+	const line = $derived(
+		items.length > 1 && items[items.length - 1]?.namedByHeader ? items.slice(0, -1) : items
+	);
+	/** The line ends on the current page, not on its place. */
+	const lineEndsOnPage = $derived(line === items);
+	const last = $derived(line.length - 1);
+	/** The current page at the compact width, and in its path. */
+	const pageLevel = $derived(items.length - 1);
+	/** The crumb that ellipsizes last: the line's last. */
 	const cutLevel = $derived(last);
 	/** The current page has a path above it to open. */
 	const hasPath = $derived(items.length > 1);
 	const plan = $derived.by<BreadcrumbOverflowPlan>(() => {
 		// Until this trail is measured it shows whole: a plan from another
 		// trail's widths would fold the wrong crumbs.
-		if (available === null || !measured || measured.items !== items) return NOTHING;
+		if (available === null || !measured || measured.items !== line) return NOTHING;
 		const crumbs = measured.crumbs;
 		if (crumbs.length === 0) return NOTHING;
 		return planBreadcrumbOverflow({
@@ -185,14 +203,14 @@
 	const menuOpen = $derived(open && folded);
 	/** The narrowest the crumb that is cut last goes; null until measured. */
 	const cutMinWidth = $derived(
-		measured && measured.items === items && cutLevel >= 0
+		measured && measured.items === line && cutLevel >= 0
 			? breadcrumbLeafMin(measured.crumbs[cutLevel] ?? 0)
 			: null
 	);
 
 	/** This trail's report, once it is measured and has a box. */
 	const report = $derived.by<BreadcrumbRoom | null>(() => {
-		if (available === null || !measured || measured.items !== items) return null;
+		if (available === null || !measured || measured.items !== line) return null;
 		return {
 			available,
 			...breadcrumbNeed({
@@ -253,7 +271,7 @@
 		if (!list) return;
 		const compact = list.querySelector('[data-measure="first-compact"]');
 		measured = {
-			items,
+			items: line,
 			crumbs: Array.from(list.querySelectorAll('[data-measure="crumb"]'), widthOf),
 			more: widthOf(list.querySelector('[data-measure="more"]')),
 			moreLead: widthOf(list.querySelector('[data-measure="more-lead"]')),
@@ -264,7 +282,7 @@
 	// A new trail: measured as soon as its copy is in the DOM (before it
 	// paints), and a menu or a path that listed the old one closes.
 	$effect(() => {
-		void items;
+		void line;
 		measure();
 		open = false;
 		pathOpen = false;
@@ -325,7 +343,7 @@
 	// hand it on after.
 	$effect.pre(() => {
 		void plan;
-		const trail = items;
+		const trail = line;
 		const box = untrack(() => root);
 		const focused = document.activeElement;
 		if (!box || !(focused instanceof HTMLElement) || !box.contains(focused)) return;
@@ -336,7 +354,7 @@
 		// wherever it moves, the trail narrowing or widening, while it shows.
 		const onButton = focused === untrack(() => button);
 		void tick().then(() => {
-			if (focused.isConnected || items !== trail) return;
+			if (focused.isConnected || line !== trail) return;
 			const active = document.activeElement;
 			if (active && active !== document.body && active.isConnected) return;
 			if (onButton && button?.isConnected) button.focus({ preventScroll: true });
@@ -632,7 +650,7 @@
 	onfocusout={onRootFocusOut}
 >
 	<ol class="trail">
-		{#each items as item, index}
+		{#each line as item, index}
 			{#if hidden.has(index)}
 				{#if index === plan.hidden[0]}
 					<li class="crumb more" data-level={index}>
@@ -655,7 +673,7 @@
 			{:else}
 				{@const compact = index === 0 && index !== last && plan.compactFirst}
 				{@const named = compact || (index === cutLevel && plan.leafCut) ? item.label : undefined}
-				{@const current = index === last ? 'page' : undefined}
+				{@const current = index === last && lineEndsOnPage ? 'page' : undefined}
 				<li
 					class="crumb"
 					class:leaf={index === last}
@@ -685,7 +703,7 @@
 
 	<!-- At the compact width: the current page alone, which opens its path. -->
 	{#if layout === 'adaptive' && items.length > 0}
-		{@const page = items[last]!}
+		{@const page = items[pageLevel]!}
 		<div class="page-row">
 			{#if hasPath}
 				<button
@@ -726,7 +744,7 @@
 			onpointermove={onPathPointerMove}
 		>
 			{#each items as item, index (index)}
-				{@const current = index === last ? 'page' : undefined}
+				{@const current = index === pageLevel ? 'page' : undefined}
 				{#if item.href}
 					<a
 						class="row"
@@ -766,8 +784,8 @@
 			onpointermove={onMenuPointerMove}
 		>
 			{#each menuEntries as index (index)}
-				{@const item = items[index]!}
-				{@const current = index === last ? 'page' : undefined}
+				{@const item = line[index]!}
+				{@const current = index === last && lineEndsOnPage ? 'page' : undefined}
 				{#if item.href}
 					<a
 						class="row"
@@ -796,21 +814,21 @@
 	     separator and alone, and the first crumb as its icon, out of sight. -->
 	<div class="ruler" aria-hidden="true" inert>
 		<ol class="trail" bind:this={ruler}>
-			{#each items as item, index}
+			{#each line as item, index}
 				<li class="crumb" data-measure="crumb" data-index={index}>
 					{#if index > 0}{@render separator(item.icon)}{/if}
 					<span class="breadcrumb-title">{@render words(item, index, false)}</span>
 				</li>
 			{/each}
 			<li class="crumb" data-measure="more">
-				{@render separator(items[1]?.icon)}
+				{@render separator(line[1]?.icon)}
 				<span class="breadcrumb-title more-button">…</span>
 			</li>
 			<li class="crumb" data-measure="more-lead">
 				<span class="breadcrumb-title more-button">…</span>
 			</li>
-			{#if items[0]?.icon}
-				{@const Icon = items[0].icon}
+			{#if line[0]?.icon}
+				{@const Icon = line[0].icon}
 				<li class="crumb" data-measure="first-compact">
 					<span class="breadcrumb-title"
 						><Icon class="breadcrumb-section-icon" aria-hidden="true" /></span
