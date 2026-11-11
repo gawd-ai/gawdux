@@ -82,8 +82,17 @@ export type PageCommandBarSlots = {
 };
 
 export type PageCommandBarContext = {
-	register(zone: PageCommandBarZone, snippet: Snippet | null | undefined): symbol;
-	update(id: symbol, snippet: Snippet | null | undefined): void;
+	/**
+	 * `present` false: the registration is live but holds nothing now (the
+	 * acts of a tab that is not open), and the zone shows the newest present
+	 * registration instead. Default true.
+	 */
+	register(
+		zone: PageCommandBarZone,
+		snippet: Snippet | null | undefined,
+		present?: boolean
+	): symbol;
+	update(id: symbol, snippet: Snippet | null | undefined, present?: boolean): void;
 	clear(id: symbol): void;
 };
 
@@ -94,3 +103,78 @@ export const EMPTY_PAGE_COMMAND_BAR_SLOTS: PageCommandBarSlots = {
 };
 
 export const PAGE_COMMAND_BAR_CONTEXT = Symbol('page-command-bar');
+
+/**
+ * The page's open tab, for the command bar to hold that tab's acts. The tab
+ * strip claims it and reports which tab is open (`PageTabs` through its
+ * `openTab`, a document viewer through its own tabs); a bar registration (`PageCommandBar`,
+ * `PageCommandBarCenter`, `PageCommandBarRight`) or an edit bar action
+ * (`EditModeProps.tab`, `LifecycleAction.tab`) that names its tab shows only
+ * while that tab is open, so a tab with no act draws no bar; and a drawer out
+ * of the bar (`CommandDrawer`, `PageCommandBarConfirm`) closes when the open
+ * tab changes, its act having left the bar. `EditablePageScaffold` publishes
+ * one for the page; a page outside a scaffold may publish its own.
+ */
+export type PageTabHost = {
+	/** The open tab's id, or null until a tab strip reports one. */
+	readonly open: Readable<string | null>;
+	/**
+	 * A tab strip's claim on the page's open tab. The open tab is the newest
+	 * live claim's report (a claim reporting null counts for nothing), so a
+	 * strip that replaces another, mounting before the other goes, keeps its
+	 * report, and a strip nested in a tab that reports nothing leaves the
+	 * page's alone.
+	 */
+	claim(): PageTabClaim;
+};
+
+/** One tab strip's claim on the page's open tab. */
+export type PageTabClaim = {
+	/** The tab now open in this strip; null reports none. */
+	report(tab: string | null): void;
+	/** The strip goes: its report goes with it. */
+	release(): void;
+};
+
+export const PAGE_TAB_CONTEXT = Symbol('page-tab');
+
+/** A page's open tab, reported by its tab strips. */
+export function createPageTabHost(): PageTabHost {
+	const claims = writable<{ id: symbol; tab: string | null }[]>([]);
+	const open = derived(claims, (held) => {
+		for (let i = held.length - 1; i >= 0; i--) if (held[i]!.tab !== null) return held[i]!.tab;
+		return null;
+	});
+	return {
+		open,
+		claim() {
+			const id = Symbol('page-tab-claim');
+			claims.update((held) => [...held, { id, tab: null }]);
+			return {
+				report(tab) {
+					claims.update((held) => held.map((claim) => (claim.id === id ? { id, tab } : claim)));
+				},
+				release() {
+					claims.update((held) => held.filter((claim) => claim.id !== id));
+				}
+			};
+		}
+	};
+}
+
+/**
+ * The tabs a bar action belongs to: one tab's id, or several. An action that
+ * names none belongs to the page, on every tab.
+ */
+export type PageTabScope = string | readonly string[] | null | undefined;
+
+/**
+ * Whether an action of `scope` shows while `open` is the page's open tab:
+ * always when it names no tab; while one of its tabs is open when it does,
+ * never before a tab strip has reported (`open` null).
+ */
+export function showsOnTab(scope: PageTabScope, open: string | null): boolean {
+	if (scope == null) return true;
+	if (open === null) return false;
+	return typeof scope === 'string' ? scope === open : scope.includes(open);
+}

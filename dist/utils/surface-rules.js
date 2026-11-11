@@ -64,6 +64,18 @@
  *   house phone sort at or below the compact width, where the heads are
  *   hidden. `registersWithoutPhoneSort` lists every register that does not,
  *   and every phone sort a host draws itself.
+ * - The bar holds the open tab's acts. On a tabbed page every act in the
+ *   command bar names its tab (`PageCommandBarCenter`'s `tab`, a scaffold
+ *   act's `tab`), so it shows only while its tab is open and a tab with no
+ *   act draws no bar. `untabbedBarActs` lists every act that names none.
+ * - History is the last tab. `tabsAfterHistory` lists every tab drawn after
+ *   History, a viewer's Versions among them.
+ * - The state beside the title. A pane header draws its item's state 8px
+ *   after its title (`PaneHeader`'s `status`), never among its controls;
+ *   `statusAmongControls` lists every chip drawn among them.
+ * - One count pill. What waits on the reader shows as Gawdux's counted-icon
+ *   pill (`.gawdux-icon-count`) on the icon of its place (a tab, the bell, a
+ *   chat view); `handDrawnIconCounts` lists every pill drawn by hand.
  */
 /** A source with its comments removed, so prose about a shadow is not one. */
 export function withoutComments(source) {
@@ -1061,5 +1073,256 @@ export function registersWithoutPhoneSort(source) {
     for (const bar of bars)
         if (!/\ssort=|\s\{sort\}/.test(bar.raw))
             found.push(`a ListQueryBar with no sort (line ${lineAt(markup, bar.at)})`);
+    return found;
+}
+/** The command bar's zone registrations, whose acts a tab names. */
+const BAR_ZONES = new Set(['PageCommandBar', 'PageCommandBarCenter', 'PageCommandBarRight']);
+/** The text inside an attribute's braces (`name={…}`), or null. */
+function attributeExpression(raw, name) {
+    const start = raw.search(new RegExp(`\\s${name}=\\{`));
+    if (start < 0)
+        return null;
+    const open = raw.indexOf('{', start);
+    let depth = 0;
+    let quote = null;
+    for (let i = open; i < raw.length; i++) {
+        const char = raw[i];
+        if (quote) {
+            if (char === '\\')
+                i++;
+            else if (char === quote)
+                quote = null;
+            continue;
+        }
+        if (char === '"' || char === "'" || char === '`')
+            quote = char;
+        else if (char === '{' || char === '[' || char === '(')
+            depth++;
+        else if (char === '}' || char === ']' || char === ')') {
+            depth--;
+            if (depth === 0)
+                return raw.slice(open + 1, i);
+        }
+    }
+    return null;
+}
+/** The objects written at the top level of an array literal's text (`[{…}, {…}]`). */
+function arrayObjects(text) {
+    const out = [];
+    const body = text.trim();
+    if (!body.startsWith('['))
+        return out;
+    let depth = 0;
+    let quote = null;
+    let from = -1;
+    for (let i = 0; i < body.length; i++) {
+        const char = body[i];
+        if (quote) {
+            if (char === '\\')
+                i++;
+            else if (char === quote)
+                quote = null;
+            continue;
+        }
+        if (char === '"' || char === "'" || char === '`')
+            quote = char;
+        else if (char === '{' || char === '[' || char === '(') {
+            depth++;
+            if (char === '{' && depth === 2)
+                from = i;
+        }
+        else if (char === '}' || char === ']' || char === ')') {
+            if (char === '}' && depth === 2 && from >= 0) {
+                out.push(body.slice(from, i + 1));
+                from = -1;
+            }
+            depth--;
+        }
+    }
+    return out;
+}
+/** Whether a source draws a tab strip: `PageTabs`, a `TabItem`, or a viewer's extra tabs. */
+export function drawsTabs(source) {
+    const markup = markupOf(source);
+    return /<(?:PageTabs|TabItem)\b/.test(markup) || /\sextraTabs=|\s\{extraTabs\}/.test(markup);
+}
+/**
+ * Every act a source puts in the command bar without naming its tab: a bar
+ * zone registration (`PageCommandBar`, `PageCommandBarCenter`,
+ * `PageCommandBarRight`) with no `tab`, and an `EditablePageScaffold`'s
+ * `editMode` or `lifecycle` act with no `tab`, or its `actions` slot with no
+ * `actionsTab`. A decision's own Cancel and
+ * confirm (a registration holding a `data-action-confirm` button) are not
+ * acts of a tab: they hold the bar while their drawer is open, and the drawer
+ * closes when the tab changes. A guard reads it over a tabbed page's files,
+ * so the bar holds the open tab's acts.
+ */
+export function untabbedBarActs(source) {
+    const markup = markupOf(source);
+    const tags = markupTags(markup);
+    const found = [];
+    /** What an element holds, to its matching closing tag; nothing when it closes itself. */
+    const bodyOf = (tag, index) => {
+        if (tag.selfClosing)
+            return '';
+        let depth = 0;
+        const end = tags.slice(index + 1).find((next) => {
+            if (next.name !== tag.name)
+                return false;
+            if (!next.close) {
+                if (!next.selfClosing)
+                    depth++;
+                return false;
+            }
+            return depth-- === 0;
+        });
+        return end ? markup.slice(tag.at + tag.raw.length, end.at) : '';
+    };
+    tags.forEach((tag, index) => {
+        if (tag.close)
+            return;
+        const line = lineAt(markup, tag.at);
+        if (BAR_ZONES.has(tag.name)) {
+            if (/\stab=|\s\{tab\}/.test(tag.raw))
+                return;
+            if (/\sdata-action-confirm\b/.test(bodyOf(tag, index)))
+                return;
+            found.push(`${tag.name} with no tab (line ${line})`);
+            return;
+        }
+        if (tag.name !== 'EditablePageScaffold')
+            return;
+        // Its own actions slot: a scaffold that holds none (a load error's) has no act.
+        if (/\sslot="actions"/.test(bodyOf(tag, index)) &&
+            !/\sactionsTab=|\s\{actionsTab\}/.test(tag.raw))
+            found.push(`the scaffold's actions with no tab (line ${line})`);
+        const edit = attributeExpression(tag.raw, 'editMode');
+        if (edit !== null && /^\s*\{/.test(edit) && !/\btab\s*:/.test(edit))
+            found.push(`an edit mode with no tab (line ${line})`);
+        const lifecycle = attributeExpression(tag.raw, 'lifecycle');
+        if (lifecycle === null)
+            return;
+        for (const act of arrayObjects(lifecycle)) {
+            if (/\btab\s*:/.test(act))
+                continue;
+            const label = act.match(/\blabel\s*:\s*(['"`])((?:(?!\1).)*)\1/)?.[2];
+            const kind = act.match(/\bkind\s*:\s*['"](\w+)['"]/)?.[1] ?? 'act';
+            found.push(`a lifecycle ${kind}${label ? ` "${label}"` : ''} with no tab (line ${line})`);
+        }
+    });
+    return found;
+}
+/**
+ * Every tab drawn after History: History is the last tab on every page that
+ * has one. Reads a strip's `TabTitle`s in source order, and a viewer's extra
+ * tab named History (a `viewerTab(…)` call or an object with an `id`) that the
+ * viewer would draw before its Versions tab, having no `afterVersions`,
+ * unless the viewer draws no Versions (`showHistoryTab={false}`).
+ */
+export function tabsAfterHistory(source) {
+    const markup = markupOf(source);
+    const found = [];
+    const titles = markupTags(markup).filter((tag) => !tag.close && tag.name === 'TabTitle');
+    const labelOf = (tag) => tag.raw.match(/\slabel="([^"]*)"/)?.[1] ??
+        tag.raw.match(/\slabel=\{([^}]*)\}/)?.[1]?.trim() ??
+        '';
+    const history = titles.findIndex((tag) => labelOf(tag) === 'History');
+    if (history >= 0)
+        for (const tag of titles.slice(history + 1))
+            found.push(`${labelOf(tag) || 'a tab'} after History (line ${lineAt(markup, tag.at)})`);
+    if (!/\sextraTabs=|\s\{extraTabs\}/.test(markup) || /\sshowHistoryTab=\{false\}/.test(markup))
+        return found;
+    const code = withoutComments(source.match(/<script(?![^>]*context="module")[^>]*>([\s\S]*?)<\/script>/)?.[1] ?? '');
+    for (const match of code.matchAll(/(['"`])History\1/g)) {
+        // The tab's own definition: the call or object the label sits in.
+        let depth = 0;
+        let open = -1;
+        for (let i = match.index - 1; i >= 0; i--) {
+            const char = code[i];
+            if (char === ')' || char === '}' || char === ']')
+                depth++;
+            else if (char === '(' || char === '{' || char === '[') {
+                if (depth === 0) {
+                    open = i;
+                    break;
+                }
+                depth--;
+            }
+        }
+        if (open < 0)
+            continue;
+        const closer = code[open] === '(' ? ')' : code[open] === '{' ? '}' : ']';
+        depth = 0;
+        let close = -1;
+        for (let i = open; i < code.length; i++) {
+            const char = code[i];
+            if (char === '(' || char === '{' || char === '[')
+                depth++;
+            else if (char === ')' || char === '}' || char === ']') {
+                depth--;
+                if (depth === 0) {
+                    if (char === closer)
+                        close = i;
+                    break;
+                }
+            }
+        }
+        const lead = code.slice(Math.max(0, open - 12), open);
+        const definition = code.slice(open, close < 0 ? code.length : close + 1);
+        const isTab = (code[open] === '(' && /viewerTab\s*$/.test(lead)) ||
+            (code[open] === '{' && /\bid\s*:/.test(definition));
+        if (!isTab || /\bafterVersions\b/.test(definition))
+            continue;
+        found.push("History drawn before the viewer's Versions tab (no afterVersions)");
+    }
+    return found;
+}
+/**
+ * Every state chip drawn among a pane header's controls: the item's state
+ * reads beside its title (`PaneHeader`'s `status`), never in the `actions`
+ * at the row's end. Lists a `HeaderStatus`, a host's `*HeaderStatus` or a
+ * `StatusBadge` inside an `actions` snippet or slot.
+ */
+export function statusAmongControls(source) {
+    const markup = markupOf(source);
+    const ranges = [];
+    const collect = (open, close) => {
+        for (const match of markup.matchAll(open)) {
+            const end = markup.indexOf(close, match.index);
+            ranges.push([match.index, end < 0 ? markup.length : end]);
+        }
+    };
+    collect(/\{#snippet\s+actions\s*\(/g, '{/snippet}');
+    collect(/<svelte:fragment\s+slot="actions"/g, '</svelte:fragment>');
+    const found = [];
+    for (const tag of markupTags(markup)) {
+        if (tag.close || !/(?:^|\w)HeaderStatus$|^StatusBadge$/.test(tag.name))
+            continue;
+        if (ranges.some(([from, to]) => tag.at > from && tag.at < to))
+            found.push(`${tag.name} among the header's controls (line ${lineAt(markup, tag.at)})`);
+    }
+    return found;
+}
+/**
+ * Every count pill a source draws on an icon by hand: a fully rounded box at
+ * least 16px wide, filled in a tone and placed at the icon's top corner, the
+ * house counted-icon pill's shape, where `.gawdux-icon-count` is the one
+ * pill. A mark at the icon's foot (a room's kind) is no count.
+ */
+export function handDrawnIconCounts(source) {
+    const markup = markupOf(source);
+    const found = [];
+    for (const tag of markupTags(markup)) {
+        if (tag.close)
+            continue;
+        const classes = tag.raw.match(/\sclass=(?:"([^"]*)"|\{`([^`]*)`\})/);
+        const list = classes?.[1] ?? classes?.[2] ?? '';
+        if (/(?<![\w:-])absolute(?![\w-])/.test(list) &&
+            /(?<![\w:])-top-/.test(list) &&
+            /(?<![\w:-])rounded-full(?![\w-])/.test(list) &&
+            /(?<![\w:-])min-w-(?:4|\[16px\])(?![\w-])/.test(list) &&
+            /(?<![\w:-])bg-(?:blue|red)-\d{3}/.test(list))
+            found.push(`a count pill of its own (line ${lineAt(markup, tag.at)})`);
+    }
     return found;
 }

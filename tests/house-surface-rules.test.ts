@@ -2,6 +2,8 @@ import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+	drawsTabs,
+	handDrawnIconCounts,
 	handRolledRailRows,
 	handSetCardPadding,
 	handSizedIcons,
@@ -11,7 +13,10 @@ import {
 	questioningConfirmations,
 	registersWithoutPhoneSort,
 	shadowedFlowbiteImports,
+	statusAmongControls,
 	surfaceShadows,
+	tabsAfterHistory,
+	untabbedBarActs,
 	unlabelledRegisterCells,
 	vanishingDarkEdges
 } from '../src/lib/utils/surface-rules';
@@ -41,7 +46,11 @@ import {
 // - an item's acts sit in the command bar: no act on the selected item is a
 //   button in its card;
 // - a phone sort on every sorted register: a register that sorts by its
-//   heads gives its query bar the sort, and no host draws a phone sort.
+//   heads gives its query bar the sort, and no host draws a phone sort;
+// - the bar holds the open tab's acts: every act a tabbed component puts in
+//   the command bar names its tab;
+// - History is the last tab;
+// - the state beside the title: no chip among a pane header's controls.
 
 // The tree read; another tree's src/lib (an archive of an earlier tag) can be
 // read for a fail-first run.
@@ -419,5 +428,156 @@ describe('a phone sort on every sorted register', () => {
 		expect(
 			registersWithoutPhoneSort('<ListQueryBar>{#snippet mobileSort()}<select></select>{/snippet}</ListQueryBar>')
 		).toHaveLength(1);
+	});
+});
+
+describe("the bar holds the open tab's acts", () => {
+	it('names the tab of every act a tabbed component of the library puts in the bar', () => {
+		expect(
+			findings(
+				(source, rel) =>
+					rel.endsWith('.svelte') && drawsTabs(source) ? untabbedBarActs(source) : [],
+				{}
+			)
+		).toEqual({});
+	});
+
+	it('reads a bar act with no tab, and leaves a decision’s Cancel and confirm', () => {
+		expect(
+			untabbedBarActs(
+				'<PageCommandBarCenter><Button>Submit for review</Button></PageCommandBarCenter>'
+			)
+		).toEqual(['PageCommandBarCenter with no tab (line 1)']);
+		expect(
+			untabbedBarActs(
+				'<PageCommandBarCenter tab="workflow"><Button>Sign</Button></PageCommandBarCenter>'
+			)
+		).toEqual([]);
+		expect(
+			untabbedBarActs('<PageCommandBar tab={["content"]}><span>3 of 5</span></PageCommandBar>')
+		).toEqual([]);
+		expect(
+			untabbedBarActs(
+				'<PageCommandBarCenter><Button data-action-cancel>Cancel</Button><Button data-action-confirm>Sign</Button></PageCommandBarCenter>'
+			)
+		).toEqual([]);
+		expect(
+			untabbedBarActs(
+				"<EditablePageScaffold editMode={{ isEditing: false, canEdit: true }} lifecycle={[{ kind: 'add', label: 'Add spec', href: x }, { kind: 'pdf', href: y, tab: 'details' }]}></EditablePageScaffold>"
+			)
+		).toEqual([
+			'an edit mode with no tab (line 1)',
+			'a lifecycle add "Add spec" with no tab (line 1)'
+		]);
+		expect(
+			untabbedBarActs(
+				"<EditablePageScaffold editMode={{ tab: 'details', isEditing: false }} lifecycle={[{ kind: 'add', label: 'Add spec', tab: 'details' }]}></EditablePageScaffold>"
+			)
+		).toEqual([]);
+		expect(
+			untabbedBarActs(
+				'<EditablePageScaffold><svelte:fragment slot="actions"><Button>Edit</Button></svelte:fragment></EditablePageScaffold>'
+			)
+		).toEqual(["the scaffold's actions with no tab (line 1)"]);
+		expect(
+			untabbedBarActs(
+				'<EditablePageScaffold actionsTab="overview"><svelte:fragment slot="actions"><Button>Edit</Button></svelte:fragment></EditablePageScaffold>'
+			)
+		).toEqual([]);
+		// A scaffold that holds no actions of its own (a load error's) has no
+		// act, though another scaffold in the source holds some.
+		expect(
+			untabbedBarActs(
+				'{#if !item}<EditablePageScaffold surface loadError="Not found." />{:else}<EditablePageScaffold actionsTab="overview"><svelte:fragment slot="actions"><Button>Edit</Button></svelte:fragment></EditablePageScaffold>{/if}'
+			)
+		).toEqual([]);
+	});
+
+	it('knows a tabbed source', () => {
+		expect(drawsTabs('<PageTabs><TabItem /></PageTabs>')).toBe(true);
+		expect(drawsTabs('<ArtifactViewer extraTabs={tabs} />')).toBe(true);
+		expect(drawsTabs('<div></div>')).toBe(false);
+	});
+});
+
+describe('History is the last tab', () => {
+	it('draws no tab after History in the library', () => {
+		expect(
+			findings((source, rel) => (rel.endsWith('.svelte') ? tabsAfterHistory(source) : []), {})
+		).toEqual({});
+	});
+
+	it('reads a tab after History, and a viewer’s History before its Versions', () => {
+		expect(
+			tabsAfterHistory(
+				'<TabTitle label="Details" /><TabTitle label="History" /><TabTitle label="Training" />'
+			)
+		).toEqual(['Training after History (line 1)']);
+		expect(tabsAfterHistory('<TabTitle label="Details" /><TabTitle label="History" />')).toEqual(
+			[]
+		);
+		const viewer = (tab: string, markup = '<ArtifactViewer extraTabs={tabs} />') =>
+			`<script lang="ts">const tabs = [viewerTab('workflow', 'Workflow'), ${tab}];</script>${markup}`;
+		expect(tabsAfterHistory(viewer("viewerTab('audit', 'History')"))).toHaveLength(1);
+		expect(
+			tabsAfterHistory(viewer("viewerTab('audit', 'History', { afterVersions: true })"))
+		).toEqual([]);
+		expect(tabsAfterHistory(viewer("{ id: 'audit', label: 'History' }"))).toHaveLength(1);
+		expect(
+			tabsAfterHistory(
+				viewer(
+					"viewerTab('audit', 'History')",
+					'<ArtifactViewer extraTabs={tabs} showHistoryTab={false} />'
+				)
+			)
+		).toEqual([]);
+	});
+});
+
+describe('the state beside the title', () => {
+	it('draws no chip among a pane header’s controls in the library', () => {
+		expect(
+			findings((source, rel) => (rel.endsWith('.svelte') ? statusAmongControls(source) : []), {})
+		).toEqual({});
+	});
+
+	it('reads a chip in an actions snippet or slot', () => {
+		expect(
+			statusAmongControls(
+				'<PaneHeader>{#snippet actions()}<HeaderStatus label="Draft" /><IconButton />{/snippet}</PaneHeader>'
+			)
+		).toHaveLength(1);
+		expect(
+			statusAmongControls(
+				'<X><svelte:fragment slot="actions"><PaneHeaderStatus status="draft" /></svelte:fragment></X>'
+			)
+		).toHaveLength(1);
+		expect(
+			statusAmongControls(
+				'<PaneHeader>{#snippet status()}<HeaderStatus label="Draft" />{/snippet}</PaneHeader>'
+			)
+		).toEqual([]);
+	});
+});
+
+describe('one count pill', () => {
+	it('draws no count pill by hand in the library', () => {
+		expect(
+			findings((source, rel) => (rel.endsWith('.svelte') ? handDrawnIconCounts(source) : []), {})
+		).toEqual({});
+	});
+
+	it('reads a pill drawn by hand, and leaves the house pill', () => {
+		expect(
+			handDrawnIconCounts(
+				'<span class="absolute -right-1 -top-1 flex h-4 min-w-4 rounded-full border-2 bg-blue-600 text-white">3</span>'
+			)
+		).toHaveLength(1);
+		expect(
+			handDrawnIconCounts(
+				'<span class={`absolute -right-1.5 -top-1 flex h-4 min-w-4 rounded-full ${tone}`}>3</span>'
+			)
+		).toEqual([]);
+		expect(handDrawnIconCounts('<span class="gawdux-icon-count">3</span>')).toEqual([]);
 	});
 });

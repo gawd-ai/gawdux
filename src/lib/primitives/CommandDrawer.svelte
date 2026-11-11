@@ -48,13 +48,22 @@
 	the usual opener is a bar trigger that goes `disabled` while the drawer is
 	up and is re-enabled by the same state flip that closed it.
 
+	## The open tab
+
+	A drawer opens out of the bar's acts, which are the open tab's (the page's
+	PAGE_TAB_CONTEXT). When the page's open tab changes while it is open, its
+	act has left the bar, and it closes through `onclose`, as Escape closes it;
+	a busy or undismissible drawer closes once it may.
+
 	`open` is owned by the CONSUMER and never written here. A local write to a
 	one-way prop is reverted by the parent's next render, which fails silently:
 	the drawer opens and then cannot be dismissed, with no console error.
 -->
 <script lang="ts">
-	import { tick } from 'svelte';
+	import { getContext, tick } from 'svelte';
 	import type { Snippet } from 'svelte';
+	import { readable } from 'svelte/store';
+	import { PAGE_TAB_CONTEXT, type PageTabHost } from './page-chrome';
 
 	let {
 		open = false,
@@ -123,6 +132,24 @@
 				}
 			});
 		}
+	});
+
+	// The tab it opened on: when the page's open tab changes, its act left
+	// the bar and it closes.
+	const tabs = getContext<PageTabHost | undefined>(PAGE_TAB_CONTEXT);
+	const openTab = tabs?.open ?? readable<string | null>(null);
+	let openedOn: { tab: string | null } | null = null;
+	$effect(() => {
+		const tab = $openTab;
+		if (!open) {
+			openedOn = null;
+			return;
+		}
+		if (openedOn === null) {
+			openedOn = { tab };
+			return;
+		}
+		if (tab !== openedOn.tab && dismissible && !busy) onclose?.();
 	});
 
 	function onKeydown(event: KeyboardEvent) {

@@ -8,29 +8,42 @@
      the box and the gap. A tab
      with no icon never hides its label, which would leave it empty, so its
      label carries no mark. Its root is a span, so a tab's button holds
-     phrasing content only. -->
+     phrasing content only.
+
+     A count. While something on the tab waits on the reader (a signature,
+     a decision), `count` draws the house counted-icon pill on the tab's
+     icon (`.gawdux-icon-count`, the bell's and the chat views'), the count
+     read with the label ("Workflow (1)"); zero or none draws nothing. -->
 <script lang="ts">
 	import type { Component } from 'svelte';
 
 	let {
 		icon = null,
 		label,
+		count = 0,
 		className = ''
 	}: {
 		/** The tab's icon, from the house set: one meaning, one icon. */
 		icon?: Component | null;
 		label: string;
+		/** What on the tab waits on the reader; above zero, the pill on the icon. */
+		count?: number | null;
 		className?: string;
 	} = $props();
+
+	const counted = $derived(icon && count && count > 0 ? count : 0);
 </script>
 
 <span class="gawdux-tab-title flex items-center gap-2 {className}">
 	{#if icon}
 		{@const Icon = icon}
-		<span class="gawdux-control-icon gawdux-icon inline-flex items-center justify-center" aria-hidden="true">
+		<span class="gawdux-control-icon gawdux-icon relative inline-flex items-center justify-center" aria-hidden="true">
 			<Icon class="gawdux-icon" />
+			{#if counted}
+				<span class="gawdux-icon-count" data-surface="card" data-tab-count>{counted > 9 ? '9+' : counted}</span>
+			{/if}
 		</span>
-		<span class="gawdux-control-label">{label}</span>
+		<span class="gawdux-control-label">{label}{#if counted}<span class="sr-only">{` (${counted})`}</span>{/if}</span>
 	{:else}
 		<span>{label}</span>
 	{/if}

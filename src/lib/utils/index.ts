@@ -162,6 +162,8 @@ export {
 
 export {
 	ACTION_LABEL_WORDS,
+	drawsTabs,
+	handDrawnIconCounts,
 	handRolledRailRows,
 	handSetCardPadding,
 	handSizedIcons,
@@ -171,7 +173,10 @@ export {
 	questioningConfirmations,
 	registersWithoutPhoneSort,
 	shadowedFlowbiteImports,
+	statusAmongControls,
 	surfaceShadows,
+	tabsAfterHistory,
+	untabbedBarActs,
 	unlabelledRegisterCells,
 	vanishingDarkEdges,
 	withoutComments

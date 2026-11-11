@@ -92,6 +92,7 @@ export type {
 	PageFeedbackTone
 } from './PageFeedback.svelte';
 export { default as PageTabs } from './PageTabs.svelte';
+export { default as PaneHeader } from './PaneHeader.svelte';
 export { default as RailRowButton } from './RailRowButton.svelte';
 export { default as ReadonlyField } from './ReadonlyField.svelte';
 export { default as SearchInput } from './SearchInput.svelte';
@@ -122,7 +123,10 @@ export {
 	PAGE_COMMAND_BAR_CONTEXT,
 	EMPTY_PAGE_COMMAND_BAR_SLOTS,
 	PAGE_STATUS_CONTEXT,
-	createPageStatusHost
+	createPageStatusHost,
+	PAGE_TAB_CONTEXT,
+	createPageTabHost,
+	showsOnTab
 } from './page-chrome';
 export { createPageCommandBarRegistry } from './page-command-bar-registry';
 export { scrollEdges, scrollFadeOf } from './scroll-edges';
@@ -139,7 +143,10 @@ export type {
 	PageCommandBarSlots,
 	PageCommandBarContext,
 	PageStatusClaim,
-	PageStatusHost
+	PageStatusHost,
+	PageTabClaim,
+	PageTabHost,
+	PageTabScope
 } from './page-chrome';
 export type {
 	LifecycleAction,

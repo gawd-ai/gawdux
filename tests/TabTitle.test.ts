@@ -61,4 +61,24 @@ describe('TabTitle', () => {
 		expect(root?.className).toContain('text-xs');
 		expect(root?.className).toContain('items-center');
 	});
+
+	it('draws the house counted-icon pill on the icon while something waits on the reader', () => {
+		const { container } = render(TabTitle, {
+			props: { icon: EyeOutline, label: 'Workflow', count: 1 }
+		});
+		const pill = iconBox(container)?.querySelector('.gawdux-icon-count');
+		expect(pill?.textContent).toBe('1');
+		// The count is read with the label, the pill itself hidden from it.
+		expect(iconBox(container)?.getAttribute('aria-hidden')).toBe('true');
+		expect(container.querySelector('.gawdux-control-label')?.textContent).toBe('Workflow (1)');
+	});
+
+	it('draws no pill for nothing waiting, or with no icon to carry it', () => {
+		const none = render(TabTitle, { props: { icon: EyeOutline, label: 'Workflow', count: 0 } });
+		expect(none.container.querySelector('.gawdux-icon-count')).toBeNull();
+		expect(none.container.querySelector('.gawdux-control-label')?.textContent).toBe('Workflow');
+		cleanup();
+		const bare = render(TabTitle, { props: { label: 'Workflow', count: 2 } });
+		expect(bare.container.querySelector('.gawdux-icon-count')).toBeNull();
+	});
 });

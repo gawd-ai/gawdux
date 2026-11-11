@@ -8,7 +8,12 @@
 		type SurfaceFeedbackHost,
 		type SurfaceFeedbackState
 	} from './surface-feedback-context';
-	import { PAGE_STATUS_CONTEXT, type PageStatusHost } from './page-chrome';
+	import {
+		PAGE_STATUS_CONTEXT,
+		PAGE_TAB_CONTEXT,
+		type PageStatusHost,
+		type PageTabHost
+	} from './page-chrome';
 	import PageStatusOutlet from './PageStatusOutlet.svelte';
 	import { scrollEdges } from './scroll-edges';
 	import { fitLabels } from './fit-labels';
@@ -18,6 +23,16 @@
 	export let divider = false;
 	export let panelId: string | undefined = undefined;
 	export let panelLabelledBy: string | undefined = undefined;
+	/** The open tab's id, reported to the page (PAGE_TAB_CONTEXT): the command
+	    bar holds that tab's acts. Null: the strip reports none, and every act
+	    that names a tab stays out of the bar. */
+	export let openTab: string | null = null;
+
+	/* The open tab, reported while the strip lives, so the bar's acts follow
+	   it; a strip that goes takes its report with it. */
+	const tabClaim = getContext<PageTabHost | undefined>(PAGE_TAB_CONTEXT)?.claim() ?? null;
+	$: tabClaim?.report(openTab);
+	onDestroy(() => tabClaim?.release());
 
 	/* Inside an EditablePageScaffold this shell owns the panel, so it renders
 	   the page's feedback strip between the tab strip and the content: the

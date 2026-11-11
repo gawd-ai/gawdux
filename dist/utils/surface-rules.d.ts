@@ -64,6 +64,18 @@
  *   house phone sort at or below the compact width, where the heads are
  *   hidden. `registersWithoutPhoneSort` lists every register that does not,
  *   and every phone sort a host draws itself.
+ * - The bar holds the open tab's acts. On a tabbed page every act in the
+ *   command bar names its tab (`PageCommandBarCenter`'s `tab`, a scaffold
+ *   act's `tab`), so it shows only while its tab is open and a tab with no
+ *   act draws no bar. `untabbedBarActs` lists every act that names none.
+ * - History is the last tab. `tabsAfterHistory` lists every tab drawn after
+ *   History, a viewer's Versions among them.
+ * - The state beside the title. A pane header draws its item's state 8px
+ *   after its title (`PaneHeader`'s `status`), never among its controls;
+ *   `statusAmongControls` lists every chip drawn among them.
+ * - One count pill. What waits on the reader shows as Gawdux's counted-icon
+ *   pill (`.gawdux-icon-count`) on the icon of its place (a tab, the bell, a
+ *   chat view); `handDrawnIconCounts` lists every pill drawn by hand.
  */
 /** A source with its comments removed, so prose about a shadow is not one. */
 export declare function withoutComments(source: string): string;
@@ -161,3 +173,39 @@ export declare function itemActsInCards(source: string): string[];
  * `mobileSort` snippet).
  */
 export declare function registersWithoutPhoneSort(source: string): string[];
+/** Whether a source draws a tab strip: `PageTabs`, a `TabItem`, or a viewer's extra tabs. */
+export declare function drawsTabs(source: string): boolean;
+/**
+ * Every act a source puts in the command bar without naming its tab: a bar
+ * zone registration (`PageCommandBar`, `PageCommandBarCenter`,
+ * `PageCommandBarRight`) with no `tab`, and an `EditablePageScaffold`'s
+ * `editMode` or `lifecycle` act with no `tab`, or its `actions` slot with no
+ * `actionsTab`. A decision's own Cancel and
+ * confirm (a registration holding a `data-action-confirm` button) are not
+ * acts of a tab: they hold the bar while their drawer is open, and the drawer
+ * closes when the tab changes. A guard reads it over a tabbed page's files,
+ * so the bar holds the open tab's acts.
+ */
+export declare function untabbedBarActs(source: string): string[];
+/**
+ * Every tab drawn after History: History is the last tab on every page that
+ * has one. Reads a strip's `TabTitle`s in source order, and a viewer's extra
+ * tab named History (a `viewerTab(…)` call or an object with an `id`) that the
+ * viewer would draw before its Versions tab, having no `afterVersions`,
+ * unless the viewer draws no Versions (`showHistoryTab={false}`).
+ */
+export declare function tabsAfterHistory(source: string): string[];
+/**
+ * Every state chip drawn among a pane header's controls: the item's state
+ * reads beside its title (`PaneHeader`'s `status`), never in the `actions`
+ * at the row's end. Lists a `HeaderStatus`, a host's `*HeaderStatus` or a
+ * `StatusBadge` inside an `actions` snippet or slot.
+ */
+export declare function statusAmongControls(source: string): string[];
+/**
+ * Every count pill a source draws on an icon by hand: a fully rounded box at
+ * least 16px wide, filled in a tone and placed at the icon's top corner, the
+ * house counted-icon pill's shape, where `.gawdux-icon-count` is the one
+ * pill. A mark at the icon's foot (a room's kind) is no count.
+ */
+export declare function handDrawnIconCounts(source: string): string[];

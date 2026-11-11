@@ -1,6 +1,7 @@
 import type { EditModeProps, LifecycleAction, LifecycleKindRenderers } from './PageActionBar.svelte';
 import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
 import { type SurfaceNoticeTone } from './surface-feedback-context';
+import { type PageTabScope } from './page-chrome';
 interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> = any, Events extends Record<string, any> = any, Slots extends Record<string, any> = any, Exports = {}, Bindings = string> {
     new (options: import('svelte').ComponentConstructorOptions<Props>): import('svelte').SvelteComponent<Props, Events, Slots> & {
         $$bindings?: Bindings;
@@ -33,6 +34,8 @@ declare const EditablePageScaffold: $$__sveltets_2_IsomorphicComponent<$$__svelt
     editMode?: EditModeProps | null;
     lifecycle?: LifecycleAction[];
     kindRenderers?: LifecycleKindRenderers;
+    /** The tab, or tabs, whose acts the `actions` slot holds (PAGE_TAB_CONTEXT):
+            shown only while one of them is open. None: the page's, on every tab. */ actionsTab?: PageTabScope;
     /** When true, wraps slot content in `.context-surface .page-tabs-shell`
             so single-panel pages (create / edit forms) get the same white shell
             + bar-merge as PageTabs / ListSurface pages. Detail pages that

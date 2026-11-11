@@ -22,6 +22,11 @@ import type { PageCommandBarContext, PageCommandBarZone } from './page-chrome';
  * snippet is a legitimate value (a page with no actions clears the bar), so the
  * newest live registration wins even when its snippet is null.
  *
+ * A registration can be absent: the acts of a tab that is not open
+ * (`PageCommandBarCenter`'s `tab`). An absent registration stays live and
+ * keeps its place, and the zone renders the newest PRESENT one, so a page's
+ * tabs register their acts side by side and the open tab's show.
+ *
  * Two rules keep a dead page's buttons out of the bar:
  *
  * - A registrant releases its registration from a teardown that exists from

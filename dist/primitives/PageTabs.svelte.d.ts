@@ -23,6 +23,9 @@ declare const PageTabs: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_PropsW
     divider?: boolean;
     panelId?: string | undefined;
     panelLabelledBy?: string | undefined;
+    /** The open tab's id, reported to the page (PAGE_TAB_CONTEXT): the command
+            bar holds that tab's acts. Null: the strip reports none, and every act
+            that names a tab stays out of the bar. */ openTab?: string | null;
 }, {
     default: {};
     below: {};

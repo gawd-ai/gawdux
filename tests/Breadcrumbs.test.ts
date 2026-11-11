@@ -806,6 +806,21 @@ describe('Breadcrumbs: the current page alone at the compact width', () => {
 		expect(pageButton(container).textContent?.trim()).toBe('Quality Systems');
 	});
 
+	it("leads the page's row with the section's icon, the line's first crumb's, before the name", async () => {
+		const { container } = await renderTrail(300);
+		const button = container.querySelector('nav > .page-row button') as HTMLButtonElement;
+		const icon = button.querySelector('[data-trail-icon]');
+		expect(icon).toBeTruthy();
+		expect(icon?.getAttribute('class')).toContain('gawdux-icon');
+		// The icon comes first in the target, then the name.
+		expect(button.firstElementChild).toBe(icon);
+		expect(button.textContent?.trim()).toBe('QP-001 Document Control SOP');
+
+		const alone = await renderTrail(300, [{ label: 'Dashboard', href: '#/', icon: FolderOutline }]);
+		const row = alone.container.querySelectorAll('nav > .page-row')[0] as HTMLElement;
+		expect(row.querySelector('[aria-current="page"] [data-trail-icon]')).toBeTruthy();
+	});
+
 	it('shows a page that is its own path as its name, no button and no chevron', async () => {
 		const { container } = await renderTrail(300, [
 			{ label: 'Dashboard', href: '#/', icon: FolderOutline }

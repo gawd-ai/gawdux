@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { onDestroy, tick } from 'svelte';
+	import { getContext, onDestroy, tick } from 'svelte';
+	import { get, readable } from 'svelte/store';
+	import { PAGE_TAB_CONTEXT, type PageTabHost } from './page-chrome';
 	import { Button } from 'flowbite-svelte';
 	import PageCommandBarCenter from './PageCommandBarCenter.svelte';
 
@@ -11,7 +13,9 @@
 	 * page's buttons return the moment the decision closes). Mount it where
 	 * the page's content ends, so the drawer sits between the content surface
 	 * and the bar. Escape cancels; focus lands on Confirm and returns to
-	 * `focusTarget` (or `focusFallback()`) when the decision closes.
+	 * `focusTarget` (or `focusFallback()`) when the decision closes. The
+	 * page's open tab changing (PAGE_TAB_CONTEXT) cancels it too: its act
+	 * left the bar with the tab.
 	 */
 	let {
 		title = null,
@@ -130,6 +134,18 @@
 		// invoking control gets focus back exactly as a cancel would give it.
 		if (acknowledgement) void tick().then(restoreFocus);
 	}
+
+	// The tab it opened on: when the page's open tab changes, its act left the
+	// bar and the decision cancels (once it is not busy).
+	const tabs = getContext<PageTabHost | undefined>(PAGE_TAB_CONTEXT);
+	const openTab = tabs?.open ?? readable<string | null>(null);
+	const openedOn = get(openTab);
+	let leftWithTab = false;
+	$effect(() => {
+		if (leftWithTab || $openTab === openedOn || busy) return;
+		leftWithTab = true;
+		cancel();
+	});
 
 	function onKeydown(event: KeyboardEvent) {
 		if (busy || event.isComposing || event.key !== 'Escape') return;

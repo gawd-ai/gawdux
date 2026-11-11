@@ -63,8 +63,10 @@
 	Icons. The first crumb's `icon` stands in front of its words; on every
 	later crumb `icon` is the separator before it (a chevron when it has none),
 	and the … button takes the separator of the first crumb it folds, none when
-	it folds the first crumb itself. The row naming the current page carries
-	no icon.
+	it folds the first crumb itself. The row naming the current page leads
+	with the same icon, the section's, at the house size (`.gawdux-icon`),
+	before the page's name and inside its target, so a phone reads where it
+	is as the line's first crumb says it.
 
 	Measurement. A hidden copy of the trail is measured once per trail, and
 	again when its size changes (a web font arriving). A ResizeObserver on the
@@ -635,6 +637,12 @@
 		/>{/if}<span class="breadcrumb-label" class:visually-hidden={compact}>{item.label}</span>
 {/snippet}
 
+<!-- The section's icon, the line's first crumb's, leading the page's row. -->
+{#snippet sectionIcon()}
+	{@const Section = items[0]?.icon}
+	{#if Section}<Section class="gawdux-icon page-section-icon" aria-hidden="true" data-trail-icon />{/if}
+{/snippet}
+
 <!-- A level's name read in full: runs that never break inside themselves,
      so it wraps only between its words. -->
 {#snippet levelWords(label: string)}
@@ -717,14 +725,15 @@
 					aria-current="page"
 					onclick={onPageButtonClick}
 					onkeydown={onPageButtonKeydown}
-					><span class="breadcrumb-label page-name">{page.label}</span><ChevronDownOutline
+					>{@render sectionIcon()}<span class="breadcrumb-label page-name">{page.label}</span
+					><ChevronDownOutline
 						class="page-chevron"
 						aria-hidden="true"
 					/></button
 				>
 			{:else}
 				<span class="breadcrumb-title page-button" aria-current="page"
-					><span class="breadcrumb-label page-name">{page.label}</span></span
+					>{@render sectionIcon()}<span class="breadcrumb-label page-name">{page.label}</span></span
 				>
 			{/if}
 		</div>
@@ -969,6 +978,16 @@
 	}
 	button.page-button {
 		cursor: pointer;
+	}
+	/* The section's icon before the page's name, 8px from it, in the colour
+	   the line's first crumb draws it. */
+	.page-button :global(.page-section-icon) {
+		flex: 0 0 auto;
+		margin-inline-end: 0.25rem;
+		color: var(--gawdux-text-heading);
+	}
+	:global(.dark) .page-button :global(.page-section-icon) {
+		color: var(--gawdux-text-secondary);
 	}
 	button.page-button:focus {
 		outline: none;

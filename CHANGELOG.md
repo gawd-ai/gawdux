@@ -1,5 +1,59 @@
 # Changelog
 
+## 0.40.0 - the bar holds the open tab's acts, History last, the pane header, the trail's icon on a phone, one count pill
+
+### Added
+
+- The page's open tab. `PAGE_TAB_CONTEXT`, `createPageTabHost`,
+  `PageTabHost` (`open`, `claim`) and `PageTabClaim` (`report`, `release`):
+  a tab strip claims the page's open tab and reports the tab that is open,
+  the newest live claim's report being the open tab (a claim reporting none
+  counting for nothing), and the command bar reads it. `EditablePageScaffold` publishes one for
+  its page, keeping one a host above already publishes; a page outside a
+  scaffold may publish its own. `PageTabs` reports its `openTab`.
+- The bar holds the open tab's acts. `PageCommandBar`, `PageCommandBarCenter`
+  and `PageCommandBarRight` take `tab` (`PageTabScope`: a tab's id or
+  several): the acts show only while one of their tabs is open, so a tab with
+  no act draws no bar; an act that names no tab is the page's, on every tab.
+  `EditModeProps.tab` and `LifecycleAction.tab` scope the scaffold's edit bar
+  and its acts the same way, and `EditablePageScaffold`'s `actionsTab` its
+  `actions` slot. `showsOnTab` decides it. The registry's
+  `register` and `update` take `present`: a registration of a tab that is not
+  open stays live in its place and steps aside, the zone showing the newest
+  present one, so a page's tabs register their acts side by side.
+- A drawer out of the bar closes when the tab changes. `CommandDrawer` calls
+  its `onclose`, once it is dismissible and not busy, and
+  `PageCommandBarConfirm` cancels, when the page's open tab changes while it
+  is open: its act left the bar with the tab.
+- A count on a tab. `TabTitle` takes `count`: above zero, the house
+  counted-icon pill on the tab's icon, the count read with its label
+  ("Workflow (1)"). The pill is `.gawdux-icon-count` (tokens.css "A count on
+  an icon"): 16px at the icon's top right, the accent or `data-tone="urgent"`
+  red, its ring the page's surface or a card's (`data-surface="card"`).
+- `PaneHeader`: the header of a pane that shows one item, reading icon,
+  title, state, then the controls at every width. Above 1024px the state
+  (the chip and its lock) stands 8px after the title, the title truncating
+  first, the controls at the row's end; at or below it the row is 44px, the
+  leading control and the icon each on a 44px column from the pane's edge
+  (the columns of a tab strip that shows its icons alone), the state 8px
+  after the icon's glyph, the controls 4px apart and 4px from the edge, and
+  no title or subtitle (the trail's row names the item); a header with
+  nothing to hold there is not drawn. It claims the page's status
+  (`PAGE_STATUS_CONTEXT`), drawing the `status` it is given or the page's,
+  so a tab strip under it draws none.
+- Readers in `gawdux/utils`: `drawsTabs` and `untabbedBarActs` (a tabbed
+  source's bar act that names no tab, a decision's own Cancel and confirm
+  left), `tabsAfterHistory` (a tab drawn after History, a viewer's History
+  before its Versions among them), `statusAmongControls` (a state chip among
+  a pane header's controls) and `handDrawnIconCounts` (a count pill drawn by
+  hand). The library's house-surface-rules test holds its files to each.
+
+### Changed
+
+- `Breadcrumbs`' row at the compact width leads with the section's icon, the
+  line's first crumb's, at the house size before the page's name, inside its
+  target.
+
 ## 0.39.0 - one question in a confirmation, one case for action labels, an item's acts in the command bar, the house icon on a tab strip's row, a phone sort on every sorted register
 
 ### Changed

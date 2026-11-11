@@ -1,6 +1,7 @@
+import type { PageTabScope } from './page-chrome';
 type IconComponent = any;
 type Permish = boolean | null | undefined;
-export type LifecycleAction = {
+export type LifecycleAction = ({
     kind: 'add';
     label: string;
     href?: string;
@@ -52,8 +53,15 @@ export type LifecycleAction = {
     onClick?: () => void;
     perm?: Permish;
     disabled?: boolean;
+}) & {
+    /** The tab, or tabs, this act belongs to (PAGE_TAB_CONTEXT): shown only
+        while one of them is open. None: the page's, on every tab. */
+    tab?: PageTabScope;
 };
 export interface EditModeProps {
+    /** The tab, or tabs, the record is edited on (PAGE_TAB_CONTEXT): Edit,
+        Cancel and Save show only while one of them is open. None: every tab. */
+    tab?: PageTabScope;
     isEditing: boolean;
     canEdit: boolean;
     onEdit: () => void;

@@ -86,8 +86,10 @@ type $$ComponentProps = {
  * Icons. The first crumb's `icon` stands in front of its words; on every
  * later crumb `icon` is the separator before it (a chevron when it has none),
  * and the … button takes the separator of the first crumb it folds, none when
- * it folds the first crumb itself. The row naming the current page carries
- * no icon.
+ * it folds the first crumb itself. The row naming the current page leads
+ * with the same icon, the section's, at the house size (`.gawdux-icon`),
+ * before the page's name and inside its target, so a phone reads where it
+ * is as the line's first crumb says it.
  *
  * Measurement. A hidden copy of the trail is measured once per trail, and
  * again when its size changes (a web font arriving). A ResizeObserver on the

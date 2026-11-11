@@ -1,4 +1,6 @@
 <script context="module" lang="ts">
+	import type { PageTabScope } from './page-chrome';
+
 	// Icon descriptors accept any Svelte component constructor — Flowbite icons
 	// are typed via Svelte 5's `Component<OutlineProps, …>` shape, which doesn't
 	// extend the older `SvelteComponent` class, so we widen rather than narrow.
@@ -9,7 +11,7 @@
 	type IconComponent = any;
 	type Permish = boolean | null | undefined;
 
-	export type LifecycleAction =
+	export type LifecycleAction = (
 		| {
 				kind: 'add';
 				label: string;
@@ -62,9 +64,17 @@
 				onClick?: () => void;
 				perm?: Permish;
 				disabled?: boolean;
-		  };
+		  }
+	) & {
+		/** The tab, or tabs, this act belongs to (PAGE_TAB_CONTEXT): shown only
+		    while one of them is open. None: the page's, on every tab. */
+		tab?: PageTabScope;
+	};
 
 	export interface EditModeProps {
+		/** The tab, or tabs, the record is edited on (PAGE_TAB_CONTEXT): Edit,
+		    Cancel and Save show only while one of them is open. None: every tab. */
+		tab?: PageTabScope;
 		isEditing: boolean;
 		canEdit: boolean;
 		onEdit: () => void;
@@ -99,14 +109,23 @@
 		ClockOutline,
 		FileLinesOutline
 	} from 'flowbite-svelte-icons';
+	import { getContext } from 'svelte';
+	import { readable } from 'svelte/store';
 	import PageCommandBarCenter from './PageCommandBarCenter.svelte';
+	import { PAGE_TAB_CONTEXT, showsOnTab, type PageTabHost } from './page-chrome';
 
 	export let editMode: EditModeProps | null = null;
 	export let lifecycle: LifecycleAction[] = [];
 	export let kindRenderers: LifecycleKindRenderers = {};
 
-	$: visibleActions = lifecycle.filter((a) => a.perm !== false);
-	$: editing = editMode?.isEditing === true;
+	/* The bar holds the open tab's acts: an act that names its tab shows only
+	   while that tab is open (PAGE_TAB_CONTEXT). */
+	const tabs = getContext<PageTabHost | undefined>(PAGE_TAB_CONTEXT);
+	const openTab = tabs?.open ?? readable<string | null>(null);
+	$: onTab = (scope: EditModeProps['tab']) => !tabs || showsOnTab(scope, $openTab);
+	$: visibleActions = lifecycle.filter((a) => a.perm !== false && onTab(a.tab));
+	$: edit = editMode && onTab(editMode.tab) ? editMode : null;
+	$: editing = edit?.isEditing === true;
 
 	// Flowbite Button's on:click is typed as `(e: MouseEvent) => void`, so a
 	// bare `() => void | undefined` from a descriptor doesn't satisfy it.
@@ -115,25 +134,23 @@
 </script>
 
 <PageCommandBarCenter>
-	{#if editing && editMode}
-		<Button outline color="red" on:click={editMode.onCancel} disabled={editMode.saving}>
+	{#if editing && edit}
+		<Button outline color="red" on:click={edit.onCancel} disabled={edit.saving}>
 			<BanOutline class="top-action-icons" />Cancel
 		</Button>
-		{#if editMode.showSaveAsDraft && editMode.onSaveAsDraft}
-			<Button outline color="blue" on:click={editMode.onSaveAsDraft} disabled={editMode.saving}>
-				<ClockOutline class="top-action-icons" />{editMode.saving
+		{#if edit.showSaveAsDraft && edit.onSaveAsDraft}
+			<Button outline color="blue" on:click={edit.onSaveAsDraft} disabled={edit.saving}>
+				<ClockOutline class="top-action-icons" />{edit.saving
 					? 'Saving…'
-					: (editMode.saveAsDraftLabel ?? 'Save as draft')}
+					: (edit.saveAsDraftLabel ?? 'Save as draft')}
 			</Button>
 		{/if}
-		<Button outline color="green" on:click={editMode.onSave} disabled={editMode.saving}>
-			<CheckOutline class="top-action-icons" />{editMode.saving
-				? 'Saving…'
-				: (editMode.saveLabel ?? 'Save')}
+		<Button outline color="green" on:click={edit.onSave} disabled={edit.saving}>
+			<CheckOutline class="top-action-icons" />{edit.saving ? 'Saving…' : (edit.saveLabel ?? 'Save')}
 		</Button>
 	{:else}
-		{#if editMode?.canEdit}
-			<Button outline color="blue" on:click={editMode.onEdit}>
+		{#if edit?.canEdit}
+			<Button outline color="blue" on:click={edit.onEdit}>
 				<PenOutline class="top-action-icons" />Edit
 			</Button>
 		{/if}

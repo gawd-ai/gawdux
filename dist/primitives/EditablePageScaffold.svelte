@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { createEventDispatcher, setContext } from 'svelte';
+	import { createEventDispatcher, getContext, setContext } from 'svelte';
 	import { get, writable } from 'svelte/store';
 	import PageCommandBarCenter from './PageCommandBarCenter.svelte';
 	import PageActionBar from './PageActionBar.svelte';
@@ -12,6 +12,12 @@
 		type SurfaceFeedbackState,
 		type SurfaceNoticeTone
 	} from './surface-feedback-context';
+	import {
+		PAGE_TAB_CONTEXT,
+		createPageTabHost,
+		type PageTabHost,
+		type PageTabScope
+	} from './page-chrome';
 
 	/** A failed action on this page. Rendered as the one feedback strip
 	    inside the panel; forward `on:dismiss` to clear it. */
@@ -29,6 +35,9 @@
 	export let editMode: EditModeProps | null = null;
 	export let lifecycle: LifecycleAction[] = [];
 	export let kindRenderers: LifecycleKindRenderers = {};
+	/** The tab, or tabs, whose acts the `actions` slot holds (PAGE_TAB_CONTEXT):
+	    shown only while one of them is open. None: the page's, on every tab. */
+	export let actionsTab: PageTabScope = undefined;
 	/** When true, wraps slot content in `.context-surface .page-tabs-shell`
 	    so single-panel pages (create / edit forms) get the same white shell
 	    + bar-merge as PageTabs / ListSurface pages. Detail pages that
@@ -41,6 +50,14 @@
 	    knob gives every other inset host; nothing sets it to zero. */
 	export let panes = false;
 	export let className = '';
+
+	/* The page's open tab, which its tab strip reports and its command bar
+	   reads, so the bar holds the open tab's acts and a drawer out of the bar
+	   closes when the tab changes. One per page: a host above that already
+	   publishes one keeps it. */
+	if (!getContext<PageTabHost | undefined>(PAGE_TAB_CONTEXT)) {
+		setContext<PageTabHost>(PAGE_TAB_CONTEXT, createPageTabHost());
+	}
 
 	const dispatch = createEventDispatcher<{ dismiss: void }>();
 	const feedback = writable<SurfaceFeedbackState>({
@@ -84,7 +101,7 @@
 	{#if editMode || lifecycle.length > 0}
 		<PageActionBar {editMode} {lifecycle} {kindRenderers} />
 	{:else if $$slots.actions}
-		<PageCommandBarCenter>
+		<PageCommandBarCenter tab={actionsTab}>
 			<slot name="actions" />
 		</PageCommandBarCenter>
 	{/if}

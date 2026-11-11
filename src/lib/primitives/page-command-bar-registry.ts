@@ -23,6 +23,11 @@ import type { PageCommandBarContext, PageCommandBarZone } from './page-chrome';
  * snippet is a legitimate value (a page with no actions clears the bar), so the
  * newest live registration wins even when its snippet is null.
  *
+ * A registration can be absent: the acts of a tab that is not open
+ * (`PageCommandBarCenter`'s `tab`). An absent registration stays live and
+ * keeps its place, and the zone renders the newest PRESENT one, so a page's
+ * tabs register their acts side by side and the open tab's show.
+ *
  * Two rules keep a dead page's buttons out of the bar:
  *
  * - A registrant releases its registration from a teardown that exists from
@@ -42,30 +47,34 @@ import type { PageCommandBarContext, PageCommandBarZone } from './page-chrome';
 export function createPageCommandBarRegistry(
 	apply: (zone: PageCommandBarZone, snippet: Snippet | null) => void
 ): PageCommandBarContext {
-	const registrations = new Map<symbol, { zone: PageCommandBarZone; snippet: Snippet | null }>();
+	const registrations = new Map<
+		symbol,
+		{ zone: PageCommandBarZone; snippet: Snippet | null; present: boolean }
+	>();
 
-	// Last live registration in insertion order wins. Map preserves insertion
-	// order and `set` on an existing key keeps its position, so an `update()`
-	// never reorders a registrant relative to its peers.
+	// Last live, present registration in insertion order wins. Map preserves
+	// insertion order and `set` on an existing key keeps its position, so an
+	// `update()` never reorders a registrant relative to its peers.
 	function recompute(zone: PageCommandBarZone): void {
 		let winner: Snippet | null = null;
 		for (const reg of registrations.values()) {
-			if (reg.zone === zone) winner = reg.snippet;
+			if (reg.zone === zone && reg.present) winner = reg.snippet;
 		}
 		apply(zone, winner);
 	}
 
 	return {
-		register(zone, snippet) {
+		register(zone, snippet, present = true) {
 			const id = Symbol(`page-command-bar-${zone}`);
-			registrations.set(id, { zone, snippet: snippet ?? null });
+			registrations.set(id, { zone, snippet: snippet ?? null, present });
 			recompute(zone);
 			return id;
 		},
-		update(id, snippet) {
+		update(id, snippet, present = true) {
 			const reg = registrations.get(id);
 			if (!reg) return;
 			reg.snippet = snippet ?? null;
+			reg.present = present;
 			recompute(reg.zone);
 		},
 		clear(id) {
