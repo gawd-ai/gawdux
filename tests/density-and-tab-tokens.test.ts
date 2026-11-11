@@ -61,11 +61,10 @@ describe('density knobs: the defaults are the previous geometry', () => {
 			'--gawdux-table-cell-py': step(4),
 			'--gawdux-table-head-py': step(3),
 			'--gawdux-table-row-height': 'auto',
-			// CardContainer header px-6 py-3, body p-3 px-6
-			'--gawdux-card-header-px': step(6),
+			// One padding inside a card, header and body (16px, the page
+			// inset above the compact width); the header's band py-3
+			'--gawdux-card-padding': step(4),
 			'--gawdux-card-header-py': step(3),
-			'--gawdux-card-body-px': step(6),
-			'--gawdux-card-body-py': step(3),
 			// the lifted tile recipe: p-3, nested p-2.5, gap-3
 			'--gawdux-tile-padding': step(3),
 			'--gawdux-tile-padding-nested': step(2.5),
@@ -105,29 +104,31 @@ describe('density knobs: the defaults are the previous geometry', () => {
 		for (const selector of selectors) expect(selector.startsWith(':where(')).toBe(true);
 	});
 
-	it('the card header class reads the header knobs', () => {
+	it("the card classes read the card padding: a header's sides, a body's four sides", () => {
 		const cardHeader = tokens.slice(tokens.indexOf('.card-header {'));
 		expect(cardHeader.slice(0, cardHeader.indexOf('}'))).toContain(
-			'padding: var(--gawdux-card-header-py) var(--gawdux-card-header-px);'
+			'padding: var(--gawdux-card-header-py) var(--gawdux-card-padding);'
+		);
+		const cardContent = tokens.slice(tokens.indexOf('.card-content {'));
+		expect(cardContent.slice(0, cardContent.indexOf('}'))).toContain(
+			'padding: var(--gawdux-card-padding);'
 		);
 	});
 
-	it('CardContainer pads through the knobs, with fallbacks equal to the old utilities', () => {
+	it('CardContainer pads its header and body with the one card padding, at every width', () => {
 		const { container } = render(CardContainer, { props: { title: 'Details' } });
 		const header = container.querySelector('.card-container-header');
 		const content = container.querySelector('.card-container-content');
-		// px-6 py-3 header, p-3 px-6 body: 1.5rem and 0.75rem at the default spacing.
-		expect(header?.className).toContain('px-[var(--gawdux-card-header-px,1.5rem)]');
+		expect(header?.className).toContain('px-[var(--gawdux-card-padding,1rem)]');
 		expect(header?.className).toContain('py-[var(--gawdux-card-header-py,0.75rem)]');
-		expect(content?.className).toContain('p-[var(--gawdux-card-body-py,0.75rem)]');
-		expect(content?.className).toContain('px-[var(--gawdux-card-body-px,1.5rem)]');
+		expect(content?.classList.contains('card-content')).toBe(true);
 		for (const old of ['px-6', 'py-3', 'p-3']) {
 			expect(header?.classList.contains(old)).toBe(false);
 			expect(content?.classList.contains(old)).toBe(false);
 		}
-		// The narrow-layout caps still land on 1rem and 0.75rem by default.
-		expect(cardSource).toContain('min(var(--gawdux-card-header-px, 1.5rem), 1rem)');
-		expect(cardSource).toContain('min(var(--gawdux-card-body-px, 1.5rem), 0.75rem)');
+		// A card keeps its padding on a phone: no narrow-layout cap.
+		expect(cardSource).not.toContain('min(var(--gawdux-card');
+		expect(tokens).not.toMatch(/--gawdux-card-(header-px|body-px|body-py)/);
 	});
 });
 

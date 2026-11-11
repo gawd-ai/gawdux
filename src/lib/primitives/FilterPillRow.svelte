@@ -2,7 +2,9 @@
      becomes an internally scrollable rail when they do not, its edge fading
      where more pills lie (scrollEdges, the one sign a strip scrolls). The pressed
      pill can carry a remove control, and the track accepts trailing content
-     (SavedViewsRail puts its inline save control there). -->
+     (SavedViewsRail puts its inline save control there). The track is a fill
+     with no edge of its own: the pressed pill's edge is the one line drawn,
+     so a selected pill inside the track never reads as a double line. -->
 <script module lang="ts">
 	export interface FilterPill {
 		id: string;
@@ -101,7 +103,7 @@
 	>
 		<div
 			bind:this={trackEl}
-			class={`filter-pill-track items-stretch gap-px rounded-md border border-gray-200 bg-gray-50 p-px dark:border-gray-700 dark:bg-gray-900 ${
+			class={`filter-pill-track items-stretch gap-px rounded-md bg-gray-100 p-px dark:bg-gray-900 ${
 				wrap ? 'flex w-full flex-wrap' : 'inline-flex w-max min-w-max flex-nowrap'
 			}`}
 		>

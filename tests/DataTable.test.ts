@@ -25,6 +25,12 @@ describe('DataTable', () => {
 		expect(root.querySelector('table caption')?.textContent).toBe('Targets');
 	});
 
+	it("labels each body cell with its column, so a register's row reads as a card on a phone", () => {
+		const { container } = render(DataTableHarness, { props: { rows: ROWS } });
+		const cells = [...container.querySelectorAll('tbody tr:first-child td')] as HTMLElement[];
+		expect(cells.map((td) => td.dataset.label)).toEqual(headers(container).map((th) => th.textContent?.trim()));
+	});
+
 	it('renders one header per column and one cell per column per row', () => {
 		const { container } = render(DataTableHarness, { props: { rows: ROWS } });
 		expect(headers(container).map((th) => th.textContent?.trim())).toEqual([

@@ -21,10 +21,6 @@ const detail = createRawSnippet(() => ({
 	render: () => '<h2>Current item</h2>'
 }));
 
-const rowLabel = createRawSnippet(() => ({
-	render: () => '<span>Alpha</span>'
-}));
-
 describe('MasterDetailShell compact navigation', () => {
 	afterEach(() => cleanup());
 
@@ -88,7 +84,7 @@ describe('MasterDetailShell compact navigation', () => {
 	});
 
 	it('marks shared rail rows for shell navigation delegation', () => {
-		render(RailRowButton, { props: { selected: true, children: rowLabel } });
+		render(RailRowButton, { props: { selected: true, title: 'Alpha' } });
 		expect(
 			screen.getByRole('button', { name: 'Alpha' }).hasAttribute('data-master-detail-row')
 		).toBe(true);

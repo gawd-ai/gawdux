@@ -19,3 +19,10 @@ export declare function normalizeQuery(query: Record<string, string | null | und
 export declare function sameQuery(a: Record<string, string | null | undefined> | null | undefined, b: Record<string, string | null | undefined> | null | undefined): boolean;
 /** Match the current query against the saved views; the first exact match wins. */
 export declare function savedViewMatch(current: Record<string, string | null | undefined> | null | undefined, views: readonly SavedViewSummary[]): SavedViewMatch;
+/**
+ * Whether the saved views rail has anything to offer: a saved view to choose,
+ * or a query a view could save. With neither (no saved view, the default
+ * query applied) its one pill, the default, is a choice of one, and the rail
+ * draws nothing.
+ */
+export declare function savedViewsRailShows(current: Record<string, string | null | undefined> | null | undefined, views: readonly SavedViewSummary[]): boolean;

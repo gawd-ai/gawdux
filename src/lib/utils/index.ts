@@ -161,9 +161,13 @@ export {
 } from './color-theme';
 
 export {
+	handRolledRailRows,
+	handSetCardPadding,
+	handSizedIcons,
 	insetOverrides,
 	shadowedFlowbiteImports,
 	surfaceShadows,
+	unlabelledRegisterCells,
 	vanishingDarkEdges,
 	withoutComments
 } from './surface-rules';

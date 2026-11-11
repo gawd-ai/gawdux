@@ -28,6 +28,26 @@
  *   the page's content surface draws too, unless the markup states another).
  *   `vanishingDarkEdges` lists every such edge, so a guard holds a source to
  *   none.
+ * - One icon size in a header. An icon a control shows in a header (a pane
+ *   header's item icon and leading control, its icon buttons, the lock
+ *   beside its status) is the house icon (`.gawdux-icon`,
+ *   `--gawdux-icon-size`); `handSizedIcons` lists every icon a source sizes
+ *   itself, so a guard holds a header's files to none.
+ * - A rail row is Gawdux's. `RailRowButton` owns the row's layout (the icon
+ *   on the title line, the meta line under it at the row's edge); a host
+ *   passes its title, meta, icon and trailing marks and draws no row of its
+ *   own. `handRolledRailRows` lists every row a source draws itself.
+ * - One padding inside a card. A card's text stands one padding in from
+ *   its edge (`--gawdux-card-padding`, CardContainer, `.card-header`,
+ *   `.card-content`); a host sets no card padding of its own, and a box
+ *   nested in a card adds only its own row padding, never a second indent
+ *   of the card's size. `handSetCardPadding` lists every bordered, rounded
+ *   box a source pads at the card's size or more.
+ * - A register reads on a phone. Every register's table turns its rows into
+ *   labelled cards at or below the compact width (tokens.css "A register on
+ *   a phone"); each body cell names its column (`data-label`) or its place
+ *   in the card (`data-card`). `unlabelledRegisterCells` lists every body
+ *   cell of a register that does neither.
  */
 
 /** A source with its comments removed, so prose about a shadow is not one. */
@@ -305,6 +325,160 @@ export function vanishingDarkEdges(source: string, file = 'Component.svelte'): s
 				report(key, theme, lit!, surface, tag.at);
 		}
 		if (!tag.selfClosing) open.push({ name: tag.name, surface: own });
+	}
+	return found;
+}
+
+/** A source's markup, its script and style blanked in place so lines keep their numbers. */
+function markupOf(source: string): string {
+	const blank = (text: string) => text.replace(/[^\n]/g, ' ');
+	return source
+		.replace(/<!--[\s\S]*?-->/g, blank)
+		.replace(/<script[\s\S]*?<\/script>/g, blank)
+		.replace(/<style[\s\S]*?<\/style>/g, blank);
+}
+
+function lineAt(text: string, at: number): number {
+	return text.slice(0, at).split('\n').length;
+}
+
+/** An icon component (flowbite's `*Outline`, `*Solid`, a host's `Icon`) or an inline svg. */
+const ICON_TAG = /^(?:[A-Z]\w*(?:Outline|Solid)|[A-Z]\w*Icon|Icon|svg)$/;
+/** A size utility as a class list writes it: `h-4`, `w-3.5`, `size-5`, `h-[18px]`, with any variant. */
+const SIZE_UTILITY = /(?<![\w:/[-])(?:[\w@[\]-]+:)*!?(?:h|w|size)-(?:\d+(?:\.\d+)?|\[[^\]\s]+\])(?![\w./-])/g;
+
+/**
+ * Every icon the source sizes itself (`h-4 w-4` on an icon component or an
+ * inline svg), where the house icon (`.gawdux-icon`) is the size.
+ */
+export function handSizedIcons(source: string): string[] {
+	const markup = markupOf(source);
+	const found: string[] = [];
+	for (const tag of markupTags(markup)) {
+		if (tag.close || !ICON_TAG.test(tag.name)) continue;
+		const classText = tag.raw.match(/\bclass=(?:"([^"]*)"|\{([\s\S]*)\})/);
+		if (!classText) continue;
+		const sizes = [...(classText[1] ?? classText[2] ?? '').matchAll(SIZE_UTILITY)].map((m) => m[0]);
+		if (sizes.length > 0) found.push(`${tag.name} ${sizes.join(' ')} (line ${lineAt(markup, tag.at)})`);
+	}
+	return found;
+}
+
+/**
+ * Every rail row the source draws itself: a `RailRowButton` with no `title`,
+ * or holding content of its own beyond its snippets (`meta`, `leading`,
+ * `trailing`).
+ */
+export function handRolledRailRows(source: string): string[] {
+	const markup = markupOf(source);
+	const found: string[] = [];
+	const tags = markupTags(markup);
+	tags.forEach((tag, index) => {
+		if (tag.close || tag.name !== 'RailRowButton') return;
+		const line = lineAt(markup, tag.at);
+		if (!/\stitle=/.test(tag.raw)) found.push(`RailRowButton with no title (line ${line})`);
+		if (tag.selfClosing) return;
+		let depth = 0;
+		let end = -1;
+		for (const next of tags.slice(index + 1)) {
+			if (next.name !== 'RailRowButton') continue;
+			if (!next.close) depth++;
+			else if (depth === 0) {
+				end = next.at;
+				break;
+			} else depth--;
+		}
+		if (end < 0) return;
+		const inner = markup
+			.slice(tag.at + tag.raw.length, end)
+			.replace(/\{#snippet\s+(?:meta|leading|trailing)\s*\([^)]*\)\s*\}[\s\S]*?\{\/snippet\}/g, '')
+			.trim();
+		if (inner) found.push(`RailRowButton drawing its own row (line ${line})`);
+	});
+	return found;
+}
+
+const CARD_HOSTS = new Set([
+	'div',
+	'section',
+	'article',
+	'aside',
+	'li',
+	'ul',
+	'ol',
+	'form',
+	'fieldset',
+	'header',
+	'footer',
+	'details',
+	'dl',
+	'nav',
+	'figure',
+	'label'
+]);
+const ROUNDED = /(?<![\w:/[-])rounded(?:-(?:md|lg|xl|2xl|3xl))?(?![\w/-])/;
+const BOX_EDGE = /(?<![\w:/[-])border(?:-[0-9])?(?![\w/-])/;
+const CARD_PAD = /(?<![\w/[-])(?:(?:sm|md|lg|xl|2xl|min-\[[^\]]+\]|max-\[[^\]]+\]):)?(?:p|px)-(?:[4-9]|1[0-2])(?![\w./-])/g;
+
+/**
+ * Every bordered, rounded box the source pads at a card's size or more
+ * (`p-4` to `p-12`, `px-4` to `px-12`, with a width's variant), and every
+ * box inside a card (CardContainer, `.card-container`, or such a box) that
+ * pads itself at that size: a card takes the card padding from Gawdux
+ * (CardContainer, `.card-header`, `.card-content`), and a box nested in a
+ * card adds only its own row padding, never a second indent of the card's
+ * size. Read element by element, each class string of a tag (a ternary's
+ * branches) on its own.
+ */
+export function handSetCardPadding(source: string): string[] {
+	const markup = markupOf(source);
+	const found: string[] = [];
+	const open: { name: string; card: boolean }[] = [];
+	for (const tag of markupTags(markup)) {
+		if (tag.close) {
+			const at = open.map((entry) => entry.name).lastIndexOf(tag.name);
+			if (at >= 0) open.length = at;
+			continue;
+		}
+		const attr = tag.raw.match(/\bclass(?:Name)?=(?:"([^"]*)"|\{([\s\S]*)\})/);
+		const lists = !attr
+			? []
+			: attr[1] !== undefined
+				? [attr[1]]
+				: [...(attr[2] ?? '').matchAll(/(["'`])([\s\S]*?)\1/g)].map((m) => m[2]!);
+		const whole = lists.join(' ');
+		const boxed = ROUNDED.test(whole) && BOX_EDGE.test(whole);
+		const card = tag.name === 'CardContainer' || /\bcard-container\b/.test(whole) || boxed;
+		const inCard = open.some((entry) => entry.card);
+		if (CARD_HOSTS.has(tag.name) && (boxed || inCard)) {
+			for (const list of [...lists, whole]) {
+				const pads = [...list.matchAll(CARD_PAD)].map((m) => m[0]);
+				if (pads.length > 0) {
+					found.push(
+						`${tag.name} ${pads.join(' ')}${boxed ? '' : ' inside a card'} (line ${lineAt(markup, tag.at)})`
+					);
+					break;
+				}
+			}
+		}
+		if (!tag.selfClosing) open.push({ name: tag.name, card });
+	}
+	return found;
+}
+
+/**
+ * Every body cell of a register (a component drawing a `ListSurface` or a
+ * `ListPageScaffold`) that names neither its column (`data-label`) nor its
+ * place in the card (`data-card`), and spans no columns (an empty row).
+ */
+export function unlabelledRegisterCells(source: string): string[] {
+	const markup = markupOf(source);
+	if (!/<(?:ListSurface|ListPageScaffold)\b/.test(markup)) return [];
+	const found: string[] = [];
+	for (const tag of markupTags(markup)) {
+		if (tag.close || (tag.name !== 'TableBodyCell' && tag.name !== 'td')) continue;
+		if (/\s(?:data-label|data-card|colspan)\b/.test(tag.raw)) continue;
+		found.push(`${tag.name} (line ${lineAt(markup, tag.at)})`);
 	}
 	return found;
 }

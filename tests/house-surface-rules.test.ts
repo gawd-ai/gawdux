@@ -2,9 +2,13 @@ import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+	handRolledRailRows,
+	handSetCardPadding,
+	handSizedIcons,
 	insetOverrides,
 	shadowedFlowbiteImports,
 	surfaceShadows,
+	unlabelledRegisterCells,
 	vanishingDarkEdges
 } from '../src/lib/utils/surface-rules';
 
@@ -18,7 +22,15 @@ import {
 //   frame's fill-height calc lives only in tokens.css;
 // - light and dark draw the same lines: an edge drawn in light in a colour
 //   of its own is never, in dark, transparent, of no width, or the colour of
-//   the dark surface it is drawn on.
+//   the dark surface it is drawn on;
+// - one icon size in a header: the icons a header, a tab and a rail row show
+//   are the house icon, sized by nothing of their own;
+// - a rail row is RailRowButton's: no caller draws a row of its own;
+// - one padding inside a card: no bordered, rounded box is padded at the
+//   card's size by hand, the card padding being CardContainer's and
+//   `.card-content`'s;
+// - a register reads on a phone: every register body cell names its column
+//   or its place in the card.
 
 const ROOT = path.resolve(import.meta.dirname, '../src/lib');
 
@@ -179,5 +191,115 @@ describe('light and dark draw the same lines', () => {
 				card('<button onclick={() => go()} class="border border-gray-100 dark:border-gray-800">x</button>')
 			)
 		).toHaveLength(1);
+	});
+});
+
+describe('one icon size in a header', () => {
+	/** The library's own header, tab and rail row icons. */
+	const HEADER_FILES = [
+		'primitives/HeaderStatus.svelte',
+		'primitives/TabTitle.svelte',
+		'primitives/RailRowButton.svelte'
+	];
+
+	it('sizes no header, tab or rail row icon of its own: each is the house icon', () => {
+		const sized = Object.fromEntries(
+			FILES.filter(({ rel }) => HEADER_FILES.includes(rel))
+				.map(({ rel, source }) => [rel, handSizedIcons(source)])
+				.filter(([, found]) => found.length > 0)
+		);
+		expect(sized).toEqual({});
+		for (const rel of HEADER_FILES) {
+			const source = FILES.find((file) => file.rel === rel)!.source;
+			expect(source, rel).toContain('gawdux-icon');
+		}
+	});
+
+	it("gives a header's icon button the house icon, a row's its 16px", () => {
+		const source = FILES.find((file) => file.rel === 'primitives/IconButton.svelte')!.source;
+		expect(source).toContain("size === 'md' ? 'gawdux-icon' : 'h-4 w-4'");
+	});
+
+	it('reads an icon a source sizes itself', () => {
+		expect(handSizedIcons('<LockOutline class="h-3.5 w-3.5" />')).toHaveLength(1);
+		expect(handSizedIcons('<FileOutline class="h-4 w-4 shrink-0 text-blue-500" />')).toHaveLength(1);
+		expect(handSizedIcons('<svg class="size-5" viewBox="0 0 24 24"></svg>')).toHaveLength(1);
+		expect(handSizedIcons('<Icon class={open ? "h-5 w-5" : "h-4 w-4"} />')).toHaveLength(1);
+		expect(handSizedIcons('<LockOutline class="gawdux-icon text-gray-500" />')).toEqual([]);
+		expect(handSizedIcons('<div class="h-8 w-8"><LockOutline class="gawdux-icon" /></div>')).toEqual([]);
+	});
+});
+
+describe('a rail row is RailRowButton\'s', () => {
+	it('draws no rail row of its own', () => {
+		const rows = Object.fromEntries(
+			FILES.map(({ rel, source }) => [rel, handRolledRailRows(source)]).filter(
+				([, found]) => found.length > 0
+			)
+		);
+		expect(rows).toEqual({});
+	});
+
+	it('reads a row a caller draws itself', () => {
+		expect(
+			handRolledRailRows(
+				'<RailRowButton selected><span class="min-w-0 flex-1"><span class="text-sm">A</span></span></RailRowButton>'
+			)
+		).toHaveLength(2);
+		expect(handRolledRailRows('<RailRowButton title="A" meta="B" />')).toEqual([]);
+		expect(
+			handRolledRailRows(
+				'<RailRowButton title="A">{#snippet trailing()}<Badge>Default</Badge>{/snippet}</RailRowButton>'
+			)
+		).toEqual([]);
+	});
+});
+
+describe('one padding inside a card', () => {
+	/** What floats above the page and closes: a panel of its own, no card in the page. */
+	const FLOATING_PANELS: Record<string, string> = {
+		'primitives/CommandPalette.svelte': 'the command palette, its search row and its results'
+	};
+
+	it('pads no bordered, rounded box at the card\'s size by hand', () => {
+		const padded = Object.fromEntries(
+			FILES.filter(({ rel }) => !(rel in FLOATING_PANELS))
+				.map(({ rel, source }) => [rel, handSetCardPadding(source)])
+				.filter(([, found]) => found.length > 0)
+		);
+		expect(padded).toEqual({});
+		for (const rel of Object.keys(FLOATING_PANELS)) expect(ALLOWED[rel]?.why, rel).toContain('floating');
+	});
+
+	it('reads a hand-set card padding, each class string of a tag on its own', () => {
+		expect(handSetCardPadding('<div class="rounded-lg border bg-white p-4"></div>')).toHaveLength(1);
+		expect(handSetCardPadding('<section class="rounded-xl border px-6 py-4"></section>')).toHaveLength(1);
+		expect(handSetCardPadding("<div class={open ? 'rounded-lg border p-6' : 'hidden'}></div>")).toHaveLength(1);
+		expect(handSetCardPadding('<div class="rounded-xl border p-3 min-[1025px]:p-4"></div>')).toHaveLength(1);
+		// A nested box's own row padding, a card's body class, a button.
+		expect(handSetCardPadding('<div class="rounded-md border p-3"></div>')).toEqual([]);
+		expect(handSetCardPadding('<div class="card-content rounded-lg border"></div>')).toEqual([]);
+		expect(handSetCardPadding('<button class="rounded-lg border px-4 py-2"></button>')).toEqual([]);
+		expect(handSetCardPadding('<div class="border-b px-6 py-4"></div>')).toEqual([]);
+	});
+});
+
+describe('a register reads on a phone', () => {
+	it('names every register body cell\'s column or its place in the card', () => {
+		const unlabelled = Object.fromEntries(
+			FILES.map(({ rel, source }) => [rel, unlabelledRegisterCells(source)]).filter(
+				([, found]) => found.length > 0
+			)
+		);
+		expect(unlabelled).toEqual({});
+	});
+
+	it('reads a register cell that names nothing', () => {
+		const register = (cell: string) => `<ListSurface><Table><TableBody><TableBodyRow>${cell}</TableBodyRow></TableBody></Table></ListSurface>`;
+		expect(unlabelledRegisterCells(register('<TableBodyCell>Alpha</TableBodyCell>'))).toHaveLength(1);
+		expect(unlabelledRegisterCells(register('<TableBodyCell data-label="Due">2026</TableBodyCell>'))).toEqual([]);
+		expect(unlabelledRegisterCells(register('<TableBodyCell data-card="title">A</TableBodyCell>'))).toEqual([]);
+		expect(unlabelledRegisterCells(register('<td colspan={6}>None</td>'))).toEqual([]);
+		expect(unlabelledRegisterCells('<Table><TableBodyCell>A</TableBodyCell></Table>')).toEqual([]);
 	});
 });

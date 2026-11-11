@@ -175,7 +175,7 @@
 	<div
 		class={compact
 			? 'rounded-lg border border-gray-200 bg-gray-50 p-2.5 dark:border-gray-700 dark:bg-gray-950'
-			: 'rounded-xl border border-gray-200 bg-gray-50 p-3 min-[1025px]:p-4 dark:border-gray-700 dark:bg-gray-950'}
+			: 'rounded-xl border border-gray-200 bg-gray-50 p-3 dark:border-gray-700 dark:bg-gray-950'}
 	>
 		<div
 			class={compact

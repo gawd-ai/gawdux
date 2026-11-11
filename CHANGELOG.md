@@ -1,5 +1,63 @@
 # Changelog
 
+## 0.38.0 - one icon size, a rail row's own layout, one padding inside a card, no choice of one, a register on a phone
+
+### Changed
+
+- One icon size in a header. `--gawdux-icon-size` (20px) and `.gawdux-icon`
+  are the house icon: a header's `IconButton` (`size="md"`) draws its icon
+  and its glyph at it, `HeaderStatus` its lock, `TabTitle` a tab's icon (its
+  20px box and the icon in it; the icon drew at 24px in the box), a tool
+  showing its icon alone after a tab strip, and a host's pane header its
+  item icon and leading control through the class. A row's `IconButton`
+  (`size="sm"`) keeps its 16px icon. The class is unlayered, so it wins over
+  the size an icon component sets itself.
+- A rail row's layout is `RailRowButton`'s. It takes `title`, `meta` (a
+  string, or a snippet for meta with marks of its own), `icon` (or `leading`
+  for a mark that is no icon) and `trailing`, and lays them out: the icon on
+  the title line in a box the house icon's size and the line's height, the
+  trailing marks at the line's end, the meta line under it starting at the
+  row's left edge and running its full width. `children` is removed; a
+  caller draws no row of its own. `AiSkillsPanel`, `AiKnowledgePanel` and
+  `BotRail` (its initials in the icon's box) move onto it.
+- One padding inside a card. `--gawdux-card-padding` (16px, the page inset
+  above the compact width) is the padding of `CardContainer`'s header sides
+  and its body on all four sides, of `.card-header`'s sides and of
+  `.card-content`, the class a host's own card takes; a card keeps it at
+  every width (a card is a box nested in the content). The header's band
+  keeps `--gawdux-card-header-py`. `--gawdux-card-header-px`,
+  `--gawdux-card-body-px` and `--gawdux-card-body-py` and `CardContainer`'s
+  narrow-width caps are removed. `PasswordWithRequirements`' rules panel, a
+  box nested in a form, pads 12px at every width.
+- A choice of one is not drawn. `SavedViewsRail` draws nothing with no saved
+  view and the default query applied (its one pill, the default, is nothing
+  to choose); it shows once there is a saved view or once the query is one a
+  view could save, its save control at the track's end
+  (`savedViewsRailShows`). `FilterBar` takes no room for an empty rail.
+  `FilterPillRow`'s track is a fill with no edge of its own, so a selected
+  pill in it is one line, never two.
+- A register reads on a phone. At or below the compact width every table in
+  a `ListSurface`'s scroller (`.list-table-scroll`), as well as one wrapped
+  in `.responsive-card-table`, turns its rows into labelled cards: a cell's
+  label is its `data-label`; `data-card="title"` heads the card across its
+  width with no label, `data-card="wide"` spans it under its label,
+  `data-card="end"` is the row's own control at the card's top right and
+  `data-card="detail"` a row's opened detail; a truncated value wraps in its
+  cell. `DataTable` labels each body cell with its column. The dense
+  table's cell padding (`.list-table`) applies above the compact width only.
+  The pattern carries no column words of its own (the `Actions` caption is
+  removed; a host labels its actions cell).
+
+### Added
+
+- `handSizedIcons`, `handRolledRailRows`, `handSetCardPadding` and
+  `unlabelledRegisterCells` (`gawdux/utils`): the surface rules' readers for
+  an icon a source sizes itself, a rail row a caller draws itself, a
+  bordered, rounded box padded at a card's size by hand (or a box inside a
+  card padded so), and a register body cell that names neither its column
+  nor its place in the card. `tests/house-surface-rules.test.ts` holds the
+  library to none of each.
+
 ## 0.37.1 - every surface in the page is the card surface in dark
 
 ### Fixed

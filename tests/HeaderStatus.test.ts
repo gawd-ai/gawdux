@@ -43,6 +43,9 @@ describe('HeaderStatus', () => {
 		expect(icon?.getAttribute('role')).toBe('img');
 		expect(icon?.getAttribute('aria-label')).toBe(reason);
 		expect(icon?.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
+		// The house icon, the size of every icon in the header.
+		expect(icon?.querySelector('svg')?.getAttribute('class')).toContain('gawdux-icon');
+		expect(icon?.querySelector('svg')?.getAttribute('class')).not.toMatch(/\bh-3\.5\b/);
 		// After the chip, never inside it.
 		expect(chip(container).contains(icon)).toBe(false);
 		expect(root(container).lastElementChild).toBe(icon);

@@ -2,7 +2,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/svelte';
 import { tick } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import SavedViewsRail from '../src/lib/primitives/SavedViewsRail.svelte';
-import type { SavedViewSummary } from '../src/lib/primitives/saved-views';
+import { savedViewsRailShows, type SavedViewSummary } from '../src/lib/primitives/saved-views';
 
 afterEach(() => cleanup());
 
@@ -151,9 +151,29 @@ describe('SavedViewsRail', () => {
 		expect(input.getAttribute('aria-invalid')).toBe('true');
 	});
 
-	it('always renders the All pill, even with no views', () => {
-		mountRail({ views: [] });
+	it('draws nothing with no saved view and the default query: a choice of one', () => {
+		const { container } = mountRail({ views: [] });
+		expect(screen.queryAllByRole('button')).toHaveLength(0);
+		expect(container.querySelector('.saved-views-rail')).toBeNull();
+		expect(container.querySelector('[role="group"]')).toBeNull();
+	});
+
+	it('shows the rail with no saved view once the query is one a view could save', () => {
+		mountRail({ views: [], current: { status: 'online' } });
+		expect(pressed('All')).toBe('false');
+		expect(screen.getByRole('button', { name: 'Save view' })).toBeTruthy();
+	});
+
+	it('shows the rail at the default query once there is a saved view to choose', () => {
+		mountRail({ views: [VIEWS[0]!] });
 		expect(pressed('All')).toBe('true');
-		expect(screen.getAllByRole('button')).toHaveLength(1);
+		expect(pressed('Offline')).toBe('false');
+	});
+
+	it('decides whether it shows from the views and the query alone', () => {
+		expect(savedViewsRailShows({}, [])).toBe(false);
+		expect(savedViewsRailShows({ page: '' }, [])).toBe(false);
+		expect(savedViewsRailShows({ status: 'online' }, [])).toBe(true);
+		expect(savedViewsRailShows({}, VIEWS)).toBe(true);
 	});
 });

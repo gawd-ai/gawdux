@@ -44,10 +44,8 @@
   --gawdux-table-cell-px: calc(var(--spacing, 0.25rem) * 6);
   --gawdux-table-cell-py: calc(var(--spacing, 0.25rem) * 4);
   --gawdux-table-head-py: calc(var(--spacing, 0.25rem) * 3);
-  --gawdux-card-header-px: calc(var(--spacing, 0.25rem) * 6);
+  --gawdux-card-padding: calc(var(--spacing, 0.25rem) * 4);
   --gawdux-card-header-py: calc(var(--spacing, 0.25rem) * 3);
-  --gawdux-card-body-px: calc(var(--spacing, 0.25rem) * 6);
-  --gawdux-card-body-py: calc(var(--spacing, 0.25rem) * 3);
   --gawdux-tile-padding: calc(var(--spacing, 0.25rem) * 3);
   --gawdux-tile-padding-nested: calc(var(--spacing, 0.25rem) * 2.5);
   --gawdux-tile-gap: calc(var(--spacing, 0.25rem) * 3);
@@ -55,6 +53,7 @@
   --gawdux-page-inset: calc(var(--spacing, 0.25rem) * 4);
   --gawdux-compact-inset: calc(var(--spacing, 0.25rem) * 2);
   --gawdux-panel-wide-max-width: 72rem;
+  --gawdux-icon-size: 1.25rem;
   --gawdux-table-head-icon-size: 1rem;
   --gawdux-table-head-icon-gap: 0.5rem;
   --gawdux-table-head-icon-color: currentColor;
@@ -312,7 +311,7 @@
   }
   .card-header {
     text-align: left;
-    padding: var(--gawdux-card-header-py) var(--gawdux-card-header-px);
+    padding: var(--gawdux-card-header-py) var(--gawdux-card-padding);
     background-color: var(--gawdux-surface-card-header);
   }
   .card-header-title {
@@ -324,7 +323,7 @@
     color: var(--gawdux-text-muted);
   }
   .card-content {
-    padding: calc(var(--spacing) * 4);
+    padding: var(--gawdux-card-padding);
   }
   .table-container {
     border-radius: var(--radius-lg);
@@ -466,21 +465,23 @@
     z-index: 10;
     background-color: var(--gawdux-surface-card-header);
   }
-  .list-table th,
-	.list-table td {
-    padding-inline: calc(var(--spacing) * 2) !important;
-  }
-  .list-table thead th:first-child {
-    padding-left: calc(var(--spacing) * 4) !important;
-  }
-  .list-table thead th:last-child {
-    padding-right: calc(var(--spacing) * 4) !important;
-  }
-  .list-table tbody td:first-child {
-    padding-left: calc(var(--spacing) * 4) !important;
-  }
-  .list-table tbody td:last-child {
-    padding-right: calc(var(--spacing) * 4) !important;
+  @media (min-width: 1025px) {
+    .list-table th,
+		.list-table td {
+      padding-inline: calc(var(--spacing) * 2) !important;
+    }
+    .list-table thead th:first-child {
+      padding-left: calc(var(--spacing) * 4) !important;
+    }
+    .list-table thead th:last-child {
+      padding-right: calc(var(--spacing) * 4) !important;
+    }
+    .list-table tbody td:first-child {
+      padding-left: calc(var(--spacing) * 4) !important;
+    }
+    .list-table tbody td:last-child {
+      padding-right: calc(var(--spacing) * 4) !important;
+    }
   }
   .status-col {
     width: calc(var(--spacing) * 28);
@@ -540,6 +541,9 @@
   }
   .filter-bar-rail {
     min-width: calc(var(--spacing) * 0);
+  }
+  .filter-bar-rail:not(:has(*)) {
+    display: none;
   }
   .filter-row {
     display: flex;
@@ -1079,22 +1083,22 @@ main:has(.page-command-drawer) .page-command-bar,
     line-height: 1.5rem;
     color: var(--gawdux-text-primary);
   }
-  .responsive-card-table {
+  :is(.responsive-card-table, .list-table-scroll) {
     overflow-x: visible !important;
   }
-  .responsive-card-table table,
-	.responsive-card-table tbody {
+  :is(.responsive-card-table, .list-table-scroll) table,
+	:is(.responsive-card-table, .list-table-scroll) tbody {
     display: block;
     width: 100%;
   }
-  .responsive-card-table table {
+  :is(.responsive-card-table, .list-table-scroll) table {
     min-width: 0 !important;
     table-layout: auto !important;
   }
-  .responsive-card-table colgroup {
+  :is(.responsive-card-table, .list-table-scroll) colgroup {
     display: none;
   }
-  .responsive-card-table thead {
+  :is(.responsive-card-table, .list-table-scroll) thead {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -1105,12 +1109,13 @@ main:has(.page-command-drawer) .page-command-bar,
     white-space: nowrap;
     border: 0;
   }
-  .responsive-card-table tbody {
+  :is(.responsive-card-table, .list-table-scroll) tbody {
     display: grid;
     gap: 0.625rem;
     padding: 0.125rem var(--gawdux-compact-inset);
   }
-  .responsive-card-table tbody > tr {
+  :is(.responsive-card-table, .list-table-scroll) tbody > tr {
+    position: relative;
     display: grid;
     min-width: 0;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1120,7 +1125,7 @@ main:has(.page-command-drawer) .page-command-bar,
     border-radius: 0.5rem;
     background-color: var(--gawdux-surface-card);
   }
-  .responsive-card-table tbody > tr > td {
+  :is(.responsive-card-table, .list-table-scroll) tbody > tr > td:nth-child(n) {
     display: block;
     min-width: 0 !important;
     width: auto !important;
@@ -1130,7 +1135,7 @@ main:has(.page-command-drawer) .page-command-bar,
     overflow-wrap: anywhere;
     border: 0 !important;
   }
-  .responsive-card-table tbody > tr > td::before {
+  :is(.responsive-card-table, .list-table-scroll) tbody > tr > td::before {
     display: block;
     margin-bottom: 0.125rem;
     font-size: 0.6875rem;
@@ -1138,39 +1143,64 @@ main:has(.page-command-drawer) .page-command-bar,
     line-height: 1rem;
     color: var(--gawdux-text-muted);
   }
-  .responsive-card-table tbody > tr > td[data-label]::before {
+  :is(.responsive-card-table, .list-table-scroll) tbody > tr > td[data-label]::before {
     content: attr(data-label);
   }
-  .responsive-card-table tbody > tr:has(> td[colspan]) {
+  :is(.responsive-card-table, .list-table-scroll) tbody > tr > td[data-card='title'] {
+    grid-column: 1 / -1;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  :is(.responsive-card-table, .list-table-scroll) tbody > tr > td[data-card='title']::before {
+    display: none;
+  }
+  :is(.responsive-card-table, .list-table-scroll) tbody > tr > td[data-card='wide'] {
+    grid-column: 1 / -1;
+  }
+  :is(.responsive-card-table, .list-table-scroll) tbody > tr > td[data-card='end'] {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+  }
+  :is(.responsive-card-table, .list-table-scroll) tbody > tr > td[data-card='end']::before {
+    display: none;
+  }
+  :is(.responsive-card-table, .list-table-scroll) tbody > tr:has(> td[data-card='end']) > td[data-card='title'] {
+    padding-right: 2.5rem !important;
+  }
+  :is(.responsive-card-table, .list-table-scroll) tbody > tr > td :is(.truncate, .line-clamp-1) {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    max-width: none;
+  }
+  :is(.responsive-card-table, .list-table-scroll) tbody > tr:has(> td[colspan]) {
     display: block;
     padding: 0;
     border: 0;
     background: transparent;
   }
-  .responsive-card-table tbody > tr > td[colspan] {
+  :is(.responsive-card-table, .list-table-scroll) tbody > tr > td[colspan]:not([data-card]) {
     padding: 2.5rem 1rem !important;
     text-align: center;
   }
-  .responsive-card-table tbody > tr > td[colspan]::before {
+  :is(.responsive-card-table, .list-table-scroll) tbody > tr > td[colspan]::before {
     display: none;
   }
-  .responsive-card-table tbody > tr > td:last-child:has(button) {
+  :is(.responsive-card-table, .list-table-scroll) tbody > tr > td:last-child:has(button) {
     grid-column: 1 / -1;
   }
-  .responsive-card-table tbody > tr > td:last-child:has(button)::before {
-    content: 'Actions';
-  }
-  .responsive-card-table button,
-	.responsive-card-table a {
+  :is(.responsive-card-table, .list-table-scroll) button,
+	:is(.responsive-card-table, .list-table-scroll) a {
     min-height: 44px;
     overflow-wrap: anywhere;
   }
-  .responsive-card-table .row-link {
+  :is(.responsive-card-table, .list-table-scroll) .row-link {
     display: inline-flex;
     max-width: 100%;
     align-items: center;
   }
-  .responsive-card-table .row-link:focus-visible {
+  :is(.responsive-card-table, .list-table-scroll) .row-link:focus-visible {
     border-radius: 0.25rem;
     outline: 2px solid var(--gawdux-focus-ring);
     outline-offset: 2px;
@@ -1201,7 +1231,7 @@ main:has(.page-command-drawer) .page-command-bar,
   }
 }
 @media (min-width: 641px) and (max-width: 1024px) {
-  .responsive-card-table tbody > tr {
+  :is(.responsive-card-table, .list-table-scroll) tbody > tr {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
   .dialog-actions {
@@ -1368,8 +1398,8 @@ main:has(.page-command-drawer) .page-command-bar,
   background-color: var(--gawdux-row-selected-surface);
 }
 .gawdux-fit-labels[data-labels='icons'] .gawdux-tool-button .gawdux-control-icon {
-  width: 1rem;
-  height: 1rem;
+  width: var(--gawdux-icon-size);
+  height: var(--gawdux-icon-size);
 }
 .gawdux-tool-select {
   position: relative;
@@ -1509,6 +1539,11 @@ main:has(.page-command-drawer) .page-command-bar,
   border-start-end-radius: inherit;
   background-color: var(--gawdux-surface-card);
 }
+.gawdux-icon {
+  flex: none;
+  width: var(--gawdux-icon-size);
+  height: var(--gawdux-icon-size);
+}
 .icon-button[data-size='md'] {
   width: 2rem;
   height: 2rem;
@@ -1528,6 +1563,11 @@ main:has(.page-command-drawer) .page-command-bar,
   font-size: 0.875rem;
   font-weight: 600;
   line-height: 1;
+}
+.icon-button[data-size='md'] .icon-button-glyph {
+  width: var(--gawdux-icon-size);
+  height: var(--gawdux-icon-size);
+  font-size: calc(var(--gawdux-icon-size) * 0.9);
 }
 @media (max-width: 1024px) {
   :root {

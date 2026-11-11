@@ -548,22 +548,17 @@
 								selected={!creating && selected?.id === kb.id}
 								disabled={writeBusy}
 								onclick={() => selectKb(kb.id)}
+								title={kb.name}
+								meta={`${kb.rollup.sourceCount} ${kb.rollup.sourceCount === 1 ? 'source' : 'sources'}`}
 							>
-								<span class="min-w-0 flex-1">
-									<span class="block truncate text-sm font-medium text-gray-900 dark:text-gray-100">
-										{kb.name}
+								{#snippet trailing()}
+									<span
+										class={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${pill.cls}`}
+									>
+										<span class="sr-only">Status: </span>
+										{pill.label}
 									</span>
-									<span class="mt-0.5 block truncate text-[11px] text-gray-500 dark:text-gray-400">
-										{kb.rollup.sourceCount}
-										{kb.rollup.sourceCount === 1 ? 'source' : 'sources'}
-									</span>
-								</span>
-								<span
-									class={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium ${pill.cls}`}
-								>
-									<span class="sr-only">Status: </span>
-									{pill.label}
-								</span>
+								{/snippet}
 							</RailRowButton>
 						{/each}
 					</div>

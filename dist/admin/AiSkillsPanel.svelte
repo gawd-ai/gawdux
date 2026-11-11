@@ -333,36 +333,28 @@
 								selected={selected?.id === skill.id}
 								disabled={writeBusy}
 								onclick={() => selectSkill(skill.id)}
+								title={skill.name}
+								meta={skill.tagline}
 							>
-								<span class="min-w-0 flex-1">
-									<span class="flex items-center gap-1.5">
+								{#snippet trailing()}
+									{#if attention}
 										<span
-											class="block truncate text-sm font-medium text-gray-900 dark:text-gray-100"
+											class="h-2 w-2 shrink-0 rounded-full bg-amber-400"
+											title="Granted but not fully set up"
 										>
-											{skill.name}
+											<span class="sr-only">Granted but not fully set up</span>
 										</span>
-										{#if attention}
-											<span
-												class="h-2 w-2 shrink-0 rounded-full bg-amber-400"
-												title="Granted but not fully set up"
-											>
-												<span class="sr-only">Granted but not fully set up</span>
-											</span>
-										{/if}
-									</span>
-									<span class="mt-0.5 block truncate text-[11px] text-gray-500 dark:text-gray-400">
-										{skill.tagline}
-									</span>
-								</span>
-								{#if count > 0}
-									<span
-										class="shrink-0 rounded-full bg-violet-50 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-950/50 dark:text-violet-300"
-										title={`Granted to ${count} ${count === 1 ? 'bot' : 'bots'}`}
-									>
-										<span aria-hidden="true">{count}</span>
-										<span class="sr-only">Granted to {count} {count === 1 ? 'bot' : 'bots'}</span>
-									</span>
-								{/if}
+									{/if}
+									{#if count > 0}
+										<span
+											class="shrink-0 rounded-full bg-violet-50 px-1.5 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-950/50 dark:text-violet-300"
+											title={`Granted to ${count} ${count === 1 ? 'bot' : 'bots'}`}
+										>
+											<span aria-hidden="true">{count}</span>
+											<span class="sr-only">Granted to {count} {count === 1 ? 'bot' : 'bots'}</span>
+										</span>
+									{/if}
+								{/snippet}
 							</RailRowButton>
 						{/each}
 					</div>

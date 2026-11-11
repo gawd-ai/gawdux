@@ -6,7 +6,10 @@
      where the product confirms. It is the house's one icon button, flat in
      light and dark alike: no border and no shadow at rest, a quiet fill on
      hover. `size="md"` is a header's (32px, a 44px target at or below the
-     compact width); a glyph that is no icon (a channel's #) is its children. -->
+     compact width), its icon the house icon (`--gawdux-icon-size`, 20px,
+     tokens.css "The house icon"); a glyph that is no icon (a channel's #)
+     is its children, read at the same size. `size="sm"` is a row's, its
+     icon the row's 16px. -->
 <script lang="ts">
 	import type { Component, Snippet } from 'svelte';
 
@@ -63,7 +66,10 @@
 	title={label}
 	data-tone={tone}
 	data-size={size}
-	>{#if Icon}<Icon class="h-4 w-4" aria-hidden="true" />{:else if children}<span
+	>{#if Icon}<Icon
+			class={size === 'md' ? 'gawdux-icon' : 'h-4 w-4'}
+			aria-hidden="true"
+		/>{:else if children}<span
 			class="icon-button-glyph"
 			aria-hidden="true">{@render children()}</span
 		>{/if}</button

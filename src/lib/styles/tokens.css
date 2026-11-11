@@ -131,7 +131,14 @@
 	   @import (see "Density knobs" below for what each one drives):
 	   - table cells: flowbite's defaults, body `px-6 py-4`, head `px-6 py-3`;
 	     the row height is unset;
-	   - CardContainer: header `px-6 py-3`, body `px-6 py-3`;
+	   - a card's padding (`--gawdux-card-padding`): CardContainer's header
+	     and body and every card a host draws (`.card-header`, `.card-content`)
+	     stand their text this far in from the card's edge, 16px, the page
+	     inset above the compact width; a card is a box nested in the
+	     content, so it keeps this padding at every width (the levels rule
+	     below). The header's band keeps its own height (`--gawdux-card-header-py`,
+	     12px above and below its title). A box nested in a card (a list, a
+	     table, a notice) adds only its own row padding;
 	   - StatTile / StatTileStrip: `p-3` tiles, `p-2.5` nested tiles, `gap-3`,
 	     tiles wrap below 9rem;
 	   - the content inset of every inset host (`.scroll-surface`, which is
@@ -145,6 +152,12 @@
 	     `--gawdux-compact-inset` (8px, "Tight levels zero and one" below);
 	   - the wide content column (`.panel-col-wide`, `MasterDetailShell`'s
 	     card, `.master-detail-card`): `max-w-6xl`;
+	   - the house icon (`--gawdux-icon-size`, `.gawdux-icon`): 20px, the one
+	     size of an icon a control shows on its own or beside its label in a
+	     header, a tab strip or a rail: a header's icon button (IconButton
+	     `size="md"`) and its glyph, a header's lock (HeaderStatus), a pane
+	     header's item icon and leading control, a tab's icon (TabTitle), a
+	     tool showing its icon alone, a rail row's icon (RailRowButton);
 	   - a column header's icon (`.table-head-icon`, in DataTable,
 	     SortableHeadCell, HeadCell and the blocks' `headIcons`): 16px
 	     (`h-4 w-4`), `gap-2` from its label, the header's own ink, shown. */
@@ -152,10 +165,8 @@
 	--gawdux-table-cell-px: calc(var(--spacing, 0.25rem) * 6);
 	--gawdux-table-cell-py: calc(var(--spacing, 0.25rem) * 4);
 	--gawdux-table-head-py: calc(var(--spacing, 0.25rem) * 3);
-	--gawdux-card-header-px: calc(var(--spacing, 0.25rem) * 6);
+	--gawdux-card-padding: calc(var(--spacing, 0.25rem) * 4);
 	--gawdux-card-header-py: calc(var(--spacing, 0.25rem) * 3);
-	--gawdux-card-body-px: calc(var(--spacing, 0.25rem) * 6);
-	--gawdux-card-body-py: calc(var(--spacing, 0.25rem) * 3);
 	--gawdux-tile-padding: calc(var(--spacing, 0.25rem) * 3);
 	--gawdux-tile-padding-nested: calc(var(--spacing, 0.25rem) * 2.5);
 	--gawdux-tile-gap: calc(var(--spacing, 0.25rem) * 3);
@@ -163,6 +174,7 @@
 	--gawdux-page-inset: calc(var(--spacing, 0.25rem) * 4);
 	--gawdux-compact-inset: calc(var(--spacing, 0.25rem) * 2);
 	--gawdux-panel-wide-max-width: 72rem;
+	--gawdux-icon-size: 1.25rem;
 	--gawdux-table-head-icon-size: 1rem;
 	--gawdux-table-head-icon-gap: 0.5rem;
 	--gawdux-table-head-icon-color: currentColor;
@@ -458,7 +470,7 @@
 
 	.card-header {
 		@apply text-left;
-		padding: var(--gawdux-card-header-py) var(--gawdux-card-header-px);
+		padding: var(--gawdux-card-header-py) var(--gawdux-card-padding);
 		background-color: var(--gawdux-surface-card-header);
 	}
 
@@ -467,8 +479,10 @@
 		color: var(--gawdux-text-muted);
 	}
 
+	/* A card's body, CardContainer's or a host's own card: the card padding
+	   on all four sides. A host draws no padding of its own on a card. */
 	.card-content {
-		@apply p-4;
+		padding: var(--gawdux-card-padding);
 	}
 
 	/* ---------- Table + list scaffolding ---------- */
@@ -626,21 +640,26 @@
 		@apply sticky top-0 z-10;
 		background-color: var(--gawdux-surface-card-header);
 	}
-	.list-table th,
-	.list-table td {
-		@apply !px-2;
-	}
-	.list-table thead th:first-child {
-		@apply !pl-4;
-	}
-	.list-table thead th:last-child {
-		@apply !pr-4;
-	}
-	.list-table tbody td:first-child {
-		@apply !pl-4;
-	}
-	.list-table tbody td:last-child {
-		@apply !pr-4;
+	/* A row's cell padding is the dense table's, above the compact width; at
+	   or below it a register's rows are cards (below), each cell its own
+	   block with no padding. */
+	@media (min-width: 1025px) {
+		.list-table th,
+		.list-table td {
+			@apply !px-2;
+		}
+		.list-table thead th:first-child {
+			@apply !pl-4;
+		}
+		.list-table thead th:last-child {
+			@apply !pr-4;
+		}
+		.list-table tbody td:first-child {
+			@apply !pl-4;
+		}
+		.list-table tbody td:last-child {
+			@apply !pr-4;
+		}
 	}
 
 	/* Status column width utility */
@@ -699,9 +718,13 @@
 
 	/* The rail row (saved views) sits above the filter fields as its own
 	   block, so a long pill strip scrolls inside it instead of wrapping the
-	   field row. */
+	   field row. A rail with nothing drawn in it (a choice of one) takes no
+	   room: the filter row stands on the inset as it does with no rail. */
 	.filter-bar-rail {
 		@apply min-w-0;
+	}
+	.filter-bar-rail:not(:has(*)) {
+		display: none;
 	}
 
 	.filter-row {
@@ -1409,21 +1432,32 @@ main:has(.page-command-drawer) .page-command-bar,
 	max-width: var(--gawdux-panel-wide-max-width); /* default 72rem, Tailwind max-w-6xl */
 }
 
-/* ---------- Dense-table → card responsive pattern ---------- */
-/* Registers stay dense tables on desktop. At phone and tablet widths, a
-   table wrapped in `.responsive-card-table` turns each semantic row into a
-   labelled card without duplicating actions: the thead is visually hidden
-   (kept for AT), tbody becomes a card grid, and each td shows a small label
-   above its value. Labels come from `data-label` on the td (generic hook) or
-   from consumer-side `td:nth-child(N)::before { content: '…' }` rules —
-   column vocabulary is product domain and stays in the consumer.
+/* ---------- A register on a phone: its rows are cards ---------- */
+/* A register is a dense table above the compact width. At or below it every
+   register's table (the table in a ListSurface's scroller, `.list-table-scroll`,
+   or any table wrapped in `:is(.responsive-card-table, .list-table-scroll)`) turns each row into a
+   labelled card, so no column is crushed narrower than its content and no
+   two cells overlap, whatever the register: the thead is visually hidden
+   (kept for assistive technology), the tbody is a column of cards on the
+   panel's level-one inset, and each cell is a block in the card's two
+   columns, its label above its value, wrapping instead of truncating.
+   - The label is the cell's `data-label`, the column's name in the host's
+     words (column vocabulary is the host's); a cell with none shows its
+     value alone.
+   - `data-card="title"` is the row's name (a task's title, a record's
+     number): it spans the card's width, with no label, as the card's head.
+   - `data-card="wide"` spans the card's width under its label (a long text).
+   - `data-card="end"` is a row's own control (a chevron that opens its
+     detail): it sits at the card's top right, beside the row's name.
+   - `data-card="detail"` is a row's opened detail (a cell spanning the
+     columns): a block under its card, padded by nothing of the pattern's.
+   - A last cell holding buttons spans the card's width.
+   - An empty-state row (a cell spanning the columns) is a centred line.
    Companion scopes: `.responsive-list-page` (filter grid + touch targets),
    `.responsive-detail-page` (touch targets on detail forms), `.mobile-sort`
    (the phone-width substitute for sortable column headers).
    All colors consume the --gawdux-* theme variables above, so both light and
-   dark render from the same rules.
-   Lifted from a consuming product's dense-register stylesheet (gawdux 0.3.0);
-   class names renamed off the product's domain terms. */
+   dark render from the same rules. */
 @media (max-width: 1024px) {
 	.responsive-list-page .filter-row {
 		display: grid !important;
@@ -1497,26 +1531,26 @@ main:has(.page-command-drawer) .page-command-bar,
 		color: var(--gawdux-text-primary);
 	}
 
-	.responsive-card-table {
+	:is(.responsive-card-table, .list-table-scroll) {
 		overflow-x: visible !important;
 	}
 
-	.responsive-card-table table,
-	.responsive-card-table tbody {
+	:is(.responsive-card-table, .list-table-scroll) table,
+	:is(.responsive-card-table, .list-table-scroll) tbody {
 		display: block;
 		width: 100%;
 	}
 
-	.responsive-card-table table {
+	:is(.responsive-card-table, .list-table-scroll) table {
 		min-width: 0 !important;
 		table-layout: auto !important;
 	}
 
-	.responsive-card-table colgroup {
+	:is(.responsive-card-table, .list-table-scroll) colgroup {
 		display: none;
 	}
 
-	.responsive-card-table thead {
+	:is(.responsive-card-table, .list-table-scroll) thead {
 		position: absolute;
 		width: 1px;
 		height: 1px;
@@ -1530,13 +1564,14 @@ main:has(.page-command-drawer) .page-command-bar,
 
 	/* The cards sit on the panel's level-one inset, 8px from its edge; each
 	   keeps its own padding. */
-	.responsive-card-table tbody {
+	:is(.responsive-card-table, .list-table-scroll) tbody {
 		display: grid;
 		gap: 0.625rem;
 		padding: 0.125rem var(--gawdux-compact-inset);
 	}
 
-	.responsive-card-table tbody > tr {
+	:is(.responsive-card-table, .list-table-scroll) tbody > tr {
+		position: relative;
 		display: grid;
 		min-width: 0;
 		grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1547,7 +1582,7 @@ main:has(.page-command-drawer) .page-command-bar,
 		background-color: var(--gawdux-surface-card);
 	}
 
-	.responsive-card-table tbody > tr > td {
+	:is(.responsive-card-table, .list-table-scroll) tbody > tr > td:nth-child(n) {
 		display: block;
 		min-width: 0 !important;
 		width: auto !important;
@@ -1558,7 +1593,7 @@ main:has(.page-command-drawer) .page-command-bar,
 		border: 0 !important;
 	}
 
-	.responsive-card-table tbody > tr > td::before {
+	:is(.responsive-card-table, .list-table-scroll) tbody > tr > td::before {
 		display: block;
 		margin-bottom: 0.125rem;
 		font-size: 0.6875rem;
@@ -1567,49 +1602,75 @@ main:has(.page-command-drawer) .page-command-bar,
 		color: var(--gawdux-text-muted);
 	}
 
-	/* Generic label hook — consumers without bespoke ::before rules set
-	   data-label on each td. */
-	.responsive-card-table tbody > tr > td[data-label]::before {
+	/* The label: the column's name, from the cell's data-label. */
+	:is(.responsive-card-table, .list-table-scroll) tbody > tr > td[data-label]::before {
 		content: attr(data-label);
 	}
 
-	.responsive-card-table tbody > tr:has(> td[colspan]) {
+	/* The row's name heads its card across both columns, with no label. */
+	:is(.responsive-card-table, .list-table-scroll) tbody > tr > td[data-card='title'] {
+		grid-column: 1 / -1;
+		font-size: 0.875rem;
+		line-height: 1.25rem;
+	}
+	:is(.responsive-card-table, .list-table-scroll) tbody > tr > td[data-card='title']::before {
+		display: none;
+	}
+	:is(.responsive-card-table, .list-table-scroll) tbody > tr > td[data-card='wide'] {
+		grid-column: 1 / -1;
+	}
+	:is(.responsive-card-table, .list-table-scroll) tbody > tr > td[data-card='end'] {
+		position: absolute;
+		top: 0.25rem;
+		right: 0.25rem;
+	}
+	:is(.responsive-card-table, .list-table-scroll) tbody > tr > td[data-card='end']::before {
+		display: none;
+	}
+	:is(.responsive-card-table, .list-table-scroll) tbody > tr:has(> td[data-card='end']) > td[data-card='title'] {
+		padding-right: 2.5rem !important;
+	}
+	/* A truncated value wraps in a card: its cell is the room it has. */
+	:is(.responsive-card-table, .list-table-scroll) tbody > tr > td :is(.truncate, .line-clamp-1) {
+		overflow: visible;
+		text-overflow: clip;
+		white-space: normal;
+		max-width: none;
+	}
+
+	:is(.responsive-card-table, .list-table-scroll) tbody > tr:has(> td[colspan]) {
 		display: block;
 		padding: 0;
 		border: 0;
 		background: transparent;
 	}
 
-	.responsive-card-table tbody > tr > td[colspan] {
+	:is(.responsive-card-table, .list-table-scroll) tbody > tr > td[colspan]:not([data-card]) {
 		padding: 2.5rem 1rem !important;
 		text-align: center;
 	}
 
-	.responsive-card-table tbody > tr > td[colspan]::before {
+	:is(.responsive-card-table, .list-table-scroll) tbody > tr > td[colspan]::before {
 		display: none;
 	}
 
-	.responsive-card-table tbody > tr > td:last-child:has(button) {
+	:is(.responsive-card-table, .list-table-scroll) tbody > tr > td:last-child:has(button) {
 		grid-column: 1 / -1;
 	}
 
-	.responsive-card-table tbody > tr > td:last-child:has(button)::before {
-		content: 'Actions';
-	}
-
-	.responsive-card-table button,
-	.responsive-card-table a {
+	:is(.responsive-card-table, .list-table-scroll) button,
+	:is(.responsive-card-table, .list-table-scroll) a {
 		min-height: 44px;
 		overflow-wrap: anywhere;
 	}
 
-	.responsive-card-table .row-link {
+	:is(.responsive-card-table, .list-table-scroll) .row-link {
 		display: inline-flex;
 		max-width: 100%;
 		align-items: center;
 	}
 
-	.responsive-card-table .row-link:focus-visible {
+	:is(.responsive-card-table, .list-table-scroll) .row-link:focus-visible {
 		border-radius: 0.25rem;
 		outline: 2px solid var(--gawdux-focus-ring);
 		outline-offset: 2px;
@@ -1646,7 +1707,7 @@ main:has(.page-command-drawer) .page-command-bar,
 }
 
 @media (min-width: 641px) and (max-width: 1024px) {
-	.responsive-card-table tbody > tr {
+	:is(.responsive-card-table, .list-table-scroll) tbody > tr {
 		grid-template-columns: repeat(4, minmax(0, 1fr));
 	}
 
@@ -1847,8 +1908,8 @@ main:has(.page-command-drawer) .page-command-bar,
 	background-color: var(--gawdux-row-selected-surface);
 }
 .gawdux-fit-labels[data-labels='icons'] .gawdux-tool-button .gawdux-control-icon {
-	width: 1rem;
-	height: 1rem;
+	width: var(--gawdux-icon-size);
+	height: var(--gawdux-icon-size);
 }
 
 /* A choice after a tab strip (the version a pane reads): its value whole
@@ -2025,10 +2086,25 @@ main:has(.page-command-drawer) .page-command-bar,
 	background-color: var(--gawdux-surface-card);
 }
 
+/* ---------- The house icon ----------
+   One size for an icon a control shows in a header, a tab strip or a rail
+   (--gawdux-icon-size, 20px): a header's icon button and its glyph, the
+   lock beside a header's status, a pane header's item icon and leading
+   control, a tab's icon, a tool showing its icon alone, a rail row's icon.
+   It is unlayered, so it wins over the size an icon component sets itself
+   (flowbite's `w-5 h-5`); a host sets no size of its own on such an icon. */
+.gawdux-icon {
+	flex: none;
+	width: var(--gawdux-icon-size);
+	height: var(--gawdux-icon-size);
+}
+
 /* ---------- The house icon button ----------
    IconButton is flat in light and dark alike. A header's (`size="md"`) is
    32px, and a 44px target at or below the compact width, where a header's
-   controls are touched; a glyph that is no icon reads at the icon's size. */
+   controls are touched; its icon is the house icon, and a glyph that is no
+   icon (a channel's #) reads at the same size. A row's (`size="sm"`, 28px)
+   keeps the row's 16px icon. */
 .icon-button[data-size='md'] {
 	width: 2rem;
 	height: 2rem;
@@ -2048,6 +2124,11 @@ main:has(.page-command-drawer) .page-command-bar,
 	font-size: 0.875rem;
 	font-weight: 600;
 	line-height: 1;
+}
+.icon-button[data-size='md'] .icon-button-glyph {
+	width: var(--gawdux-icon-size);
+	height: var(--gawdux-icon-size);
+	font-size: calc(var(--gawdux-icon-size) * 0.9);
 }
 
 /* ---------- Tight levels zero and one on a phone ----------

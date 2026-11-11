@@ -3,7 +3,12 @@
      trailing pill becomes an inline name field while the current query is
      unsaved (Enter saves, Escape cancels); the pressed saved pill carries an
      immediate delete. Presentation only: the host persists and reports
-     success through the two promise-returning callbacks. -->
+     success through the two promise-returning callbacks.
+     A choice of one is not drawn: with no saved view and the default query
+     applied there is nothing to choose and nothing to save, so the rail
+     draws nothing (`savedViewsRailShows`). It shows once there is a saved
+     view, or once the query is one a view could save, the save control at
+     the track's end, which is how a first view is saved. -->
 <script module lang="ts">
 	import type { SavedViewSummary } from './saved-views';
 
@@ -34,7 +39,7 @@
 	import { tick } from 'svelte';
 	import { BookmarkOutline } from 'flowbite-svelte-icons';
 	import FilterPillRow, { filterPillClass, type FilterPill } from './FilterPillRow.svelte';
-	import { savedViewMatch } from './saved-views';
+	import { savedViewMatch, savedViewsRailShows } from './saved-views';
 
 	let {
 		views,
@@ -66,6 +71,7 @@
 		...views.map((view) => ({ id: view.id, label: view.name }))
 	]);
 	const selected = $derived(match.isDefault ? ALL_ID : match.activeId);
+	const shows = $derived(savedViewsRailShows(current, views));
 	const showError = $derived(Boolean(error) || invalid);
 
 	// The save control only exists while the query is unsaved; when it stops
@@ -178,14 +184,16 @@
 	{/if}
 {/snippet}
 
-<FilterPillRow
-	{pills}
-	{selected}
-	onSelect={select}
-	onRemove={selected === ALL_ID ? undefined : remove}
-	removeLabel={(pill) => `Delete view ${pill.label}`}
-	{ariaLabel}
-	disabled={pending}
-	className={`saved-views-rail ${className}`}
-	{trailing}
-/>
+{#if shows || editing}
+	<FilterPillRow
+		{pills}
+		{selected}
+		onSelect={select}
+		onRemove={selected === ALL_ID ? undefined : remove}
+		removeLabel={(pill) => `Delete view ${pill.label}`}
+		{ariaLabel}
+		disabled={pending}
+		className={`saved-views-rail ${className}`}
+		{trailing}
+	/>
+{/if}

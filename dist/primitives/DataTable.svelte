@@ -16,7 +16,10 @@
      - `row` replaces the per-column cells for a row the host lays out
        itself (cells it writes are still TableBodyCell).
      The container is not a page surface (it never fills the page or welds to
-     the command bar). Cell padding is the --gawdux-table-* density knobs. -->
+     the command bar). Cell padding is the --gawdux-table-* density knobs.
+     Each body cell carries its column's label (`data-label`), so a table in
+     a register reads as cards on a phone (tokens.css "A register on a
+     phone"). -->
 <script lang="ts" generics="T">
 	import type { Snippet } from 'svelte';
 	import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead } from 'flowbite-svelte';
@@ -176,7 +179,7 @@
 							{@render row(item, index)}
 						{:else}
 							{#each columns as column (column.key)}
-								<TableBodyCell class={bodyClass(column)}>
+								<TableBodyCell class={bodyClass(column)} data-label={column.label}>
 									{@render cell?.(item, column, index)}
 								</TableBodyCell>
 							{/each}

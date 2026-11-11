@@ -1,6 +1,7 @@
 <!-- A pane header's state: the status chip, in the header's density, always
-     shown; beside it a small lock while the viewer cannot edit, the reason in
-     its tooltip and as its accessible name. The lock carries no words of its
+     shown; beside it a lock while the viewer cannot edit, the reason in its
+     tooltip and as its accessible name, at the house icon size every icon in
+     a header shows (`.gawdux-icon`). The lock carries no words of its
      own: the chip names the state, the tooltip says why it is read-only. The
      colour and the word are the host's vocabulary, as with StatusBadge. -->
 <script lang="ts">
@@ -39,7 +40,7 @@
 			title={reason}
 			data-header-status-lock
 		>
-			<LockOutline class="h-3.5 w-3.5" aria-hidden="true" />
+			<LockOutline class="gawdux-icon" aria-hidden="true" />
 		</span>
 	{/if}
 </span>

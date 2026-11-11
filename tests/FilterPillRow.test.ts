@@ -88,6 +88,16 @@ describe('FilterPillRow', () => {
 		}
 	});
 
+	it('draws the track as a fill with no edge, so the pressed pill is the one line', () => {
+		const { container } = render(FilterPillRow, {
+			props: { pills: [{ id: 'all', label: 'All' }], selected: 'all', onSelect: () => {} }
+		});
+		const track = container.querySelector('.filter-pill-track')!;
+		const edges = [...track.classList].filter((name) => /^(dark:)?border(-|$)/.test(name));
+		expect(edges).toEqual([]);
+		expect(filterPillClass(true)).toMatch(/(^|\s)border(\s|$)/);
+	});
+
 	it('exports the pill recipe for controls that must read as a pill', () => {
 		expect(filterPillClass(true)).toContain('filter-pill');
 		expect(filterPillClass(true)).toContain('bg-white');

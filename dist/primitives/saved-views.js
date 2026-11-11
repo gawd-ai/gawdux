@@ -34,3 +34,12 @@ export function savedViewMatch(current, views) {
     const activeId = active ? active.id : null;
     return { activeId, isDefault, canSave: !isDefault && activeId === null };
 }
+/**
+ * Whether the saved views rail has anything to offer: a saved view to choose,
+ * or a query a view could save. With neither (no saved view, the default
+ * query applied) its one pill, the default, is a choice of one, and the rail
+ * draws nothing.
+ */
+export function savedViewsRailShows(current, views) {
+    return views.length > 0 || savedViewMatch(current, views).canSave;
+}

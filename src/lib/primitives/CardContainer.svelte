@@ -1,9 +1,11 @@
 <!-- A titled detail panel. Its surface is the house card (`.card-container`
      in tokens.css): the card surface, the house edge and radius, and no
      shadow, since it sits in the page (no shadow inside the page). Its
-     header and body padding are the --gawdux-card-* density knobs
-     (tokens.css); the fallbacks are the same defaults, for a host that has
-     not imported the tokens yet. `link` puts the go-to icon (SectionLink) at
+     header and body stand their text one padding in from the card's edge,
+     the card padding (`--gawdux-card-padding`, 16px at every width: a card
+     is a box nested in the content and keeps its padding on a phone), the
+     header's band its own height (`--gawdux-card-header-py`); the body is
+     the house card body (`.card-content`, tokens.css). `link` puts the go-to icon (SectionLink) at
      the right end of the header, after the header slot: the one place a
      card leads to another section. -->
 <script lang="ts">
@@ -19,7 +21,7 @@
 
 <section class={`card-container ${className} ${invalid ? 'card-invalid' : ''}`}>
 	<div
-		class={`card-container-header flex items-center justify-between gap-3 px-[var(--gawdux-card-header-px,1.5rem)] py-[var(--gawdux-card-header-py,0.75rem)] text-left ${invalid ? 'bg-red-50 dark:bg-red-950/40' : 'bg-gray-50 dark:bg-gray-700'}`}
+		class={`card-container-header flex items-center justify-between gap-3 px-[var(--gawdux-card-padding,1rem)] py-[var(--gawdux-card-header-py,0.75rem)] text-left ${invalid ? 'bg-red-50 dark:bg-red-950/40' : 'bg-gray-50 dark:bg-gray-700'}`}
 	>
 		<h3
 			class={`text-xs font-bold uppercase ${invalid ? 'text-red-700 dark:text-red-300' : 'text-gray-500 dark:text-gray-400'}`}
@@ -41,9 +43,7 @@
 			<slot name="header" />
 		{/if}
 	</div>
-	<div
-		class={`card-container-content p-[var(--gawdux-card-body-py,0.75rem)] px-[var(--gawdux-card-body-px,1.5rem)] ${contentClass}`}
-	>
+	<div class={`card-container-content card-content ${contentClass}`}>
 		<slot name="content" />
 	</div>
 </section>
@@ -58,27 +58,5 @@
 	:global(.dark .card-invalid) {
 		border-color: rgb(185 28 28) !important;
 		outline-color: rgb(185 28 28 / 0.6);
-	}
-
-	/* Narrow layouts cap the inline padding. The cap is a ceiling, not a
-	   value: a product that compacts the card knobs below it keeps its
-	   tighter padding here too, and the defaults land on the same 1rem and
-	   0.75rem as before. */
-	@media (max-width: 1024px) {
-		.card-container-header {
-			padding-inline: min(var(--gawdux-card-header-px, 1.5rem), 1rem);
-		}
-		.card-container-content {
-			padding-inline: min(var(--gawdux-card-body-px, 1.5rem), 1rem);
-		}
-	}
-
-	@media (max-width: 640px) {
-		.card-container-header {
-			padding-inline: min(var(--gawdux-card-header-px, 1.5rem), 0.75rem);
-		}
-		.card-container-content {
-			padding-inline: min(var(--gawdux-card-body-px, 1.5rem), 0.75rem);
-		}
 	}
 </style>

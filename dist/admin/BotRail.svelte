@@ -71,24 +71,28 @@
 		{#each lanes as lane, laneIndex (laneIndex)}
 			<div class={laneIndex === 0 ? 'space-y-1' : 'mt-2 space-y-1 border-t border-gray-200/70 pt-2 dark:border-gray-700'}>
 				{#each lane as bot (bot.id)}
-					<RailRowButton selected={bot.id === selected} {disabled} onclick={() => onselect(bot.id)}>
-						<span
-							class={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[10px] font-bold text-white ${bot.color ?? 'bg-slate-500 dark:bg-slate-600'}`}
-							aria-hidden="true">{botInitials(bot)}</span
-						>
-						<span class="min-w-0 flex-1">
-							<span class="block truncate text-sm font-medium text-gray-900 dark:text-gray-100">{bot.name}</span>
-							{#if bot.role}
-								<span class="mt-0.5 block truncate text-[11px] text-gray-500 dark:text-gray-400">{bot.role}</span>
-							{/if}
-						</span>
-						{#if bot.status}
+					<RailRowButton
+						selected={bot.id === selected}
+						{disabled}
+						onclick={() => onselect(bot.id)}
+						title={bot.name}
+						meta={bot.role || undefined}
+					>
+						{#snippet leading()}
 							<span
-								class={`h-2 w-2 shrink-0 rounded-full ${bot.status.on ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-600'}`}
-								title={bot.status.label}
-								data-bot-status={bot.status.on ? 'on' : 'off'}><span class="sr-only">{bot.status.label}</span></span
+								class={`flex h-full w-full items-center justify-center rounded text-[8px] font-bold leading-none text-white ${bot.color ?? 'bg-slate-500 dark:bg-slate-600'}`}
+								>{botInitials(bot)}</span
 							>
-						{/if}
+						{/snippet}
+						{#snippet trailing()}
+							{#if bot.status}
+								<span
+									class={`h-2 w-2 shrink-0 rounded-full ${bot.status.on ? 'bg-emerald-500' : 'bg-gray-300 dark:bg-gray-600'}`}
+									title={bot.status.label}
+									data-bot-status={bot.status.on ? 'on' : 'off'}><span class="sr-only">{bot.status.label}</span></span
+								>
+							{/if}
+						{/snippet}
 					</RailRowButton>
 				{/each}
 			</div>

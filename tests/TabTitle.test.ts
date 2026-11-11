@@ -5,8 +5,8 @@ import { EyeOutline } from 'flowbite-svelte-icons';
 
 afterEach(() => cleanup());
 
-/** The 20×20 box an icon sits in; absent means the label starts flush. */
-const iconBox = (container: HTMLElement) => container.querySelector('span.w-5.h-5');
+/** The house icon's box (20×20) an icon sits in; absent means the label starts flush. */
+const iconBox = (container: HTMLElement) => container.querySelector('span.gawdux-control-icon.gawdux-icon');
 
 describe('TabTitle', () => {
 	it('renders the icon box when an icon is given', () => {
@@ -20,7 +20,7 @@ describe('TabTitle', () => {
 	it('omits the icon box entirely when no icon is given', () => {
 		// Not merely "renders without crashing": the box must be ABSENT. An
 		// always-present wrapper indents every label in an icon-less tab set by
-		// `w-5` plus the flex gap, which is a layout defect that type-checks
+		// the icon's box plus the flex gap, which is a layout defect that type-checks
 		// clean and reads as intentional padding.
 		const { container } = render(TabTitle, { props: { label: 'Channels' } });
 

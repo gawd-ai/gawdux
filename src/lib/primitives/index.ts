@@ -49,7 +49,7 @@ export { default as FilterPillRow } from './FilterPillRow.svelte';
 export { filterPillClass } from './FilterPillRow.svelte';
 export { default as SavedViewsRail } from './SavedViewsRail.svelte';
 export type { SavedViewsRailProps } from './SavedViewsRail.svelte';
-export { normalizeQuery, sameQuery, savedViewMatch } from './saved-views';
+export { normalizeQuery, sameQuery, savedViewMatch, savedViewsRailShows } from './saved-views';
 export type { SavedViewMatch, SavedViewSummary } from './saved-views';
 export { default as FormField } from './FormField.svelte';
 export { default as IconButton } from './IconButton.svelte';
