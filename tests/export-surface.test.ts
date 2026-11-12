@@ -379,7 +379,7 @@ describe('gawdux 0.5.0 export surface (opt-in silence mutation)', () => {
 		// Spot-check that the shipped 0.4.0 defaults are byte-identical.
 		expect(copy['silencesTableCaption']).toBe('Silences');
 		expect(copy['silenceColumnComment']).toBe('Comment');
-		expect(copy['silencesEmptyMessage']).toBe('There are no silences in this scope.');
+		expect(copy['silencesEmptyMessage']).toBe('There are no silences for the selected environment and plane.');
 		expect(copy['detailNoSelection']).toBe('Select an alert to see its details.');
 
 		const added = Object.keys(copy).filter(

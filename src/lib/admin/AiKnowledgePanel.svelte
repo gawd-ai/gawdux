@@ -781,8 +781,8 @@
 													role="alert"
 												>
 													<p class="min-w-0 text-sm text-red-800 dark:text-red-300">
-														Remove "{source.title}"? Its ingested content leaves the knowledge base
-														immediately.
+														Remove "{source.title}"? Its ingested content is removed from the knowledge
+														base immediately.
 													</p>
 													<div class="flex shrink-0 items-center gap-2">
 														<Button

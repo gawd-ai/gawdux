@@ -16,7 +16,7 @@
 		canEdit = false,
 		busy = false,
 		ontoggle,
-		changesLabel = 'writes'
+		changesLabel = 'Makes changes'
 	}: {
 		groups: BotToolGroup[];
 		canEdit?: boolean;

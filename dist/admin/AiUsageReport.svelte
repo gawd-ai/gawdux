@@ -130,7 +130,7 @@
 						pills={windowPills}
 						selected={String(days)}
 						onSelect={(id) => onwindow?.(Number(id))}
-						ariaLabel="Window"
+						ariaLabel="Period"
 					/>
 				{/if}
 			</div>
@@ -155,7 +155,7 @@
 					>
 					<svelte:fragment slot="content">
 						{#if breakdown.rows.length === 0}
-							<p class="py-4 text-center text-sm text-gray-500 dark:text-gray-400">No activity in this window.</p>
+							<p class="py-4 text-center text-sm text-gray-500 dark:text-gray-400">No activity in this period.</p>
 						{:else}
 							<ul class={breakdownRowsClass} data-ai-usage-breakdown={breakdown.id}>
 								{#each breakdown.rows as row (row.key)}

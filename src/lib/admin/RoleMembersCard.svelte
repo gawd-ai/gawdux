@@ -22,8 +22,8 @@
 		busy = false,
 		onremove,
 		onadd,
-		title = 'Who holds it',
-		emptyText = 'Nobody holds this Role yet.',
+		title = 'Members',
+		emptyText = 'No one has this Role yet.',
 		addPlaceholder = 'Add someone',
 		addLabel = 'Add'
 	}: {

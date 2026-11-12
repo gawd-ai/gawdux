@@ -281,7 +281,7 @@
 		} catch (err) {
 			tuningBindings = beforeBindings;
 			if (selected?.id === skillId) {
-				bindingError = actions.errorMessage(err, 'Could not save the knowledge binding.');
+				bindingError = actions.errorMessage(err, 'Could not save the knowledge base connection.');
 			}
 		} finally {
 			bindingPending = null;
@@ -389,10 +389,9 @@
 					<CardContainer title="Granted to">
 						<div slot="content" class="space-y-2">
 							<p class="text-xs text-gray-500 dark:text-gray-400">
-								Granting adds this skill to the bot's composed context immediately{selected.requires
-									?.length
-									? ' · required skills are granted with it'
-									: ''}.
+								Granting adds this skill to the bot's context immediately.{selected.requires?.length
+									? ' Required skills are granted with it.'
+									: ''}
 							</p>
 							<div class="space-y-1">
 								{#each botCatalog as bot (bot.id)}
@@ -469,8 +468,8 @@
 						<CardContainer title="Parameters">
 							<div slot="content" class="space-y-3">
 								<p class="text-xs text-gray-500 dark:text-gray-400">
-									Shared by every bot this skill is granted to · values are woven into the
-									instructions.
+									Every bot this skill is granted to uses these settings. Their values are filled
+									into the instructions.
 								</p>
 								{#if paramsError}
 									<p class="text-sm text-red-700 dark:text-red-300" role="alert">{paramsError}</p>
@@ -481,8 +480,8 @@
 										role="alert"
 									>
 										<p class="min-w-0 text-sm text-amber-800 dark:text-amber-300">
-											These settings were changed by someone else since you loaded them. Reload
-											picks up their version · your unsaved edits here are discarded.
+											Someone else changed these settings after you loaded them. Reloading shows
+											their version and discards your unsaved changes here.
 										</p>
 										<Button
 											size="sm"
@@ -570,7 +569,7 @@
 								{/if}
 								{#if dormantTools.length > 0}
 									<p class="text-xs text-amber-600 dark:text-amber-400">
-										Connections save now · bots search only when their tools are available.
+										Connections are saved now. Bots can search only when their tools are available.
 									</p>
 								{/if}
 								{#each selected.knowledgeSlots as slot (slot.id)}
@@ -603,7 +602,7 @@
 										</Select>
 										{#if dangling}
 											<p class="mt-1 text-xs text-amber-600 dark:text-amber-400">
-												The bound knowledge base no longer exists · reconnect one.
+												The connected knowledge base no longer exists. Connect another one.
 											</p>
 										{:else}
 											<p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -679,8 +678,8 @@
 						<div slot="content" class="space-y-2">
 							<div class="flex flex-wrap items-center justify-between gap-2">
 								<p class="text-xs text-gray-500 dark:text-gray-400">
-									Product-authored. This text joins the composed context of every bot it is granted
-									to.
+									Provided with the product. This text is added to the context of every bot this
+									skill is granted to.
 								</p>
 								{#if selected.parameters?.length}
 									<Button size="xs" color="light" onclick={() => (previewTuned = !previewTuned)}>

@@ -215,7 +215,7 @@ describe('shared Skills panel host contract', () => {
 		const { container } = render(Host, { model: model(), actions: adapter });
 		await fireEvent.input(scope(), { target: { value: 'Local draft' } });
 		await fireEvent.click(screen.getByRole('button', { name: 'Save settings' }));
-		await screen.findByText(/These settings were changed by someone else/);
+		await screen.findByText(/Someone else changed these settings after you loaded them/);
 		expect(
 			(screen.getByRole('button', { name: 'Save settings' }) as HTMLButtonElement).disabled
 		).toBe(true);
@@ -323,7 +323,7 @@ describe('shared Skills panel host contract', () => {
 		await fireEvent.click(screen.getByRole('button', { name: 'Preview with your settings' }));
 		expect(screen.getByText(/Next library.*lookup/).tagName).toBe('PRE');
 		binding.reject(new Error('denied'));
-		await screen.findByText('Could not save the knowledge binding.');
+		await screen.findByText('Could not save the knowledge base connection.');
 		expect(select.value).toBe('kb-original');
 		await fireEvent.change(select, { target: { value: '' } });
 		expect(adapter.setKnowledgeBinding).toHaveBeenLastCalledWith({
@@ -339,7 +339,7 @@ describe('shared Skills panel host contract', () => {
 		loaded.bindings = { guide: { library: 'removed' } };
 		render(Host, { model: loaded, actions: adapter });
 		await fireEvent.click(screen.getByRole('button', { name: 'Preview with your settings' }));
-		expect(screen.getByText(/bound knowledge base no longer exists/)).toBeTruthy();
+		expect(screen.getByText(/connected knowledge base no longer exists/)).toBeTruthy();
 		expect(adapter.renderPreview).toHaveBeenLastCalledWith(
 			skill,
 			{ params: { scope: 'Saved' }, knowledge: {} },

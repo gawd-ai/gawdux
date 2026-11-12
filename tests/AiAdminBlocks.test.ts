@@ -94,7 +94,7 @@ describe('AiUsageReport', () => {
 		const width = (li: Element) => (li.querySelector('.rounded-full.h-full') as HTMLElement).style.width;
 		expect(width(rows[0]!)).toBe('100%');
 		expect(width(rows[1]!)).toBe('0%');
-		expect(screen.getByText('No activity in this window.')).toBeTruthy();
+		expect(screen.getByText('No activity in this period.')).toBeTruthy();
 	});
 
 	it('leaves an empty breakdown out when asked', () => {
@@ -233,7 +233,7 @@ describe('RoleMembersCard', () => {
 		const { container } = render(RoleMembersCard, {
 			props: { roleName: 'Operators', members: [], candidates: [{ ref: 'u:3', label: 'Kim' }], onadd }
 		});
-		expect(screen.getByText('Nobody holds this Role yet.')).toBeTruthy();
+		expect(screen.getByText('No one has this Role yet.')).toBeTruthy();
 		const add = screen.getByRole('button', { name: 'Add' }) as HTMLButtonElement;
 		expect(add.disabled).toBe(true);
 		const select = container.querySelector('select') as HTMLSelectElement;

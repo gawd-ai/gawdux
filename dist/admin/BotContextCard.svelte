@@ -18,10 +18,10 @@
 		parts,
 		maxChars,
 		version,
-		title = 'What this tenant tells it',
+		title = 'Context for this bot',
 		link = null,
 		status,
-		emptyText = 'Nothing yet. The configs written for this bot appear here.'
+		emptyText = 'No configs for this bot yet.'
 	}: {
 		/** The composed block, exactly as the bot receives it. */
 		block: string;
@@ -71,7 +71,7 @@
 			</ul>
 			<details class="group">
 				<summary class="cursor-pointer select-none text-xs font-medium text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
-					>Composed text</summary
+					>Full text</summary
 				>
 				<pre
 					class="mt-2 max-h-80 overflow-auto whitespace-pre-wrap rounded-md bg-gray-50 p-3 font-mono text-[11px] leading-relaxed text-gray-800 dark:bg-gray-900 dark:text-gray-200">{block}</pre>
