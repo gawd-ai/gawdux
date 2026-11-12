@@ -3,6 +3,8 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
 	drawsTabs,
+	elevationReads,
+	handDrawnCancels,
 	handDrawnIconCounts,
 	handRolledRailRows,
 	handSetCardPadding,
@@ -10,6 +12,7 @@ import {
 	insetOverrides,
 	itemActsInCards,
 	miscasedActionLabels,
+	pageSurfacesOutsideFrame,
 	questioningConfirmations,
 	registersWithoutPhoneSort,
 	shadowedFlowbiteImports,
@@ -50,7 +53,14 @@ import {
 // - the bar holds the open tab's acts: every act a tabbed component puts in
 //   the command bar names its tab;
 // - History is the last tab;
-// - the state beside the title: no chip among a pane header's controls.
+// - the state beside the title: no chip among a pane header's controls;
+// - one page frame: PageFrame owns the page's panel and its seam with the
+//   command bar; no source draws a page-level surface, a frame part or a bar
+//   of its own, and the page's elevation is read only by the frame and the
+//   floating frames;
+// - one action pair in a drawer: a decision's Cancel and act are
+//   PageCommandBarPair's, Cancel neutral and red only while it would discard
+//   input.
 
 // The tree read; another tree's src/lib (an archive of an earlier tag) can be
 // read for a fail-first run.
@@ -102,7 +112,7 @@ const ALLOWED: Record<string, { count: number; why: Why[]; what: string }> = {
 		count: 6,
 		why: ['elevation', 'floating'],
 		what:
-			"the page's one elevation (the content surface, the command bar, .shadow-md), the phone shell's bar, and the bar's sheet, light and dark"
+			"the page's one elevation (the page frame's panel, the content's elevation on the bar at the seam, .shadow-md for Flowbite's floating frames), the phone shell's bar, and the bar's sheet, light and dark"
 	}
 };
 
@@ -579,5 +589,113 @@ describe('one count pill', () => {
 			)
 		).toEqual([]);
 		expect(handDrawnIconCounts('<span class="gawdux-icon-count">3</span>')).toEqual([]);
+	});
+});
+
+describe('one page frame', () => {
+	/** The frame's owners: the frame itself, the stylesheet that draws it, and
+	 * the hosts that fill it (`page-fill`), each with what it may name. */
+	const OWNERS: Record<string, RegExp> = {
+		'primitives/PageFrame.svelte': /^(?:page-frame|page-frame-panel|page-frame-surface|page-command-bar|cmd-bar-zone|<main>) /,
+		'styles/tokens.css': /^(?:page-frame|page-frame-panel|page-frame-surface|page-fill|page-command-bar|cmd-bar-zone) /,
+		'primitives/PageTabs.svelte': /^page-fill /,
+		'primitives/EditablePageScaffold.svelte': /^page-fill /,
+		'primitives/TableContainer.svelte': /^page-fill /,
+		// The reader names what it reads.
+		'utils/surface-rules.ts': /./
+	};
+
+	it('draws no page-level surface, frame part, bar or main outside the frame', () => {
+		expect(
+			findings((source, rel) =>
+				pageSurfacesOutsideFrame(source).filter((found) => !OWNERS[rel]?.test(found))
+			)
+		).toEqual({});
+	});
+
+	it('reads the page elevation only in the frame and the floating frames', () => {
+		const reads = findings((source) => elevationReads(source));
+		expect(reads).toEqual({
+			'styles/tokens.css': [
+				'.shadow-md',
+				'.page-frame-panel',
+				'.page-frame-panel > .page-command-bar::before, .page-frame-surface .page-command-drawer::before'
+			]
+		});
+	});
+
+	it('reads a retired surface, a frame part, a bar drawn by hand and a main of its own', () => {
+		expect(pageSurfacesOutsideFrame('<div class="context-surface page-tabs-shell">x</div>')).toEqual([
+			'context-surface (line 1)'
+		]);
+		expect(pageSurfacesOutsideFrame('<div class="page-shell"><main>x</main></div>')).toEqual([
+			'page-shell (line 1)',
+			'<main> (line 1)'
+		]);
+		expect(
+			pageSurfacesOutsideFrame('<div class="page-command-bar"><div class="cmd-bar-zone"></div></div>')
+		).toEqual(['page-command-bar (line 1)', 'cmd-bar-zone (line 1)']);
+		expect(pageSurfacesOutsideFrame('<section class="page-fill flex-1">x</section>')).toEqual([
+			'page-fill (line 1)'
+		]);
+		expect(pageSurfacesOutsideFrame('main:has(.page-command-bar) .context-surface { flex: 1; }')).toEqual(
+			['page-command-bar (line 1)', 'context-surface (line 1)']
+		);
+		// A page's own layout classes and the frame primitive are not surfaces.
+		expect(pageSurfacesOutsideFrame('<PageFrame bar={slots}><div class="documents-shell"></div></PageFrame>')).toEqual([]);
+		expect(pageSurfacesOutsideFrame('<!-- <main class="context-surface"> -->')).toEqual([]);
+		// A script finding the frame's bar reads it; it draws nothing.
+		expect(
+			pageSurfacesOutsideFrame(
+				"<script>\n\tconst act = document.querySelector<HTMLElement>(\n\t\t'.page-command-bar .cmd-bar-center button:not(:disabled)'\n\t);\n\tconst bar = el.closest('.page-command-bar');\n</script>"
+			)
+		).toEqual([]);
+	});
+
+	it('reads the rule of each elevation read, and markup', () => {
+		expect(
+			elevationReads(
+				'.a { box-shadow: var(--gawdux-surface-elevation); }\n.b, .c:hover { box-shadow: 0 0 0 1px red, var(--gawdux-surface-elevation); }'
+			)
+		).toEqual(['.a', '.b, .c:hover']);
+		expect(elevationReads('<div class="shadow-[var(--gawdux-surface-elevation)]"></div>')).toEqual([
+			'markup'
+		]);
+		expect(elevationReads(':root { --gawdux-surface-elevation: 0 1px 3px 0 rgb(0 0 0 / 0.08); }')).toEqual(
+			[]
+		);
+	});
+});
+
+describe('one action pair in a drawer', () => {
+	it('draws no Cancel of its own in a drawer or the bar, and colours none red', () => {
+		expect(
+			findings((source, rel) => (rel === 'primitives/PageCommandBarPair.svelte' ? [] : handDrawnCancels(source)))
+		).toEqual({});
+	});
+
+	it("reads a decision's Cancel drawn by hand, and a Cancel coloured red", () => {
+		expect(
+			handDrawnCancels(
+				'<PageCommandBarCenter><Button outline color="red" on:click={close}>Cancel</Button><Button data-action-confirm>Sign</Button></PageCommandBarCenter>'
+			)
+		).toEqual(['Button Cancel drawn in a drawer or the bar (line 1)']);
+		expect(
+			handDrawnCancels('<CommandDrawer open><button type="button" onclick={close}>Cancel</button></CommandDrawer>')
+		).toEqual(['button Cancel drawn in a drawer or the bar (line 1)']);
+		expect(handDrawnCancels('<Button color="alternative" data-action-cancel>Close</Button>')).toEqual([
+			'Button data-action-cancel (line 1)'
+		]);
+		expect(handDrawnCancels('<Button size="xs" color="red" onclick={stop}>Cancel</Button>')).toEqual([
+			'Button Cancel coloured red (line 1)'
+		]);
+		// A row's own inline Cancel in a card, neutral, is not a decision's.
+		expect(
+			handDrawnCancels('<Button size="xs" color="alternative" onclick={keep}>Cancel</Button>')
+		).toEqual([]);
+		// The pair, passed its act and what Cancel would discard, is the one way.
+		expect(
+			handDrawnCancels('<PageCommandBarPair label="Archive role" tone="red" onact={a} oncancel={c} />')
+		).toEqual([]);
 	});
 });

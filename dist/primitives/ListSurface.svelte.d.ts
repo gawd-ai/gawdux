@@ -21,6 +21,9 @@ type $$__sveltets_2_PropsWithChildren<Props, Slots> = Props & (Slots extends {
 } : {});
 declare const ListSurface: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_PropsWithChildren<{
     mode?: "page" | "tab" | "embedded";
+    /** Whether the list draws a card. A page's list never does: it is the page
+            frame's content. A tab's or an embedded list does, unless it is its
+            pane's whole content (a list beside a rail), which passes false. */ card?: boolean | undefined;
     showFooter?: boolean;
     hasActions?: boolean | undefined;
     hasFooter?: boolean | undefined;

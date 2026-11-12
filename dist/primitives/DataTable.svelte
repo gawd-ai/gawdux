@@ -15,8 +15,7 @@
        a table that already sits inside a card.
      - `row` replaces the per-column cells for a row the host lays out
        itself (cells it writes are still TableBodyCell).
-     The container is not a page surface (it never fills the page or welds to
-     the command bar). Cell padding is the --gawdux-table-* density knobs.
+     The container keeps its natural size: it never fills the page. Cell padding is the --gawdux-table-* density knobs.
      Each body cell carries its column's label (`data-label`), so a table in
      a register reads as cards on a phone (tokens.css "A register on a
      phone"). -->
@@ -192,7 +191,7 @@
 {/snippet}
 
 {#if framed}
-	<TableContainer surface={false} className={`data-table overflow-hidden ${className}`}>
+	<TableContainer fill={false} className={`data-table overflow-hidden ${className}`}>
 		{@render content()}
 	</TableContainer>
 {:else}

@@ -76,6 +76,20 @@
  * - One count pill. What waits on the reader shows as Gawdux's counted-icon
  *   pill (`.gawdux-icon-count`) on the icon of its place (a tab, the bell, a
  *   chat view); `handDrawnIconCounts` lists every pill drawn by hand.
+ * - One page frame. `PageFrame`, rendered once by the app shell, owns the
+ *   page's panel and its seam with the command bar; a page's content stands
+ *   in it and draws no page-level surface, panel or seam of its own.
+ *   `pageSurfacesOutsideFrame` lists every retired page-surface convention
+ *   (`.context-surface`, `.page-shell`), every frame part or fill marker a
+ *   source writes itself (`page-frame*`, `page-fill`), every command bar a
+ *   source draws by hand and every `<main>` of its own; `elevationReads`
+ *   lists the rule of every read of the page's elevation token, so a guard
+ *   holds it to the frame and the floating frames.
+ * - One action pair in a drawer. A decision's Cancel and its act are
+ *   `PageCommandBarPair`'s: one size for both, Cancel neutral and red only
+ *   while cancelling would discard input. `handDrawnCancels` lists every
+ *   Cancel a source draws in a drawer or the bar itself, and every Cancel it
+ *   colours red.
  */
 /** A source with its comments removed, so prose about a shadow is not one. */
 export declare function withoutComments(source: string): string;
@@ -209,3 +223,29 @@ export declare function statusAmongControls(source: string): string[];
  * pill. A mark at the icon's foot (a room's kind) is no count.
  */
 export declare function handDrawnIconCounts(source: string): string[];
+/**
+ * Every page-level surface a source draws outside the page frame: the
+ * retired conventions (`context-surface`, `page-shell`), a frame part or the
+ * fill marker written by a source of its own (`page-frame`,
+ * `page-frame-panel`, `page-frame-surface`, `page-fill`), a command bar drawn
+ * by hand (`page-command-bar`, `cmd-bar-zone`) and a `<main>` element: the
+ * page's main landmark is the frame's. A stylesheet that names a retired
+ * class is listed too. A guard allows the frame's owners (PageFrame, the
+ * stylesheet that draws it, the Gawdux hosts that fill it) and holds every
+ * other source to none.
+ */
+export declare function pageSurfacesOutsideFrame(source: string): string[];
+/**
+ * The selector of every rule that reads the page's elevation token
+ * (`var(--gawdux-surface-elevation)`), in order, or `markup` for a read in a
+ * class list or a style attribute. Declaring the token is not reading it.
+ */
+export declare function elevationReads(source: string): string[];
+/**
+ * Every Cancel a source draws for a decision itself: an element carrying
+ * the pair's Cancel marker (`data-action-cancel`), a button labelled Cancel
+ * inside a `PageCommandBarCenter` or a `CommandDrawer`, and a button labelled
+ * Cancel coloured red anywhere. A decision's Cancel is PageCommandBarPair's,
+ * neutral, and red only while cancelling would discard input (`discards`).
+ */
+export declare function handDrawnCancels(source: string): string[];

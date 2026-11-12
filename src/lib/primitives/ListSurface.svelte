@@ -11,6 +11,10 @@
 	import { createEventDispatcher } from 'svelte';
 
 	export let mode: 'page' | 'tab' | 'embedded' = 'page';
+	/** Whether the list draws a card. A page's list never does: it is the page
+	    frame's content. A tab's or an embedded list does, unless it is its
+	    pane's whole content (a list beside a rail), which passes false. */
+	export let card: boolean | undefined = undefined;
 	export let showFooter = true;
 	export let hasActions: boolean | undefined = undefined;
 	export let hasFooter: boolean | undefined = undefined;
@@ -68,9 +72,7 @@
 	$: scaffoldClass = isPage
 		? `list-page-scaffold ${surfaceModifiers} ${className}`
 		: `list-${mode}-scaffold ${surfaceModifiers} ${className}`;
-	$: containerClass = isPage
-		? 'list-table-container context-surface'
-		: `list-${mode}-table-container`;
+	$: containerClass = isPage ? 'list-table-container' : `list-${mode}-table-container`;
 	$: scrollClass = isPage ? 'list-table-scroll' : `list-table-scroll list-${mode}-scroll`;
 	$: useCommandBar = isPage && (renderActions || renderFooter);
 </script>
@@ -112,7 +114,8 @@
 {/if}
 
 <div class={scaffoldClass}>
-	<TableContainer className={containerClass}>
+	<!-- The page's list is the page frame's content: no card of its own. -->
+	<TableContainer card={isPage ? false : (card ?? true)} className={containerClass}>
 		{#if $$slots.header}
 			<div class="list-surface-header">
 				<slot name="header" />

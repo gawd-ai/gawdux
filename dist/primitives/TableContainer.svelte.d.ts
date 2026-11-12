@@ -19,12 +19,17 @@ type $$__sveltets_2_PropsWithChildren<Props, Slots> = Props & (Slots extends {
 declare const TableContainer: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_PropsWithChildren<{
     className?: string;
     /**
-         * The container is the page's content surface (`.context-surface`): it
-         * welds to the command bar and fills the height the shell gives it. Pass
-         * false for a table that sits inside other content (a card, a tab body, a
-         * grid cell), where it should keep its natural size and must not turn its
-         * parent into a flex column.
-         */ surface?: boolean;
+         * The container fills the height its host gives it (.page-fill): its
+         * parent and every wrapper up to the page frame become a column it
+         * shares. Pass false for a table that sits inside other content (a card,
+         * a tab body, a grid cell), where it keeps its natural size and must not
+         * turn its parent into a flex column.
+         */ fill?: boolean;
+    /**
+         * The container is a card: the house edge, radius and card surface. A
+         * list that is the page's own content (ListSurface's page list) passes
+         * false: the page frame draws its panel, and the list draws none.
+         */ card?: boolean;
 }, {
     default: {};
 }>, {

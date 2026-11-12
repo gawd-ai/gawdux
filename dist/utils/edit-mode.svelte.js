@@ -1,5 +1,55 @@
-import { writable, get } from 'svelte/store';
+import { derived, writable, get } from 'svelte/store';
 import { clearFieldError, focusFirstFieldError, hasFieldErrors } from './form-errors';
+/** Nothing typed: an empty string, null and undefined are one value. */
+function isEmpty(value) {
+    return value === undefined || value === null || value === '';
+}
+/** A deep copy of a record's values to measure an edit against: dates,
+    arrays and objects copied (a reactive proxy read through its keys), any
+    other value kept as it is. A form that is not an edit mode measures its
+    input the same way: `!sameEditValue(model, editSnapshot(modelAsOpened))`. */
+export function editSnapshot(value) {
+    return snapshotValue(value);
+}
+function snapshotValue(value) {
+    if (value instanceof Date)
+        return new Date(value.getTime());
+    if (Array.isArray(value))
+        return value.map(snapshotValue);
+    if (value && typeof value === 'object') {
+        const proto = Object.getPrototypeOf(value);
+        if (proto !== Object.prototype && proto !== null)
+            return value;
+        return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, snapshotValue(v)]));
+    }
+    return value;
+}
+/** Whether two values of an edited record hold the same input. */
+export function sameEditValue(a, b) {
+    if (isEmpty(a) && isEmpty(b))
+        return true;
+    if (a instanceof Date || b instanceof Date) {
+        return a instanceof Date && b instanceof Date && a.getTime() === b.getTime();
+    }
+    if (Array.isArray(a) || Array.isArray(b)) {
+        if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length)
+            return false;
+        return a.every((item, index) => sameEditValue(item, b[index]));
+    }
+    const plain = (v) => Boolean(v) &&
+        typeof v === 'object' &&
+        [Object.prototype, null].includes(Object.getPrototypeOf(v));
+    if (plain(a) && plain(b)) {
+        const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+        for (const key of keys) {
+            if (!sameEditValue(a[key], b[key])) {
+                return false;
+            }
+        }
+        return true;
+    }
+    return Object.is(a, b);
+}
 // Svelte writable store under the hood: legacy `.svelte` consumers subscribe
 // via `$editMode` and Svelte's compiler wires up reactivity properly.
 // Property accessors on the returned object delegate to `store.update()` so
@@ -11,6 +61,13 @@ export function createEditMode(opts = {}) {
         actionError: null,
         fieldErrors: {}
     });
+    // The record as `start` received it, cloned apart from `edited`, which
+    // row bindings mutate in place: what an edit is measured against.
+    let baseline = undefined;
+    function changedIn(state) {
+        return state.isEditing && !sameEditValue(baseline, state.edited);
+    }
+    const snapshot = derived(store, (state) => ({ ...state, changed: changedIn(state) }));
     function patch(updates) {
         store.update((s) => ({ ...s, ...updates }));
     }
@@ -55,7 +112,10 @@ export function createEditMode(opts = {}) {
         return deepProxy(get(store).edited);
     }
     return {
-        subscribe: store.subscribe,
+        subscribe: snapshot.subscribe,
+        get changed() {
+            return changedIn(get(store));
+        },
         get isEditing() {
             return get(store).isEditing;
         },
@@ -94,6 +154,7 @@ export function createEditMode(opts = {}) {
             catch {
                 cloned = (draft && typeof draft === 'object' ? { ...draft } : draft);
             }
+            baseline = snapshotValue(draft);
             patch({ isEditing: true, edited: cloned, fieldErrors: {}, actionError: null });
         },
         cancel() {

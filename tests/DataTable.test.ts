@@ -17,11 +17,11 @@ const ROWS = [
 const headers = (container: HTMLElement) => [...container.querySelectorAll('thead th')] as HTMLElement[];
 
 describe('DataTable', () => {
-	it('composes a framed TableContainer that is not a page surface', () => {
+	it('composes a framed TableContainer that keeps its natural size', () => {
 		const { container } = render(DataTableHarness, { props: { rows: ROWS } });
 		const root = container.querySelector('.data-table') as HTMLElement;
 		expect(root.classList.contains('table-container')).toBe(true);
-		expect(root.classList.contains('context-surface')).toBe(false);
+		expect(root.classList.contains('page-fill')).toBe(false);
 		expect(root.querySelector('table caption')?.textContent).toBe('Targets');
 	});
 
@@ -176,19 +176,30 @@ describe('SortableHeadCell alignment (additive)', () => {
 	});
 });
 
-describe('TableContainer surface (additive)', () => {
-	it('is the page content surface by default', () => {
+describe('TableContainer fill and card', () => {
+	it('fills its host as a card by default, never a page surface', () => {
 		const { container } = render(TableContainer);
 		const root = container.firstElementChild as HTMLElement;
-		expect(root.className.startsWith('context-surface table-container ')).toBe(true);
+		expect(root.className.startsWith('page-fill table-container ')).toBe(true);
+		expect(root.classList.contains('border')).toBe(true);
+		expect(root.classList.contains('rounded-lg')).toBe(true);
+		expect(root.classList.contains('context-surface')).toBe(false);
 	});
 
-	it('drops the surface role on request and keeps the frame', () => {
-		const { container } = render(TableContainer, { props: { surface: false } });
+	it('keeps its natural size on request and keeps the card', () => {
+		const { container } = render(TableContainer, { props: { fill: false } });
 		const root = container.firstElementChild as HTMLElement;
-		expect(root.classList.contains('context-surface')).toBe(false);
+		expect(root.classList.contains('page-fill')).toBe(false);
 		expect(root.classList.contains('table-container')).toBe(true);
 		expect(root.classList.contains('border')).toBe(true);
+	});
+
+	it("draws no card as the page's own list: the page frame draws the panel", () => {
+		const { container } = render(TableContainer, { props: { card: false } });
+		const root = container.firstElementChild as HTMLElement;
+		expect(root.classList.contains('table-container-flat')).toBe(true);
+		expect(root.classList.contains('border')).toBe(false);
+		expect(root.classList.contains('rounded-lg')).toBe(false);
 	});
 });
 

@@ -1,5 +1,83 @@
 # Changelog
 
+## 0.41.0 - one page frame, one action pair
+
+### Added
+
+- `PageFrame`: the page's one frame. An app shell renders it once, in its
+  main column, around the page and the command bar (`bar`: the registry's
+  three zones, read as the frame renders, after the page, so a server render
+  holds the bar the page fills). The frame owns the page's panel and its
+  junction with the bar at every width (tokens.css "The page frame"): its
+  inset from the column (`--gawdux-frame-gutter`, 8px, none at the compact
+  width), one edge and one radius around the surface and the bar together,
+  the page's one elevation (`--gawdux-surface-elevation`), and the seam. A
+  drawn bar takes the surface's bottom corners, so the seam is one straight
+  full-width edge with no gap and no band, the content's elevation falling
+  on the bar's top edge (the bar's `::before`, the token cut to what lies
+  below the seam), and on an open drawer's top edge while one rises out of
+  the bar. A bar with nothing to hold is not drawn and the surface keeps its
+  own bottom corners; a card nested in the content never meets the bar and
+  keeps its own corners. The frame's `<main>` is the page's landmark; on
+  paper the frame draws nothing and the bar is not printed.
+- `.page-fill`: a Gawdux host that is the page's content (`PageTabs`' shell,
+  `EditablePageScaffold`'s surface, `ListSurface`'s page list, a
+  `TableContainer` that fills) takes the frame's height and shares it with
+  its children, through any wrappers between it and the frame's surface.
+  Layout only: it draws no surface, edge, corner or shadow.
+- `PageCommandBarPair`: a decision's one action pair, Cancel and the act, as
+  a drawer and edit mode draw it. One height, padding and type for both,
+  whatever has focus; the act's own tone (`tone`); Cancel neutral (the house
+  neutral outline, `data-tone="neutral"`), red only while cancelling would
+  discard input the person entered (`discards`: a changed field, a typed
+  reason or note; a password is not information) and neutral again once
+  that input is cleared. A host passes the act and whether input would be
+  lost and draws no Cancel of its own. `between` holds the decision's other
+  acts; `inline` renders the pair in place for a host already in the bar's
+  center zone.
+- `createEditMode`'s `changed` (in the snapshot and on the API): a field has
+  changed since `start`, measured against a copy of the record as it
+  started, so changing a field back or clearing a field that was empty
+  leaves nothing to discard. `editSnapshot` and `sameEditValue` let a form
+  that is not an edit mode measure its input the same way.
+- `EditModeProps.discards`: edit mode's Cancel is red while it would discard
+  an edit (`createEditMode`'s `changed`), neutral otherwise.
+- `ListSurface`'s `card` and `TableContainer`'s `card`: whether the list
+  draws a card. A page's list never does (the frame draws its panel); a
+  tab's or an embedded list does, unless it is its pane's whole content.
+- Readers in `gawdux/utils`: `pageSurfacesOutsideFrame` (a retired page
+  surface, a frame part or fill marker written by a source of its own, a
+  command bar drawn by hand or a `<main>` of its own; a script's DOM query
+  reads, it draws nothing), `elevationReads` (the rule of every read of the
+  page's elevation token) and `handDrawnCancels` (a Cancel drawn in a drawer
+  or the bar by hand, or coloured red). The library's house-surface-rules
+  test holds its files to each: the elevation is read only by the frame and
+  Tailwind's `.shadow-md` (the floating frames).
+
+### Changed
+
+- Every page renders in the frame: `PageTabs`, `EditablePageScaffold`'s
+  `surface`, `ListSurface`'s page list and `TableContainer` draw no page
+  surface of their own and fill the frame (`.page-fill`). `PageTabs`'
+  content draws no bottom corners (`contentClass` default).
+- `PageCommandBarConfirm` draws its Cancel and confirm as the pair, so a
+  confirmation's Cancel is neutral. `PageActionBar`'s edit mode draws Cancel
+  and Save as the pair, Save as draft between them.
+- A command bar button draws its focus ring only on keyboard focus
+  (`:focus-visible`), as a 2px outline that never changes its size, and no
+  ring or shadow on pointer focus.
+- `CommandDrawer` and `PageCommandBarConfirm` draw no edge of their own: the
+  frame's panel draws the sides of the drawer and the bar, and the seam is
+  the drawer's top edge.
+- `TableContainer`'s `surface` is `fill`.
+
+### Removed
+
+- `.context-surface`, `.page-shell` and the two page layouts that paired a
+  surface with the bar (the bar inside `<main>`, and the bar beside `<main>`
+  in `.page-shell`), with their merge rules: the frame is the one layout. A
+  page draws no `.context-surface` of its own.
+
 ## 0.40.0 - the bar holds the open tab's acts, History last, the pane header, the trail's icon on a phone, one count pill
 
 ### Added

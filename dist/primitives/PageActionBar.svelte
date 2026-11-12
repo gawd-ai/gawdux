@@ -86,6 +86,10 @@
 		saveAsDraftLabel?: string;
 		/** When true, Cancel / Save / Save-as-Draft are disabled and Save labels swap to "Saving…". */
 		saving?: boolean;
+		/** Cancelling would discard an edit: a field has changed since Edit
+		    (createEditMode's `changed`). Cancel is neutral until then and red
+		    while it is so (PageCommandBarPair). */
+		discards?: boolean;
 	}
 
 	/** Component renderers for domain-coupled lifecycle kinds. Consumer apps
@@ -112,6 +116,7 @@
 	import { getContext } from 'svelte';
 	import { readable } from 'svelte/store';
 	import PageCommandBarCenter from './PageCommandBarCenter.svelte';
+	import PageCommandBarPair from './PageCommandBarPair.svelte';
 	import { PAGE_TAB_CONTEXT, showsOnTab, type PageTabHost } from './page-chrome';
 
 	export let editMode: EditModeProps | null = null;
@@ -135,19 +140,30 @@
 
 <PageCommandBarCenter>
 	{#if editing && edit}
-		<Button outline color="red" on:click={edit.onCancel} disabled={edit.saving}>
-			<BanOutline class="top-action-icons" />Cancel
-		</Button>
-		{#if edit.showSaveAsDraft && edit.onSaveAsDraft}
-			<Button outline color="blue" on:click={edit.onSaveAsDraft} disabled={edit.saving}>
-				<ClockOutline class="top-action-icons" />{edit.saving
-					? 'Saving…'
-					: (edit.saveAsDraftLabel ?? 'Save as draft')}
-			</Button>
-		{/if}
-		<Button outline color="green" on:click={edit.onSave} disabled={edit.saving}>
-			<CheckOutline class="top-action-icons" />{edit.saving ? 'Saving…' : (edit.saveLabel ?? 'Save')}
-		</Button>
+		<!-- Edit mode's action pair: Cancel neutral until a field has changed,
+		     then red; Save green; a draft save between them. -->
+		<PageCommandBarPair
+			inline
+			label={edit.saveLabel ?? 'Save'}
+			busyLabel="Saving…"
+			tone="green"
+			busy={edit.saving}
+			actIcon={CheckOutline}
+			onact={edit.onSave}
+			discards={edit.discards === true}
+			cancelIcon={BanOutline}
+			oncancel={edit.onCancel}
+		>
+			{#snippet between()}
+				{#if edit?.showSaveAsDraft && edit.onSaveAsDraft}
+					<Button outline color="blue" on:click={edit.onSaveAsDraft} disabled={edit.saving}>
+						<ClockOutline class="top-action-icons" />{edit.saving
+							? 'Saving…'
+							: (edit.saveAsDraftLabel ?? 'Save as draft')}
+					</Button>
+				{/if}
+			{/snippet}
+		</PageCommandBarPair>
 	{:else}
 		{#if edit?.canEdit}
 			<Button outline color="blue" on:click={edit.onEdit}>

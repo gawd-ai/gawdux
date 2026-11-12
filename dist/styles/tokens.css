@@ -52,6 +52,7 @@
   --gawdux-tile-min-width: 9rem;
   --gawdux-page-inset: calc(var(--spacing, 0.25rem) * 4);
   --gawdux-compact-inset: calc(var(--spacing, 0.25rem) * 2);
+  --gawdux-frame-gutter: calc(var(--spacing, 0.25rem) * 2);
   --gawdux-panel-wide-max-width: 72rem;
   --gawdux-icon-size: 1.25rem;
   --gawdux-table-head-icon-size: 1rem;
@@ -269,11 +270,6 @@
   }
   .page-tabs-shell {
     width: 100%;
-    border-radius: var(--radius-lg);
-    border-style: var(--tw-border-style);
-    border-width: 1px;
-    background-color: var(--gawdux-surface-card);
-    border-color: var(--gawdux-border);
   }
   .page-tabs-shell:has(.tab-fill-panel) {
     display: flex;
@@ -331,6 +327,11 @@
     border-width: 1px;
     background-color: var(--gawdux-surface-card);
     border-color: var(--gawdux-border);
+  }
+  .table-container.table-container-flat {
+    border-width: 0;
+    border-radius: 0;
+    background-color: transparent;
   }
   .list-page-scaffold {
     display: flex;
@@ -617,9 +618,6 @@
 div.inline-flex.items-center.justify-center.font-medium {
   border-radius: 9999px !important;
 }
-.context-surface:not(.context-surface .context-surface) {
-  box-shadow: var(--gawdux-surface-elevation);
-}
 .shadow-md {
   box-shadow: var(--gawdux-surface-elevation) !important;
 }
@@ -700,38 +698,88 @@ div.inline-flex.items-center.justify-center.font-medium {
 .dark * {
   scrollbar-color: #4b5563 #1f2937;
 }
-main:has(.page-command-bar .cmd-bar-zone > *) .context-surface,
-.page-shell:has(> .page-command-bar .cmd-bar-zone > *) > main .context-surface {
-  border-bottom-left-radius: 0 !important;
-  border-bottom-right-radius: 0 !important;
-  border-bottom-width: 0 !important;
+.page-frame {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 1px var(--gawdux-frame-gutter) var(--gawdux-frame-gutter);
 }
-main:has(.page-command-bar) .context-surface,
-.page-shell:has(> .page-command-bar) > main .context-surface {
+.page-frame-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--gawdux-border);
+  border-radius: 0.5rem;
+  box-shadow: var(--gawdux-surface-elevation);
+}
+.page-frame-surface {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  background-color: var(--gawdux-surface-card);
+  border-radius: calc(0.5rem - 1px);
+}
+.page-frame-panel:has(> .page-command-bar .cmd-bar-zone > *) > .page-frame-surface {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.page-frame-panel > .page-command-bar {
+  position: relative;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-bottom-left-radius: calc(0.5rem - 1px);
+  border-bottom-right-radius: calc(0.5rem - 1px);
+}
+.page-frame-panel > .page-command-bar::before,
+.page-frame-surface .page-command-drawer::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  height: 1rem;
+  box-shadow: var(--gawdux-surface-elevation);
+  clip-path: inset(100% -1rem -1rem -1rem);
+  pointer-events: none;
+}
+.page-frame-panel:has(.page-command-drawer) > .page-command-bar::before {
+  content: none;
+}
+.page-fill {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
 }
-main:has(.page-command-bar .cmd-bar-zone > *) .context-surface .context-surface,
-.page-shell:has(> .page-command-bar .cmd-bar-zone > *) > main .context-surface .context-surface {
-  border-bottom-left-radius: 0.5rem !important;
-  border-bottom-right-radius: 0.5rem !important;
-  border-bottom-width: 1px !important;
-}
-main:has(.context-surface) .page-command-bar,
-.page-shell:has(> main .context-surface) > .page-command-bar {
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-top-width: 0;
-}
-main:has(.page-command-bar) *:has(> .context-surface),
-.page-shell:has(> .page-command-bar) > main *:has(> .context-surface) {
+.page-frame-surface *:has(> .page-fill) {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
+}
+@media print {
+  .page-frame,
+	.page-frame-panel,
+	.page-frame-surface {
+    display: block;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overflow: visible;
+  }
+  .page-command-bar {
+    display: none !important;
+  }
 }
 .surface-feedback {
   flex-shrink: 0;
@@ -740,11 +788,6 @@ main:has(.page-command-bar) *:has(> .context-surface),
 }
 .surface-feedback > * + * {
   border-top: 1px solid var(--gawdux-border);
-}
-.context-surface > .surface-feedback:first-child {
-  overflow: hidden;
-  border-top-left-radius: calc(0.5rem - 1px);
-  border-top-right-radius: calc(0.5rem - 1px);
 }
 .page-command-bar {
   margin-top: auto;
@@ -756,9 +799,9 @@ main:has(.page-command-bar) *:has(> .context-surface),
   min-height: 0.5rem;
   padding: 0;
   background-color: var(--gawdux-command-surface);
-  border: 1px solid var(--gawdux-border);
-  border-radius: 0.5rem;
-  box-shadow: var(--gawdux-surface-elevation);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 .page-command-bar:has(.cmd-bar-zone > *) {
   min-height: 52px;
@@ -787,26 +830,15 @@ main:has(.page-command-bar) *:has(> .context-surface),
   justify-content: flex-end;
 }
 .page-command-drawer {
+  position: relative;
   margin-top: auto;
   flex-shrink: 0;
   padding: 0.75rem 1rem;
   text-align: center;
   background-color: var(--gawdux-command-surface);
-  border: 1px solid var(--gawdux-border);
-  border-bottom-width: 0;
+  border: 0;
   border-radius: 0;
   box-shadow: none;
-}
-.context-surface .page-command-drawer {
-  border-left-width: 0;
-  border-right-width: 0;
-}
-main:has(.page-command-drawer) .page-command-bar,
-.page-shell:has(> main .page-command-drawer) > .page-command-bar {
-  margin-top: 0;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-top-width: 0;
 }
 .page-command-drawer-title {
   margin: 0;
@@ -947,6 +979,24 @@ main:has(.page-command-drawer) .page-command-bar,
   background-color: rgb(30 58 138) !important;
   border-color: rgb(30 64 175) !important;
   color: rgb(191 219 254) !important;
+}
+.cmd-bar-zone > :is(button, a) {
+  box-shadow: none !important;
+  outline: none;
+}
+.cmd-bar-zone > :is(button, a):focus-visible {
+  outline: 2px solid var(--gawdux-focus-ring);
+  outline-offset: 2px;
+}
+.cmd-bar-zone > :is(button, a)[data-tone='neutral'] {
+  background-color: var(--gawdux-surface-card) !important;
+  color: var(--gawdux-text-secondary) !important;
+  border-color: var(--gawdux-border-input) !important;
+}
+.cmd-bar-zone > :is(button, a)[data-tone='neutral']:hover:not(:disabled) {
+  background-color: var(--gawdux-surface-subtle) !important;
+  border-color: var(--gawdux-border-strong) !important;
+  color: var(--gawdux-text-primary) !important;
 }
 .cmd-bar-zone > :is(button, a)[class*='text-red-'] {
   background-color: rgb(254 242 242) !important;
@@ -1595,27 +1645,18 @@ main:has(.page-command-drawer) .page-command-bar,
 @media (max-width: 1024px) {
   :root {
     --gawdux-page-inset: var(--gawdux-compact-inset);
+    --gawdux-frame-gutter: 0px;
   }
-  main .context-surface:not(.context-surface .context-surface),
-	main .context-surface .page-tabs-shell.context-surface {
-    border-left-width: 0 !important;
-    border-right-width: 0 !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-  }
-  main .context-surface:not(.context-surface .context-surface) > .surface-feedback:first-child {
-    border-radius: 0;
-  }
-  main .page-command-bar {
+  .page-frame-panel {
     border-left-width: 0;
     border-right-width: 0;
     border-bottom-width: 0;
     border-radius: 0;
     box-shadow: none;
   }
-  main .page-command-drawer {
-    border-left-width: 0;
-    border-right-width: 0;
+  .page-frame-surface,
+	.page-frame-panel > .page-command-bar {
+    border-radius: 0;
   }
   .master-detail-inset {
     margin: 0;

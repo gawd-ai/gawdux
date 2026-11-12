@@ -18,7 +18,7 @@
 	import { scrollEdges } from './scroll-edges';
 	import { fitLabels } from './fit-labels';
 	export let className: string = 'w-full tabs-underline tabs-stick';
-	export let contentClass: string = 'tab-content scroll-surface !mt-0 rounded-b-lg';
+	export let contentClass: string = 'tab-content scroll-surface !mt-0';
 	export let shellClass: string = 'page-tabs-shell';
 	export let divider = false;
 	export let panelId: string | undefined = undefined;
@@ -34,9 +34,10 @@
 	$: tabClaim?.report(openTab);
 	onDestroy(() => tabClaim?.release());
 
-	/* Inside an EditablePageScaffold this shell owns the panel, so it renders
-	   the page's feedback strip between the tab strip and the content: the
-	   messages sit inside the panel and the tabs never move. */
+	/* Inside an EditablePageScaffold these tabs head the page's content in the
+	   frame, so the shell renders the page's feedback strip between the tab
+	   strip and the content: the messages sit under the tabs and the tabs
+	   never move. */
 	const host = getContext<SurfaceFeedbackHost | undefined>(SURFACE_FEEDBACK_CONTEXT);
 	const release = host?.claim() ?? null;
 	const feedback = release && host ? host.state : readable<SurfaceFeedbackState | null>(null);
@@ -117,11 +118,14 @@
 	}
 </script>
 
-<!-- The `below` slot lets a page render persistent content (e.g. a streaming
-     console) inside the same panel chrome, surviving tab switches. Pair it
-     with contentClass="hidden" on the active tab to swap which body shows. -->
+<!-- The tabs are content of the page frame (PageFrame), which draws the
+     panel: the shell fills the frame (.page-fill) and draws no surface, edge
+     or corner of its own. The `below` slot lets a page render persistent
+     content (e.g. a streaming console) under the tabs, surviving tab
+     switches. Pair it with contentClass="hidden" on the active tab to swap
+     which body shows. -->
 <div
-	class="context-surface gawdux-page-tabs {shellClass}"
+	class="page-fill gawdux-page-tabs {shellClass}"
 	class:page-tabs-has-status={Boolean($drawnStatus && statusHost)}
 	use:wirePanel={{ id: panelId, labelledBy: panelLabelledBy }}
 	use:stripChrome

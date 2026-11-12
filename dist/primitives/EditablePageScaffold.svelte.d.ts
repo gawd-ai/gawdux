@@ -36,11 +36,11 @@ declare const EditablePageScaffold: $$__sveltets_2_IsomorphicComponent<$$__svelt
     kindRenderers?: LifecycleKindRenderers;
     /** The tab, or tabs, whose acts the `actions` slot holds (PAGE_TAB_CONTEXT):
             shown only while one of them is open. None: the page's, on every tab. */ actionsTab?: PageTabScope;
-    /** When true, wraps slot content in `.context-surface .page-tabs-shell`
-            so single-panel pages (create / edit forms) get the same white shell
-            + bar-merge as PageTabs / ListSurface pages. Detail pages that
-            already render their own `<PageTabs>` (which carries the wrapper)
-            should leave this false. */ surface?: boolean;
+    /** When true, the scaffold draws the page's content in the frame
+            (PageFrame) itself: the feedback strip, then the body, an inset host
+            that fills the frame (.page-fill), for single-panel pages (create /
+            edit forms). Detail pages that render their own `<PageTabs>` leave
+            this false. Either way the frame draws the panel. */ surface?: boolean;
     /** With `surface`: the surface hosts panes, not content (a list beside a
             reader), so its body takes no inset and the panes run to the panel's
             edges, as a two-pane card's do. The inset stays the one value the

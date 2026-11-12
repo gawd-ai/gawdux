@@ -3,7 +3,7 @@ export type { ConfigBuilderOptions, GroupDefinition } from './config-builder';
 export { isBrowser, getStorageItem, setStorageItem, removeStorageItem } from './browser';
 export { fieldError, hasFieldErrors, clearFieldError, firstFieldError, focusFirstFieldError } from './form-errors';
 export type { FieldErrors } from './form-errors';
-export { createEditMode } from './edit-mode.svelte';
+export { createEditMode, editSnapshot, sameEditValue } from './edit-mode.svelte';
 export type { EditModeOptions, EditModeSnapshot, EditModeApi } from './edit-mode.svelte';
 export { applySessionFilters, initListState, listStateQuery, listStateValuesFrom } from './list-state';
 export type { ListStateField, ListStateConfig, ListState, ListStateQuery, ListStateUserId } from './list-state';
@@ -39,4 +39,4 @@ export { APP_MESSAGE_CENTER_CONTEXT, getAppMessageCenter } from './message-cente
 export { DiscardNavigationController, DISCARD_NAVIGATION_CONTEXT, navigationTargets, useGuardedGoto } from './discard-navigation.svelte';
 export type { DiscardGuardRegistration, DiscardNavigationRequest, DiscardNavigationRuntime, GuardedGoto, RequestDiscardNavigation } from './discard-navigation.svelte';
 export { COLOR_THEME_STORAGE_KEY, isDarkTheme, setColorTheme, toggleColorTheme, watchColorTheme } from './color-theme';
-export { ACTION_LABEL_WORDS, drawsTabs, handDrawnIconCounts, handRolledRailRows, handSetCardPadding, handSizedIcons, insetOverrides, itemActsInCards, miscasedActionLabels, questioningConfirmations, registersWithoutPhoneSort, shadowedFlowbiteImports, statusAmongControls, surfaceShadows, tabsAfterHistory, untabbedBarActs, unlabelledRegisterCells, vanishingDarkEdges, withoutComments } from './surface-rules';
+export { ACTION_LABEL_WORDS, drawsTabs, elevationReads, handDrawnCancels, pageSurfacesOutsideFrame, handDrawnIconCounts, handRolledRailRows, handSetCardPadding, handSizedIcons, insetOverrides, itemActsInCards, miscasedActionLabels, questioningConfirmations, registersWithoutPhoneSort, shadowedFlowbiteImports, statusAmongControls, surfaceShadows, tabsAfterHistory, untabbedBarActs, unlabelledRegisterCells, vanishingDarkEdges, withoutComments } from './surface-rules';

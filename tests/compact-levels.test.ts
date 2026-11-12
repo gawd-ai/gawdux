@@ -69,25 +69,18 @@ for (const [name, css] of [
 			expect(wide).not.toHaveProperty('padding-inline');
 		});
 
-		it('runs the outermost panel, the tabs nested in it and the command bar edge to edge', () => {
-			const edge = {
-				'border-left-width': '0',
-				'border-right-width': '0',
-				'border-radius': '0',
-				'box-shadow': 'none'
-			};
-			expect(
-				declarations(narrow, 'main .context-surface:not(.context-surface .context-surface)')
-			).toEqual(edge);
-			expect(declarations(narrow, 'main .context-surface .page-tabs-shell.context-surface')).toEqual(
-				edge
-			);
-			expect(declarations(narrow, 'main .page-command-bar')).toEqual({
+		it('runs the page frame edge to edge: no gutter, no side or bottom edge, no radius, no shadow', () => {
+			expect(declarations(narrow, ':root')).toMatchObject({ '--gawdux-frame-gutter': '0px' });
+			expect(declarations(narrow, '.page-frame-panel')).toEqual({
 				'border-left-width': '0',
 				'border-right-width': '0',
 				'border-bottom-width': '0',
 				'border-radius': '0',
 				'box-shadow': 'none'
+			});
+			expect(declarations(narrow, '.page-frame-surface')).toEqual({ 'border-radius': '0' });
+			expect(declarations(narrow, '.page-frame-panel > .page-command-bar')).toEqual({
+				'border-radius': '0'
 			});
 		});
 
@@ -123,20 +116,23 @@ for (const [name, css] of [
 			});
 		});
 
-		it('leaves the surface its own bottom edge: only a drawn bar takes it', () => {
-			expect(declarations([root], 'main:has(.page-command-bar .cmd-bar-zone > *) .context-surface')).toEqual({
+		it('leaves the surface its own bottom corners: only a drawn bar takes them', () => {
+			expect(
+				declarations(
+					[root],
+					'.page-frame-panel:has(> .page-command-bar .cmd-bar-zone > *) > .page-frame-surface'
+				)
+			).toEqual({
 				'border-bottom-left-radius': '0',
-				'border-bottom-right-radius': '0',
-				'border-bottom-width': '0'
+				'border-bottom-right-radius': '0'
 			});
-			// The panel still reaches the bottom of the column.
-			expect(declarations([root], 'main:has(.page-command-bar) .context-surface')).toMatchObject({
+			// The surface reaches the bottom of the column whether a bar is drawn or not.
+			expect(declarations([root], '.page-frame-surface')).toMatchObject({
 				display: 'flex',
-				flex: '1 1 auto'
+				flex: '1 1 auto',
+				overflow: 'auto',
+				'border-radius': 'calc(0.5rem - 1px)'
 			});
-			expect(declarations([root], 'main:has(.page-command-bar) .context-surface')).not.toHaveProperty(
-				'border-bottom-width'
-			);
 		});
 	});
 }

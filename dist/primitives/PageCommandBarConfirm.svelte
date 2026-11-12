@@ -2,15 +2,16 @@
 	import { getContext, onDestroy, tick } from 'svelte';
 	import { get, readable } from 'svelte/store';
 	import { PAGE_TAB_CONTEXT, type PageTabHost } from './page-chrome';
-	import { Button } from 'flowbite-svelte';
-	import PageCommandBarCenter from './PageCommandBarCenter.svelte';
+	import PageCommandBarPair from './PageCommandBarPair.svelte';
 
 	/**
 	 * A decision the operator makes at the command bar, the way every
 	 * command surface opens: a drawer rises out of the bar and carries the
 	 * question, while Cancel / Confirm take the bar's center zone in place of
 	 * the page's action buttons (the newest center registration wins, so the
-	 * page's buttons return the moment the decision closes). Mount it where
+	 * page's buttons return the moment the decision closes), as the house's
+	 * one action pair (PageCommandBarPair): a confirmation takes no input, so
+	 * its Cancel is neutral. Mount it where
 	 * the page's content ends, so the drawer sits between the content surface
 	 * and the bar. Escape cancels; focus lands on Confirm and returns to
 	 * `focusTarget` (or `focusFallback()`) when the decision closes. The
@@ -181,22 +182,16 @@
 		<p class="page-command-drawer-error" role="alert">{error}</p>
 	{/if}
 	<!-- Without a bar host (tests, previews) the buttons render here. -->
-	<PageCommandBarCenter>
-		{#if cancelLabel}
-			<Button outline color="red" data-action-cancel disabled={busy} onclick={cancel}>
-				{cancelLabel}
-			</Button>
-		{/if}
-		<Button
-			outline
-			color={confirmColor}
-			data-action-confirm
-			data-confirm-for={componentId}
-			aria-describedby={message ? messageId : undefined}
-			disabled={busy || disabled}
-			onclick={confirm}
-		>
-			{busy ? busyLabel : confirmLabel}
-		</Button>
-	</PageCommandBarCenter>
+	<PageCommandBarPair
+		label={confirmLabel}
+		{busyLabel}
+		tone={confirmColor}
+		{busy}
+		{disabled}
+		onact={confirm}
+		{cancelLabel}
+		oncancel={cancel}
+		confirmFor={componentId}
+		describedBy={message ? messageId : undefined}
+	/>
 </section>

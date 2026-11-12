@@ -11,8 +11,10 @@ describe("PageTabs `below` slot (additive merge)", () => {
       props: { withBelow: false },
     });
 
-    const shell = container.querySelector(".context-surface.page-tabs-shell");
+    // The tabs fill the page frame and draw no surface of their own.
+    const shell = container.querySelector(".page-fill.gawdux-page-tabs.page-tabs-shell");
     expect(shell).not.toBeNull();
+    expect(shell?.classList.contains("context-surface")).toBe(false);
     expect(screen.getByTestId("tab-body").textContent).toBe("first tab body");
     expect(screen.queryByTestId("below-content")).toBeNull();
     // The shell contains exactly the Tabs output (tab strip + content pane)
@@ -20,12 +22,12 @@ describe("PageTabs `below` slot (additive merge)", () => {
     expect(shell?.childElementCount).toBe(2);
   });
 
-  it("renders persistent below content inside the same panel chrome, after the tabs", () => {
+  it("renders persistent below content inside the tabs' shell, after the tabs", () => {
     const { container } = render(PageTabsBelowHarness, {
       props: { withBelow: true },
     });
 
-    const shell = container.querySelector(".context-surface.page-tabs-shell")!;
+    const shell = container.querySelector(".page-fill.page-tabs-shell")!;
     const below = screen.getByTestId("below-content");
     expect(shell.contains(below)).toBe(true);
     expect(below.textContent).toBe("persistent console");

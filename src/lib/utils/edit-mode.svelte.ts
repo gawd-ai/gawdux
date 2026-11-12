@@ -1,4 +1,4 @@
-import { writable, get, type Readable } from 'svelte/store';
+import { derived, writable, get, type Readable } from 'svelte/store';
 import {
 	clearFieldError,
 	focusFirstFieldError,
@@ -15,6 +15,62 @@ export interface EditModeSnapshot<F extends string, D> {
 	edited: D;
 	actionError: string | null;
 	fieldErrors: FieldErrors<F>;
+	/** A field has changed since `start`: cancelling would discard an edit.
+	    Changing a field back to what it was, or clearing a field that was
+	    empty, leaves nothing to discard. */
+	changed: boolean;
+}
+
+type EditModeState<F extends string, D> = Omit<EditModeSnapshot<F, D>, 'changed'>;
+
+/** Nothing typed: an empty string, null and undefined are one value. */
+function isEmpty(value: unknown): boolean {
+	return value === undefined || value === null || value === '';
+}
+
+/** A deep copy of a record's values to measure an edit against: dates,
+    arrays and objects copied (a reactive proxy read through its keys), any
+    other value kept as it is. A form that is not an edit mode measures its
+    input the same way: `!sameEditValue(model, editSnapshot(modelAsOpened))`. */
+export function editSnapshot<V>(value: V): V {
+	return snapshotValue(value) as V;
+}
+
+function snapshotValue(value: unknown): unknown {
+	if (value instanceof Date) return new Date(value.getTime());
+	if (Array.isArray(value)) return value.map(snapshotValue);
+	if (value && typeof value === 'object') {
+		const proto = Object.getPrototypeOf(value);
+		if (proto !== Object.prototype && proto !== null) return value;
+		return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, snapshotValue(v)]));
+	}
+	return value;
+}
+
+/** Whether two values of an edited record hold the same input. */
+export function sameEditValue(a: unknown, b: unknown): boolean {
+	if (isEmpty(a) && isEmpty(b)) return true;
+	if (a instanceof Date || b instanceof Date) {
+		return a instanceof Date && b instanceof Date && a.getTime() === b.getTime();
+	}
+	if (Array.isArray(a) || Array.isArray(b)) {
+		if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+		return a.every((item, index) => sameEditValue(item, b[index]));
+	}
+	const plain = (v: unknown): v is Record<string, unknown> =>
+		Boolean(v) &&
+		typeof v === 'object' &&
+		[Object.prototype, null].includes(Object.getPrototypeOf(v as object));
+	if (plain(a) && plain(b)) {
+		const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+		for (const key of keys) {
+			if (!sameEditValue(a[key], b[key])) {
+				return false;
+			}
+		}
+		return true;
+	}
+	return Object.is(a, b);
 }
 
 export interface EditModeApi<T, F extends string = string, D = Partial<T>>
@@ -25,6 +81,8 @@ export interface EditModeApi<T, F extends string = string, D = Partial<T>>
 	edited: D;
 	actionError: string | null;
 	fieldErrors: FieldErrors<F>;
+	/** A field has changed since `start` (read-only). */
+	readonly changed: boolean;
 	// Field-level setter so callers can update one field of `edited` without
 	// reassigning the whole draft. Triggers store notify.
 	setEditedField<K extends keyof D>(key: K, value: D[K]): void;
@@ -44,14 +102,21 @@ export interface EditModeApi<T, F extends string = string, D = Partial<T>>
 export function createEditMode<T, F extends string = string, D = Partial<T>>(
 	opts: EditModeOptions<F> = {}
 ): EditModeApi<T, F, D> {
-	const store = writable<EditModeSnapshot<F, D>>({
+	const store = writable<EditModeState<F, D>>({
 		isEditing: false,
 		edited: {} as D,
 		actionError: null,
 		fieldErrors: {}
 	});
+	// The record as `start` received it, cloned apart from `edited`, which
+	// row bindings mutate in place: what an edit is measured against.
+	let baseline: unknown = undefined;
+	function changedIn(state: EditModeState<F, D>): boolean {
+		return state.isEditing && !sameEditValue(baseline, state.edited);
+	}
+	const snapshot = derived(store, (state) => ({ ...state, changed: changedIn(state) }));
 
-	function patch(updates: Partial<EditModeSnapshot<F, D>>) {
+	function patch(updates: Partial<EditModeState<F, D>>) {
 		store.update((s) => ({ ...s, ...updates }));
 	}
 
@@ -101,7 +166,11 @@ export function createEditMode<T, F extends string = string, D = Partial<T>>(
 	}
 
 	return {
-		subscribe: store.subscribe,
+		subscribe: snapshot.subscribe,
+
+		get changed() {
+			return changedIn(get(store));
+		},
 
 		get isEditing() {
 			return get(store).isEditing;
@@ -143,6 +212,7 @@ export function createEditMode<T, F extends string = string, D = Partial<T>>(
 			} catch {
 				cloned = (draft && typeof draft === 'object' ? { ...draft } : draft) as D;
 			}
+			baseline = snapshotValue(draft);
 			patch({ isEditing: true, edited: cloned, fieldErrors: {}, actionError: null });
 		},
 

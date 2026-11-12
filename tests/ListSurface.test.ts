@@ -114,3 +114,21 @@ describe('ListSurface rail slot', () => {
 		}
 	});
 });
+
+describe('ListSurface card: a page list is the frame\'s content', () => {
+	it('draws no card for a page list, a card for an embedded list, and none when the list is its pane\'s content', async () => {
+		const { default: ListSurface } = await import('../src/lib/primitives/ListSurface.svelte');
+		const container = (props: Record<string, unknown>) => {
+			const view = render(ListSurface, { props });
+			const root = view.container.querySelector('.table-container') as HTMLElement;
+			const classes = [...root.classList];
+			view.unmount();
+			return classes;
+		};
+		expect(container({ mode: 'page' })).toContain('table-container-flat');
+		expect(container({ mode: 'page' })).not.toContain('rounded-lg');
+		expect(container({ mode: 'embedded' })).toContain('rounded-lg');
+		expect(container({ mode: 'embedded', card: false })).toContain('table-container-flat');
+		expect(container({ mode: 'page', card: true })).toContain('table-container-flat');
+	});
+});

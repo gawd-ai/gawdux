@@ -173,6 +173,9 @@
 	--gawdux-tile-min-width: 9rem;
 	--gawdux-page-inset: calc(var(--spacing, 0.25rem) * 4);
 	--gawdux-compact-inset: calc(var(--spacing, 0.25rem) * 2);
+	/* The page frame's inset from the column's sides and bottom (PageFrame):
+	   8px; none at the compact width, where the frame runs edge to edge. */
+	--gawdux-frame-gutter: calc(var(--spacing, 0.25rem) * 2);
 	--gawdux-panel-wide-max-width: 72rem;
 	--gawdux-icon-size: 1.25rem;
 	--gawdux-table-head-icon-size: 1rem;
@@ -407,17 +410,17 @@
 		border-bottom-color: var(--gawdux-border) !important;
 	}
 
+	/* PageTabs' shell is content of the page frame (PageFrame), which draws
+	   the panel: no edge, corner or surface of its own. */
 	.page-tabs-shell {
-		@apply w-full rounded-lg border;
-		background-color: var(--gawdux-surface-card);
-		border-color: var(--gawdux-border);
+		@apply w-full;
 	}
 
 	/* Fill-mode propagation. When the active tab's content uses TabFillPanel
 	   (.tab-fill-panel), the shell + flowbite's tabpanel switch to a flex
 	   column that fills its parent. <main> is already `flex-1 min-h-0
-	   flex-col` (and .context-surface adds the same constraint when paired
-	   with a page-command-bar), so the chain has a real height to share.
+	   flex-col` (and the page frame's surface and every .page-fill host add
+	   the same constraint), so the chain has a real height to share.
 
 	   `flex: 1 1 0%` (zero basis) — Tailwind's flex-1 default — is important:
 	   `flex: 1 1 auto` combined with `height: 100%` further down creates a
@@ -490,6 +493,13 @@
 		@apply border rounded-lg;
 		background-color: var(--gawdux-surface-card);
 		border-color: var(--gawdux-border);
+	}
+	/* A list that is the page's own content (ListSurface's page list): the
+	   page frame draws the panel, so the list draws no card. */
+	.table-container.table-container-flat {
+		border-width: 0;
+		border-radius: 0;
+		background-color: transparent;
 	}
 
 	.list-page-scaffold {
@@ -840,15 +850,13 @@ div.inline-flex.items-center.justify-center.font-medium {
 	border-radius: 9999px !important;
 }
 
-/* The page's one elevation (--gawdux-surface-elevation): the outermost
-   content surface, the page's panel on the shell's background, and the
-   command bar it fuses with (below). A surface nested in it draws none: a
-   card, a panel, a pane, a table's box, a tile, a drawer, a notice. The
-   level-zero rule at the compact width takes it away on a phone. Tailwind's
-   .shadow-md reads the same token, softer than Tailwind's own in light. */
-.context-surface:not(.context-surface .context-surface) {
-	box-shadow: var(--gawdux-surface-elevation);
-}
+/* The page's one elevation (--gawdux-surface-elevation) is the page
+   frame's (PageFrame, below): its panel on the shell's background, and the
+   content's elevation falling on the command bar at the seam. Nothing in
+   the page draws one: a card, a panel, a pane, a table's box, a tile, a
+   drawer, a notice. Tailwind's .shadow-md, which Flowbite's floating frames
+   (a menu, a popover) carry, reads the same token, softer than Tailwind's
+   own in light. */
 .shadow-md {
 	box-shadow: var(--gawdux-surface-elevation) !important;
 }
@@ -939,83 +947,127 @@ div.inline-flex.items-center.justify-center.font-medium {
 	scrollbar-color: #4b5563 #1f2937;
 }
 
-/* ---------- Page command bar / context-surface merge ---------- */
-/* When the page command bar is paired with a .context-surface (the
-   page's outermost rounded panel — applied implicitly by PageTabs, or
-   manually by single-card / form-only pages), the two merge into one
-   unified panel. The surface loses its bottom rounding/border, the bar
-   loses its top rounding, and both keep the one elevation
-   (--gawdux-surface-elevation) so the merged stack has a uniform shadow
-   profile.
-   `flex: 1` lets the surface stretch to fill available vertical space
-   so its bottom edge is always flush against the bar (otherwise the
-   bar's `mt-auto` would leave a gap on short pages). */
-/* Two layouts supported:
-   (A) bar inside <main> alongside the surface — legacy
-   (B) bar sibling of <main> in a `.page-shell` wrapper — fleet & new
-       consumers wanting a sticky-at-viewport-bottom bar
-   A bar with nothing to hold is not drawn (below), and the surface then
-   keeps its own bottom edge: only a drawn bar takes it. The stretch holds
-   either way, so the panel reaches the bottom of the column. */
-main:has(.page-command-bar .cmd-bar-zone > *) .context-surface,
-.page-shell:has(> .page-command-bar .cmd-bar-zone > *) > main .context-surface {
-	border-bottom-left-radius: 0 !important;
-	border-bottom-right-radius: 0 !important;
-	border-bottom-width: 0 !important;
+/* ---------- The page frame (PageFrame) ----------
+   One frame per page, rendered once by the app shell: every page's content
+   stands in its surface and the command bar closes it. The frame owns the
+   page's panel and its junction with the bar at every width; no host draws
+   a page-level surface, panel, edge, corner or seam of its own.
+   - Inset: the frame stands --gawdux-frame-gutter in from the column's
+     sides and bottom (8px), and 1px under the header.
+   - Panel: one edge (--gawdux-border) and one radius (0.5rem) around the
+     surface and the bar together, and the page's one elevation
+     (--gawdux-surface-elevation) on the shell's background.
+   - Surface: the content's card surface; its own scroller, so content that
+     manages no scrolling of its own scrolls inside it and the bar stays.
+   - The seam: a drawn bar takes the surface's bottom corners, so the seam
+     is one straight full-width edge with no gap and no band; neither the
+     surface nor the bar draws a line there; the content's elevation falls
+     on the bar's top edge (the bar's ::before, the token, cut to what lies
+     below the seam). While a drawer is open out of the bar it is the bar's
+     top, so the elevation falls on the drawer's top edge instead and
+     nothing marks the drawer's junction with the bar.
+   - A bar with nothing to hold is not drawn (below), and the surface keeps
+     its own bottom corners.
+   - A card nested in the content (a master-detail card, a list's card, a
+     form card) never meets the bar: the frame's surface does, and a nested
+     card's corners stay its own.
+   At the compact width the frame runs edge to edge (levels zero and one,
+   below). */
+.page-frame {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-width: 0;
+	min-height: 0;
+	overflow: hidden;
+	padding: 1px var(--gawdux-frame-gutter) var(--gawdux-frame-gutter);
 }
-main:has(.page-command-bar) .context-surface,
-.page-shell:has(> .page-command-bar) > main .context-surface {
-	/* display:flex + overflow:hidden is what actually constrains the panel
-	   to its computed height: without it the surface stretches but its
-	   children (sticky tab strip + content div) stack as blocks and the
-	   content grows past the viewport — panel border ends up below the
-	   fold and rounded corners reappear. The matching rule on .scroll-
-	   surface (min-h-0 flex-1 overflow-auto) then scrolls inside the
-	   panel instead of the page. some consumers use named .dashboard-* classes for
-	   this; we promote it to a generic rule so any consumer benefits. */
+.page-frame-panel {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-width: 0;
+	min-height: 0;
+	border: 1px solid var(--gawdux-border);
+	border-radius: 0.5rem;
+	box-shadow: var(--gawdux-surface-elevation);
+}
+.page-frame-surface {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-width: 0;
+	min-height: 0;
+	overflow: auto;
+	background-color: var(--gawdux-surface-card);
+	border-radius: calc(0.5rem - 1px);
+}
+.page-frame-panel:has(> .page-command-bar .cmd-bar-zone > *) > .page-frame-surface {
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+}
+.page-frame-panel > .page-command-bar {
+	position: relative;
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+	border-bottom-left-radius: calc(0.5rem - 1px);
+	border-bottom-right-radius: calc(0.5rem - 1px);
+}
+.page-frame-panel > .page-command-bar::before,
+.page-frame-surface .page-command-drawer::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 100%;
+	height: 1rem;
+	box-shadow: var(--gawdux-surface-elevation);
+	clip-path: inset(100% -1rem -1rem -1rem);
+	pointer-events: none;
+}
+.page-frame-panel:has(.page-command-drawer) > .page-command-bar::before {
+	content: none;
+}
+
+/* The frame's content fills it. A Gawdux host that is the page's content
+   (PageTabs' shell, EditablePageScaffold's surface, ListSurface's page
+   list, a TableContainer that fills) carries .page-fill: a column that
+   takes the height its parent gives and shares it with its children.
+   Every wrapper between such a host and the frame's surface takes the same
+   column, however deep the page nests it, so the host's own scroller (a
+   tab panel, a list) scrolls inside the frame. Layout only: .page-fill
+   draws no surface, edge, corner or shadow. */
+.page-fill {
 	display: flex;
 	flex-direction: column;
 	flex: 1 1 auto;
 	min-height: 0;
 	overflow: hidden;
 }
-/* A page may NEST surfaces — e.g. PageTabs renders its shell as
-   .context-surface and a TableContainer inside a tab is ANOTHER
-   .context-surface. The merge rule above squares every .context-surface, so
-   an inner table (esp. when empty/short) reads as un-rounded at the bottom.
-   Only the OUTERMOST panel should fuse with the command bar — restore the
-   inner panel's own bottom rounding + border here (overflow:hidden is
-   inherited from the rule above, so the table clips to the restored radius).
-   Plain descendant selector (no :not) for processor portability. */
-main:has(.page-command-bar .cmd-bar-zone > *) .context-surface .context-surface,
-.page-shell:has(> .page-command-bar .cmd-bar-zone > *) > main .context-surface .context-surface {
-	border-bottom-left-radius: 0.5rem !important;
-	border-bottom-right-radius: 0.5rem !important;
-	border-bottom-width: 1px !important;
-}
-main:has(.context-surface) .page-command-bar,
-.page-shell:has(> main .context-surface) > .page-command-bar {
-	border-top-left-radius: 0;
-	border-top-right-radius: 0;
-	border-top-width: 0;
-}
-
-/* Propagate the flex stretch from <main> down through arbitrary wrapper
-   <div>s to the .context-surface, so the panel actually extends down to
-   the bar even when the page nests its surface a few levels deep
-   (common when a detail page wraps tabs in a layout div).
-   Without this, `flex: 1 1 auto` on the surface only acts inside its
-   direct flex parent — non-flex wrappers swallow the stretch and the
-   panel collapses to its natural height, leaving body bg between it
-   and the bar.
-   The pattern uses named .detail-page / .detail-tabs classes for
-   this; we promote it to a generic rule so any consumer benefits. */
-main:has(.page-command-bar) *:has(> .context-surface),
-.page-shell:has(> .page-command-bar) > main *:has(> .context-surface) {
+.page-frame-surface *:has(> .page-fill) {
 	display: flex;
 	flex-direction: column;
 	flex: 1 1 auto;
 	min-height: 0;
+}
+
+/* A printed page is its content: the frame draws no panel, edge, inset or
+   elevation on paper, grows to its content instead of clipping it, and the
+   command bar, a control, is not printed. */
+@media print {
+	.page-frame,
+	.page-frame-panel,
+	.page-frame-surface {
+		display: block;
+		padding: 0;
+		border: 0;
+		border-radius: 0;
+		box-shadow: none;
+		overflow: visible;
+	}
+	.page-command-bar {
+		display: none !important;
+	}
 }
 
 
@@ -1034,22 +1086,13 @@ main:has(.page-command-bar) *:has(> .context-surface),
 .surface-feedback > * + * {
 	border-top: 1px solid var(--gawdux-border);
 }
-/* First thing in a rounded panel: follow the corner. */
-.context-surface > .surface-feedback:first-child {
-	overflow: hidden;
-	border-top-left-radius: calc(0.5rem - 1px);
-	border-top-right-radius: calc(0.5rem - 1px);
-}
 
 /* ---------- Mission-control page command bar ---------- */
-/* Bottom command bar that lives inside <main> as the last child with
-   mt-auto, so the panel's stretch-to-viewport behavior anchors the bar
-   at the bottom edge. Styled as a card-like footer (matching content
-   surface bg + border) so it reads as part of the content panel
-   rather than separate chrome. Three CSS zones from day one:
-   left = supplementary actions, center = lifecycle actions / status,
-   right = pagination + meta. The grid here is the stacked layout's base;
-   at every width the stacked query does not match, the zones are a
+/* The bottom command bar: PageFrame draws it under the frame's surface, in
+   the frame's panel, which draws its edges, corners and elevation (above).
+   Three zones: left = supplementary actions, center = lifecycle actions /
+   status, right = pagination + meta. The grid here is the stacked layout's
+   base; at every width the stacked query does not match, the zones are a
    wrapping flex row (below). */
 .page-command-bar {
 	margin-top: auto;
@@ -1061,18 +1104,13 @@ main:has(.page-command-bar) *:has(> .context-surface),
 	/* A bar with nothing to hold is not drawn (the rule below): no empty
 	   strip closes a page that offers no command and no count. When any
 	   zone has content, the :has rule below makes it a full 52px bar with
-	   action-button padding. The merge rule above strips the top border +
-	   top rounding when a .context-surface sits above, so they read as
-	   one continuous panel. The bar and the content surface above it draw
-	   the one elevation, --gawdux-surface-elevation. */
+	   action-button padding. */
 	min-height: 0.5rem;
 	padding: 0;
-	/* The content surface's own edge colour, so the bar, the card above it
-	   and a drawer between them draw one line. */
 	background-color: var(--gawdux-command-surface);
-	border: 1px solid var(--gawdux-border);
-	border-radius: 0.5rem;
-	box-shadow: var(--gawdux-surface-elevation);
+	border: 0;
+	border-radius: 0;
+	box-shadow: none;
 }
 .page-command-bar:has(.cmd-bar-zone > *) {
 	min-height: 52px;
@@ -1108,44 +1146,25 @@ main:has(.page-command-bar) *:has(> .context-surface),
 /* The command drawer: a decision or a small form rising out of the bar.
    The drawer and the bar read as one surface that opened up out of the bar:
    - on the bar's own surface (--gawdux-command-surface);
-   - the only line between the content and the drawer is the drawer's top
-     edge, the seam, in the content surface's edge colour (--gawdux-border),
-     the colour of the bar's and the card's own edges;
-   - no line between the drawer and the bar: the drawer has no bottom edge
-     and the bar loses its top edge and top corners while one is open;
-   - the drawer's sides continue the bar's: drawn by the drawer itself when
-     it stands in the column beside the content surface, by the content
-     surface when it opens at the bottom of that surface (below), and by
-     neither at the compact width, where the surface and the bar have none;
-   - no shadow of its own, and square: the content surface above already
-     gave up its bottom edge and corners to the bar, so the drawer meets it
-     flat.
+   - it opens at the bottom of the page frame's surface, which every page
+     renders in, so the frame's panel draws its sides as it draws the bar's,
+     and at the compact width neither has any;
+   - the content meets it as it meets the closed bar: the seam is the
+     drawer's top edge, where the content's elevation falls (the frame's
+     seam rule above), with no line;
+   - no line between the drawer and the bar, no shadow of its own, square.
    The drawer holds the words; the buttons take the bar's center zone
    (PageCommandBarCenter). */
 .page-command-drawer {
+	position: relative;
 	margin-top: auto;
 	flex-shrink: 0;
 	padding: 0.75rem 1rem;
 	text-align: center;
 	background-color: var(--gawdux-command-surface);
-	border: 1px solid var(--gawdux-border);
-	border-bottom-width: 0;
+	border: 0;
 	border-radius: 0;
 	box-shadow: none;
-}
-/* Opened at the bottom of the content surface (a pane's own decision, inside
-   the card), the drawer leaves the sides to the surface: its own would be a
-   second line inside the card's, stopping where the bar begins. */
-.context-surface .page-command-drawer {
-	border-left-width: 0;
-	border-right-width: 0;
-}
-main:has(.page-command-drawer) .page-command-bar,
-.page-shell:has(> main .page-command-drawer) > .page-command-bar {
-	margin-top: 0;
-	border-top-left-radius: 0;
-	border-top-right-radius: 0;
-	border-top-width: 0;
 }
 .page-command-drawer-title {
 	margin: 0;
@@ -1338,7 +1357,34 @@ main:has(.page-command-drawer) .page-command-bar,
 	color: rgb(191 219 254) !important;
 }
 
-/* Red variant — Retire (destructive) and Cancel (discard). */
+/* A focus ring only on keyboard focus, drawn as an outline that never
+   changes a button's size; Flowbite's own ring (a 4px box-shadow on any
+   focus, a click or a script's included) is never drawn in the bar, so a
+   decision's act focused on open reads the size of the Cancel beside it. */
+.cmd-bar-zone > :is(button, a) {
+	box-shadow: none !important;
+	outline: none;
+}
+.cmd-bar-zone > :is(button, a):focus-visible {
+	outline: 2px solid var(--gawdux-focus-ring);
+	outline-offset: 2px;
+}
+
+/* Neutral variant: a decision's Cancel that discards nothing goes back out
+   of the decision (PageCommandBarPair). The house neutral outline, the
+   card surface and the input edge, never a tone of its own. */
+.cmd-bar-zone > :is(button, a)[data-tone='neutral'] {
+	background-color: var(--gawdux-surface-card) !important;
+	color: var(--gawdux-text-secondary) !important;
+	border-color: var(--gawdux-border-input) !important;
+}
+.cmd-bar-zone > :is(button, a)[data-tone='neutral']:hover:not(:disabled) {
+	background-color: var(--gawdux-surface-subtle) !important;
+	border-color: var(--gawdux-border-strong) !important;
+	color: var(--gawdux-text-primary) !important;
+}
+
+/* Red variant: Retire (destructive), and a Cancel that discards input. */
 .cmd-bar-zone > :is(button, a)[class*='text-red-'] {
 	background-color: rgb(254 242 242) !important;
 	color: rgb(185 28 28) !important;
@@ -2170,40 +2216,29 @@ main:has(.page-command-drawer) .page-command-bar,
 /* ---------- Tight levels zero and one on a phone ----------
    At or below the compact width the shell's nesting gives its width back to
    the content. Level zero, between the screen and the page's panel, is none:
-   the outermost content surface and the command bar run edge to edge, with
-   no side border, no radius and no shadow, and a page's tabs nested in its
-   panel span it too. Level one, the panel's inset and the content inset of
-   the hosts directly inside it (every inset host, the filter bar), is
-   --gawdux-compact-inset, 8px. MasterDetailShell's card is that content, so
-   it spans the panel too. Boxes nested in the content (a card, a field, a
-   tile) keep their own padding and gain the width. A host's own column
-   gives up its side gap at the same width. */
+   the page frame runs edge to edge, no gutter, its panel with no side or
+   bottom edge, no radius and no shadow of its own (its top edge stays, under
+   the header); the seam keeps the content's elevation on the bar, as at
+   every width. Level one, the content inset of the hosts directly inside the
+   frame (every inset host, the filter bar), is --gawdux-compact-inset, 8px.
+   MasterDetailShell's card is that content, so it spans the frame too.
+   Boxes nested in the content (a card, a field, a tile) keep their own
+   padding and gain the width. */
 @media (max-width: 1024px) {
 	:root {
 		--gawdux-page-inset: var(--gawdux-compact-inset);
+		--gawdux-frame-gutter: 0px;
 	}
-	main .context-surface:not(.context-surface .context-surface),
-	main .context-surface .page-tabs-shell.context-surface {
-		border-left-width: 0 !important;
-		border-right-width: 0 !important;
-		border-radius: 0 !important;
-		box-shadow: none !important;
-	}
-	main .context-surface:not(.context-surface .context-surface) > .surface-feedback:first-child {
-		border-radius: 0;
-	}
-	main .page-command-bar {
+	.page-frame-panel {
 		border-left-width: 0;
 		border-right-width: 0;
 		border-bottom-width: 0;
 		border-radius: 0;
 		box-shadow: none;
 	}
-	/* A drawer opening out of the bar has no sides here either: the seam is
-	   its one line. */
-	main .page-command-drawer {
-		border-left-width: 0;
-		border-right-width: 0;
+	.page-frame-surface,
+	.page-frame-panel > .page-command-bar {
+		border-radius: 0;
 	}
 	/* MasterDetailShell's card is the panel's content here, not a box inside
 	   it: it spans its host edge to edge, inside an inset host across the

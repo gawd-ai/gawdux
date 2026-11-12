@@ -57,6 +57,8 @@ export type { PasswordRequirementRule } from './PasswordWithRequirements.svelte'
 export { default as PageCommandBar } from './PageCommandBar.svelte';
 export { default as PageCommandBarCenter } from './PageCommandBarCenter.svelte';
 export { default as PageCommandBarConfirm } from './PageCommandBarConfirm.svelte';
+export { default as PageCommandBarPair } from './PageCommandBarPair.svelte';
+export { default as PageFrame } from './PageFrame.svelte';
 export { default as PageCommandBarProgress } from './PageCommandBarProgress.svelte';
 export { default as PageCommandBarRight } from './PageCommandBarRight.svelte';
 export { default as PageFeedback } from './PageFeedback.svelte';

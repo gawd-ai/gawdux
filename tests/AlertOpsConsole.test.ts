@@ -47,7 +47,7 @@ describe('AlertOpsConsole seven surface states', () => {
 		expect(onrefresh).toHaveBeenCalledOnce();
 	});
 
-	it('unavailable sits on the house error state and the page surface', () => {
+	it('unavailable sits on the house error state in the table card', () => {
 		const { container } = render(AlertOpsConsole, {
 			props: {
 				...baseProps,
@@ -57,7 +57,7 @@ describe('AlertOpsConsole seven surface states', () => {
 		const panel = screen.getByTestId('alert-ops-unavailable');
 		expect(panel.querySelector('[data-collection-state="error"]')).not.toBeNull();
 		expect(panel.textContent).toContain('dial tcp: refused');
-		expect(container.querySelector('.context-surface')?.contains(panel)).toBe(true);
+		expect(container.querySelector('.table-container')?.contains(panel)).toBe(true);
 	});
 
 	it('unavailable offers no Retry when the host carries status and Refresh (healthBar off)', () => {
@@ -69,13 +69,13 @@ describe('AlertOpsConsole seven surface states', () => {
 		expect(screen.queryByRole('button', { name: 'Retry' })).toBeNull();
 	});
 
-	it('denied is the house empty state with a lock, on the page surface', () => {
+	it('denied is the house empty state with a lock, in the table card', () => {
 		const { container } = render(AlertOpsConsole, {
 			props: { ...baseProps, data: makeData('denied') }
 		});
 		const denied = screen.getByTestId('alert-ops-denied');
 		expect(denied.querySelector('[data-collection-state="denied"] svg')).not.toBeNull();
-		expect(container.querySelector('.context-surface')?.contains(denied)).toBe(true);
+		expect(container.querySelector('.table-container')?.contains(denied)).toBe(true);
 	});
 
 	it('every tab carries an icon beside its label', () => {

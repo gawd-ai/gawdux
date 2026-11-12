@@ -157,4 +157,25 @@ describe('one question in a confirmation', () => {
 			followed.container.querySelector('[data-confirmation-command]')!.getAttribute('aria-describedby')
 		).toBe(line.id);
 	});
+
+	it("draws its pair as the house's: Cancel neutral (a confirmation takes no input), the act its own tone", () => {
+		render(PageCommandBarConfirm, {
+			props: {
+				title: 'Archive “Draft cleaners”?',
+				confirmLabel: 'Archive role',
+				onconfirm: vi.fn(),
+				oncancel: vi.fn()
+			}
+		});
+		const cancel = screen.getByRole('button', { name: 'Cancel' });
+		const act = screen.getByRole('button', { name: 'Archive role' });
+		expect(cancel.dataset.tone).toBe('neutral');
+		expect(cancel.className).not.toMatch(/text-red-/);
+		expect(act.dataset.tone).toBe('red');
+		// One button for both: the same component and size classes.
+		const size = (el: HTMLElement) =>
+			el.className.split(/\s+/).filter((c) => /^(px|py|text-(xs|sm|base)|h)-/.test(c)).sort();
+		expect(size(cancel)).toEqual(size(act));
+	});
 });
+

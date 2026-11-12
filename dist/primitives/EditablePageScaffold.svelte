@@ -38,11 +38,11 @@
 	/** The tab, or tabs, whose acts the `actions` slot holds (PAGE_TAB_CONTEXT):
 	    shown only while one of them is open. None: the page's, on every tab. */
 	export let actionsTab: PageTabScope = undefined;
-	/** When true, wraps slot content in `.context-surface .page-tabs-shell`
-	    so single-panel pages (create / edit forms) get the same white shell
-	    + bar-merge as PageTabs / ListSurface pages. Detail pages that
-	    already render their own `<PageTabs>` (which carries the wrapper)
-	    should leave this false. */
+	/** When true, the scaffold draws the page's content in the frame
+	    (PageFrame) itself: the feedback strip, then the body, an inset host
+	    that fills the frame (.page-fill), for single-panel pages (create /
+	    edit forms). Detail pages that render their own `<PageTabs>` leave
+	    this false. Either way the frame draws the panel. */
 	export let surface = false;
 	/** With `surface`: the surface hosts panes, not content (a list beside a
 	    reader), so its body takes no inset and the panes run to the panel's
@@ -81,10 +81,10 @@
 		ondismiss: () => dispatch('dismiss')
 	});
 
-	/* When the page renders its own panel (PageTabs), that shell claims the
-	   strip and renders it under its tab strip, so the messages sit inside
-	   the panel and nothing above them moves. Until a shell claims it, the
-	   scaffold renders the strip itself. */
+	/* When the page renders its own tabs (PageTabs), they claim the strip and
+	   render it under their tab strip, so the messages sit under the tabs and
+	   nothing above them moves. Until a shell claims it, the scaffold renders
+	   the strip itself. */
 	const claimed = writable(false);
 	setContext<SurfaceFeedbackHost>(SURFACE_FEEDBACK_CONTEXT, {
 		state: feedback,
@@ -107,7 +107,7 @@
 	{/if}
 
 	{#if surface}
-		<div class="context-surface page-tabs-shell editable-page-surface">
+		<div class="page-fill editable-page-surface">
 			<SurfaceFeedback {...$feedback} />
 			<div class="editable-page-body" class:editable-page-body--panes={panes}>
 				<slot />

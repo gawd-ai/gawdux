@@ -54,10 +54,11 @@ for (const [name, css] of [
 		it('switches layout at one boundary, so a fractional width between 1024 and 1025px still gets one', () => {
 			expect(wide.length).toBeGreaterThan(0);
 			// Width queries holding bar rules; the touch-target sizing that also
-			// reaches bar links is a pointer query, not a layout one.
+			// reaches bar links is a pointer query, not a layout one, and the
+			// bar left off paper is a print rule.
 			const barRules: string[] = [];
 			root.walkAtRules('media', (media) => {
-				if (media.params.includes('pointer')) return;
+				if (media.params.includes('pointer') || media.params === 'print') return;
 				media.walkRules((rule) => {
 					if (/page-command-bar|cmd-bar-/.test(rule.selector)) barRules.push(media.params);
 				});
@@ -177,14 +178,16 @@ for (const [name, css] of [
 			expect(declarations([root], '.cmd-bar-center')).toMatchObject({ 'justify-content': 'center' });
 		});
 
-		it('draws the drawer on the bar surface, its seam and sides in the edge colour the bar and the card share', () => {
-			// One surface and one edge colour for the bar and the drawer, read
-			// from tokens defined for light and dark, never a literal per theme.
+		it('draws the drawer on the bar surface, with no edge of its own: the frame draws the sides', () => {
+			// One surface for the bar and the drawer, read from a token defined
+			// for light and dark, never a literal per theme.
 			const bar = declarations([root], '.page-command-bar');
 			const drawer = declarations([root], '.page-command-drawer');
 			for (const rule of [bar, drawer]) {
 				expect(rule['background-color']).toBe('var(--gawdux-command-surface)');
-				expect(rule.border).toBe('1px solid var(--gawdux-border)');
+				expect(rule.border).toBe('0');
+				expect(rule['border-radius']).toBe('0');
+				expect(rule['box-shadow']).toBe('none');
 			}
 			for (const selector of ['.page-command-bar', '.page-command-drawer']) {
 				expect(declarations([root], `.dark ${selector}`), selector).toEqual({});
@@ -192,43 +195,81 @@ for (const [name, css] of [
 			const tokens = (selector: string) => declarations([root], selector);
 			expect(tokens(':root')['--gawdux-command-surface']).toBe('rgb(249 250 251)');
 			expect(tokens('.dark')['--gawdux-command-surface']).toBe('rgb(28 37 51)');
-			// No shadow of its own, square, no bottom edge.
-			expect(drawer).toMatchObject({
+			// The frame's panel draws the one edge around the surface and the bar.
+			expect(declarations([root], '.page-frame-panel')).toMatchObject({
+				border: '1px solid var(--gawdux-border)',
+				'border-radius': '0.5rem',
+				'box-shadow': 'var(--gawdux-surface-elevation)'
+			});
+		});
+
+		it('casts the content\'s elevation on the bar at the seam, on an open drawer instead of the bar', () => {
+			const seam = declarations(
+				[root],
+				'.page-frame-panel > .page-command-bar::before'
+			);
+			expect(seam).toEqual(
+				declarations([root], '.page-frame-surface .page-command-drawer::before')
+			);
+			expect(seam).toMatchObject({
+				content: "''",
+				position: 'absolute',
+				bottom: '100%',
+				'box-shadow': 'var(--gawdux-surface-elevation)',
+				'clip-path': 'inset(100% -1rem -1rem -1rem)',
+				'pointer-events': 'none'
+			});
+			expect(declarations([root], '.page-command-drawer').position).toBe('relative');
+			expect(declarations([root], '.page-frame-panel > .page-command-bar').position).toBe('relative');
+			expect(
+				declarations([root], '.page-frame-panel:has(.page-command-drawer) > .page-command-bar::before')
+			).toEqual({ content: 'none' });
+		});
+
+		it('runs the frame edge to edge on a phone, the seam kept', () => {
+			expect(declarations(narrow, '.page-frame-panel')).toEqual({
+				'border-left-width': '0',
+				'border-right-width': '0',
 				'border-bottom-width': '0',
 				'border-radius': '0',
 				'box-shadow': 'none'
 			});
-		});
-
-		it('leaves the sides to the content surface a drawer opens at the bottom of, and to nobody on a phone', () => {
-			expect(declarations([root], '.context-surface .page-command-drawer')).toEqual({
-				'border-left-width': '0',
-				'border-right-width': '0'
-			});
-			expect(declarations(narrow, 'main .page-command-drawer')).toEqual({
-				'border-left-width': '0',
-				'border-right-width': '0'
-			});
-			// The bar gives up the same sides at the same width.
-			expect(declarations(narrow, 'main .page-command-bar')).toMatchObject({
-				'border-left-width': '0',
-				'border-right-width': '0'
-			});
-		});
-
-		it('still fuses an attached drawer with the bar', () => {
-			expect(declarations([root], '.page-command-drawer')['border-bottom-width']).toBe('0');
+			// No rule at the compact width takes the seam away.
 			for (const selector of [
-				'main:has(.page-command-drawer) .page-command-bar',
-				'.page-shell:has(> main .page-command-drawer) > .page-command-bar'
+				'.page-frame-panel > .page-command-bar::before',
+				'.page-frame-surface .page-command-drawer::before'
 			]) {
-				expect(declarations([root], selector), selector).toMatchObject({
-					'margin-top': '0',
-					'border-top-left-radius': '0',
-					'border-top-right-radius': '0',
-					'border-top-width': '0'
-				});
+				expect(declarations(narrow, selector), selector).toEqual({});
 			}
 		});
 	});
 }
+
+describe('the page frame on paper (tokens.css)', () => {
+	for (const [name, css] of [
+		['tokens.css', source],
+		['the packaged tokens.css', packaged]
+	] as const) {
+		it(`${name}: prints the content, with no panel, edge, inset or elevation and no bar`, () => {
+			const print = mediaBlocks(postcss.parse(css), 'print');
+			expect(print.length).toBeGreaterThan(0);
+			expect(declarations(print, '.page-command-bar')).toMatchObject({ display: 'none' });
+			const frame: Record<string, string> = {};
+			for (const block of print) {
+				block.walkRules((rule) => {
+					if (!rule.selectors.includes('.page-frame-panel')) return;
+					rule.walkDecls((decl) => {
+						frame[decl.prop] = decl.value;
+					});
+				});
+			}
+			expect(frame).toMatchObject({
+				padding: '0',
+				border: '0',
+				'border-radius': '0',
+				'box-shadow': 'none',
+				overflow: 'visible'
+			});
+		});
+	}
+});

@@ -21,24 +21,25 @@
 	## The layout contract (the part that is easy to get wrong)
 
 	This renders an ordinary `shrink-0` element wherever the consumer puts it.
-	It is NOT portaled and it does NOT position itself. It looks welded to the
-	command bar because of how the app shell is built:
-
-	  <main> is a flex column; the page's own column stretches (flex: 1);
-	  the drawer is a `shrink-0` sibling AFTER that column;
-	  `.page-command-bar` is the LAST child of <main> with `margin-top: auto`.
+	It is NOT portaled and it does NOT position itself. It reads as rising out
+	of the command bar because every page renders in the page frame
+	(PageFrame): the frame's surface is a flex column whose bottom is the
+	bar's top, the page's column stretches (flex: 1), and the drawer, a
+	`shrink-0` sibling AFTER that column with `margin-top: auto`, sits on the
+	bar. The frame's panel draws its sides as it draws the bar's, and the
+	content's elevation falls on its top edge as it falls on the closed bar's.
 
 	Render it inside a scrolling container instead and it will scroll away from
-	the bar it belongs to. If a host needs it elsewhere, fix the shell — do not
+	the bar it belongs to. If a host needs it elsewhere, fix the shell; do not
 	reach for a portal.
 
 	It renders the house `.page-command-drawer` (tokens.css),
-	the same element `PageCommandBarConfirm` renders: the bar loses its top edge
-	while one is open, so drawer and bar read as one panel that opened up out of
-	the bar. Its text is centred like every bar decision; a form body sets
-	`text-left` on itself. Titles, messages and errors inside it use
-	`.page-command-drawer-title`, `-message` and `-error`. It is the only
-	presentation: a drawer has no chrome of its own and no shadow.
+	the same element `PageCommandBarConfirm` renders: drawer and bar read as
+	one surface that opened up out of the bar. Its text is centred like every
+	bar decision; a form body sets `text-left` on itself. Titles, messages and
+	errors inside it use `.page-command-drawer-title`, `-message` and
+	`-error`. It is the only presentation: a drawer has no chrome of its own
+	and no shadow. Its Cancel and act are PageCommandBarPair's.
 
 	## Focus
 

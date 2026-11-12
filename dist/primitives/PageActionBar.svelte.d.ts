@@ -73,6 +73,10 @@ export interface EditModeProps {
     saveAsDraftLabel?: string;
     /** When true, Cancel / Save / Save-as-Draft are disabled and Save labels swap to "Saving…". */
     saving?: boolean;
+    /** Cancelling would discard an edit: a field has changed since Edit
+        (createEditMode's `changed`). Cancel is neutral until then and red
+        while it is so (PageCommandBarPair). */
+    discards?: boolean;
 }
 /** Component renderers for domain-coupled lifecycle kinds. Consumer apps
     that emit `kind: 'archive' | 'retire'` actions supply concrete buttons

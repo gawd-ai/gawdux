@@ -27,7 +27,7 @@ export {
 } from './form-errors';
 export type { FieldErrors } from './form-errors';
 
-export { createEditMode } from './edit-mode.svelte';
+export { createEditMode, editSnapshot, sameEditValue } from './edit-mode.svelte';
 export type { EditModeOptions, EditModeSnapshot, EditModeApi } from './edit-mode.svelte';
 
 export {
@@ -163,6 +163,9 @@ export {
 export {
 	ACTION_LABEL_WORDS,
 	drawsTabs,
+	elevationReads,
+	handDrawnCancels,
+	pageSurfacesOutsideFrame,
 	handDrawnIconCounts,
 	handRolledRailRows,
 	handSetCardPadding,

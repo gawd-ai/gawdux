@@ -76,6 +76,20 @@
  * - One count pill. What waits on the reader shows as Gawdux's counted-icon
  *   pill (`.gawdux-icon-count`) on the icon of its place (a tab, the bell, a
  *   chat view); `handDrawnIconCounts` lists every pill drawn by hand.
+ * - One page frame. `PageFrame`, rendered once by the app shell, owns the
+ *   page's panel and its seam with the command bar; a page's content stands
+ *   in it and draws no page-level surface, panel or seam of its own.
+ *   `pageSurfacesOutsideFrame` lists every retired page-surface convention
+ *   (`.context-surface`, `.page-shell`), every frame part or fill marker a
+ *   source writes itself (`page-frame*`, `page-fill`), every command bar a
+ *   source draws by hand and every `<main>` of its own; `elevationReads`
+ *   lists the rule of every read of the page's elevation token, so a guard
+ *   holds it to the frame and the floating frames.
+ * - One action pair in a drawer. A decision's Cancel and its act are
+ *   `PageCommandBarPair`'s: one size for both, Cancel neutral and red only
+ *   while cancelling would discard input. `handDrawnCancels` lists every
+ *   Cancel a source draws in a drawer or the bar itself, and every Cancel it
+ *   colours red.
  */
 
 /** A source with its comments removed, so prose about a shadow is not one. */
@@ -1303,5 +1317,167 @@ export function handDrawnIconCounts(source: string): string[] {
 		)
 			found.push(`a count pill of its own (line ${lineAt(markup, tag.at)})`);
 	}
+	return found;
+}
+
+
+/** A source with its comments blanked out, lines kept where they were. */
+function blankComments(source: string): string {
+	const blank = (text: string) => text.replace(/[^\n]/g, ' ');
+	return source
+		.replace(/<!--[\s\S]*?-->/g, blank)
+		.replace(/\/\*[\s\S]*?\*\//g, blank)
+		.replace(/(^|[^:\\'"`])(\/\/[^\n]*)/g, (_, lead: string, rest: string) => lead + blank(rest));
+}
+
+/** Whether the offset sits in a string a script hands a DOM query
+ *  (`querySelector`, `querySelectorAll`, `closest`, `matches`), the call
+ *  read back over the string's opening quote. */
+function inDomQuery(code: string, at: number): boolean {
+	const lineStart = code.lastIndexOf('\n', at) + 1;
+	const before = code.slice(lineStart, at);
+	const quote = Math.max(before.lastIndexOf("'"), before.lastIndexOf('"'), before.lastIndexOf('`'));
+	if (quote < 0) return false;
+	const lead = code.slice(Math.max(0, lineStart + quote - 200), lineStart + quote).trimEnd();
+	return /(?:querySelector(?:All)?|closest|matches)(?:<[^>()]*>)?\(\s*(?:\[\s*)?$/.test(lead);
+}
+
+/** Where a class list names `token`: a class attribute or directive, a CSS
+ *  selector, or a string of class names in a script (never a symbol's or a
+ *  key's name). */
+function classTokenAt(code: string, token: string): number[] {
+	const name = token.replace(/-/g, '\\-');
+	const found = new Set<number>();
+	const word = new RegExp(`(?<![\\w-])${name}(?![\\w-])`, 'g');
+	// A CSS selector: the token after a dot, never in a script's DOM query
+	// (`querySelector('.page-command-bar button')` finds the bar; it draws
+	// nothing).
+	for (const match of code.matchAll(new RegExp(`\\.${name}(?![\\w-])`, 'g'))) {
+		if (!inDomQuery(code, match.index!)) found.add(match.index! + 1);
+	}
+	// A class: directive.
+	for (const match of code.matchAll(new RegExp(`\\bclass:${name}(?![\\w-])`, 'g'))) found.add(match.index! + 6);
+	// A class attribute, its value read through braces and quotes.
+	for (const match of code.matchAll(/\bclass=("[^"]*"|'[^']*'|\{(?:[^{}]|\{[^{}]*\})*\})/g)) {
+		for (const inner of match[1]!.matchAll(word)) found.add(match.index! + 6 + inner.index!);
+	}
+	// A string of class names in a script: every word a class name.
+	for (const match of code.matchAll(/(['"`])((?:(?!\1)[^\n\\])*)\1/g)) {
+		const text = match[2]!;
+		if (!/^[\w\s:![\]/.-]*$/.test(text)) continue;
+		if (/Symbol\(\s*$/.test(code.slice(Math.max(0, match.index! - 12), match.index!))) continue;
+		if (!word.test(text)) continue;
+		word.lastIndex = 0;
+		if (inDomQuery(code, match.index! + 1)) continue;
+		for (const inner of text.matchAll(word)) found.add(match.index! + 1 + inner.index!);
+	}
+	return [...found].sort((a, b) => a - b);
+}
+
+/**
+ * Every page-level surface a source draws outside the page frame: the
+ * retired conventions (`context-surface`, `page-shell`), a frame part or the
+ * fill marker written by a source of its own (`page-frame`,
+ * `page-frame-panel`, `page-frame-surface`, `page-fill`), a command bar drawn
+ * by hand (`page-command-bar`, `cmd-bar-zone`) and a `<main>` element: the
+ * page's main landmark is the frame's. A stylesheet that names a retired
+ * class is listed too. A guard allows the frame's owners (PageFrame, the
+ * stylesheet that draws it, the Gawdux hosts that fill it) and holds every
+ * other source to none.
+ */
+export function pageSurfacesOutsideFrame(source: string): string[] {
+	const code = blankComments(source);
+	const found: { at: number; text: string }[] = [];
+	for (const token of [
+		'context-surface',
+		'page-shell',
+		'page-frame',
+		'page-frame-panel',
+		'page-frame-surface',
+		'page-fill',
+		'page-command-bar',
+		'cmd-bar-zone'
+	]) {
+		for (const at of classTokenAt(code, token)) found.push({ at, text: `${token} (line ${lineAt(code, at)})` });
+	}
+	const markup = markupOf(code);
+	for (const tag of markupTags(markup)) {
+		if (!tag.close && tag.name === 'main')
+			found.push({ at: tag.at, text: `<main> (line ${lineAt(markup, tag.at)})` });
+	}
+	return found.sort((a, b) => a.at - b.at).map((entry) => entry.text);
+}
+
+/**
+ * The selector of every rule that reads the page's elevation token
+ * (`var(--gawdux-surface-elevation)`), in order, or `markup` for a read in a
+ * class list or a style attribute. Declaring the token is not reading it.
+ */
+export function elevationReads(source: string): string[] {
+	const code = withoutComments(source);
+	const found: string[] = [];
+	for (const match of code.matchAll(/var\(\s*--gawdux-surface-elevation\s*[,)]/g)) {
+		const at = match.index!;
+		const open = code.lastIndexOf('{', at);
+		const close = code.lastIndexOf('}', at);
+		const semi = code.lastIndexOf(';', open);
+		if (open < 0 || open < close) {
+			found.push('markup');
+			continue;
+		}
+		const start = Math.max(code.lastIndexOf('}', open), code.lastIndexOf('{', open - 1), semi) + 1;
+		const selector = code.slice(start, open).replace(/\s+/g, ' ').trim();
+		found.push(/^[.:#\w[\]*>~+\s(),='"-]+$/.test(selector) && !/class=/.test(selector) ? selector : 'markup');
+	}
+	return found;
+}
+
+/**
+ * Every Cancel a source draws for a decision itself: an element carrying
+ * the pair's Cancel marker (`data-action-cancel`), a button labelled Cancel
+ * inside a `PageCommandBarCenter` or a `CommandDrawer`, and a button labelled
+ * Cancel coloured red anywhere. A decision's Cancel is PageCommandBarPair's,
+ * neutral, and red only while cancelling would discard input (`discards`).
+ */
+export function handDrawnCancels(source: string): string[] {
+	const markup = markupOf(source);
+	const tags = markupTags(markup);
+	const found: string[] = [];
+	const ranges: [number, number][] = [];
+	tags.forEach((tag, index) => {
+		if (tag.close || tag.selfClosing) return;
+		if (tag.name !== 'PageCommandBarCenter' && tag.name !== 'CommandDrawer') return;
+		let depth = 0;
+		for (const next of tags.slice(index + 1)) {
+			if (next.name !== tag.name) continue;
+			if (!next.close && !next.selfClosing) depth++;
+			else if (next.close && depth === 0) {
+				ranges.push([tag.at, next.at]);
+				return;
+			} else if (next.close) depth--;
+		}
+		ranges.push([tag.at, markup.length]);
+	});
+	tags.forEach((tag, index) => {
+		if (tag.close) return;
+		const line = lineAt(markup, tag.at);
+		if (/\sdata-action-cancel(?=[\s=>/])/.test(tag.raw)) {
+			found.push(`${tag.name} data-action-cancel (line ${line})`);
+			return;
+		}
+		if (!/^(?:Button|button)$/.test(tag.name) || tag.selfClosing) return;
+		const end = tags.slice(index + 1).find((next) => next.close && next.name === tag.name);
+		if (!end) return;
+		const label = markup
+			.slice(tag.at + tag.raw.length, end.at)
+			.replace(/<[^>]*>/g, ' ')
+			.replace(/\s+/g, ' ')
+			.trim();
+		if (!/^(?:Cancel|\{[^}]*cancel[^}]*\})$/i.test(label)) return;
+		if (ranges.some(([from, to]) => tag.at > from && tag.at < to))
+			found.push(`${tag.name} Cancel drawn in a drawer or the bar (line ${line})`);
+		else if (/\scolor=(?:"red"|'red'|\{['"]red['"]\})/.test(tag.raw))
+			found.push(`${tag.name} Cancel coloured red (line ${line})`);
+	});
 	return found;
 }
