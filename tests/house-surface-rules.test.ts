@@ -13,6 +13,7 @@ import {
 	itemActsInCards,
 	miscasedActionLabels,
 	pageSurfacesOutsideFrame,
+	plainLanguageFaults,
 	questioningConfirmations,
 	registersWithoutPhoneSort,
 	shadowedFlowbiteImports,
@@ -60,7 +61,9 @@ import {
 //   floating frames;
 // - one action pair in a drawer: a decision's Cancel and act are
 //   PageCommandBarPair's, Cancel neutral and red only while it would discard
-//   input.
+//   input;
+// - plain everyday language: no string a person reads uses a phrase a plain
+//   rewrite removed (a backstop; it does not prove the copy is plain).
 
 // The tree read; another tree's src/lib (an archive of an earlier tag) can be
 // read for a fail-first run.
@@ -697,5 +700,77 @@ describe('one action pair in a drawer', () => {
 		expect(
 			handDrawnCancels('<PageCommandBarPair label="Archive role" tone="red" onact={a} oncancel={c} />')
 		).toEqual([]);
+	});
+});
+
+describe('plain everyday language', () => {
+	/**
+	 * The library's copy modules: the files of words a person reads that are
+	 * not components (a component's text and strings are read wherever it is).
+	 */
+	const COPY_MODULES = new Set(['alert-ops/types.ts']);
+	/**
+	 * A phrase of the rule used where it is the plain word, by file, with why.
+	 * The reader is a backstop over the phrases a rewrite removed; it does
+	 * not prove the copy is plain.
+	 */
+	const PLAIN_USES: Record<string, { finding: RegExp; why: string }[]> = {};
+
+	it('uses none of the refused phrases in a string a person reads', () => {
+		expect(
+			findings((source, rel) =>
+				rel.endsWith('.svelte') || COPY_MODULES.has(rel) || /-copy\.ts$/.test(rel)
+					? plainLanguageFaults(source, rel).filter(
+							(found) => !PLAIN_USES[rel]?.some((use) => use.finding.test(found))
+						)
+					: []
+			)
+		).toEqual({});
+	});
+
+	it('gives every plain use a reason', () => {
+		for (const uses of Object.values(PLAIN_USES))
+			for (const use of uses) expect(use.why.length).toBeGreaterThan(10);
+	});
+
+	it("reads a component's text, the attributes a person reads, its strings and a copy module", () => {
+		expect(plainLanguageFaults('<p>The audit trail keeps the deletion.</p>')).toEqual([
+			'the trail keeps: "The audit trail keeps the deletion." (line 1)'
+		]);
+		expect(plainLanguageFaults('<p>The audit trail records the deletion.</p>')).toEqual([]);
+		expect(plainLanguageFaults('<CardContainer title="Who holds it" />')).toEqual([
+			'holds: "Who holds it" (line 1)'
+		]);
+		expect(
+			plainLanguageFaults("<script>let { emptyText = 'Nobody holds this Role yet.' } = $props();</script>")
+		).toEqual(['holds: "Nobody holds this Role yet." (line 1)']);
+		expect(plainLanguageFaults('<span title="The creator always holds this rung.">A</span>')).toHaveLength(2);
+		expect(plainLanguageFaults('<input placeholder="Names no folder" />')).toHaveLength(1);
+		expect(plainLanguageFaults("export const m = (t: string) => `Voiding cancels ${t} for good.`;", 'a-copy.ts')).toEqual([
+			'for good: "Voiding cancels … for good." (line 1)'
+		]);
+		expect(plainLanguageFaults("const a = 'Never in force; kept for the record.';", 'a.ts')).toHaveLength(1);
+		expect(plainLanguageFaults("const a = 'The signed copy leaves force with no successor.';", 'a.ts')).toHaveLength(1);
+		expect(plainLanguageFaults("const a = `The System acts with ${n}'s authority.`;", 'a.ts')).toHaveLength(1);
+		expect(plainLanguageFaults("const a = `The System acts on behalf of ${n}.`;", 'a.ts')).toEqual([]);
+	});
+
+	it('reads the word act as a noun, and leaves the verb', () => {
+		expect(plainLanguageFaults("const a = 'The act names no execution.';", 'a.ts')).toEqual([
+			'names no: "The act names no execution." (line 1)',
+			'act as a noun: "The act names no execution." (line 1)'
+		]);
+		expect(plainLanguageFaults("const a = 'Every act reads as the System.';", 'a.ts')).toHaveLength(1);
+		expect(plainLanguageFaults("const a = 'The System act was not completed.';", 'a.ts')).toHaveLength(1);
+		expect(plainLanguageFaults("const a = 'Renaming the key acts as a delete and an add.';", 'a.ts')).toEqual([]);
+		expect(plainLanguageFaults("const a = 'The System acts on behalf of the issuer.';", 'a.ts')).toEqual([]);
+	});
+
+	it("leaves a console line, a key, a class token and a word inside another", () => {
+		expect(plainLanguageFaults("<script>console.error('Failed to save the item:', err);</script>")).toEqual([]);
+		expect(plainLanguageFaults("<script>error = read(err, 'Failed to load the item');</script>")).toHaveLength(1);
+		expect(plainLanguageFaults("const c = 'flex bg-surface text-sm';", 'a.ts')).toEqual([]);
+		expect(plainLanguageFaults("const k = 'holds';", 'a.ts')).toEqual([]);
+		expect(plainLanguageFaults('<p>Shareholders and households</p>')).toEqual([]);
 	});
 });

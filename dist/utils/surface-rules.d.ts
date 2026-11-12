@@ -90,6 +90,16 @@
  *   while cancelling would discard input. `handDrawnCancels` lists every
  *   Cancel a source draws in a drawer or the bar itself, and every Cancel it
  *   colours red.
+ * - Plain everyday language. Every string a person reads says what happens
+ *   in ordinary words, as a helpful colleague would say it out loud to a
+ *   lab analyst or a QA reviewer: the common verb, one idea to a sentence,
+ *   no idiom or metaphor, no spec register (an act, holds, names, carries,
+ *   reaches, a surface, the house), no state said as motion (stays, goes,
+ *   leaves force). `plainLanguageFaults` lists every phrase of
+ *   `PLAIN_LANGUAGE_PHRASES` that a component's text, the attributes a
+ *   person reads, its strings or a copy module uses. It is a backstop: it
+ *   keeps a phrase a plain rewrite removed from coming back, and does not
+ *   prove the copy is plain; a person reading it does that.
  */
 /** A source with its comments removed, so prose about a shadow is not one. */
 export declare function withoutComments(source: string): string;
@@ -249,3 +259,33 @@ export declare function elevationReads(source: string): string[];
  * neutral, and red only while cancelling would discard input (`discards`).
  */
 export declare function handDrawnCancels(source: string): string[];
+/**
+ * A phrase the plain-language rule refuses in a string a person reads, and
+ * what a helpful colleague says instead.
+ */
+export interface PlainLanguagePhrase {
+    /** The phrase as a finding names it. */
+    name: string;
+    pattern: RegExp;
+    /** The everyday words said instead. */
+    plain: string;
+}
+/**
+ * The phrases the plain-language rule refuses, each with its everyday
+ * words: idioms and metaphors, the spec words of a design document (an
+ * act, holds, names, carries, reaches, a surface, the house), state said as
+ * motion (stays, goes, rides, leaves force) and the failure and refusal
+ * forms the copy has left behind. Each is a phrase a string once used and
+ * a plain rewrite replaced.
+ */
+export declare const PLAIN_LANGUAGE_PHRASES: readonly PlainLanguagePhrase[];
+/**
+ * Every phrase of the plain-language rule (`PLAIN_LANGUAGE_PHRASES`) in a
+ * string of the source a person reads, as `phrase: "excerpt" (line n)`.
+ * Copy is written as a helpful colleague would say it out loud to a lab
+ * analyst or a QA reviewer: ordinary words, one idea to a sentence, no
+ * idiom, no spec register. This reader is a backstop. It holds a source to
+ * none of the phrases a plain rewrite has already removed; it does not
+ * prove the copy is plain, which only a person reading it can.
+ */
+export declare function plainLanguageFaults(source: string, file?: string): string[];

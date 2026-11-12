@@ -90,6 +90,16 @@
  *   while cancelling would discard input. `handDrawnCancels` lists every
  *   Cancel a source draws in a drawer or the bar itself, and every Cancel it
  *   colours red.
+ * - Plain everyday language. Every string a person reads says what happens
+ *   in ordinary words, as a helpful colleague would say it out loud to a
+ *   lab analyst or a QA reviewer: the common verb, one idea to a sentence,
+ *   no idiom or metaphor, no spec register (an act, holds, names, carries,
+ *   reaches, a surface, the house), no state said as motion (stays, goes,
+ *   leaves force). `plainLanguageFaults` lists every phrase of
+ *   `PLAIN_LANGUAGE_PHRASES` that a component's text, the attributes a
+ *   person reads, its strings or a copy module uses. It is a backstop: it
+ *   keeps a phrase a plain rewrite removed from coming back, and does not
+ *   prove the copy is plain; a person reading it does that.
  */
 
 /** A source with its comments removed, so prose about a shadow is not one. */
@@ -1479,5 +1489,227 @@ export function handDrawnCancels(source: string): string[] {
 		else if (/\scolor=(?:"red"|'red'|\{['"]red['"]\})/.test(tag.raw))
 			found.push(`${tag.name} Cancel coloured red (line ${line})`);
 	});
+	return found;
+}
+
+/** A word's edges: a letter, a digit, an underscore or a hyphen is inside it (`bg-surface` is no surface). */
+const W = String.raw`(?<![\p{L}\p{N}_-])`;
+const E = String.raw`(?![\p{L}\p{N}_-])`;
+
+/** A phrase as a pattern: its words at a word's edges, any space between them, any case. */
+function phrase(words: string): RegExp {
+	return new RegExp(`${W}${words.replace(/ /g, String.raw`\s+`)}${E}`, 'iu');
+}
+
+/**
+ * A phrase the plain-language rule refuses in a string a person reads, and
+ * what a helpful colleague says instead.
+ */
+export interface PlainLanguagePhrase {
+	/** The phrase as a finding names it. */
+	name: string;
+	pattern: RegExp;
+	/** The everyday words said instead. */
+	plain: string;
+}
+
+/**
+ * The phrases the plain-language rule refuses, each with its everyday
+ * words: idioms and metaphors, the spec words of a design document (an
+ * act, holds, names, carries, reaches, a surface, the house), state said as
+ * motion (stays, goes, rides, leaves force) and the failure and refusal
+ * forms the copy has left behind. Each is a phrase a string once used and
+ * a plain rewrite replaced.
+ */
+export const PLAIN_LANGUAGE_PHRASES: readonly PlainLanguagePhrase[] = [
+	{ name: 'for good', pattern: phrase('for good'), plain: 'permanently' },
+	{ name: 'kept for the record', pattern: phrase('for the record'), plain: 'kept as a record' },
+	{
+		name: 'holds',
+		pattern: phrase('(?:holds|holding|holders?)'),
+		plain: 'has, contains, is assigned, someone with'
+	},
+	{ name: 'rung', pattern: phrase('rungs?'), plain: 'access level' },
+	{ name: 'leaves force', pattern: phrase('(?:leaves?|left) force'), plain: 'is withdrawn' },
+	{ name: 'acts with', pattern: phrase('acts with'), plain: 'acts on behalf of' },
+	{ name: 'names no', pattern: phrase('names no'), plain: 'does not include, does not give access to' },
+	{
+		name: 'act as a noun',
+		pattern: new RegExp(
+			`${W}(?:(?:the|an|this|that|every|each|its|their|your|any|no|these|those)\\s+acts?${E}(?!\\s+(?:as|on|upon|with|for|like|in)${E})|system\\s+act${E})`,
+			'iu'
+		),
+		plain: 'action, or the verb itself'
+	},
+	{ name: 'stays in force', pattern: phrase('stays? in force'), plain: 'remains in force' },
+	{
+		name: 'stays recorded',
+		pattern: phrase('stays? (?:on (?:the )?record|recorded)'),
+		plain: 'is still recorded'
+	},
+	{ name: 'the trail keeps', pattern: phrase('trail keeps'), plain: 'the audit trail records' },
+	{
+		name: 'goes into review',
+		pattern: phrase('(?:goes|go|rides?) into (?:review|force)'),
+		plain: 'is submitted for review, is reviewed with it, is in force'
+	},
+	{ name: 'goes to', pattern: phrase('goes (?:only )?to'), plain: 'is sent to' },
+	{ name: 'lands here', pattern: phrase('lands? here'), plain: 'appears here' },
+	{ name: 'carries', pattern: phrase('(?:carry|carries|carried)'), plain: 'has, contains, includes' },
+	{ name: 'governs', pattern: phrase('govern(?:s|ing)?'), plain: 'in force, manage' },
+	{ name: 'barred from use', pattern: phrase('barred'), plain: 'withdrawn' },
+	{ name: 'reads nothing', pattern: phrase('reads (?:nothing|none)'), plain: 'cannot open anything' },
+	{ name: 'surface', pattern: phrase('surfaces?'), plain: 'page, section, module' },
+	{ name: 'the house', pattern: phrase('house'), plain: 'standard, your own' },
+	{ name: 'live patch', pattern: phrase('live patch(?:es)?'), plain: 'proposed change' },
+	{ name: 'iteration', pattern: phrase('iterations?'), plain: 'proposed changes, a draft' },
+	{ name: 'active gate', pattern: phrase('active gate'), plain: 'waiting for the step' },
+	{ name: 'handoff', pattern: phrase('handoffs?'), plain: 'signing link' },
+	{ name: 'governing record', pattern: phrase('(?:finalized record|lifecycle card)'), plain: 'version in force' },
+	{ name: 'admin grade', pattern: phrase('admin grade'), plain: 'Admin, Admin access' },
+	{ name: 'standing', pattern: phrase('standing'), plain: 'current, status' },
+	{ name: 'spine', pattern: phrase('spine'), plain: 'core' },
+	{ name: 'composed', pattern: phrase('compos(?:ed|es)'), plain: 'combined' },
+	{ name: 'roster', pattern: phrase('rosters?'), plain: 'participants, members' },
+	{ name: 'joined participant', pattern: phrase('joined (?:channel )?participants?'), plain: 'has joined' },
+	{ name: 'runtime binding', pattern: phrase('runtime binding'), plain: 'could not be opened' },
+	{ name: 'target state', pattern: phrase('target state'), plain: 'already archived, not archived' },
+	{
+		name: 'is not one the',
+		pattern: phrase('is not (?:one|a kind) the'),
+		plain: 'does not accept, does not use, does not support'
+	},
+	{ name: 'access does not include', pattern: phrase('access does not include'), plain: 'you do not have access' },
+	{
+		name: 'reject to draft',
+		pattern: phrase('reject(?:s|ed)? (?:it |the revision )?to draft'),
+		plain: 'use Request changes to return it to draft'
+	},
+	{
+		name: 'outside your scope',
+		pattern: phrase("outside your (?:account['’]s |company )scope"),
+		plain: "a company you don't have access to"
+	},
+	{ name: 'failed to', pattern: /^failed\s+to(?![\p{L}])/iu, plain: 'The X could not be Y, Could not Y the X' }
+];
+
+/** The attributes whose quoted value a person reads (a braced value's strings are read as code). */
+const PROSE_ATTRIBUTES = ['title', 'aria-label', 'placeholder', 'label', 'description'];
+
+/** A string that reads as words: two words with something between them, not a key or a class token. */
+const PROSE = /\p{L}{2,}[^\p{L}\n]+\p{L}{2,}/u;
+
+/** The text runs of a component's markup, each from where it starts: a tag ends a run, an expression stands as a value, a block ends a run. */
+function markupTexts(markup: string, scan: CodeScan): CodeString[] {
+	const runs: CodeString[] = [];
+	let text = '';
+	let start = -1;
+	const flush = (end: number) => {
+		if (text.trim()) runs.push({ start, end, text: text.trim() });
+		text = '';
+		start = -1;
+	};
+	let i = 0;
+	while (i < markup.length) {
+		const char = markup[i]!;
+		if (char === '<' && /[A-Za-z/!]/.test(markup[i + 1] ?? '')) {
+			flush(i);
+			let end = i + 1;
+			let depth = 0;
+			let quote: string | null = null;
+			for (; end < markup.length; end++) {
+				const next = markup[end]!;
+				if (quote) {
+					if (next === quote) quote = null;
+				} else if (depth === 0 && (next === '"' || next === "'")) quote = next;
+				else if (next === '{') depth++;
+				else if (next === '}') depth--;
+				else if (next === '>' && depth === 0) break;
+			}
+			i = end + 1;
+			continue;
+		}
+		if (char === '{') {
+			const closeAt = scan.close.get(i) ?? markup.indexOf('}', i);
+			const end = closeAt < 0 ? markup.length : closeAt + 1;
+			const body = markup.slice(i + 1, end - 1);
+			if (/^\s*[#:/@]/.test(body) || !body.trim()) flush(i);
+			else {
+				if (start < 0) start = i;
+				text += VALUE;
+			}
+			i = end;
+			continue;
+		}
+		if (start < 0 && !/\s/.test(char)) start = i;
+		text += char;
+		i++;
+	}
+	flush(markup.length);
+	return runs;
+}
+
+/**
+ * The strings of a source a person reads: in a component, its markup's text,
+ * the quoted values of the attributes a person reads (`title`, `aria-label`,
+ * `placeholder`, `label`, `description`) and the string literals of its
+ * scripts and its markup's expressions; in any other source (a copy module:
+ * a file of messages, labels and captions, which a guard chooses), its
+ * string literals. Only a string that reads as words (two words or more) is
+ * kept, so a key, a class token or a path is not one.
+ */
+function proseStrings(source: string, file: string): CodeString[] {
+	const scan = scanCode(codeView(source, file));
+	// A console line is the developer's, never a person's.
+	const found = scan.strings.filter(
+		(token) => !/console\.\w+\(\s*$/.test(scan.code.slice(Math.max(0, token.start - 40), token.start))
+	);
+	if (file.endsWith('.svelte')) {
+		const markup = markupOf(source);
+		found.push(...markupTexts(markup, scan));
+		for (const tag of markupTags(markup)) {
+			if (tag.close) continue;
+			for (const name of PROSE_ATTRIBUTES) {
+				const match = tag.raw.match(new RegExp(`\\s${name}=(?:"([^"]*)"|'([^']*)')`));
+				if (!match) continue;
+				const value = match[1] ?? match[2]!;
+				const at = tag.at + match.index!;
+				found.push({ start: at, end: at + match[0].length, text: value.replace(/\{[^}]*\}/g, VALUE) });
+			}
+		}
+	}
+	return found
+		.filter((token) => PROSE.test(token.text.replaceAll(VALUE, ' ')))
+		.sort((a, b) => a.start - b.start);
+}
+
+/** A finding's excerpt of a string: its words around the phrase. */
+function excerpt(subject: string, at: number, length: number): string {
+	const from = Math.max(0, at - 40);
+	const to = Math.min(subject.length, at + length + 40);
+	return `${from > 0 ? '…' : ''}${subject.slice(from, to).trim()}${to < subject.length ? '…' : ''}`;
+}
+
+/**
+ * Every phrase of the plain-language rule (`PLAIN_LANGUAGE_PHRASES`) in a
+ * string of the source a person reads, as `phrase: "excerpt" (line n)`.
+ * Copy is written as a helpful colleague would say it out loud to a lab
+ * analyst or a QA reviewer: ordinary words, one idea to a sentence, no
+ * idiom, no spec register. This reader is a backstop. It holds a source to
+ * none of the phrases a plain rewrite has already removed; it does not
+ * prove the copy is plain, which only a person reading it can.
+ */
+export function plainLanguageFaults(source: string, file = 'Component.svelte'): string[] {
+	const found: string[] = [];
+	for (const token of proseStrings(source, file)) {
+		const subject = token.text.replaceAll(VALUE, '…').replace(/\s+/g, ' ').trim();
+		for (const entry of PLAIN_LANGUAGE_PHRASES) {
+			const match = subject.match(entry.pattern);
+			if (match)
+				found.push(
+					`${entry.name}: "${excerpt(subject, match.index!, match[0].length)}" (line ${lineAt(source, token.start)})`
+				);
+		}
+	}
 	return found;
 }

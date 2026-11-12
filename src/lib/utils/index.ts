@@ -166,6 +166,8 @@ export {
 	elevationReads,
 	handDrawnCancels,
 	pageSurfacesOutsideFrame,
+	PLAIN_LANGUAGE_PHRASES,
+	plainLanguageFaults,
 	handDrawnIconCounts,
 	handRolledRailRows,
 	handSetCardPadding,
@@ -184,3 +186,4 @@ export {
 	vanishingDarkEdges,
 	withoutComments
 } from './surface-rules';
+export type { PlainLanguagePhrase } from './surface-rules';

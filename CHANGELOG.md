@@ -1,5 +1,46 @@
 # Changelog
 
+## 0.42.0 - plain everyday language
+
+### Added
+
+- `plainLanguageFaults` and `PLAIN_LANGUAGE_PHRASES` in `gawdux/utils` (the
+  type `PlainLanguagePhrase`): the plain-language rule as a reader. Every
+  string a person reads says what happens in ordinary words, as a helpful
+  colleague would say it out loud to the person using the product: the
+  common verb, one idea to a sentence, no idiom or metaphor, no spec
+  register, no state said as motion. The reader lists every phrase of
+  `PLAIN_LANGUAGE_PHRASES` (each with the everyday words said instead) that
+  a source's readable strings use: in a component, its markup's text, the
+  quoted values of `title`, `aria-label`, `placeholder`, `label` and
+  `description`, and the strings of its scripts and expressions; in any
+  other source, a copy module a guard chooses, its strings. A string counts
+  only when it reads as words (two words or more), and a console line is
+  never one. The phrases include "for good", "kept for the record", holds
+  and holder, rung, "leaves force", "acts with", "names no", the word act as
+  a noun, "stays in force", "the trail keeps", "goes into review", carries,
+  governs, surface, "the house", "live patch", "admin grade", standing and a
+  sentence opening "Failed to". It is a backstop: it keeps a phrase a plain
+  rewrite removed from coming back, and does not prove the copy is plain.
+  The library's house-surface-rules test holds every component and its copy
+  module (`alert-ops/types.ts`) to none, shown failing on 0.41.0's admin
+  cards.
+
+### Changed
+
+- The admin panels and the alert console say what they mean in plain words:
+  `RoleMembersCard` reads Members and "No one has this Role yet.";
+  `BotContextCard` reads "Context for this bot", "No configs for this bot
+  yet." and "Full text"; `AiKnowledgePanel`'s removal question says the
+  source's ingested content is removed from the knowledge base immediately;
+  `AiSkillsPanel` says what granting, the settings, a stale reload, a saved
+  connection, a missing knowledge base and the instruction pack do in whole
+  sentences, and its connection error reads "Could not save the knowledge
+  base connection."; `AiUsageReport`'s window is a period; `BotToolAccess`
+  marks a tool that changes something "Makes changes"; the alert console's
+  empty and stale lines name the selected environment and plane and say the
+  data shown is the last that loaded.
+
 ## 0.41.0 - one page frame, one action pair
 
 ### Added
