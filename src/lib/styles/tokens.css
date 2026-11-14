@@ -1772,6 +1772,15 @@ div.inline-flex.items-center.justify-center.font-medium {
 	.filter-bar-sort-only {
 		display: none;
 	}
+
+	/* The hidden sort is still the bar's last child, so `space-y-4` gives the
+	   filter row its 16px rhythm margin as if something followed it. Where the
+	   sort is not drawn the row keeps none, and the bar is the height it is
+	   without a sort: 8px to the list. At or below the compact width the
+	   margin is the gap above the sort. */
+	.filter-bar-has-sort > .filter-row {
+		margin-block-end: 0;
+	}
 }
 
 @media (min-width: 641px) and (max-width: 1024px) {

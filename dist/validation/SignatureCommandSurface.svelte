@@ -105,7 +105,8 @@
 	const canSubmit = $derived(password.length > 0 && reasonOk);
 	// The rule is read before the button refuses: stated under the empty
 	// field, counted while the reason is too short. A one-character minimum is
-	// only "required", which the label's mark already says.
+	// only "required", which the label's mark says to the eye and the field's
+	// aria-required to a screen reader (the mark itself is hidden from it).
 	const rule = $derived(
 		reasonMin <= 1 || reasonOk
 			? null
@@ -238,6 +239,7 @@
 					bind:value={password}
 					disabled={busy}
 					class="form-input"
+					aria-required="true"
 					aria-invalid={passwordRefused ? 'true' : undefined}
 					aria-describedby={passwordRefused ? errorId : undefined}
 					data-sign-password
@@ -247,7 +249,7 @@
 			<div class="min-w-0">
 				<label for={reasonId} class="form-label block text-xs">
 					{reasonLabel}
-					{#if reasonMin > 0}<span class="text-red-500">*</span>{:else}<span
+					{#if reasonMin > 0}<span class="text-red-500" aria-hidden="true">*</span>{:else}<span
 							class="text-gray-500 dark:text-gray-400">(optional)</span
 						>{/if}
 				</label>
@@ -259,6 +261,7 @@
 					bind:value={reason}
 					disabled={busy}
 					class="form-input"
+					aria-required={reasonMin > 0 ? 'true' : undefined}
 					aria-describedby={rule ? ruleId : undefined}
 					on:keydown={onKeydown}
 				/>

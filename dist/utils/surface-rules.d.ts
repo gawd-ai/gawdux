@@ -213,12 +213,13 @@ export declare function itemActsInCards(source: string): string[];
  * sort, and every phone sort a host draws itself (a `mobileSort` snippet).
  * The house phone sort is a toolbar's `sort`: `ListQueryBar`'s, or the
  * list's own toolbar's (`FilterBar`'s, which `ListSurface` and
- * `ListPageScaffold` pass on). A component drawing `SortableHeadCell` is
- * listed when no toolbar of its takes the sort: each `ListQueryBar` with
- * none, else each list toolbar with none, else the heads themselves when it
- * draws no toolbar (its toolbar is another file's, which a guard then
- * reads); and when both a `ListQueryBar` and a list toolbar take it, which
- * draws two.
+ * `ListPageScaffold` pass on). Each register drawing `SortableHeadCell` is
+ * read on its own (`sortedRegisters`), so a sorted list never passes another
+ * beside it. It is listed when no toolbar of its takes the sort: each
+ * `ListQueryBar` of its with none, else each of its list toolbars with none,
+ * else its heads when it has no toolbar (its toolbar is another file's,
+ * which a guard then reads); and when both a `ListQueryBar` and a list
+ * toolbar of the same register take it, which draws two.
  */
 export declare function registersWithoutPhoneSort(source: string): string[];
 /** Whether a source draws a tab strip: `PageTabs`, a `TabItem`, or a viewer's extra tabs. */

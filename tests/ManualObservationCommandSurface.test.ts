@@ -133,6 +133,42 @@ describe('ManualObservationCommandSurface', () => {
 		expect(save().disabled).toBe(false);
 	});
 
+	it('returns focus to the observation after a refused save, so a retry is one keystroke away', async () => {
+		let refuse!: () => void;
+		const oncomplete = vi.fn(() => new Promise<void>((_, reject) => (refuse = () => reject(new Error('refused')))));
+		renderDrawer({ oncomplete });
+		await enter('Label reads lot 42', 'fail');
+		save().focus();
+		await fireEvent.click(save());
+		await tick();
+		expect(save().disabled).toBe(true);
+		// Save is disabled while the save runs: a browser drops focus to the
+		// body, jsdom leaves it on the disabled button. Neither is the field.
+		expect(document.activeElement).not.toBe(observation());
+		refuse();
+		await waitFor(() => expect(drawer()!.querySelector('[role="alert"]')).not.toBeNull());
+		await waitFor(() => expect(document.activeElement).toBe(observation()));
+		expect(observation().value).toBe('Label reads lot 42');
+	});
+
+	it("returns focus after the host's own refusal too", async () => {
+		const view = renderDrawer({ busy: true });
+		// The drawer's own focus on open lands first, on nothing: the field is disabled.
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		expect(document.activeElement).not.toBe(observation());
+		await view.rerender({ busy: false, error: 'The execution changed since you opened it.' });
+		await waitFor(() => expect(document.activeElement).toBe(observation()));
+	});
+
+	it('says to a screen reader which fields are required, the marks hidden from it', () => {
+		renderDrawer();
+		expect(observation().getAttribute('aria-required')).toBe('true');
+		expect(result().getAttribute('aria-required')).toBe('true');
+		const marks = [...drawer()!.querySelectorAll('label span')].filter((span) => span.textContent === '*');
+		expect(marks).toHaveLength(2);
+		for (const mark of marks) expect(mark.getAttribute('aria-hidden')).toBe('true');
+	});
+
 	it("shows the host's own refusal, and holds still while the host says a write is in flight", () => {
 		renderDrawer({ error: 'The execution changed since you opened it.', busy: true });
 		expect(drawer()!.querySelector('[role="alert"]')?.textContent).toBe(
@@ -188,6 +224,55 @@ describe('ManualObservationCommandSurface', () => {
 		expect(observation().value).toBe('');
 		expect(result().value).toBe('');
 		expect(save().disabled).toBe(true);
+	});
+
+	it('stays on the case being saved when opened for another meanwhile, and keeps it with its refusal', async () => {
+		let refuse!: () => void;
+		const record = vi.fn(
+			(_input: ManualObservationInput) =>
+				new Promise<void>((_resolve, reject) => (refuse = () => reject(new Error('refused'))))
+		);
+		const { container } = render(ManualObservationHarness, { props: { record } });
+		const title = () => drawer()!.querySelector('.page-command-drawer-title')?.textContent;
+		await enter('Label reads lot 42', 'fail');
+		await fireEvent.click(save());
+		await tick();
+		await fireEvent.click(container.querySelector<HTMLButtonElement>('[data-harness-other]')!);
+		// Mid-save: the case being saved and what was typed for it.
+		expect(title()).toBe('Record manual observation: Inspect the label');
+		expect(drawer()!.querySelector('[data-manual-statement]')?.textContent).toContain('in C-4.');
+		expect(observation().value).toBe('Label reads lot 42');
+		expect(save().textContent?.trim()).toBe('Saving…');
+
+		refuse();
+		await waitFor(() => expect(drawer()!.querySelector('[role="alert"]')).not.toBeNull());
+		// The refusal is the saved case's, under its title, with what was typed.
+		expect(title()).toBe('Record manual observation: Inspect the label');
+		expect(observation().value).toBe('Label reads lot 42');
+		expect(result().value).toBe('fail');
+
+		// A retry saves the same case.
+		await fireEvent.click(save());
+		expect(record).toHaveBeenCalledTimes(2);
+		for (const [input] of record.mock.calls) expect(input.caseId).toBe('C-4');
+	});
+
+	it('moves to the case the host opened once the save it held is recorded', async () => {
+		let settle!: () => void;
+		const oncomplete = vi.fn(() => new Promise<void>((resolve) => (settle = resolve)));
+		const view = renderDrawer({ oncomplete });
+		const title = () => drawer()!.querySelector('.page-command-drawer-title')?.textContent;
+		await enter('Label reads lot 42', 'pass');
+		await fireEvent.click(save());
+		await tick();
+		await view.rerender({ caseId: 'C-5', title: 'Inspect the seal' });
+		expect(title()).toBe('Record manual observation: Inspect the label');
+		settle();
+		await waitFor(() => expect(title()).toBe('Record manual observation: Inspect the seal'));
+		expect(oncomplete).toHaveBeenCalledWith(expect.objectContaining({ caseId: 'C-4' }));
+		expect(observation().value).toBe('');
+		expect(result().value).toBe('');
+		expect(drawer()!.querySelector('[role="alert"]')).toBeNull();
 	});
 
 	it('is closed by its host once the observation is recorded', async () => {

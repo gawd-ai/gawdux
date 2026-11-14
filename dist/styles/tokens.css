@@ -1289,6 +1289,9 @@ div.inline-flex.items-center.justify-center.font-medium {
   .filter-bar-sort-only {
     display: none;
   }
+  .filter-bar-has-sort > .filter-row {
+    margin-block-end: 0;
+  }
 }
 @media (min-width: 641px) and (max-width: 1024px) {
   :is(.responsive-card-table, .list-table-scroll) tbody > tr {

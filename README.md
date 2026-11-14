@@ -546,7 +546,9 @@ and is not drawn above the compact width; a list in a tab with no filters
 and no rail draws its toolbar for the sort only at the compact width.
 `ListQueryBar`'s `sort` is the same sort in a query bar.
 `registersWithoutPhoneSort` (`gawdux/utils`) accepts either, and lists a
-register that sorts by its heads with neither, or with both.
+register that sorts by its heads with neither, or with both. It reads each
+register on its own: each list holding sortable heads, and the heads no
+list holds, a snippet's heads read where it is drawn.
 
 ## Development Workflow
 
@@ -645,7 +647,9 @@ and evidence links.
   was observed and an explicit Pass or Fail, Cancel and Save observation in
   the command bar. It hands the case, the revision the reader saw, the
   observation and the result to `oncomplete`, holds still while the promise
-  runs and shows a refusal inside the drawer.
+  runs, and shows a refusal inside the drawer, focus back on the
+  observation. A save holds its case: opened for another case meanwhile,
+  the drawer stays on the case being saved until the save ends.
 - `SignatureCommandSurface` is the sign drawer: the statement
   (`signatureStatement({ step, subject, meaning })`), what follows from the
   signature, the signer, the password each time, a reason, a `fields` slot

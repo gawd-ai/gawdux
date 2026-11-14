@@ -180,6 +180,27 @@ for (const [name, css] of [
 			expect(declarations(compact, '.filter-bar-sort-only')).toEqual({});
 		});
 
+		it('keeps no rhythm margin under the filter row where the sort is hidden, the bar as tall as without one', () => {
+			// `space-y-4` gives every child of the bar but its last a 16px
+			// margin, at no specificity, and the hidden sort is still the last
+			// child: the row would keep 16px over nothing, 24px to the list
+			// where the bar leaves 8px. At or below the compact width the
+			// margin is the gap above the sort.
+			if (name !== 'tokens.css') {
+				let rhythm = false;
+				root.walkRules('.filter-bar', (bar) =>
+					bar.walkRules(':where(& > :not(:last-child))', (rule) => {
+						rule.walkDecls('margin-block-end', () => {
+							rhythm = true;
+						});
+					})
+				);
+				expect(rhythm).toBe(true);
+			}
+			expect(declarations(wide, '.filter-bar-has-sort > .filter-row')).toEqual({ 'margin-block-end': '0' });
+			expect(declarations(compact, '.filter-bar-has-sort > .filter-row')).toEqual({});
+		});
+
 		it('gives an empty filter row beside the sort no room', () => {
 			expect(declarations([root], '.filter-bar-has-sort > .filter-row:not(:has(*))')).toEqual({
 				display: 'none !important'

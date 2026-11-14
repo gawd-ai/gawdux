@@ -481,6 +481,44 @@ describe('a phone sort on every sorted register', () => {
 			"sortable heads with no toolbar of its own that takes the sort (ListQueryBar's, or FilterBar's through ListSurface or ListPageScaffold)"
 		]);
 	});
+
+	it('reads each register on its own: a sorted list passes no other list, and two lists are not one given two sorts', () => {
+		const heads = '<SortableHeadCell field="name" label="Name" {sortField} onSort={toggle} />';
+		expect(
+			registersWithoutPhoneSort(
+				`<ListSurface mode="tab" {sort}>${heads}</ListSurface>\n<ListSurface mode="tab">${heads}</ListSurface>`
+			)
+		).toEqual(['a ListSurface with no sort (line 2)']);
+		expect(
+			registersWithoutPhoneSort(
+				`<ListSurface mode="tab">${heads}</ListSurface>\n<ListSurface mode="tab" {sort}>${heads}</ListSurface>`
+			)
+		).toEqual(['a ListSurface with no sort (line 1)']);
+		expect(
+			registersWithoutPhoneSort(
+				`<ListPageScaffold sort={sort}>${heads}</ListPageScaffold>\n<ListSurface mode="tab">${heads}</ListSurface>`
+			)
+		).toEqual(['a ListSurface with no sort (line 2)']);
+		// A query bar above one list and a sorted list beside it: one sort each.
+		expect(
+			registersWithoutPhoneSort(
+				`<ListQueryBar value="" {sort} />\n<ListSurface mode="tab">${heads}</ListSurface>\n<ListSurface mode="tab" {sort}>${heads}</ListSurface>`
+			)
+		).toEqual([]);
+		expect(
+			registersWithoutPhoneSort(
+				`<ListQueryBar value="" {sort} />\n<table>${heads}</table>\n<ListSurface mode="tab" {sort}>${heads}</ListSurface>`
+			)
+		).toEqual([]);
+		// Heads in a snippet are read where it is drawn, in the list that draws them.
+		const rows = `{#snippet rows()}<table>${heads}</table>{/snippet}`;
+		expect(
+			registersWithoutPhoneSort(`${rows}\n<ListSurface>\n<ListQueryBar value="" {sort} />\n{@render rows()}\n</ListSurface>`)
+		).toEqual([]);
+		expect(
+			registersWithoutPhoneSort(`${rows}\n<ListSurface mode="tab" {sort} {rows} />\n<ListSurface mode="tab">${heads}</ListSurface>`)
+		).toEqual(['a ListSurface with no sort (line 3)']);
+	});
 });
 
 describe("the bar holds the open tab's acts", () => {

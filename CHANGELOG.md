@@ -21,7 +21,10 @@
   service checks the password and records the signature. A refusal
   (`error`) shows inside the drawer, which stays open, and returns focus to
   the password; a refused password (`errorReason` "password_incorrect")
-  marks the field. Escape closes the drawer and nothing behind it, never
+  marks the field. The password, and the reason while `reasonMin` is above
+  0, say to a screen reader that they are required (`aria-required`); the
+  reason's red mark is for the eye only (`aria-hidden`), so it is never
+  read aloud as "star". Escape closes the drawer and nothing behind it, never
   while a write is in flight (`busy`); a result the host could not confirm
   holds only the confirm (`confirmDisabled`); the password and the reason
   are cleared on every close. A read-only username field holding the
@@ -33,14 +36,24 @@
   reader saw, `oncomplete` and `oncancel`). It holds what the person
   observed and the result they choose, Pass or Fail after "Select a
   result", none chosen for them; Save observation runs only once both are
-  given, and Cancel turns red while typed input would be lost. It hands
+  given, and Cancel turns red while typed input would be lost. Both fields
+  say to a screen reader that they are required (`aria-required`, as the
+  0.26 form's `required` did), their red marks for the eye only. It hands
   `{ caseId, expectedRevision, observed, result }`
   (`ManualObservationInput`, again exported) to `oncomplete`, holds still
   while a promise it returns runs (one save, no Escape, no Cancel, "Saving…"),
   and shows a rejected one as a refusal inside the drawer, which stays open
-  with what was typed. A host that tracks the write itself passes `busy`
-  and `error`. What was typed is cleared on every close and when the host
-  opens the drawer for another case.
+  with what was typed and returns focus to the observation: the fields are
+  disabled while the save runs, which drops focus, and a retry is then one
+  keystroke away. A host that tracks the write itself passes `busy` and
+  `error`, its refusal returning focus alike. What was typed is cleared on
+  every close and when the host opens the drawer for another case. A save
+  holds its case: opened for another case while it runs, the drawer stays
+  on the case being saved, with what was typed for it, until the save ends.
+  A saved one then moves to the case the host opened; a refused one stays
+  on its case with what was typed and its refusal, never shown under
+  another case's title, until it is saved, closed or the host opens another
+  case.
 - `ValidationRunReport` takes back, as optional parts, what 0.27.0 removed
   for manual cases, drawn as 0.26.13 drew them: a case's recorded
   observation (`ValidationCaseView.manual`, `ValidationManualObservation`:
@@ -68,16 +81,31 @@
   the compact width it is not drawn (`.mobile-sort`), and a list in a tab
   with no filters and no rail draws its toolbar for the sort only at the
   compact width (`.filter-bar-sort-only`). A filter row with nothing in it
-  takes no room above the sort (`.filter-bar-has-sort`).
+  takes no room above the sort (`.filter-bar-has-sort`). Above the compact
+  width the filter row keeps no bottom margin in a bar given a sort: the
+  bar's `space-y-4` gives every child but the last 16px, and the hidden
+  sort is still the last child, so a list given a sort stood 24px from its
+  filters where the bar leaves 8px. The bar is the height it is without a
+  sort; at or below the compact width the 16px is the gap above the sort.
 
 ### Changed
 
-- `registersWithoutPhoneSort` accepts the new sort: a component drawing
+- `registersWithoutPhoneSort` accepts the new sort: a register drawing
   `SortableHeadCell` whose `ListPageScaffold`, `ListSurface` or
   `FilterBar` takes a `sort` is not listed, nor is a `ListQueryBar` with no
   sort beside it. It lists such a list toolbar with no sort ("a
-  ListPageScaffold with no sort (line n)") when the component draws no
+  ListPageScaffold with no sort (line n)") when the register has no
   `ListQueryBar`, and a register given both sorts ("two phone sorts").
+  Each register is read on its own, where the reader read the file as one:
+  a list (`ListSurface`, `ListPageScaffold`) holding sortable heads is a
+  register, and so are heads no list holds; a toolbar a list holds serves
+  it, and a toolbar no list holds serves the next heads after it (a query
+  bar above its list), else the last before it. What a snippet holds is
+  read where the snippet is drawn (`{@render rows()}`, or a tag passing
+  it). So a sorted list no longer passes an unsorted one in the same file,
+  and a sorted query bar over one list beside a sorted list around another
+  is not "two phone sorts". On the sources of this library and of two
+  consuming products it finds what it found before.
   The heads of a component with no toolbar of its own read "sortable heads
   with no toolbar of its own that takes the sort (ListQueryBar's, or
   FilterBar's through ListSurface or ListPageScaffold)", where they read

@@ -117,6 +117,25 @@ describe('SignatureCommandSurface', () => {
 		expect(confirm().disabled).toBe(false);
 	});
 
+	it('says to a screen reader that the password and a required reason are required, the mark hidden from it', () => {
+		const mark = () =>
+			[...drawer()!.querySelectorAll('label span')].filter((span) => span.textContent === '*');
+		for (const reasonMin of [10, 1]) {
+			render({ reasonMin });
+			expect(password().getAttribute('aria-required')).toBe('true');
+			expect(reason().getAttribute('aria-required')).toBe('true');
+			expect(mark()).toHaveLength(1);
+			expect(mark()[0]!.getAttribute('aria-hidden')).toBe('true');
+			unmount(app!);
+			app = null;
+			document.body.innerHTML = '';
+		}
+		render({ reasonMin: 0 });
+		expect(password().getAttribute('aria-required')).toBe('true');
+		expect(reason().hasAttribute('aria-required')).toBe(false);
+		expect(mark()).toHaveLength(0);
+	});
+
 	it('holds the form in the drawer and Cancel and the confirm in the bar', () => {
 		render();
 		expect(drawer()!.querySelectorAll('button')).toHaveLength(0);

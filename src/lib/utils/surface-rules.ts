@@ -1359,12 +1359,132 @@ export function itemActsInCards(source: string): string[] {
 	return found;
 }
 
-/** The list toolbars that draw a register's phone sort from their `sort`. */
-const PHONE_SORT_LISTS = new Set(['FilterBar', 'ListSurface', 'ListPageScaffold']);
+/** The lists that hold a register's heads and pass their `sort` to its FilterBar. */
+const PHONE_SORT_HOLDERS = new Set(['ListSurface', 'ListPageScaffold']);
+
+/** The toolbars a host draws for a register, each taking a `sort` of its own. */
+const PHONE_SORT_TOOLBARS = new Set(['ListQueryBar', 'FilterBar']);
 
 /** A component tag that takes a `sort` (`sort={…}` or `{sort}`). */
 function takesSort(raw: string): boolean {
 	return /\ssort=|\s\{sort\}/.test(raw);
+}
+
+/** One register's sortable heads, the list holding them and the toolbars serving them. */
+interface SortedRegister {
+	list: Tag | null;
+	toolbars: Tag[];
+	heads: number;
+}
+
+/** A span of markup: an element from its tag to its closing tag, or a snippet's block. */
+interface MarkupSpan {
+	from: number;
+	to: number;
+}
+
+/** The innermost span holding a position, or null. */
+function innermostSpan<T extends MarkupSpan>(spans: T[], at: number): T | null {
+	let found: T | null = null;
+	for (const span of spans) if (span.from <= at && at <= span.to && (!found || span.from > found.from)) found = span;
+	return found;
+}
+
+/**
+ * The registers of a component's markup that draw `SortableHeadCell`: one
+ * per list (`ListSurface`, `ListPageScaffold`) holding heads, and one for
+ * heads no list holds. What a snippet holds is read where the snippet is
+ * drawn (`{@render rows()}`, or a tag passing it as a prop). A toolbar a list
+ * holds serves that list. A toolbar no list holds serves the register of the
+ * next heads after it (a query bar above its list), else the last register
+ * before it (a toolbar written below); one after heads no list holds starts a
+ * new register for the heads after it.
+ */
+function sortedRegisters(markup: string): SortedRegister[] {
+	const tags = markupTags(markup);
+	const lists: (MarkupSpan & { tag: Tag })[] = [];
+	const open: Tag[] = [];
+	for (const tag of tags) {
+		if (!PHONE_SORT_HOLDERS.has(tag.name)) continue;
+		if (!tag.close) {
+			if (tag.selfClosing) lists.push({ tag, from: tag.at, to: tag.at + tag.raw.length });
+			else open.push(tag);
+			continue;
+		}
+		const at = open.map((list) => list.name).lastIndexOf(tag.name);
+		if (at < 0) continue;
+		lists.push({ tag: open[at]!, from: open[at]!.at, to: tag.at });
+		open.length = at;
+	}
+	for (const tag of open) lists.push({ tag, from: tag.at, to: markup.length });
+
+	const snippets: (MarkupSpan & { name: string })[] = [];
+	const blocks: { name: string; from: number }[] = [];
+	for (const match of markup.matchAll(/\{#snippet\s+([A-Za-z_$][\w$]*)|\{\/snippet\}/g)) {
+		if (match[1]) blocks.push({ name: match[1], from: match.index! });
+		else {
+			const block = blocks.pop();
+			if (block) snippets.push({ ...block, to: match.index! });
+		}
+	}
+	const drawnAt = (snippet: MarkupSpan & { name: string }): number | null => {
+		const outside = (at: number) => at < snippet.from || at > snippet.to;
+		const rendered = new RegExp(`\\{@render\\s+${snippet.name.replace(/\$/g, '\\$')}\\b`, 'g');
+		for (const match of markup.matchAll(rendered)) if (outside(match.index!)) return match.index!;
+		const passed = new RegExp(`[\\s=]\\{\\s*${snippet.name.replace(/\$/g, '\\$')}\\s*\\}`);
+		return tags.find((tag) => !tag.close && outside(tag.at) && passed.test(tag.raw))?.at ?? null;
+	};
+	// Where a position is drawn: inside a snippet no list holds, where the
+	// snippet is drawn; the list holding it there, or null.
+	const placed = (at: number, seen = new Set<string>()): { at: number; list: Tag | null } => {
+		const list = innermostSpan(lists, at);
+		if (list) return { at, list: list.tag };
+		const snippet = innermostSpan(snippets, at);
+		if (!snippet || seen.has(snippet.name)) return { at, list: null };
+		const drawn = drawnAt(snippet);
+		if (drawn === null) return { at, list: null };
+		return placed(drawn, new Set([...seen, snippet.name]));
+	};
+
+	const events = tags
+		.filter((tag) => !tag.close && (tag.name === 'SortableHeadCell' || PHONE_SORT_TOOLBARS.has(tag.name)))
+		.map((tag) => ({ tag, ...placed(tag.at) }))
+		.sort((a, b) => a.at - b.at || a.tag.at - b.tag.at);
+	const registers: SortedRegister[] = [];
+	const ofList = new Map<Tag, SortedRegister>();
+	const registerOf = (list: Tag): SortedRegister => {
+		let register = ofList.get(list);
+		if (!register) {
+			register = { list, toolbars: [], heads: 0 };
+			ofList.set(list, register);
+			registers.push(register);
+		}
+		return register;
+	};
+	let waiting: Tag[] = [];
+	let loose: SortedRegister | null = null;
+	let last: SortedRegister | null = null;
+	for (const { tag, list } of events) {
+		if (tag.name !== 'SortableHeadCell') {
+			if (list) registerOf(list).toolbars.push(tag);
+			else {
+				waiting.push(tag);
+				if (loose && loose.heads > 0) loose = null;
+			}
+			continue;
+		}
+		let register = list ? registerOf(list) : loose;
+		if (!register) {
+			register = loose = { list: null, toolbars: [], heads: 0 };
+			registers.push(register);
+		}
+		register.heads++;
+		register.toolbars.push(...waiting);
+		waiting = [];
+		last = register;
+	}
+	last?.toolbars.push(...waiting);
+	return registers.filter((register) => register.heads > 0);
 }
 
 /**
@@ -1372,12 +1492,13 @@ function takesSort(raw: string): boolean {
  * sort, and every phone sort a host draws itself (a `mobileSort` snippet).
  * The house phone sort is a toolbar's `sort`: `ListQueryBar`'s, or the
  * list's own toolbar's (`FilterBar`'s, which `ListSurface` and
- * `ListPageScaffold` pass on). A component drawing `SortableHeadCell` is
- * listed when no toolbar of its takes the sort: each `ListQueryBar` with
- * none, else each list toolbar with none, else the heads themselves when it
- * draws no toolbar (its toolbar is another file's, which a guard then
- * reads); and when both a `ListQueryBar` and a list toolbar take it, which
- * draws two.
+ * `ListPageScaffold` pass on). Each register drawing `SortableHeadCell` is
+ * read on its own (`sortedRegisters`), so a sorted list never passes another
+ * beside it. It is listed when no toolbar of its takes the sort: each
+ * `ListQueryBar` of its with none, else each of its list toolbars with none,
+ * else its heads when it has no toolbar (its toolbar is another file's,
+ * which a guard then reads); and when both a `ListQueryBar` and a list
+ * toolbar of the same register take it, which draws two.
  */
 export function registersWithoutPhoneSort(source: string): string[] {
 	const markup = markupOf(source);
@@ -1385,26 +1506,31 @@ export function registersWithoutPhoneSort(source: string): string[] {
 	for (const match of markup.matchAll(/\{#snippet\s+mobileSort\b/g))
 		found.push(`a phone sort of its own (line ${lineAt(markup, match.index!)})`);
 	if (!/<SortableHeadCell\b/.test(markup)) return found;
-	const opened = markupTags(markup).filter((tag) => !tag.close);
-	const bars = opened.filter((tag) => tag.name === 'ListQueryBar');
-	const lists = opened.filter((tag) => PHONE_SORT_LISTS.has(tag.name));
-	const sortingList = lists.find((tag) => takesSort(tag.raw));
-	if (sortingList) {
+	const line = (tag: Tag) => lineAt(markup, tag.at);
+	for (const register of sortedRegisters(markup)) {
+		const bars = register.toolbars.filter((tag) => tag.name === 'ListQueryBar');
+		const lists = [
+			...(register.list ? [register.list] : []),
+			...register.toolbars.filter((tag) => tag.name === 'FilterBar')
+		].sort((a, b) => a.at - b.at);
+		const sortingList = lists.find((tag) => takesSort(tag.raw));
+		if (sortingList) {
+			for (const bar of bars)
+				if (takesSort(bar.raw))
+					found.push(
+						`two phone sorts: a ListQueryBar's (line ${line(bar)}) and a ${sortingList.name}'s (line ${line(sortingList)})`
+					);
+			continue;
+		}
 		for (const bar of bars)
-			if (takesSort(bar.raw))
-				found.push(
-					`two phone sorts: a ListQueryBar's (line ${lineAt(markup, bar.at)}) and a ${sortingList.name}'s (line ${lineAt(markup, sortingList.at)})`
-				);
-		return found;
+			if (!takesSort(bar.raw)) found.push(`a ListQueryBar with no sort (line ${line(bar)})`);
+		if (bars.length > 0) continue;
+		for (const list of lists) found.push(`a ${list.name} with no sort (line ${line(list)})`);
+		if (lists.length === 0)
+			found.push(
+				"sortable heads with no toolbar of its own that takes the sort (ListQueryBar's, or FilterBar's through ListSurface or ListPageScaffold)"
+			);
 	}
-	for (const bar of bars)
-		if (!takesSort(bar.raw)) found.push(`a ListQueryBar with no sort (line ${lineAt(markup, bar.at)})`);
-	if (bars.length > 0) return found;
-	for (const list of lists) found.push(`a ${list.name} with no sort (line ${lineAt(markup, list.at)})`);
-	if (lists.length === 0)
-		found.push(
-			"sortable heads with no toolbar of its own that takes the sort (ListQueryBar's, or FilterBar's through ListSurface or ListPageScaffold)"
-		);
 	return found;
 }
 
