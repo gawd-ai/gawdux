@@ -2349,3 +2349,224 @@ export function readableDashes(
 	}
 	return found;
 }
+
+/** Whether a source hands the house phone sort to a toolbar: a `ListQueryBar`,
+ * a `FilterBar`, or a list that passes it on (`ListSurface`,
+ * `ListPageScaffold`) taking a `sort`. A guard reads it over the file whose
+ * toolbar serves heads another file draws. */
+export function takesPhoneSort(source: string): boolean {
+	return markupTags(markupOf(source)).some(
+		(tag) =>
+			!tag.close &&
+			(PHONE_SORT_TOOLBARS.has(tag.name) || PHONE_SORT_HOLDERS.has(tag.name)) &&
+			takesSort(tag.raw)
+	);
+}
+
+/** The opening tags of a component in a source's markup. */
+function openingTags(markup: string, name: string): Tag[] {
+	return markupTags(markup).filter((tag) => !tag.close && tag.name === name);
+}
+
+/**
+ * A quoted string with words in it given as the value (the whole expression,
+ * or a branch after `?`, `:`, `||` or `??`): a stock line, not a value. A
+ * string the expression compares against is not one.
+ */
+const STOCK_LINE =
+	/(?:^\s*|[?:]\s*|\|\|\s*)('[^'\n]*[A-Za-z][^'\n]*'|"[^"\n]*[A-Za-z][^"\n]*"|`[^`$\n]*[A-Za-z][^`$\n]*`)/;
+
+/**
+ * The stock lines a source gives a pane header as its second line: a
+ * `PaneHeader`'s `subtitle` that is a quoted string or has one as a branch,
+ * or a subtitle snippet (`subtitleContent`) holding words and no value. A
+ * pane header's second line is the item's own value or nothing: a line
+ * standing in for a missing value says nothing. Words framing a value
+ * ("Records of {form}") name it and are not a stock line.
+ */
+export function stockCaptions(source: string): string[] {
+	const markup = markupOf(source);
+	const found: string[] = [];
+	const snippets: string[] = [];
+	for (const { raw } of openingTags(markup, 'PaneHeader')) {
+		const literal = /\ssubtitle="([^"]*)"/.exec(raw);
+		if (literal) found.push(literal[1]!);
+		const expression = attributeExpression(raw, 'subtitle');
+		const stock = expression === null ? null : STOCK_LINE.exec(expression);
+		if (stock) found.push(stock[1]!);
+		const content = /\ssubtitleContent=\{(\w+)\}/.exec(raw);
+		if (content) snippets.push(content[1]!);
+	}
+	for (const name of snippets) {
+		const body = new RegExp(`\\{#snippet\\s+${name}\\(\\)\\}([\\s\\S]*?)\\{\\/snippet\\}`).exec(markup);
+		if (!body) continue;
+		const parts = body[1]!.replace(/<[^>]*>/g, ' ').match(/\{[^}]*\}|[^{}]+/g) ?? [];
+		const values = parts.filter((part) => part.startsWith('{'));
+		if (values.length === 0) {
+			const words = parts.join(' ').replace(/\s+/g, ' ').trim();
+			if (/[A-Za-z]{2,}/.test(words)) found.push(words);
+		}
+		for (const part of values) {
+			const stock = STOCK_LINE.exec(part.slice(1, -1));
+			if (stock) found.push(stock[1]!);
+		}
+	}
+	return found;
+}
+
+/** The edges a CSS rule can draw. */
+const CSS_EDGE = /(^|[;{\s])(border(-[a-z-]+)?|outline(-[a-z-]+)?|box-shadow)\s*:/;
+
+/**
+ * What a source sets of its own on the saved views rail and the pill track,
+ * which decide for themselves whether and how they are drawn (a choice of
+ * one is not drawn): a `SavedViewsRail` with a class of the host's, or drawn
+ * in a list's `rail` slot under a condition or beside other markup; an edge
+ * (a border, a ring, an outline, a shadow) on a `FilterPillRow`, or styled
+ * onto `.filter-pill`, `.filter-pill-track` or `.saved-views-rail`; a track
+ * a host draws itself. `sheet` reads the source as a stylesheet.
+ */
+export function hostChoiceChrome(source: string, sheet = false): string[] {
+	const found: string[] = [];
+	if (!sheet) {
+		const markup = markupOf(source);
+		for (const { raw } of openingTags(markup, 'SavedViewsRail'))
+			if (/\sclassName=/.test(raw)) found.push('a class of its own on SavedViewsRail');
+		for (const { raw } of openingTags(markup, 'FilterPillRow'))
+			if (/\sclassName=\{?["'`][^"'`]*\b(border|ring|outline|shadow)\b/.test(raw))
+				found.push('an edge of its own on FilterPillRow');
+		for (const slot of markup.matchAll(
+			/<svelte:fragment\s+slot="rail"\s*>([\s\S]*?)<\/svelte:fragment>|\{#snippet\s+rail\(\)\}([\s\S]*?)\{\/snippet\}/g
+		)) {
+			const body = slot[1] ?? slot[2] ?? '';
+			const rails = openingTags(body, 'SavedViewsRail');
+			if (rails.length === 0) continue;
+			let rest = body;
+			for (const rail of rails) rest = rest.replace(rail.raw, '');
+			if (rest.trim() !== '') found.push('the saved views rail drawn under a condition or beside markup');
+		}
+		for (const match of markup.matchAll(/class(?:Name)?=\{?["'`]([^"'`]*)/g))
+			if (/(^|\s)(filter-pill-track|saved-views-rail)(\s|$)/.test(match[1]!)) found.push('a track of its own');
+	}
+	const styles = sheet
+		? [blankComments(source, 'sheet.css')]
+		: [...blankComments(source).matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map((block) => block[1]!);
+	for (const css of styles)
+		for (const rule of css.matchAll(/([^{}]+)\{([^{}]*)\}/g))
+			if (/\.(filter-pill(-track)?|saved-views-rail)\b/.test(rule[1]!) && CSS_EDGE.test(rule[2]!))
+				found.push(`an edge on ${rule[1]!.trim()}`);
+	return found;
+}
+
+/**
+ * Every edit mode a source passes (an object holding `isEditing:` with a
+ * value, never a type) that does not say whether cancelling would discard
+ * input (`discards`), by the line of its `isEditing`. Without it the action
+ * pair's Cancel stays neutral however much the person has typed.
+ */
+export function editModesWithoutDiscards(source: string, file?: string): string[] {
+	const code = blankComments(source, file);
+	const found: string[] = [];
+	for (const match of code.matchAll(/\bisEditing\s*:(?!\s*boolean\b)/g)) {
+		const at = match.index!;
+		let open = -1;
+		for (let i = at - 1, depth = 0; i >= 0; i -= 1) {
+			if (code[i] === '}') depth += 1;
+			else if (code[i] === '{' && depth-- === 0) {
+				open = i;
+				break;
+			}
+		}
+		if (open < 0) continue;
+		let close = code.length;
+		for (let i = open + 1, depth = 0; i < code.length; i += 1) {
+			if (code[i] === '{') depth += 1;
+			else if (code[i] === '}' && depth-- === 0) {
+				close = i;
+				break;
+			}
+		}
+		const object = code.slice(open, close + 1);
+		if (!/(?:^|[\s,{])discards\s*(?:[:,}]|$)/m.test(object))
+			found.push(`edit mode without discards (line ${lineAt(code, at)})`);
+	}
+	return found;
+}
+
+/**
+ * The acts in the bar that name their tab but sit beside the page's
+ * `EditablePageScaffold`, not inside it, in a source that publishes no tab
+ * host of its own. The scaffold publishes the page's open tab
+ * (`PAGE_TAB_CONTEXT`) only to what it holds; an act outside it finds no
+ * host and shows on every tab, so such a source publishes the page's host
+ * itself (`createPageTabHost`), which the scaffold then keeps.
+ */
+export function tabActsOutsideTabHost(source: string): string[] {
+	const markup = markupOf(source);
+	if (!/<EditablePageScaffold\b/.test(markup) || /\bcreatePageTabHost\s*\(/.test(source)) return [];
+	const tags = markupTags(markup);
+	const spans: MarkupSpan[] = [];
+	for (const tag of tags) {
+		if (tag.close || tag.selfClosing || tag.name !== 'EditablePageScaffold') continue;
+		const close = markup.indexOf('</EditablePageScaffold>', tag.at);
+		spans.push({ from: tag.at, to: close < 0 ? markup.length : close });
+	}
+	const found: string[] = [];
+	for (const tag of tags) {
+		if (tag.close || !BAR_ZONES.has(tag.name)) continue;
+		if (!/\stab=|\s\{tab\}/.test(tag.raw)) continue;
+		if (spans.some((span) => tag.at > span.from && tag.at < span.to)) continue;
+		found.push(`${tag.raw.replace(/\s+/g, ' ')} (line ${lineAt(markup, tag.at)})`);
+	}
+	return found;
+}
+
+/**
+ * Every tab column a source pads itself: a class list naming `panel-col` or
+ * `panel-col-wide` with a padding utility. A tab's column sits in an inset
+ * host, which owns the inset on all four sides.
+ */
+export function paddedTabColumns(source: string): string[] {
+	const markup = markupOf(source);
+	const found: string[] = [];
+	for (const match of markup.matchAll(/class="([^"]*\bpanel-col(?:-wide)?\b[^"]*)"/g))
+		if (/(?:^|\s)(?:[\w-]+:)*p[xytblrse]?-\S+/.test(match[1]!))
+			found.push(`${match[1]} (line ${lineAt(markup, match.index!)})`);
+	return found;
+}
+
+/**
+ * Every tab a source draws against the tab icon table: a `TabTitle` with no
+ * icon, and a `TabTitle` whose label the table knows (`meanings`, the keys
+ * of the app's table) that takes its icon from anywhere but the table
+ * (`TAB_ICONS.History`, `TAB_ICONS['Signed copy']`; `table` names the app's
+ * own). One meaning has one icon on every strip. A label given as an
+ * expression is read only for its icon.
+ */
+export function tabIconFaults(
+	source: string,
+	options: { meanings: readonly string[]; table?: string }
+): string[] {
+	const markup = markupOf(source);
+	const table = options.table ?? 'TAB_ICONS';
+	const known = new Set(options.meanings);
+	const found: string[] = [];
+	for (const tag of openingTags(markup, 'TabTitle')) {
+		const line = lineAt(markup, tag.at);
+		const literal = /\slabel=(?:"([^"]*)"|'([^']*)'|\{\s*(['"`])((?:(?!\3).)*)\3\s*\})/.exec(tag.raw);
+		const label = literal?.[1] ?? literal?.[2] ?? literal?.[4] ?? null;
+		const shown = label ?? `{${attributeExpression(tag.raw, 'label')?.trim() ?? '?'}}`;
+		const icon = attributeExpression(tag.raw, 'icon')?.trim() ?? null;
+		if (!icon || icon === 'null' || icon === 'undefined') {
+			found.push(`a tab with no icon: ${shown} (line ${line})`);
+			continue;
+		}
+		if (label === null || !known.has(label)) continue;
+		const refs = [`${table}.${label}`, `${table}['${label}']`, `${table}["${label}"]`];
+		if (!refs.includes(icon))
+			found.push(
+				`${label} takes ${icon}, not ${/^[A-Za-z_$][\w$]*$/.test(label) ? refs[0] : refs[1]} (line ${line})`
+			);
+	}
+	return found;
+}

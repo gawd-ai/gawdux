@@ -1,5 +1,100 @@
 # Changelog
 
+## 0.45.0 - the tab icon table, the house rule runner and the rulebook
+
+### Added
+
+- The tab icon base table, lifted from a consuming product with its tests:
+  `TAB_ICONS` (`gawdux/primitives`), one icon per tab meaning, keyed by the
+  label a tab shows (Content, Workflow, Process, Access, Automation, History,
+  Versions, Details, Overview, Security, Roles, Members, Bots, Invitations,
+  Organization, Departments, Modules, Types, Folders, Workflows, Usage,
+  Settings, Configs, Knowledge, Skills). The meanings only one product has
+  stayed with it. `extendTabIcons(own)` is the table an app names its tabs
+  from: the base and the app's own meanings, frozen, and it refuses by name
+  a base meaning given another icon. `viewerTab(id, label, { afterVersions,
+  count, icons })` builds a document viewer's extra tab with its label's
+  icon and refuses a label the table does not hold; `VIEWER_TAB_ICONS` is
+  the viewer's Content and Versions. Types `TabMeaning`, `TabIconTable`,
+  `ViewerIconTab`.
+- `tabIconFaults(source, { meanings, table })` (`gawdux/utils`): the walk
+  the product's test did over its own files, as a reader. It lists a
+  `TabTitle` with no icon, and one whose label the table knows that takes
+  its icon from anywhere but the table (`TAB_ICONS.History`,
+  `TAB_ICONS['Signed copy']`, or the app's own table by `table`).
+- The house rule runner, lifted from a consuming product's guard:
+  `createHouseRules(root, options)` and `houseRuleFiles(root, options)`
+  (`gawdux/test-support`, Node only). It walks a tree's sources (`.svelte`,
+  `.css` and `.ts` in path order; `node_modules`, declaration files and
+  tests left out; `extensions`, `exclude`, `tests`), applies a reader to
+  every file and answers the findings by file, a clean tree `{}`.
+  - `findings(read, { only, allow })`: exceptions by file, each with its
+    reason (a reason alone, `{ finding, why }`, or several). An exception
+    with no reason (under ten characters), one that allows nothing the
+    reader found and one for a file that is not read are findings.
+  - `counted(read, allowed)`: what each file may hold of something counted
+    (a shadow) and what it is; another number, a file with none allowed and
+    a stale or unnamed entry are findings.
+  - `phoneSorts(headsElsewhere)`: the phone sort rule over the tree. The
+    files listed as heads sorted elsewhere each give why; a listed file must
+    still need its exception, and its `bar` must be clean and take the sort,
+    a `ListQueryBar`'s or a list toolbar's (`FilterBar`'s, through
+    `ListSurface` or `ListPageScaffold`), where the product's map looked for
+    a `ListQueryBar` alone.
+  - `layoutResets()`, `source(rel)`, `has(rel)`, `files`.
+- The readers that guard kept for itself, in `gawdux/utils` with their
+  tests: `stockCaptions` (a `PaneHeader`'s `subtitle` or subtitle snippet
+  that is a stock line standing in for a missing value), `hostChoiceChrome`
+  (a `SavedViewsRail` drawn under a condition, beside markup or with a class
+  of the host's, in a `rail` slot or snippet; an edge on `FilterPillRow` or
+  styled onto the track; a track a host draws), `editModesWithoutDiscards`
+  (an object holding `isEditing:` with no `discards`), `tabActsOutsideTabHost`
+  (a bar zone naming its tab beside `EditablePageScaffold` in a source with
+  no `createPageTabHost`), `paddedTabColumns` (a `panel-col` with a padding
+  utility) and `takesPhoneSort` (a toolbar or a list that takes a `sort`).
+  Each reads markup with comments, scripts and styles left out.
+- `docs/UI_UX_PRINCIPLES.md`, the rulebook: the generic sections of a
+  consuming product's rulebook, naming no product. How the rules are held
+  (one owner, one guard, the runner, exceptions with reasons), product feel,
+  the plain-language rule, the house surface (one page frame, one inset,
+  light and dark, no shadow inside the page, one icon size, one icon button,
+  rail rows, card padding, a choice of one, a register on a phone, the phone
+  sort, one scroller, one count pill), tabs and the tab icon table, the
+  header, a status shown once, the command bar, the open tab's actions, the
+  action pair, decisions out of the bar, errors, list tables, navigation,
+  small sets, the phone shell, long values, text that states the obvious,
+  history rows, dates, contrast, forms, browser checks and the review
+  checklist. The phone sort section names both ways a register hands over
+  its sort, `ListQueryBar`'s `sort` and `FilterBar`'s through `ListSurface`
+  or `ListPageScaffold`, held by `registersWithoutPhoneSort`.
+
+### Changed
+
+- `tests/house-surface-rules.test.ts` reads the library's sources through
+  the runner (the walk, `findings`, `counted` for the shadows, `phoneSorts`
+  for the heads `DataTable` draws), with the exceptions it had. Every reader
+  finds on the library's sources what it found before.
+
+### Tests
+
+- `tests/tab-icons.test.ts` (the product's tab icon tests moved along: the
+  table names a document's, a record's and a run's tabs one way; the viewer
+  tab; and, in place of its walk, the reader on cases and on the library's
+  own strips), `tests/house-rules-runner.test.ts` (the walk, the readers,
+  exceptions and their faults, counts, heads sorted elsewhere, the lifted
+  readers on the product's cases, and the library's own sources clean) and
+  `tests/rulebook.test.ts` (every exported reader is named in the rulebook;
+  every `--gawdux-*` token, class and export it names exists; no em dash or
+  en dash).
+
+### Migration
+
+- Nothing is removed and nothing drawn changes. A host that keeps a tab
+  icon table of its own builds it with `extendTabIcons` and drops the
+  meanings the base holds. A host whose guard walks its own files and keeps
+  its own `findings` helper, or its own copies of the readers named above,
+  takes the runner and the readers from here.
+
 ## 0.44.0 - the phone shell kit
 
 ### Added

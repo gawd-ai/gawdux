@@ -120,6 +120,8 @@ export type { StatusBadgeColor } from './StatusBadge.svelte';
 export { default as TableContainer } from './TableContainer.svelte';
 export { default as TabFillPanel } from './TabFillPanel.svelte';
 export { default as TabTitle } from './TabTitle.svelte';
+export { TAB_ICONS, VIEWER_TAB_ICONS, extendTabIcons, viewerTab } from './tab-icons';
+export type { TabIconTable, TabMeaning, ViewerIconTab } from './tab-icons';
 
 export {
 	PAGE_COMMAND_BAR_CONTEXT,

@@ -337,3 +337,61 @@ export declare function readableDashes(source: string, options?: {
     file?: string;
     placeholders?: readonly string[];
 }): string[];
+/** Whether a source hands the house phone sort to a toolbar: a `ListQueryBar`,
+ * a `FilterBar`, or a list that passes it on (`ListSurface`,
+ * `ListPageScaffold`) taking a `sort`. A guard reads it over the file whose
+ * toolbar serves heads another file draws. */
+export declare function takesPhoneSort(source: string): boolean;
+/**
+ * The stock lines a source gives a pane header as its second line: a
+ * `PaneHeader`'s `subtitle` that is a quoted string or has one as a branch,
+ * or a subtitle snippet (`subtitleContent`) holding words and no value. A
+ * pane header's second line is the item's own value or nothing: a line
+ * standing in for a missing value says nothing. Words framing a value
+ * ("Records of {form}") name it and are not a stock line.
+ */
+export declare function stockCaptions(source: string): string[];
+/**
+ * What a source sets of its own on the saved views rail and the pill track,
+ * which decide for themselves whether and how they are drawn (a choice of
+ * one is not drawn): a `SavedViewsRail` with a class of the host's, or drawn
+ * in a list's `rail` slot under a condition or beside other markup; an edge
+ * (a border, a ring, an outline, a shadow) on a `FilterPillRow`, or styled
+ * onto `.filter-pill`, `.filter-pill-track` or `.saved-views-rail`; a track
+ * a host draws itself. `sheet` reads the source as a stylesheet.
+ */
+export declare function hostChoiceChrome(source: string, sheet?: boolean): string[];
+/**
+ * Every edit mode a source passes (an object holding `isEditing:` with a
+ * value, never a type) that does not say whether cancelling would discard
+ * input (`discards`), by the line of its `isEditing`. Without it the action
+ * pair's Cancel stays neutral however much the person has typed.
+ */
+export declare function editModesWithoutDiscards(source: string, file?: string): string[];
+/**
+ * The acts in the bar that name their tab but sit beside the page's
+ * `EditablePageScaffold`, not inside it, in a source that publishes no tab
+ * host of its own. The scaffold publishes the page's open tab
+ * (`PAGE_TAB_CONTEXT`) only to what it holds; an act outside it finds no
+ * host and shows on every tab, so such a source publishes the page's host
+ * itself (`createPageTabHost`), which the scaffold then keeps.
+ */
+export declare function tabActsOutsideTabHost(source: string): string[];
+/**
+ * Every tab column a source pads itself: a class list naming `panel-col` or
+ * `panel-col-wide` with a padding utility. A tab's column sits in an inset
+ * host, which owns the inset on all four sides.
+ */
+export declare function paddedTabColumns(source: string): string[];
+/**
+ * Every tab a source draws against the tab icon table: a `TabTitle` with no
+ * icon, and a `TabTitle` whose label the table knows (`meanings`, the keys
+ * of the app's table) that takes its icon from anywhere but the table
+ * (`TAB_ICONS.History`, `TAB_ICONS['Signed copy']`; `table` names the app's
+ * own). One meaning has one icon on every strip. A label given as an
+ * expression is read only for its icon.
+ */
+export declare function tabIconFaults(source: string, options: {
+    meanings: readonly string[];
+    table?: string;
+}): string[];

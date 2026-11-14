@@ -35,7 +35,7 @@ Supported package subpaths:
 - `gawdux/admin`
 - `gawdux/alert-ops`
 - `gawdux/validation`
-- `gawdux/test-support` (Node only: the geometry harness)
+- `gawdux/test-support` (Node only: the geometry harness and the house rule runner)
 - `gawdux/types`
 - `gawdux/utils`
 - `gawdux/styles/tokens.css`
@@ -48,6 +48,7 @@ Supported package subpaths:
 - **detail and table primitives**: `StatTile`/`StatTileStrip` (a detail overview's KPI tiles: label, value, meta, icon, a state tone, a go-to icon drill-down; the strip wraps and never clips), `SectionLink` (the go-to-section arrow, no words, at the top right of a card header or tile; `CardContainer` takes it as `link`), `IconButton` (the house's icon action, flat in light and dark, named by its tooltip; `danger` turns red only on hover; `size="md"` in a header, a 44px target on a phone; a glyph as its children), `DataTable` (a `TableContainer` with column definitions, `SortableHeadCell` headers, cells from a snippet, each labelled with its column, and the house empty row; every register's table reads as labelled cards on a phone, tokens.css "A register on a phone"), `IconLabel` (an icon and a word, the shape of a cue), `StatusBadge` (a coloured word, optionally with an icon), `HeaderStatus` (a pane header's state: the status chip, always, and a lock beside it while the viewer cannot edit, the reason in its tooltip), `TableContainer`, `SortableHeadCell`, `HeadCell` (the labelled, non-sortable header of a hand-built table, with an optional column icon), `EmptyStateRow`, `CollectionEmptyState`.
 - **alert-ops**: `AlertOpsConsole`, the Alert Operations surface (alert groups, detail, silences), transport-agnostic. Its tabs carry icons; its denied and unavailable states are the house `CollectionEmptyState` on the page surface, and with `healthBar={false}` the host's bar carries status and Refresh, so the unavailable state offers no Retry of its own.
 - **admin** (`gawdux/admin`): tenant-administration blocks, presentation only (the host loads, authorizes and performs every change): `MemberAccessCard`, `SecurityActivityList`, `AuditHistoryTable`, `RoleMembersCard` (who holds a Role: a quiet trash icon raises the removal for the host to confirm, a picker adds), and the AI + Bots blocks: `AiUsageReport` (totals as tiles, `AiUsageBars` per day, one share-bar card per breakdown; turns and tokens, never money), `BotRail` (bots with avatar, role and one state, for every tab that picks a bot first), `BotIdentityHeader`, `BotConfigView` (a config read, the other half of `BotConfigFields`' edit), `BotContextCard` (the composed block a bot reads, by parts), `BotToolAccess`.
+- **the house rules**: the rulebook ([docs/UI_UX_PRINCIPLES.md](docs/UI_UX_PRINCIPLES.md): each rule in plain words, with its owner and its guard), the readers that hold it (`gawdux/utils`), the runner that applies them to a tree (`createHouseRules`, `gawdux/test-support`) and the tab icon table (`TAB_ICONS`, `extendTabIcons`, `gawdux/primitives`). See "The house rules".
 - **styles/tokens.css**: the shared design tokens (color, spacing, density) that give host applications a common visual language.
 
 ## Row navigation
@@ -718,6 +719,108 @@ and no rail draws its toolbar for the sort only at the compact width.
 register that sorts by its heads with neither, or with both. It reads each
 register on its own: each list holding sortable heads, and the heads no
 list holds, a snippet's heads read where it is drawn.
+
+## The house rules
+
+[docs/UI_UX_PRINCIPLES.md](docs/UI_UX_PRINCIPLES.md) is the rulebook: every
+house rule in plain words (the page frame, the inset, shadows, edges in
+light and dark, icons, cards, registers on a phone, the phone sort, tabs,
+the header, the command bar, decisions, errors, dates and the plain-language
+rule), each with the part of this library that owns it and the reader that
+holds it. It names no product. An app keeps a rulebook of its own only for
+what it alone has.
+
+### The runner
+
+`createHouseRules` (`gawdux/test-support`, Node only) walks a tree's
+sources, applies a reader to every file and answers what it found by file.
+A clean tree answers `{}`, so a host's guard is one line a rule:
+
+```ts
+import { createHouseRules } from 'gawdux/test-support';
+import { surfaceShadows, vanishingDarkEdges, plainLanguageFaults } from 'gawdux/utils';
+
+const rules = createHouseRules(path.resolve('src'), { exclude: [/^routes\/marketing\//] });
+
+expect(rules.findings(vanishingDarkEdges)).toEqual({});
+expect(
+  rules.findings((source, rel) => plainLanguageFaults(source, rel), {
+    only: /\.svelte$|-copy\.ts$/,
+    allow: { 'lib/Glossary.svelte': { finding: /^surface:/, why: 'the glossary defines the word' } }
+  })
+).toEqual({});
+expect(
+  rules.counted((source) => surfaceShadows(source), {
+    'lib/components/LanguageMenu.svelte': { count: 1, what: 'the open language menu' }
+  })
+).toEqual({});
+```
+
+- `houseRuleFiles(root, options)` is the walk: every `.svelte`, `.css` and
+  `.ts` file under the root in path order, with `node_modules`, declaration
+  files and tests left out (`extensions`, `exclude`, `tests`).
+  `createHouseRules` also takes sources already read.
+- `findings(read, { only, allow })`: `only` names the files a rule reads.
+  `allow` is the exceptions by file, each with its reason: a reason alone
+  allows every finding of the file, `{ finding, why }` the findings the
+  pattern matches, and a file may hold several. An exception with a reason
+  shorter than ten characters, one that allows nothing the reader found,
+  and one for a file that is not read are findings themselves, so an
+  allowlist never outlives what it allowed.
+- `counted(read, allowed)`: what each file may hold of something counted
+  (a shadow), with what it is. A file with another number, a file with none
+  allowed, and an entry that is stale or says nothing are findings.
+- `phoneSorts(headsElsewhere)`: `registersWithoutPhoneSort` over every
+  component but the files listed, each with why. A listed file must still
+  need its exception, and the file named as its `bar` must be clean and
+  take the sort, a `ListQueryBar`'s or a list toolbar's (`takesPhoneSort`).
+- `layoutResets()`: the routes that leave their layout (`+page@`,
+  `+layout@`), for a host to list with why.
+- `source(rel)` and `has(rel)` answer one file, `files` all of them.
+
+The readers a host's guard used to keep for itself are in `gawdux/utils`
+with the rest: `stockCaptions` (a pane header's second line that stands in
+for a missing value), `hostChoiceChrome` (a host's own condition, class or
+edge on the saved views rail or the pill track), `editModesWithoutDiscards`
+(an edit mode that does not say whether Cancel would discard input),
+`tabActsOutsideTabHost` (a bar action that names its tab beside the scaffold,
+in a file that publishes no tab host), `paddedTabColumns` and
+`tabIconFaults`.
+
+This library holds its own sources with the runner
+(`tests/house-surface-rules.test.ts`, `tests/house-rules-runner.test.ts`),
+and `tests/rulebook.test.ts` holds the rulebook to the code: every reader is
+named in it, and every token, class and export it names exists.
+
+### The tab icon table
+
+A tab is an icon and its label, and one meaning has one icon on every strip.
+`TAB_ICONS` (`gawdux/primitives`) is the base table, keyed by the label a
+tab shows: Content, Workflow, Process, Access, Automation, History, Versions,
+Details, Overview, Security, Roles, Members, Bots, Invitations, Organization,
+Departments, Modules, Types, Folders, Workflows, Usage, Settings, Configs,
+Knowledge and Skills. An app extends it and names its tabs from its own
+table:
+
+```ts
+import { extendTabIcons } from 'gawdux/primitives';
+import { BellOutline } from 'flowbite-svelte-icons';
+
+export const APP_TAB_ICONS = extendTabIcons({ Alerts: BellOutline });
+```
+
+```svelte
+<TabTitle slot="title" icon={APP_TAB_ICONS.History} label="History" />
+```
+
+`extendTabIcons` refuses, by name, a meaning the base holds given another
+icon. `viewerTab(id, label, { afterVersions, count, icons })` builds a
+document viewer's extra tab with the icon its label has, and
+`VIEWER_TAB_ICONS` is the viewer's own Content and Versions.
+`tabIconFaults(source, { meanings, table })` (`gawdux/utils`) lists a
+`TabTitle` with no icon and one whose label the table knows that takes its
+icon from anywhere else; `table` is the name of the app's table
+(`'APP_TAB_ICONS'`), `meanings` its keys.
 
 ## Development Workflow
 

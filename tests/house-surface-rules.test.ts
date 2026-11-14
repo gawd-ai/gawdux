@@ -1,4 +1,3 @@
-import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
@@ -26,6 +25,7 @@ import {
 	vanishingDarkEdges,
 	withoutComments
 } from '../src/lib/utils/surface-rules';
+import { createHouseRules } from '../src/lib/test-support/house-rules';
 
 // The house surface rules over this library's own markup and styles, read
 // statically so a divergence cannot come back unnoticed:
@@ -75,20 +75,10 @@ import {
 // read for a fail-first run.
 const ROOT = process.env['HOUSE_RULES_SRC'] ?? path.resolve(import.meta.dirname, '../src/lib');
 
-function sources(dir: string): string[] {
-	return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
-		const file = path.join(dir, entry.name);
-		if (entry.isDirectory()) return sources(file);
-		return /\.(svelte|css|ts)$/.test(entry.name) && !/\.(test|spec)\.ts$|\.d\.ts$/.test(entry.name)
-			? [file]
-			: [];
-	});
-}
-
-const FILES = sources(ROOT).map((file) => ({
-	rel: path.relative(ROOT, file).split(path.sep).join('/'),
-	source: readFileSync(file, 'utf8')
-}));
+// The runner walks the tree and applies each reader (gawdux/test-support):
+// the library holds its own sources with what it gives a host.
+const RULES = createHouseRules(ROOT);
+const FILES = RULES.files;
 
 type Why = 'floating' | 'elevation';
 
@@ -137,15 +127,7 @@ const ALLOWED: Record<string, { count: number; why: Why[]; what: string }> = {
 
 describe('no shadow inside the page', () => {
 	it('draws only the floating set, file by file, each counted', () => {
-		const drawn: Record<string, number> = {};
-		for (const { rel, source } of FILES) {
-			const found = surfaceShadows(source);
-			if (found.length > 0) drawn[rel] = found.length;
-		}
-		const allowed = Object.fromEntries(
-			Object.entries(ALLOWED).map(([rel, entry]) => [rel, entry.count])
-		);
-		expect(drawn).toEqual(allowed);
+		expect(RULES.counted((source) => surfaceShadows(source), ALLOWED)).toEqual({});
 	});
 
 	it("wraps no Flowbite component that hard-codes a shadow (Card's Frame)", () => {
@@ -359,13 +341,9 @@ describe('a register reads on a phone', () => {
 	});
 });
 
-/** Every file's findings by a reader, the files with none left out. */
+/** Every file's findings by a reader, the files with none left out; `skip` names a file's exception and why. */
 function findings(read: (source: string, rel: string) => string[], skip: Record<string, string> = {}) {
-	return Object.fromEntries(
-		FILES.filter(({ rel }) => !(rel in skip))
-			.map(({ rel, source }) => [rel, read(source, rel)])
-			.filter(([, found]) => found.length > 0)
-	);
+	return RULES.findings(read, { allow: skip });
 }
 
 describe('one question in a confirmation', () => {
@@ -443,10 +421,15 @@ describe('a phone sort on every sorted register', () => {
 
 	it('gives every register that sorts by its heads the house phone sort', () => {
 		expect(
-			findings((source, rel) => (rel.endsWith('.svelte') ? registersWithoutPhoneSort(source) : []), HEADS_DRAWN)
+			RULES.phoneSorts(
+				Object.fromEntries(Object.entries(HEADS_DRAWN).map(([rel, why]) => [rel, { why }]))
+			)
 		).toEqual({});
-		for (const rel of Object.keys(HEADS_DRAWN))
-			expect(registersWithoutPhoneSort(FILES.find((file) => file.rel === rel)!.source), rel).not.toEqual([]);
+		// An exception that excepts nothing is a finding, so the list never outlives its files.
+		expect(RULES.phoneSorts({ 'primitives/IconButton.svelte': { why: 'a button that draws no heads at all' } })).toEqual({
+			'primitives/DataTable.svelte': [expect.stringContaining('sortable heads')],
+			'primitives/IconButton.svelte': ['listed as heads sorted elsewhere, and needs no exception']
+		});
 	});
 
 	it('reads sortable heads with a query bar that takes no sort, and a phone sort of its own', () => {
