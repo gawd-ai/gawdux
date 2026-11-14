@@ -31,9 +31,11 @@ import { /* helpers */ } from 'gawdux/utils';
 Supported package subpaths:
 
 - `gawdux` (root) / `gawdux/components` / `gawdux/primitives`
+- `gawdux/shell`
 - `gawdux/admin`
 - `gawdux/alert-ops`
 - `gawdux/validation`
+- `gawdux/test-support` (Node only: the geometry harness)
 - `gawdux/types`
 - `gawdux/utils`
 - `gawdux/styles/tokens.css`
@@ -41,6 +43,7 @@ Supported package subpaths:
 ## What's Inside
 
 - **components**: `AppSidebar`, `SidebarDropdownGroup`, `SidebarFlyout`: the collapsible app navigation shell; `UserMenu`: the top bar's account menu.
+- **shell** (`gawdux/shell`): the app shell kit, the phone shell with it: `AppShell` (the frame), `ShellHeader` (the header row), `ShellSidebar` and `ShellNavigationDrawer` (the side rail and its drawer), `ShellMainColumn`, `ShellRightColumn`, `ShellBarEnd` (the host's controls at the end of the bar along the bottom), `AccountCard` (the account card, a presentation of `UserMenu` a host opts into), `PlaceDoor`, the rail and trail resolver (`resolveRailPlace`, `createAppTrail`), the page heading (`createAppPageHeading`) and the compact switch (`createCompactViewport`, `createCompactFold`). See "The app shell".
 - **primitives**: list and page building blocks: `Breadcrumbs` (the header's trail on one line, folding its middle into a menu), `ListSurface`, `ListQueryBar`, `ListPaginationNav`, `FilterBar` (a list's toolbar; its `sort` is the house phone sort, which `ListSurface` and `ListPageScaffold` pass on)/`FilterPillRow`, `SavedViewsRail` (drawn only with a saved view to choose or a query to save), `MasterDetailShell` (its rail rows `RailRowButton`: the icon on the title line, the meta line under it at the row's edge), `ListPageScaffold`/`EditablePageScaffold`, `PageCommandBar`, `PageCommandBarZones` (the bar's three zones as state an app shell holds, for `PageFrame`), `PageTabs` (its status after its strip, never over a tab; each tab an icon and its label from `TabTitle`, the icons alone while the labels do not fit the strip's box), `fitLabels` (a row of labelled controls, a tab strip or a strip with its tools, shows its labels while they fit its own box and its icons alone when they do not, a tool then the house icon button and a choice its short value), `scrollEdges` (anything that scrolls sideways fades at the edge where more of it lies, one way: a tab strip, a row of filter pills, a drawing in its box), `FormField`, `ReadonlyField`, `CardContainer`, and more.
 - **detail and table primitives**: `StatTile`/`StatTileStrip` (a detail overview's KPI tiles: label, value, meta, icon, a state tone, a go-to icon drill-down; the strip wraps and never clips), `SectionLink` (the go-to-section arrow, no words, at the top right of a card header or tile; `CardContainer` takes it as `link`), `IconButton` (the house's icon action, flat in light and dark, named by its tooltip; `danger` turns red only on hover; `size="md"` in a header, a 44px target on a phone; a glyph as its children), `DataTable` (a `TableContainer` with column definitions, `SortableHeadCell` headers, cells from a snippet, each labelled with its column, and the house empty row; every register's table reads as labelled cards on a phone, tokens.css "A register on a phone"), `IconLabel` (an icon and a word, the shape of a cue), `StatusBadge` (a coloured word, optionally with an icon), `HeaderStatus` (a pane header's state: the status chip, always, and a lock beside it while the viewer cannot edit, the reason in its tooltip), `TableContainer`, `SortableHeadCell`, `HeadCell` (the labelled, non-sortable header of a hand-built table, with an optional column icon), `EmptyStateRow`, `CollectionEmptyState`.
 - **alert-ops**: `AlertOpsConsole`, the Alert Operations surface (alert groups, detail, silences), transport-agnostic. Its tabs carry icons; its denied and unavailable states are the house `CollectionEmptyState` on the page surface, and with `healthBar={false}` the host's bar carries status and Refresh, so the unavailable state offers no Retry of its own.
@@ -457,6 +460,155 @@ beside it reads whole.
   yields, until it has yielded once and been measured. Read `yields(index)` in
   the markup that renders the controls.
 
+## The app shell
+
+`gawdux/shell` is the app shell as parts a host composes: the frame, the
+header row, the side rail and its drawer, the right column, the controls at
+the end of the phone shell's bar and the account card. At or below the
+compact width (`SHELL_BAR_QUERY`, 1024px) it is the phone shell: the side
+rail is a drawer the header's menu button opens, the header is one row, and
+one bar runs along the bottom with the account at its right end. The kit
+names no product: the brand, the account, a switcher and the notices are
+the host's, and a slot left empty draws nothing. The toast is not part of
+it: `MessageHost` (`gawdux/primitives`) over `createMessageCenter` is the
+toast, placed clear of the bar.
+
+```svelte
+<script lang="ts">
+  import { UserMenu } from 'gawdux/components';
+  import { PageFrame } from 'gawdux/primitives';
+  import {
+    AppShell, ShellHeader, ShellSidebar, ShellNavigationDrawer,
+    ShellMainColumn, ShellRightColumn, ShellBarEnd,
+    resolveRailPlace, sidebarActiveUrl, createAppTrail, rightColumnHolds
+  } from 'gawdux/shell';
+
+  let { data, children } = $props();
+  let navigationOpen = $state(false);
+  let compact = $state(false);
+
+  const trails = createAppTrail({ icons, root: '/app', home: { label: 'Dashboard' } });
+  const place = $derived(resolveRailPlace(page.url.pathname, sidebar, { home: homeHref }));
+  const active = $derived(sidebarActiveUrl(page.url.pathname, place?.item.href ?? null));
+  const trail = $derived(
+    trails.buildAppTrail({ pathname: page.url.pathname, pageData: page.data, place })
+  );
+  const right = $derived(rightColumnHolds({ chat: data.chatAvailable }));
+</script>
+
+{#snippet brand({ collapsed })}<img src="/mark.png" alt="" /><span class:collapsed>Example</span>{/snippet}
+{#snippet account({ compact })}<UserMenu name={user.name} {compact} compactBelow={1024} ... />{/snippet}
+{#snippet barAccount()}<UserMenu name={user.name} theme={{ cookieName: 'example.theme' }} ... />{/snippet}
+{#snippet barEnd()}<ShellBarEnd account={barAccount} />{/snippet}
+
+{#snippet sidebar()}
+  <ShellSidebar config={sidebar} activeUrl={active} initialOpen={data.sidebarOpen} {homeHref} {brand} />
+{/snippet}
+{#snippet drawer({ close })}
+  <ShellNavigationDrawer config={sidebar} activeUrl={active} {homeHref} {brand} onclose={close} />
+{/snippet}
+{#snippet header()}
+  <ShellHeader
+    {trail}
+    onOpenNavigation={() => (navigationOpen = true)}
+    {account}
+    {...right ? {} : { themeCookieName: 'example.theme' }}
+  />
+{/snippet}
+{#snippet rightColumn()}
+  <ShellRightColumn panelOpen={chat.open} panelWidth={chat.width} themeCookieName="example.theme">
+    <!-- A chat panel beside its rail; the rail is a ShellBar and takes `barEnd` as its end. -->
+  </ShellRightColumn>
+{/snippet}
+
+<AppShell bind:navigationOpen bind:compact {sidebar} {drawer} {barEnd} {...right ? { rightColumn } : {}}>
+  <ShellMainColumn {header} covered={compact && chat.open}>
+    <PageFrame bar={commandBar}>{@render children()}</PageFrame>
+  </ShellMainColumn>
+</AppShell>
+```
+
+- **`AppShell`**: the frame. The side rail, the main column and the right
+  column side by side, as tall as the screen, never scrolling as a whole. At
+  the compact width the rail is not drawn, the shell leaves the bar's room
+  (`--gawdux-shell-bar-space`) under the page and the safe-area insets at its
+  sides, and the bar is the right column's rail when the column holds
+  something (`rightColumn`), the shell's own bar otherwise (`barEnd`), so
+  the account is at the bar's right end with chat on or off. `navigationOpen`
+  (bindable) draws `drawer`; a drawer left open closes when the screen grows
+  past the compact width. `compact` (bindable) is the shell's one reading of
+  the compact width in script.
+- **`ShellHeader`**: the menu button (a 44px target tight to the screen's
+  edge, at the compact width alone), the trail (`Breadcrumbs`), then above
+  the compact width the host's `switcher`, `account` and `notices`, and the
+  theme toggle when `themeCookieName` is given (a shell with no right column
+  to hold it). At the compact width it is one row 48px tall and none of the
+  controls at its end is drawn. `account` and `switcher` are told `compact`
+  while the trail needs their room (`createRoomYield`).
+- **`ShellSidebar`**: `AppSidebar` with the home link and the host's `brand`
+  at its head and the collapse button at its foot. **`ShellNavigationDrawer`**:
+  the same rail as a modal drawer from the left edge. The focus stays inside
+  it, Escape, a press on the backdrop and a press on a link close it,
+  everything beside it is inert and the page does not scroll: all of it is
+  `activateFocusScope` (`gawdux/utils`), and the drawer adds none of its own.
+- **`ShellMainColumn`**: the header, then the page. `covered` makes it inert
+  and hidden from assistive technology while a panel is the view.
+- **`ShellRightColumn`**: a cap level with the header (a spacer the open
+  panel's width with the host's `capStart`, then the theme toggle over the
+  48px rail), then what the column holds. At the compact width it takes no
+  width and its cap is not drawn; `viewLabel` names the open panel as a
+  dialog while it is the view.
+- **`ShellBarEnd`**: the `notices`, then the `account`, last in the bar
+  (`ShellBar`'s `end`).
+- **`AccountCard`**: the account card, for a host that opts into it by
+  drawing it in place of `UserMenu`. It is `UserMenu` with its own
+  `presentation`, so the keyboard, pointer and focus behaviour are the
+  menu's. In a header: a card that names the person and grows downward when
+  opened, Profile and Sign out side by side, the role chips under the access
+  label and a line with the product's `mark` and version. In the bar: the
+  avatar alone, its sheet above the bar holding the theme as a row
+  (`themeCookieName`), the host's `extras` (more rows) and `meter` (a
+  reading). `UserMenu`'s own sheet (the tenant first with the access after
+  it, the rows left-aligned with sign-out last, the mark and the version on
+  one line) stays the default for every host that does not opt in.
+- **`PlaceDoor`**: a command that opens the item in another place of the
+  app. Its caption is the place alone beside the place's icon; its accessible
+  name is "Open in {place}".
+
+### The rail and the trail name one place
+
+`resolveRailPlace(activeUrl, sidebarConfig, { scopes, home })` answers the
+place a page lies in as the side rail names it: the item the address falls
+under and the group holding it. An item holds its own address and every
+address below it, the longest on a slash boundary winning, plus the
+addresses its `scopes` name. The `home` holds its own address alone, since
+every page lies under it: a host whose rail has a home names it, or a page no
+item holds would be marked as the home. Hand the sidebar the item itself
+(`sidebarActiveUrl`), so the rail's mark and the host's are one answer.
+
+`createAppTrail(options)` builds the header's trail from the same place.
+`buildAppTrail({ pathname, pageData, place })` gives a page that states its
+trail (`pageData.appBreadcrumb`) that trail; a page that states a trail of no
+levels (an address no item holds) the rail's place and nothing below it, so
+a hidden item reads exactly as an unknown one; any other page the rail's
+place and the address's levels below it. The first crumb alone carries the
+section's icon (`icons`, by a page's `iconKey`, a rail group's or item's id,
+or an address's first segment); every later crumb the separator. `appPath`
+and `href` take a host's prefix off an address and put it back, `root` is
+the app's own root, `unlinked` names first segments with no page of their
+own, and `filed` files an address under another parent than its path says.
+
+`createAppPageHeading()` holds a page's heading after an in-place change: a
+page reads its controller from `APP_PAGE_HEADING_CONTEXT` and sets its name
+and status for its own address; the shell renames the trail's leaf
+(`heading.trail(pathname, items)`) and hands the status to the page's own
+header (`heading.status(pathname, stated)`, through `PAGE_STATUS_CONTEXT`).
+
+`createCompactFold({ isOpen, setOpen })` folds a side panel when the screen
+turns compact and opens it again when it grows back; call `sync(compact)`
+from an effect. A panel a person opens or closes by hand while compact is
+left as they set it.
+
 ## HeaderStatus
 
 `HeaderStatus` (`gawdux/primitives`) is a pane header's state: the status chip,
@@ -607,6 +759,39 @@ npm run package   # build dist/ for consumers
 ```
 
 Rebuild the package (`npm run package`) before a consumer's build depends on a source change. Routine source/type changes are picked up through the host's Vite/HMR loop without a rebuild; reinstall in the host only when `dependencies` or the `exports` map change.
+
+### Geometry tests
+
+`gawdux/test-support` is the harness for tests that hold a geometry: the
+markup a component renders on the server, set in headless Chromium with the
+stylesheets the app ships (its Tailwind entry compiled for the classes the
+markup uses, the tokens with it, and each component's scoped rules), at the
+viewport the test names: 360, 390, 900 and 1440 (`GEOMETRY_WIDTHS`), light and
+dark. Where a press sets the geometry (a menu opened under its button), the
+component itself runs in the page (`clientBundle`, `mountAt`).
+
+```ts
+import { createGeometry, geometrySkipReason, boxes, openAt, componentStylesheets } from 'gawdux/test-support';
+
+const geometry = createGeometry({
+  root,                                   // the repository: node_modules resolve from it
+  stylesheet: path.join(root, 'src/app.css'),
+  stylesheetImports: { 'gawdux/styles/tokens.css': tokensFile },
+  libraries: { gawdux: gawduxRoot },      // resolved through each package's exports
+  aliases: { $lib: path.join(root, 'src/lib') }
+});
+const browser = await geometry.launch();
+```
+
+It is Node only and needs `playwright-core`, `esbuild` and
+`@tailwindcss/node` beside the test runner (optional peers). It launches an
+installed headless shell whose revision is the one the installed
+`playwright-core` expects, so a newer core never drives an older shell;
+`GAWDUX_GEOMETRY_CHROMIUM` names a person's own Chromium in its place.
+`launch()` throws, saying why, when there is none. This library's own
+geometry tests (`tests/*.geometry.test.ts`) skip on a machine with no such
+Chromium and print the reason (`geometrySkipReason`); `playwright-core` is
+pinned to the release whose shell they were measured in.
 
 ## Releases
 

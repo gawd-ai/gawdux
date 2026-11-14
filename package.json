@@ -1,6 +1,6 @@
 {
 	"name": "gawdux",
-	"version": "0.43.0",
+	"version": "0.44.0",
 	"description": "Shared UI component library for Svelte applications",
 	"type": "module",
 	"svelte": "./dist/index.js",
@@ -25,6 +25,15 @@
 			"types": "./dist/components/index.d.ts",
 			"svelte": "./dist/components/index.js",
 			"default": "./dist/components/index.js"
+		},
+		"./shell": {
+			"types": "./dist/shell/index.d.ts",
+			"svelte": "./dist/shell/index.js",
+			"default": "./dist/shell/index.js"
+		},
+		"./test-support": {
+			"types": "./dist/test-support/index.d.ts",
+			"default": "./dist/test-support/index.js"
 		},
 		"./primitives": {
 			"types": "./dist/primitives/index.d.ts",
@@ -66,7 +75,21 @@
 		"@sveltejs/kit": "^2.0.0",
 		"flowbite-svelte": "^0.47.0",
 		"flowbite-svelte-icons": "^2.0.0",
-		"svelte": "^5.0.0"
+		"svelte": "^5.0.0",
+		"@tailwindcss/node": "^4.0.2",
+		"esbuild": ">=0.21.0",
+		"playwright-core": "^1.61.0"
+	},
+	"peerDependenciesMeta": {
+		"@tailwindcss/node": {
+			"optional": true
+		},
+		"esbuild": {
+			"optional": true
+		},
+		"playwright-core": {
+			"optional": true
+		}
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.0.0",
@@ -78,9 +101,11 @@
 		"@tailwindcss/postcss": "4.0.2",
 		"@testing-library/svelte": "^5.2.4",
 		"@types/node": "^22.20.5",
+		"esbuild": "0.25.12",
 		"flowbite-svelte": "^0.47.0",
 		"flowbite-svelte-icons": "^2.0.0",
 		"jsdom": "^25.0.0",
+		"playwright-core": "1.61.1",
 		"postcss": "^8.5.15",
 		"publint": "^0.3.22",
 		"svelte": "^5.0.0",

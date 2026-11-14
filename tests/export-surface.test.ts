@@ -5,6 +5,7 @@ import * as components from '../src/lib/components/index';
 import * as alertOps from '../src/lib/alert-ops/index';
 import * as primitives from '../src/lib/primitives/index';
 import * as utils from '../src/lib/utils/index';
+import * as shell from '../src/lib/shell/index';
 
 describe('UserMenu export surface (unreleased)', () => {
 	it('exports the account menu from components and the root, beside the sidebar', () => {
@@ -13,6 +14,64 @@ describe('UserMenu export surface (unreleased)', () => {
 		for (const name of ['AppSidebar', 'SidebarFlyout', 'SidebarDropdownGroup'] as const) {
 			expect(components[name], `components must keep exporting ${name}`).toBeDefined();
 		}
+	});
+});
+
+describe('gawdux 0.44.0 export surface', () => {
+	it('exports the phone shell kit from gawdux/shell', () => {
+		for (const name of [
+			'AppShell',
+			'ShellHeader',
+			'ShellSidebar',
+			'ShellNavigationDrawer',
+			'ShellMainColumn',
+			'ShellRightColumn',
+			'ShellBarEnd',
+			'AccountCard',
+			'PlaceDoor',
+			'resolveRailPlace',
+			'resolveActiveSidebarItemHref',
+			'sidebarActiveUrl',
+			'displayNameFor',
+			'initialsForDisplayName',
+			'rightColumnHolds',
+			'createAppTrail',
+			'getAppBreadcrumb',
+			'segmentLabel',
+			'APP_PAGE_HEADING_CONTEXT',
+			'createAppPageHeading',
+			'createCompactViewport',
+			'createCompactFold'
+		] as const) {
+			expect(shell[name], `shell must export ${name}`).toBeDefined();
+		}
+	});
+
+	it('declares the shell and the test support in the package, the harness packages optional', () => {
+		const exported = pkg.exports as Record<string, unknown>;
+		expect(exported['./shell']).toEqual({
+			types: './dist/shell/index.d.ts',
+			svelte: './dist/shell/index.js',
+			default: './dist/shell/index.js'
+		});
+		expect(exported['./test-support']).toEqual({
+			types: './dist/test-support/index.d.ts',
+			default: './dist/test-support/index.js'
+		});
+		const peers = pkg.peerDependencies as Record<string, string>;
+		const meta = pkg.peerDependenciesMeta as Record<string, { optional?: boolean }>;
+		for (const name of ['playwright-core', 'esbuild', '@tailwindcss/node']) {
+			expect(peers[name], name).toBeDefined();
+			expect(meta[name]?.optional, name).toBe(true);
+		}
+	});
+
+	it('keeps the account menu and the shell bar where they were', () => {
+		expect(components.UserMenu).toBeDefined();
+		expect(primitives.ShellBar).toBeDefined();
+		expect(primitives.MessageHost).toBeDefined();
+		// The toast is MessageHost: the kit carries none of its own.
+		expect(Object.keys(shell).filter((name) => /toast|message/i.test(name))).toEqual([]);
 	});
 });
 
@@ -224,7 +283,9 @@ describe('gawdux 0.4.0 export surface (alert-ops)', () => {
 				'./alert-ops',
 				'./components',
 				'./primitives',
+				'./shell',
 				'./styles/tokens.css',
+				'./test-support',
 				'./types',
 				'./utils',
 				'./validation'
@@ -404,7 +465,9 @@ describe('gawdux 0.5.0 export surface (opt-in silence mutation)', () => {
 				'./alert-ops',
 				'./components',
 				'./primitives',
+				'./shell',
 				'./styles/tokens.css',
+				'./test-support',
 				'./types',
 				'./utils',
 				'./validation'

@@ -1,5 +1,140 @@
 # Changelog
 
+## 0.44.0 - the phone shell kit
+
+### Added
+
+- `gawdux/shell`, a new subpath: the app shell as parts a host composes,
+  lifted from a consuming product with its tests. At or below the compact
+  width (`SHELL_BAR_QUERY`, 1024px) it is the phone shell: the side rail is
+  a drawer, the header is one row, and one bar runs along the bottom with
+  the account at its right end. The kit names no product: the brand, the
+  account, a switcher and the notices are the host's, and a slot left empty
+  draws nothing. The shell's layout is scoped CSS over the `--gawdux-*`
+  tokens, so it holds where a host's Tailwind does not scan this package.
+  - `AppShell`: the frame. The side rail, the main column and the right
+    column side by side, as tall as the screen (`100dvh`), never scrolling
+    as a whole. At the compact width the rail is not drawn, the shell leaves
+    the bar's room (`--gawdux-shell-bar-space`) under the page and the
+    safe-area insets at its sides, and the bar is the right column's rail
+    when the column holds something (`rightColumn`), the shell's own
+    `ShellBar` otherwise (`barEnd`): the account is at the bar's right end
+    with chat on or off. `navigationOpen` (bindable) draws `drawer`; a
+    drawer left open closes when the screen grows past the compact width,
+    so nothing stays inert behind a drawer that is no longer drawn.
+    `compact` (bindable) is the shell's one reading of the compact width in
+    script. A printout is the page: the shell grows to its content.
+  - `ShellHeader`: the header row. The menu button, the trail
+    (`Breadcrumbs`), then above the compact width the host's `switcher`,
+    `account` and `notices` and, with `themeCookieName`, the theme toggle (a
+    shell with no right column to hold it). At the compact width it is one
+    row 48px tall, the menu button a 44px target tight to the screen's edge
+    with no padding or gap around it, the page's name beside it opening its
+    path, and no control at its end. Above it the controls yield their room
+    to the trail (`createRoomYield`): `account` and `switcher` are told
+    `compact`, the account first.
+  - `ShellSidebar`: `AppSidebar` with the home link and the host's `brand`
+    (told `collapsed` and `drawer`) at its head and the collapse button at
+    its foot. `ShellNavigationDrawer`: the same rail as a modal drawer from
+    the left edge, 288px wide, with a Close button (a 44px target). The
+    focus trap, Escape, the inert background and the scroll lock are
+    `activateFocusScope`; the drawer adds none of its own. A press on the
+    backdrop and a press on a link of the rail close it, the link's own
+    action left to run. The drawer never stores the rail's open state.
+  - `ShellMainColumn`: the header, then the page; `covered` makes it inert
+    and hidden from assistive technology while a panel is the view.
+  - `ShellRightColumn`: a cap level with the header (a spacer the open
+    panel's width holding the host's `capStart`, then the theme toggle over
+    the 48px rail), then what the column holds. At the compact width it
+    takes no width and its cap is not drawn; `viewLabel` names the open
+    panel as a dialog while it is the view.
+  - `ShellBarEnd`: the host's controls at the end of the bar (`ShellBar`'s
+    `end`): the `notices`, then the `account`, last in the bar.
+  - `AccountCard`: the account card, a presentation of `UserMenu` a host
+    opts into by drawing it in place of `UserMenu`. The menu's keyboard,
+    pointer and focus behaviour is `UserMenu`'s own (`presentation`). In a
+    header: the name, the email when open, Profile and Sign out side by
+    side, the role chips under the access label, a line with the host's
+    `mark`, `product` and version. `compact`, and a screen at or below the
+    compact width, show the avatar alone; a full-size probe
+    (`data-room-full`) gives a yielding header its full width. In the bar
+    (`inShellBar()`): the avatar alone, a 44px target, its sheet above the
+    bar holding the person, the two rows, the theme as a row
+    (`themeCookieName`), the host's `extras` and `meter`, then the roles
+    and the version. `UserMenu`'s own sheet is unchanged and stays the
+    default: a host that does not opt in draws what it drew.
+  - `PlaceDoor`: a command that opens the item in another place of the app.
+    Its caption is the place alone beside the place's icon; its accessible
+    name is "Open in {place}" (`label` words it otherwise, holding the
+    caption).
+  - The rail and trail resolver. `resolveRailPlace(activeUrl, config,
+    { scopes, home })` answers the item the address falls under and the
+    group holding it: an item holds its own address and every address below
+    it, the longest on a slash boundary winning, plus the addresses its
+    `scopes` name; the `home` (an address, or a test of one) holds its own
+    address alone. `resolveActiveSidebarItemHref` and `sidebarActiveUrl`
+    hand the sidebar that same item. `createAppTrail(options)` builds the
+    header's trail from the place: `buildAppTrail`, `buildPageBreadcrumb`,
+    `buildExplicitBreadcrumb`, with the host's `icons`, `home`, `appPath`
+    and `href` (a prefix taken off an address and put back), `root`,
+    `unlinked` and `filed` (an address filed under another parent than its
+    path says). A page that states a trail of no levels names the rail's
+    place and nothing below it, so a hidden item reads as an unknown one.
+    `getAppBreadcrumb`, `segmentLabel`, `displayNameFor`,
+    `initialsForDisplayName` and `rightColumnHolds` come with them.
+  - The page heading controller: `APP_PAGE_HEADING_CONTEXT`,
+    `AppPageHeadingController` and `createAppPageHeading()`, the shell's
+    side of it (`controller`, `label`, `status`, `trail`). A heading is
+    keyed by the page's path, so one set on a page never shows on another.
+  - The compact switch: `createCompactViewport()` (one reading of
+    `SHELL_BAR_QUERY`) and `createCompactFold({ isOpen, setOpen })`, which
+    folds a side panel when the screen turns compact and opens it again
+    when it grows back, acting on the crossing alone.
+- `gawdux/test-support`, a new subpath, Node only: the real-Chromium
+  geometry harness, lifted from a consuming product. `createGeometry({ root,
+  stylesheet, stylesheetImports, libraries, aliases, appModules })` gives
+  `launch`, `appStylesheet` (the app's Tailwind entry compiled for the
+  classes in the markup), `clientBundle` (a component compiled for the
+  browser with what it imports), `repoFile` and `libraryFile`; `openAt`,
+  `mountAt`, `boxes`, `componentStylesheet` and `componentStylesheets` set a
+  page and read it; `GEOMETRY_WIDTHS` is 360, 390, 900 and 1440. It imports
+  `playwright-core` and launches an installed headless shell (else the full
+  Chromium) whose revision is the one the installed core expects
+  (`geometryChromium`), so a newer core never drives an older shell;
+  `GAWDUX_GEOMETRY_CHROMIUM` names a person's own Chromium. `launchGeometry`
+  throws, saying why, when there is none; `geometrySkipReason` gives the
+  reason to a suite that would skip. A component's scoped rules are read
+  with the class hash the test runner gave it, and a component the markup
+  does not draw is refused; `fromMarkup` reads the hash from the markup for
+  a host whose bundler hashes another way. `playwright-core`, `esbuild` and
+  `@tailwindcss/node` are optional peers.
+- Tests, moved along and adapted: the rail's place and the display helpers
+  (`tests/shell-rail-place.test.ts`), the rail and the trail naming one
+  place on 43 cases (`tests/shell-rail-trail.test.ts`), the trail's icons,
+  links and filed addresses (`tests/shell-app-trail.test.ts`), the page
+  heading and the compact fold, the drawer on the shared focus scope
+  (`tests/ShellNavigationDrawer.test.ts`: the trap, Escape, the backdrop, a
+  link, the inert background and the scroll given back), the bar's end with
+  its slots empty and filled (`tests/ShellBarEnd.test.ts`), the header
+  (`tests/ShellHeader.test.ts`), the frame (`tests/AppShell.test.ts`), the
+  account card and `UserMenu`'s own sheet where a host does not opt in
+  (`tests/AccountCard.test.ts`), `PlaceDoor`, the harness's choice of
+  Chromium (`tests/geometry-harness.test.ts`), and in real Chromium at 360,
+  390, 900 and 1440, light and dark: the bar, the header, the account's
+  sheet and card, the frame and the drawer
+  (`tests/phone-shell.geometry.test.ts`) and the trail ending at an item's
+  place (`tests/trail-place.geometry.test.ts`). The geometry tests skip,
+  printing why, on a machine with no Chromium of the expected revision.
+
+### Notes
+
+- The toast is not part of the kit: `MessageHost` over
+  `createMessageCenter` is the toast, as before.
+- Nothing existing changes: `UserMenu`, `ShellBar`, `Breadcrumbs`,
+  `AppSidebar` and `tokens.css` are as 0.43.0 left them.
+- `playwright-core` (1.61.1, the release whose headless shell the geometry
+  tests were measured in) and `esbuild` are new dev dependencies.
+
 ## 0.43.0 - validation drawers, the bar's zones and the phone sort in a list's toolbar
 
 ### Added

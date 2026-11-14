@@ -117,6 +117,16 @@ const ALLOWED: Record<string, { count: number; why: Why[]; what: string }> = {
 	},
 	'primitives/CommandPalette.svelte': { count: 1, why: ['floating'], what: 'the command palette' },
 	'primitives/MessageHost.svelte': { count: 1, why: ['floating'], what: 'a toast' },
+	'shell/AccountCard.svelte': {
+		count: 2,
+		why: ['floating'],
+		what: 'the open account card over its header, light and dark'
+	},
+	'shell/ShellNavigationDrawer.svelte': {
+		count: 1,
+		why: ['floating'],
+		what: 'the navigation drawer over the page'
+	},
 	'styles/tokens.css': {
 		count: 6,
 		why: ['elevation', 'floating'],
