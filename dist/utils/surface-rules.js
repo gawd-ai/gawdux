@@ -63,9 +63,11 @@
  *   column heads gives its toolbar the sort, the house phone sort at or
  *   below the compact width, where the heads are hidden: its query bar's
  *   (`ListQueryBar`'s `sort`) or its list's (`FilterBar`'s `sort`, which
- *   `ListSurface` and `ListPageScaffold` pass on). `registersWithoutPhoneSort`
- *   lists every register that does not, every phone sort a host draws
- *   itself, and a register given two.
+ *   `ListSurface` and `ListPageScaffold` pass on). A register in a card
+ *   (a table in `.responsive-card-table`, no list page's) draws it itself:
+ *   `ListPhoneSort` above its table, or `DataTable`'s `sort`.
+ *   `registersWithoutPhoneSort` lists every register that does not, every
+ *   phone sort a host draws itself, and a register given two.
  * - A sequence key says its own orders. A sort key that orders as a sequence
  *   of the host's own gives the words of its two orders
  *   (`ListSortKey.words`), since the kind's own name no order a reader
@@ -1427,7 +1429,11 @@ export function itemActsInCards(source) {
 /** The lists that hold a register's heads and pass their `sort` to its FilterBar. */
 const PHONE_SORT_HOLDERS = new Set(['ListSurface', 'ListPageScaffold']);
 /** The toolbars a host draws for a register, each taking a `sort` of its own. */
-const PHONE_SORT_TOOLBARS = new Set(['ListQueryBar', 'FilterBar']);
+const PHONE_SORT_TOOLBARS = new Set(['ListQueryBar', 'FilterBar', 'ListPhoneSort']);
+/** A `DataTable` that sorts by its heads (`onSort`) and reads as cards on a phone. */
+function sortsAsCards(raw) {
+    return /\sonSort=|\s\{onSort\}/.test(raw) && /(?<![\w-])responsive-card-table(?![\w-])/.test(raw);
+}
 /** A component tag that takes a `sort` (`sort={…}` or `{sort}`). */
 function takesSort(raw) {
     return /\ssort=|\s\{sort\}/.test(raw);
@@ -1560,16 +1566,47 @@ function sortedRegisters(markup) {
  * else its heads when it has no toolbar (its toolbar is another file's,
  * which a guard then reads); and when both a `ListQueryBar` and a list
  * toolbar of the same register take it, which draws two.
+ *
+ * A register in a card draws the sort itself, a `ListPhoneSort` taking the
+ * sort above its table: it is then served, and listed only when a toolbar
+ * of its takes the sort too. A `DataTable` draws its own heads and its own
+ * phone sort (its `sort`), so one written as cards on a phone
+ * (`responsive-card-table` in its class) that sorts by its heads (`onSort`)
+ * is listed when it takes no `sort` and no `ListPhoneSort` of the source
+ * does.
  */
 export function registersWithoutPhoneSort(source) {
     const markup = markupOf(source);
     const found = [];
     for (const match of markup.matchAll(/\{#snippet\s+mobileSort\b/g))
         found.push(`a phone sort of its own (line ${lineAt(markup, match.index)})`);
+    if (markup.includes('DataTable')) {
+        const tags = markupTags(markup).filter((tag) => !tag.close);
+        const drawn = tags.some((tag) => tag.name === 'ListPhoneSort' && takesSort(tag.raw));
+        for (const tag of tags) {
+            if (tag.name !== 'DataTable' || !sortsAsCards(tag.raw))
+                continue;
+            const at = `(line ${lineAt(markup, tag.at)})`;
+            if (!takesSort(tag.raw)) {
+                if (!drawn)
+                    found.push(`a DataTable read as cards on a phone with no sort ${at}`);
+            }
+            else if (drawn)
+                found.push(`two phone sorts: a ListPhoneSort's and a DataTable's ${at}`);
+        }
+    }
     if (!/<SortableHeadCell\b/.test(markup))
         return found;
     const line = (tag) => lineAt(markup, tag.at);
     for (const register of sortedRegisters(markup)) {
+        const own = register.toolbars.filter((tag) => tag.name === 'ListPhoneSort' && takesSort(tag.raw));
+        if (own.length > 0) {
+            // The register draws its own: any toolbar of its taking the sort draws a second.
+            for (const tag of [...(register.list ? [register.list] : []), ...register.toolbars])
+                if (tag.name !== 'ListPhoneSort' && takesSort(tag.raw))
+                    found.push(`two phone sorts: a ListPhoneSort's (line ${line(own[0])}) and a ${tag.name}'s (line ${line(tag)})`);
+            continue;
+        }
         const bars = register.toolbars.filter((tag) => tag.name === 'ListQueryBar');
         const lists = [
             ...(register.list ? [register.list] : []),
@@ -1590,7 +1627,7 @@ export function registersWithoutPhoneSort(source) {
         for (const list of lists)
             found.push(`a ${list.name} with no sort (line ${line(list)})`);
         if (lists.length === 0)
-            found.push("sortable heads with no toolbar of its own that takes the sort (ListQueryBar's, or FilterBar's through ListSurface or ListPageScaffold)");
+            found.push("sortable heads with no toolbar of its own that takes the sort (ListQueryBar's, FilterBar's through ListSurface or ListPageScaffold, or a card's own ListPhoneSort)");
     }
     return found;
 }
@@ -2402,8 +2439,8 @@ export function readableDashes(source, options = {}) {
     return found;
 }
 /** Whether a source hands the house phone sort to a toolbar: a `ListQueryBar`,
- * a `FilterBar`, or a list that passes it on (`ListSurface`,
- * `ListPageScaffold`) taking a `sort`. A guard reads it over the file whose
+ * a `FilterBar`, a list that passes it on (`ListSurface`,
+ * `ListPageScaffold`) or a `ListPhoneSort` taking a `sort`. A guard reads it over the file whose
  * toolbar serves heads another file draws. */
 export function takesPhoneSort(source) {
     return markupTags(markupOf(source)).some((tag) => !tag.close &&

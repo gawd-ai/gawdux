@@ -1139,6 +1139,10 @@ div.inline-flex.items-center.justify-center.font-medium {
     line-height: 1.5rem;
     color: var(--gawdux-text-primary);
   }
+  :is(.responsive-card-table, .table-container, .data-table) > .mobile-sort {
+    box-sizing: border-box;
+    padding: var(--gawdux-compact-inset) var(--gawdux-compact-inset) 0.5rem;
+  }
   :is(.responsive-card-table, .list-table-scroll) {
     overflow-x: visible !important;
   }
@@ -1183,6 +1187,7 @@ div.inline-flex.items-center.justify-center.font-medium {
   }
   :is(.responsive-card-table, .list-table-scroll) tbody > tr > td:nth-child(n) {
     display: block;
+    height: auto !important;
     min-width: 0 !important;
     width: auto !important;
     max-width: none !important;

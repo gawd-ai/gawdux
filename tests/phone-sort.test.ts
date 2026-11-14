@@ -2,9 +2,12 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/svelte';
 import postcss, { type AtRule, type Root } from 'postcss';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import FilterBar from '../src/lib/primitives/FilterBar.svelte';
+import ListPhoneSort from '../src/lib/primitives/ListPhoneSort.svelte';
+import * as primitives from '../src/lib/primitives/index';
 import type { ListSort } from '../src/lib/primitives/list-query';
 import source from '../src/lib/styles/tokens.css?raw';
 import packaged from '../dist/styles/tokens.css?raw';
+import CardRegisterHarness from './fixtures/CardRegisterHarness.svelte';
 import PhoneSortListHarness from './fixtures/PhoneSortListHarness.svelte';
 
 // The house phone sort in a list's own toolbar: FilterBar's `sort`, which
@@ -138,6 +141,61 @@ describe('a register sorted by its heads and its phone sort alike', () => {
 	});
 });
 
+describe("a card's register draws the phone sort itself", () => {
+	it('exports the phone sort, which draws "Sort by" and writes the sort on its own', async () => {
+		expect(primitives.ListPhoneSort).toBe(ListPhoneSort);
+		const onsort = vi.fn();
+		const { container } = render(ListPhoneSort, { props: { sort: { ...sort, onsort } } });
+		const control = container.querySelector('[data-list-phone-sort]')!;
+		expect(control.classList.contains('mobile-sort')).toBe(true);
+		expect(select().value).toBe('issued:desc');
+		expect(select().options).toHaveLength(6);
+		select().value = 'name:asc';
+		await fireEvent.change(select());
+		expect(onsort).toHaveBeenCalledWith('name', 'asc');
+	});
+
+	it("draws DataTable's sort above its table, in its container, under its card header", () => {
+		const { container } = render(CardRegisterHarness);
+		const control = container.querySelector('[data-list-phone-sort]')!;
+		expect(container.querySelectorAll('[data-list-phone-sort]')).toHaveLength(1);
+		const table = container.querySelector('.responsive-card-table')!;
+		expect(control.parentElement).toBe(table);
+		expect(control.previousElementSibling?.classList.contains('card-header')).toBe(true);
+		expect(control.nextElementSibling?.querySelector('table') ?? control.nextElementSibling).toBe(
+			table.querySelector('table')
+		);
+	});
+
+	it('draws none for a DataTable given no sort or no keys', () => {
+		const { container } = render(CardRegisterHarness, { props: { sorted: false } });
+		expect(container.querySelector('[data-list-phone-sort]')).toBeNull();
+		expect(container.querySelectorAll('th[aria-sort], th.interactive-hover').length).toBeGreaterThan(0);
+	});
+
+	for (const drawn of ['table', 'own'] as const) {
+		it(`keeps one sort state: a head's click and a choice write it alike (${drawn})`, async () => {
+			const { container } = render(CardRegisterHarness, { props: { drawn } });
+			const order = screen.getByTestId('order');
+			const names = () => [...container.querySelectorAll('[data-name]')].map((cell) => cell.textContent);
+			expect(order.textContent).toBe('name:asc');
+			expect(names()).toEqual(['Camera 4', 'North door', 'Switch']);
+
+			await fireEvent.click(screen.getByText('Latency', { selector: 'th span' }).closest('th')!);
+			expect(order.textContent).toBe('latency:asc');
+			expect(select().value).toBe('latency:asc');
+
+			select().value = 'latency:desc';
+			await fireEvent.change(select());
+			expect(order.textContent).toBe('latency:desc');
+			expect(names()).toEqual(['Switch', 'North door', 'Camera 4']);
+			expect(
+				screen.getByText('Latency', { selector: 'th span' }).closest('th')!.getAttribute('aria-sort')
+			).toBe('descending');
+		});
+	}
+});
+
 function mediaBlocks(root: Root, params: string): AtRule[] {
 	const found: AtRule[] = [];
 	root.each((node) => {
@@ -199,6 +257,26 @@ for (const [name, css] of [
 			}
 			expect(declarations(wide, '.filter-bar-has-sort > .filter-row')).toEqual({ 'margin-block-end': '0' });
 			expect(declarations(compact, '.filter-bar-has-sort > .filter-row')).toEqual({});
+		});
+
+		it("stands a sort drawn in a table's own container on the cards' inset", () => {
+			expect(
+				declarations(compact, ':is(.responsive-card-table, .table-container, .data-table) > .mobile-sort')
+			).toEqual({
+				'box-sizing': 'border-box',
+				padding: 'var(--gawdux-compact-inset) var(--gawdux-compact-inset) 0.5rem'
+			});
+			expect(declarations(wide, ':is(.responsive-card-table, .table-container, .data-table) > .mobile-sort')).toEqual({});
+		});
+
+		it("lets a card's cell be as tall as what it holds, whatever row height a table is given", () => {
+			const cell = ':is(.responsive-card-table, .list-table-scroll) tbody > tr > td:nth-child(n)';
+			expect(declarations(compact, cell)).toMatchObject({ display: 'block', height: 'auto !important' });
+			// Only at the compact width: a table keeps its row height above it.
+			expect(declarations(wide, cell)).toEqual({});
+			expect(declarations([root], ":where(:is(.table-container, .data-table) td.py-4:not([class*='h-']))")).toEqual({
+				height: 'var(--gawdux-table-row-height)'
+			});
 		});
 
 		it('gives an empty filter row beside the sort no room', () => {

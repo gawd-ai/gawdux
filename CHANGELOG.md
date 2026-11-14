@@ -1,5 +1,71 @@
 # Changelog
 
+## 0.47.0 - a card's register on a phone: its sort, and cells as tall as their values
+
+### Added
+
+- `ListPhoneSort` (`gawdux/primitives`): the house phone sort as a
+  primitive, for a register in a card of a detail page. Such a table reads
+  as labelled cards at or below the compact width
+  (`.responsive-card-table`) with its sortable heads hidden, and the sort
+  was offered only through a list's toolbar (`FilterBar`, `ListSurface`,
+  `ListPageScaffold`) or a query bar, so a card's register had none, or a
+  host drew one by hand. A host draws `<ListPhoneSort sort={…} />` in the
+  table's container, above the table: "Sort by", one choice per key and
+  direction in the key's own words, written at once through `onsort`, not
+  drawn above the compact width.
+- `DataTable` takes `sort` (a `ListSort`) and draws that sort above its
+  table, under its card header, for a table given
+  `className="responsive-card-table"`. Its heads still take `sortField`,
+  `sortDirection` and `onSort`.
+- A phone sort drawn in a table's own container stands on the cards' inset
+  (8px a side, the cards' 10px above the first card).
+
+### Fixed
+
+- A card's cell is as tall as what it holds. Where a register reads as
+  cards, each cell is a block, and a row height set for the host's tables
+  (`--gawdux-table-row-height`, applied as a cell's height) or a cell's own
+  height utility stayed a fixed height there: a value with a second line
+  drew over the next line of its card. The card rule now gives every cell
+  `height: auto` at or below the compact width. Above it a table keeps its
+  row height. A host that wrote its own rule for this (`height: auto` on
+  the cells of `.responsive-card-table` and `.list-table-scroll` at the
+  compact width) can delete it.
+
+### Changed
+
+- `registersWithoutPhoneSort` accepts a `ListPhoneSort` that takes the sort
+  as the phone sort of the heads it serves, and lists a toolbar of the same
+  register that takes it too ("two phone sorts"). `takesPhoneSort` accepts
+  it as well. The finding for heads with no toolbar now names it: "…
+  (ListQueryBar's, FilterBar's through ListSurface or ListPageScaffold, or
+  a card's own ListPhoneSort)"; it still begins "sortable heads with no
+  toolbar of its own".
+- New finding: `registersWithoutPhoneSort` lists a `DataTable` written with
+  `responsive-card-table` in its class and `onSort` that takes no `sort`,
+  while no `ListPhoneSort` of the same file takes one ("a DataTable read as
+  cards on a phone with no sort"), and one given both ("two phone sorts").
+  A host with such a table gives it `sort`; a phone sort drawn by hand
+  beside it is replaced by it.
+- `DataTable` now draws its own phone sort, so a guard that listed the
+  library's `DataTable` as heads sorted elsewhere needs no such entry. A
+  host's own files are read as before.
+
+### Tests
+
+- `tests/card-register.geometry.test.ts` (real Chromium, through
+  `gawdux/test-support`): at 390 and 360, with a host row height set and
+  with a cell's own height utility, a two-line cell holds its value and no
+  cell or value of a card overlaps another cell; the cards are the same
+  with no row height set; at 1440 the table keeps the row height; the sort
+  stands above the cards on their inset, reorders them, and is not drawn
+  at 1440, for `DataTable`'s `sort` and for `ListPhoneSort` alike.
+- `tests/phone-sort.test.ts`, `tests/house-surface-rules.test.ts`,
+  `tests/rulebook.test.ts` and `tests/export-surface.test.ts` hold the
+  export, the one sort state, the rules in the source and the packaged
+  stylesheet, the reader and the rulebook's words.
+
 ## 0.46.1 - the geometry harness runs the host's own packages
 
 ### Fixed

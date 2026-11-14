@@ -34,6 +34,7 @@ export { default as FormField } from './FormField.svelte';
 export { default as IconButton } from './IconButton.svelte';
 export { default as IconLabel } from './IconLabel.svelte';
 export { default as ListPageScaffold } from './ListPageScaffold.svelte';
+export { default as ListPhoneSort } from './ListPhoneSort.svelte';
 export { default as ListQueryBar } from './ListQueryBar.svelte';
 export { default as ListPaginationCount } from './ListPaginationCount.svelte';
 export { default as ListPaginationNav } from './ListPaginationNav.svelte';

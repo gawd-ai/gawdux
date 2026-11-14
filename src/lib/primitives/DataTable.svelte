@@ -18,12 +18,18 @@
      The container keeps its natural size: it never fills the page. Cell padding is the --gawdux-table-* density knobs.
      Each body cell carries its column's label (`data-label`), so a table in
      a register reads as cards on a phone (tokens.css "A register on a
-     phone"). -->
+     phone").
+     - A table that reads as cards on a phone itself
+       (`className="responsive-card-table"`) has its heads hidden there, so
+       one that sorts by them passes `sort` too (a ListSort: the same field
+       and direction in words): the house phone sort, drawn above the table
+       at or below the compact width and not drawn above it. -->
 <script lang="ts" generics="T">
 	import type { Snippet } from 'svelte';
 	import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead } from 'flowbite-svelte';
 	import EmptyStateRow from './EmptyStateRow.svelte';
 	import HeadCell from './HeadCell.svelte';
+	import ListPhoneSort from './ListPhoneSort.svelte';
 	import SectionLink from './SectionLink.svelte';
 	import SortableHeadCell from './SortableHeadCell.svelte';
 	import TableContainer from './TableContainer.svelte';
@@ -33,6 +39,7 @@
 		type DataTableColumn,
 		type DataTableSortDirection
 	} from './data-table';
+	import type { ListSort } from './list-query';
 
 	let {
 		columns,
@@ -45,6 +52,7 @@
 		sortField = '',
 		sortDirection = 'asc',
 		onSort,
+		sort,
 		title,
 		header,
 		link = null,
@@ -70,6 +78,10 @@
 		sortField?: string;
 		sortDirection?: DataTableSortDirection;
 		onSort?: (field: string) => void;
+		/** The same sort as the heads set, for a table that reads as cards on a
+		    phone (`responsive-card-table`), where its heads are hidden: the
+		    house phone sort above the table at or below the compact width. */
+		sort?: ListSort;
 		/** A card header above the table. */
 		title?: string;
 		/** Right side of the card header (a count, a freshness stamp). */
@@ -90,6 +102,7 @@
 	const clickable = $derived(Boolean(onRowClick));
 	const hover = $derived(hoverable ?? clickable);
 	const hasHeader = $derived(Boolean(title) || Boolean(header) || Boolean(link));
+	const phoneSort = $derived(sort && sort.keys.length > 0 ? sort : null);
 
 	function keyOf(item: T, index: number): string | number {
 		return rowKey ? rowKey(item, index) : index;
@@ -137,6 +150,9 @@
 				</div>
 			{/if}
 		</div>
+	{/if}
+	{#if phoneSort}
+		<ListPhoneSort sort={phoneSort} />
 	{/if}
 	<Table hoverable={hover} class={`w-full ${tableClass}`}>
 		{#if caption}

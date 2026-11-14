@@ -517,3 +517,11 @@ describe('column icons export surface (unreleased)', () => {
 		expect((root as Record<string, unknown>).HeadLabel).toBeUndefined();
 	});
 });
+
+describe('gawdux 0.47.0 export surface', () => {
+	it("exports the phone sort a card's register draws itself, beside the toolbars that take it", () => {
+		expect(primitives.ListPhoneSort).toBeDefined();
+		expect(primitives.FilterBar).toBeDefined();
+		expect(primitives.ListQueryBar).toBeDefined();
+	});
+});

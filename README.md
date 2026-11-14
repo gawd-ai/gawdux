@@ -44,7 +44,7 @@ Supported package subpaths:
 
 - **components**: `AppSidebar`, `SidebarDropdownGroup`, `SidebarFlyout`: the collapsible app navigation shell; `UserMenu`: the top bar's account menu.
 - **shell** (`gawdux/shell`): the app shell kit, the phone shell with it: `AppShell` (the frame), `ShellHeader` (the header row), `ShellSidebar` and `ShellNavigationDrawer` (the side rail and its drawer), `ShellMainColumn`, `ShellRightColumn`, `ShellBarEnd` (the host's controls at the end of the bar along the bottom), `AccountCard` (the account card, a presentation of `UserMenu` a host opts into), `PlaceDoor`, the rail and trail resolver (`resolveRailPlace`, `createAppTrail`), the page heading (`createAppPageHeading`) and the compact switch (`createCompactViewport`, `createCompactFold`). See "The app shell".
-- **primitives**: list and page building blocks: `Breadcrumbs` (the header's trail on one line, folding its middle into a menu), `ListSurface`, `ListQueryBar`, `ListPaginationNav`, `FilterBar` (a list's toolbar; its `sort` is the house phone sort, which `ListSurface` and `ListPageScaffold` pass on)/`FilterPillRow`, `SavedViewsRail` (drawn only with a saved view to choose or a query to save), `MasterDetailShell` (its rail rows `RailRowButton`: the icon on the title line, the meta line under it at the row's edge), `ListPageScaffold`/`EditablePageScaffold`, `PageCommandBar`, `PageCommandBarZones` (the bar's three zones as state an app shell holds, for `PageFrame`), `PageTabs` (its status after its strip, never over a tab; each tab an icon and its label from `TabTitle`, the icons alone while the labels do not fit the strip's box), `fitLabels` (a row of labelled controls, a tab strip or a strip with its tools, shows its labels while they fit its own box and its icons alone when they do not, a tool then the house icon button and a choice its short value), `scrollEdges` (anything that scrolls sideways fades at the edge where more of it lies, one way: a tab strip, a row of filter pills, a drawing in its box), `FormField`, `ReadonlyField`, `CardContainer`, and more.
+- **primitives**: list and page building blocks: `Breadcrumbs` (the header's trail on one line, folding its middle into a menu), `ListSurface`, `ListQueryBar`, `ListPaginationNav`, `FilterBar` (a list's toolbar; its `sort` is the house phone sort, which `ListSurface` and `ListPageScaffold` pass on)/`FilterPillRow`, `ListPhoneSort` (the same sort for a register in a card, drawn above its table; `DataTable`'s `sort` draws it), `SavedViewsRail` (drawn only with a saved view to choose or a query to save), `MasterDetailShell` (its rail rows `RailRowButton`: the icon on the title line, the meta line under it at the row's edge), `ListPageScaffold`/`EditablePageScaffold`, `PageCommandBar`, `PageCommandBarZones` (the bar's three zones as state an app shell holds, for `PageFrame`), `PageTabs` (its status after its strip, never over a tab; each tab an icon and its label from `TabTitle`, the icons alone while the labels do not fit the strip's box), `fitLabels` (a row of labelled controls, a tab strip or a strip with its tools, shows its labels while they fit its own box and its icons alone when they do not, a tool then the house icon button and a choice its short value), `scrollEdges` (anything that scrolls sideways fades at the edge where more of it lies, one way: a tab strip, a row of filter pills, a drawing in its box), `FormField`, `ReadonlyField`, `CardContainer`, and more.
 - **detail and table primitives**: `StatTile`/`StatTileStrip` (a detail overview's KPI tiles: label, value, meta, icon, a state tone, a go-to icon drill-down; the strip wraps and never clips), `SectionLink` (the go-to-section arrow, no words, at the top right of a card header or tile; `CardContainer` takes it as `link`), `IconButton` (the house's icon action, flat in light and dark, named by its tooltip; `danger` turns red only on hover; `size="md"` in a header, a 44px target on a phone; a glyph as its children), `DataTable` (a `TableContainer` with column definitions, `SortableHeadCell` headers, cells from a snippet, each labelled with its column, and the house empty row; every register's table reads as labelled cards on a phone, tokens.css "A register on a phone"), `IconLabel` (an icon and a word, the shape of a cue), `StatusBadge` (a coloured word, optionally with an icon), `HeaderStatus` (a pane header's state: the status chip, always, and a lock beside it while the viewer cannot edit, the reason in its tooltip), `TableContainer`, `SortableHeadCell`, `HeadCell` (the labelled, non-sortable header of a hand-built table, with an optional column icon), `EmptyStateRow`, `CollectionEmptyState`.
 - **alert-ops**: `AlertOpsConsole`, the Alert Operations surface (alert groups, detail, silences), transport-agnostic. Its tabs carry icons; its denied and unavailable states are the house `CollectionEmptyState` on the page surface, and with `healthBar={false}` the host's bar carries status and Refresh, so the unavailable state offers no Retry of its own.
 - **admin** (`gawdux/admin`): tenant-administration blocks, presentation only (the host loads, authorizes and performs every change): `MemberAccessCard`, `SecurityActivityList`, `AuditHistoryTable`, `RoleMembersCard` (who holds a Role: a quiet trash icon raises the removal for the host to confirm, a picker adds), and the AI + Bots blocks: `AiUsageReport` (totals as tiles, `AiUsageBars` per day, one share-bar card per breakdown; turns and tokens, never money), `BotRail` (bots with avatar, role and one state, for every tab that picks a bot first), `BotIdentityHeader`, `BotConfigView` (a config read, the other half of `BotConfigFields`' edit), `BotContextCard` (the composed block a bot reads, by parts), `BotToolAccess`.
@@ -101,7 +101,7 @@ by overriding component classes:
 | `--gawdux-table-cell-px` | `px-6` | body and head cells, inline |
 | `--gawdux-table-cell-py` | `py-4` | body cells, block |
 | `--gawdux-table-head-py` | `py-3` | head cells, block |
-| `--gawdux-table-row-height` | `auto` | minimum body row height |
+| `--gawdux-table-row-height` | `auto` | minimum body row height; a table's only, never a card cell's where a register reads as cards |
 | `--gawdux-card-padding` | `p-4` (1rem) | one padding inside a card at every width: `CardContainer`'s header sides and body, `.card-header`'s sides, `.card-content` |
 | `--gawdux-card-header-py` | `py-3` | the card header's band, above and below its title |
 | `--gawdux-icon-size` | `1.25rem` (`.gawdux-icon`) | the house icon: a header's icon button, glyph and lock, a pane's item icon, a tab's icon, a rail row's icon |
@@ -719,6 +719,44 @@ and no rail draws its toolbar for the sort only at the compact width.
 register that sorts by its heads with neither, or with both. It reads each
 register on its own: each list holding sortable heads, and the heads no
 list holds, a snippet's heads read where it is drawn.
+
+A register in a card has no toolbar: a table in a detail page's card that
+reads as cards on a phone (its container takes `.responsive-card-table`),
+where its heads are hidden too. It draws the same sort itself, above its
+table. `DataTable` takes it as `sort`, beside what its heads take:
+
+```svelte
+<DataTable
+  {columns}
+  {rows}
+  {sortField}
+  {sortDirection}
+  {onSort}
+  sort={{ keys, field: sortField, direction: sortDirection, onsort }}
+  className="responsive-card-table"
+/>
+```
+
+A table the app writes out draws `ListPhoneSort` (`gawdux/primitives`) in
+its container, above the table, where it stands on the cards' inset:
+
+```svelte
+<TableContainer fill={false} className="responsive-card-table">
+  <ListPhoneSort sort={{ keys, field, direction, onsort }} />
+  <Table>…</Table>
+</TableContainer>
+```
+
+`registersWithoutPhoneSort` accepts a `ListPhoneSort` that takes the sort
+for the heads it serves (and lists a toolbar of the same register that
+takes it too), and lists a `DataTable` written with `responsive-card-table`
+and `onSort` that takes no `sort` while no `ListPhoneSort` of its file does.
+
+A card's cell is as tall as what it holds. A row height set for the app's
+tables (`--gawdux-table-row-height`) is a table row's least height above
+the compact width; at or below it the card rule gives every cell its own
+height, so a value with a second line never draws over the next line of
+its card, and an app needs no rule of its own for it.
 
 A key says its own orders. Each kind has its words (text "A to Z" and "Z to
 A", a date "latest first" and "earliest first", a number "highest first"

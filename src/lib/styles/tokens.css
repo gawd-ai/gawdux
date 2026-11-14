@@ -1509,10 +1509,12 @@ div.inline-flex.items-center.justify-center.font-medium {
      columns): a block under its card, padded by nothing of the pattern's.
    - A last cell holding buttons spans the card's width.
    - An empty-state row (a cell spanning the columns) is a centred line.
+   - A cell is as tall as what it holds: a row height set for the table
+     (`--gawdux-table-row-height`) is not a card cell's height.
    Companion scopes: `.responsive-list-page` (filter grid + touch targets),
    `.responsive-detail-page` (touch targets on detail forms), `.mobile-sort`
    (the phone-width substitute for sortable column headers: FilterBar's
-   `sort`).
+   `sort`, DataTable's `sort`, or ListPhoneSort above a card's register).
    All colors consume the --gawdux-* theme variables above, so both light and
    dark render from the same rules. */
 @media (max-width: 1024px) {
@@ -1592,6 +1594,14 @@ div.inline-flex.items-center.justify-center.font-medium {
 		color: var(--gawdux-text-primary);
 	}
 
+	/* A phone sort drawn in a table's own container (DataTable's `sort`, or
+	   ListPhoneSort above a card's register) stands on the cards' inset, the
+	   cards' gap above the first card. */
+	:is(.responsive-card-table, .table-container, .data-table) > .mobile-sort {
+		box-sizing: border-box;
+		padding: var(--gawdux-compact-inset) var(--gawdux-compact-inset) 0.5rem;
+	}
+
 	:is(.responsive-card-table, .list-table-scroll) {
 		overflow-x: visible !important;
 	}
@@ -1643,8 +1653,13 @@ div.inline-flex.items-center.justify-center.font-medium {
 		background-color: var(--gawdux-surface-card);
 	}
 
+	/* A card's cell is as tall as what it holds. A row height
+	   (`--gawdux-table-row-height`, or a cell's own height) is the least a
+	   table's row may be; on a block it is the most, and a cell with a
+	   second line would draw over the next line of its card. */
 	:is(.responsive-card-table, .list-table-scroll) tbody > tr > td:nth-child(n) {
 		display: block;
+		height: auto !important;
 		min-width: 0 !important;
 		width: auto !important;
 		max-width: none !important;

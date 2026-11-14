@@ -40,6 +40,9 @@ describe('the rulebook', () => {
 		);
 		expect(sort).toContain("`ListQueryBar`'s `sort`");
 		expect(sort).toContain("`FilterBar`'s `sort`, which `ListSurface` and `ListPageScaffold` pass on");
+		// A register in a card draws the sort itself.
+		expect(sort).toContain('`ListPhoneSort`');
+		expect(sort).toContain("`DataTable`'s `sort`");
 		expect(sort).toContain('`registersWithoutPhoneSort`');
 		expect(sort).toContain('`takesPhoneSort`');
 		// A key says its own orders, and a sequence key with none is reported.
@@ -47,6 +50,15 @@ describe('the rulebook', () => {
 		expect(sort).toContain('`unwordedSequenceSorts`');
 		expect(sort).toContain('`listSortKeyFaults`');
 		expect(sort).not.toContain('in reverse order');
+	});
+
+	it("says a card's cell is as tall as what it holds, whatever the table's row height", () => {
+		const register = book.slice(
+			book.indexOf('### A register on a phone'),
+			book.indexOf('### A phone sort on every sorted register')
+		);
+		expect(register).toContain('`--gawdux-table-row-height`');
+		expect(register).toContain('as tall as what it holds');
 	});
 
 	it('names only tokens and classes the stylesheet defines', () => {

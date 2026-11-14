@@ -308,6 +308,16 @@ row. A register draws one table at every width. An app keeps no card rules
 and no phone list of its own. `DataTable` labels its cells from its column
 definitions.
 
+A card's cell is as tall as what it holds. A row height an app sets for its
+tables (`--gawdux-table-row-height`) is the least a table's row may be, and
+it applies above 1024px only: in a card a value with a second line takes
+the room it needs, and never draws over the next line of its card. An app
+writes no rule of its own for it.
+
+A table in a card of a detail page reads as cards the same way: its
+container takes `.responsive-card-table` (`TableContainer`'s or
+`DataTable`'s `className`).
+
 Guard: `unlabelledRegisterCells`.
 
 ### A phone sort on every sorted register
@@ -321,6 +331,16 @@ it over, and a register uses one:
   with a query bar.
 - `FilterBar`'s `sort`, which `ListSurface` and `ListPageScaffold` pass on,
   for a register whose list draws its own toolbar.
+
+A register in a card has no toolbar: a table in a detail page's card that
+reads as cards on a phone (`.responsive-card-table`). It draws the same sort
+itself, above its table, and uses one of two ways as well:
+
+- `DataTable`'s `sort`, beside the `sortField`, `sortDirection` and `onSort`
+  its heads take: the table draws the sort above its rows.
+- `ListPhoneSort` (`gawdux/primitives`), for a table the app writes out:
+  drawn in the table's container, above the table, it stands on the cards'
+  inset.
 
 Either way it reads the same: "Sort by" and one choice per key and
 direction, each order worded ("Due: latest first", "Name: A to Z"). A
@@ -339,12 +359,14 @@ mean, so a sequence key always gives its words. One that gives none reads
 one order's words to a line that says how a register is sorted.
 
 Guard: `registersWithoutPhoneSort`, which reads each register on its own,
-and `unwordedSequenceSorts`, which lists every sequence key written with no
+accepts a `ListPhoneSort` that takes the sort for the heads it serves, and
+lists a `DataTable` written as cards on a phone that sorts by its heads and
+draws no sort; and `unwordedSequenceSorts`, which lists every sequence key written with no
 words (`listSortKeyFaults` reads the keys themselves, for keys no source
 writes out).
 Heads whose toolbar is another file's are listed with why, and the runner
 checks that file takes the sort, a query bar's or a list toolbar's
-(`rules.phoneSorts`, `takesPhoneSort`). The list allows a file only its
+(or a `ListPhoneSort`; `rules.phoneSorts`, `takesPhoneSort`). The list allows a file only its
 heads with no toolbar of its own: a listed file whose own toolbar takes no
 sort is still reported.
 

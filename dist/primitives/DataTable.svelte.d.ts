@@ -1,5 +1,6 @@
 import type { Snippet } from 'svelte';
 import { type DataTableColumn, type DataTableSortDirection } from './data-table';
+import type { ListSort } from './list-query';
 declare function $$render<T>(): {
     props: {
         columns: DataTableColumn[];
@@ -16,6 +17,10 @@ declare function $$render<T>(): {
         sortField?: string;
         sortDirection?: DataTableSortDirection;
         onSort?: (field: string) => void;
+        /** The same sort as the heads set, for a table that reads as cards on a
+            phone (`responsive-card-table`), where its heads are hidden: the
+            house phone sort above the table at or below the compact width. */
+        sort?: ListSort;
         /** A card header above the table. */
         title?: string;
         /** Right side of the card header (a count, a freshness stamp). */

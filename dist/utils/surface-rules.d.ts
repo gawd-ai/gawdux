@@ -63,9 +63,11 @@
  *   column heads gives its toolbar the sort, the house phone sort at or
  *   below the compact width, where the heads are hidden: its query bar's
  *   (`ListQueryBar`'s `sort`) or its list's (`FilterBar`'s `sort`, which
- *   `ListSurface` and `ListPageScaffold` pass on). `registersWithoutPhoneSort`
- *   lists every register that does not, every phone sort a host draws
- *   itself, and a register given two.
+ *   `ListSurface` and `ListPageScaffold` pass on). A register in a card
+ *   (a table in `.responsive-card-table`, no list page's) draws it itself:
+ *   `ListPhoneSort` above its table, or `DataTable`'s `sort`.
+ *   `registersWithoutPhoneSort` lists every register that does not, every
+ *   phone sort a host draws itself, and a register given two.
  * - A sequence key says its own orders. A sort key that orders as a sequence
  *   of the host's own gives the words of its two orders
  *   (`ListSortKey.words`), since the kind's own name no order a reader
@@ -225,6 +227,14 @@ export declare function itemActsInCards(source: string): string[];
  * else its heads when it has no toolbar (its toolbar is another file's,
  * which a guard then reads); and when both a `ListQueryBar` and a list
  * toolbar of the same register take it, which draws two.
+ *
+ * A register in a card draws the sort itself, a `ListPhoneSort` taking the
+ * sort above its table: it is then served, and listed only when a toolbar
+ * of its takes the sort too. A `DataTable` draws its own heads and its own
+ * phone sort (its `sort`), so one written as cards on a phone
+ * (`responsive-card-table` in its class) that sorts by its heads (`onSort`)
+ * is listed when it takes no `sort` and no `ListPhoneSort` of the source
+ * does.
  */
 export declare function registersWithoutPhoneSort(source: string): string[];
 /** Whether a source draws a tab strip: `PageTabs`, a `TabItem`, or a viewer's extra tabs. */
@@ -343,8 +353,8 @@ export declare function readableDashes(source: string, options?: {
     placeholders?: readonly string[];
 }): string[];
 /** Whether a source hands the house phone sort to a toolbar: a `ListQueryBar`,
- * a `FilterBar`, or a list that passes it on (`ListSurface`,
- * `ListPageScaffold`) taking a `sort`. A guard reads it over the file whose
+ * a `FilterBar`, a list that passes it on (`ListSurface`,
+ * `ListPageScaffold`) or a `ListPhoneSort` taking a `sort`. A guard reads it over the file whose
  * toolbar serves heads another file draws. */
 export declare function takesPhoneSort(source: string): boolean;
 /**
