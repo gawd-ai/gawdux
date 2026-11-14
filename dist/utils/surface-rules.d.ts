@@ -358,9 +358,11 @@ export declare function stockCaptions(source: string): string[];
  * in a list's `rail` slot under a condition or beside other markup; an edge
  * (a border, a ring, an outline, a shadow) on a `FilterPillRow`, or styled
  * onto `.filter-pill`, `.filter-pill-track` or `.saved-views-rail`; a track
- * a host draws itself. `sheet` reads the source as a stylesheet.
+ * a host draws itself. The second argument is the file's path, as the other
+ * readers take it, so the house rule runner calls it as it stands: a path
+ * ending in `.css` reads the source as a stylesheet (`true` does too).
  */
-export declare function hostChoiceChrome(source: string, sheet?: boolean): string[];
+export declare function hostChoiceChrome(source: string, file?: string | boolean): string[];
 /**
  * Every edit mode a source passes (an object holding `isEditing:` with a
  * value, never a type) that does not say whether cancelling would discard
@@ -389,7 +391,11 @@ export declare function paddedTabColumns(source: string): string[];
  * of the app's table) that takes its icon from anywhere but the table
  * (`TAB_ICONS.History`, `TAB_ICONS['Signed copy']`; `table` names the app's
  * own). One meaning has one icon on every strip. A label given as an
- * expression is read only for its icon.
+ * expression is read only for its icon. The shorthand `{icon}` is an icon
+ * given, named `icon`; a tag that takes a spread (`{...tab}`) may take its
+ * icon and its label from it, so what it does not write out is not judged.
+ * The icon is compared as written, less the spaces inside its brackets, a
+ * wrapping pair of parentheses and a trailing `as …`.
  */
 export declare function tabIconFaults(source: string, options: {
     meanings: readonly string[];

@@ -2438,9 +2438,12 @@ const CSS_EDGE = /(^|[;{\s])(border(-[a-z-]+)?|outline(-[a-z-]+)?|box-shadow)\s*
  * in a list's `rail` slot under a condition or beside other markup; an edge
  * (a border, a ring, an outline, a shadow) on a `FilterPillRow`, or styled
  * onto `.filter-pill`, `.filter-pill-track` or `.saved-views-rail`; a track
- * a host draws itself. `sheet` reads the source as a stylesheet.
+ * a host draws itself. The second argument is the file's path, as the other
+ * readers take it, so the house rule runner calls it as it stands: a path
+ * ending in `.css` reads the source as a stylesheet (`true` does too).
  */
-export function hostChoiceChrome(source, sheet = false) {
+export function hostChoiceChrome(source, file = 'Component.svelte') {
+    const sheet = typeof file === 'string' ? /\.css$/i.test(file) : file;
     const found = [];
     if (!sheet) {
         const markup = markupOf(source);
@@ -2521,7 +2524,7 @@ export function editModesWithoutDiscards(source, file) {
  */
 export function tabActsOutsideTabHost(source) {
     const markup = markupOf(source);
-    if (!/<EditablePageScaffold\b/.test(markup) || /\bcreatePageTabHost\s*\(/.test(source))
+    if (!/<EditablePageScaffold\b/.test(markup) || /\bcreatePageTabHost\s*\(/.test(blankComments(source)))
         return [];
     const tags = markupTags(markup);
     const spans = [];
@@ -2556,13 +2559,28 @@ export function paddedTabColumns(source) {
             found.push(`${match[1]} (line ${lineAt(markup, match.index)})`);
     return found;
 }
+/** An icon expression as the table comparison reads it. */
+function iconReference(written) {
+    let icon = written.trim();
+    for (let before = ''; before !== icon;) {
+        before = icon;
+        if (/^\([\s\S]*\)$/.test(icon))
+            icon = icon.slice(1, -1).trim();
+        icon = icon.replace(/\s+as\s+[^[\]()]+$/, '').trim();
+    }
+    return icon.replace(/\[\s*(['"`][^'"`]*['"`])\s*\]/g, '[$1]');
+}
 /**
  * Every tab a source draws against the tab icon table: a `TabTitle` with no
  * icon, and a `TabTitle` whose label the table knows (`meanings`, the keys
  * of the app's table) that takes its icon from anywhere but the table
  * (`TAB_ICONS.History`, `TAB_ICONS['Signed copy']`; `table` names the app's
  * own). One meaning has one icon on every strip. A label given as an
- * expression is read only for its icon.
+ * expression is read only for its icon. The shorthand `{icon}` is an icon
+ * given, named `icon`; a tag that takes a spread (`{...tab}`) may take its
+ * icon and its label from it, so what it does not write out is not judged.
+ * The icon is compared as written, less the spaces inside its brackets, a
+ * wrapping pair of parentheses and a trailing `as …`.
  */
 export function tabIconFaults(source, options) {
     const markup = markupOf(source);
@@ -2574,14 +2592,18 @@ export function tabIconFaults(source, options) {
         const literal = /\slabel=(?:"([^"]*)"|'([^']*)'|\{\s*(['"`])((?:(?!\3).)*)\3\s*\})/.exec(tag.raw);
         const label = literal?.[1] ?? literal?.[2] ?? literal?.[4] ?? null;
         const shown = label ?? `{${attributeExpression(tag.raw, 'label')?.trim() ?? '?'}}`;
-        const icon = attributeExpression(tag.raw, 'icon')?.trim() ?? null;
-        if (!icon || icon === 'null' || icon === 'undefined') {
+        const spread = /\{\s*\.\.\./.test(tag.raw);
+        const written = attributeExpression(tag.raw, 'icon')?.trim() ?? (/\s\{\s*icon\s*\}/.test(tag.raw) ? 'icon' : null);
+        if (written === null && spread)
+            continue;
+        if (!written || written === 'null' || written === 'undefined') {
             found.push(`a tab with no icon: ${shown} (line ${line})`);
             continue;
         }
         if (label === null || !known.has(label))
             continue;
         const refs = [`${table}.${label}`, `${table}['${label}']`, `${table}["${label}"]`];
+        const icon = iconReference(written);
         if (!refs.includes(icon))
             found.push(`${label} takes ${icon}, not ${/^[A-Za-z_$][\w$]*$/.test(label) ? refs[0] : refs[1]} (line ${line})`);
     }

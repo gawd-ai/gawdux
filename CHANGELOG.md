@@ -12,16 +12,25 @@
   Settings, Configs, Knowledge, Skills). The meanings only one product has
   stayed with it. `extendTabIcons(own)` is the table an app names its tabs
   from: the base and the app's own meanings, frozen, and it refuses by name
-  a base meaning given another icon. `viewerTab(id, label, { afterVersions,
+  a base meaning given another icon. An app whose strips already draw a
+  base meaning another way keeps its icon by naming the meaning with its
+  reason (`extendTabIcons(own, { replaces: { Overview: '...' } })`); a
+  replacement with no reason, one for a meaning the base does not hold and
+  one that takes the base's icon after all are refused, so the list never
+  outlives what it replaced. `viewerTab(id, label, { afterVersions,
   count, icons })` builds a document viewer's extra tab with its label's
   icon and refuses a label the table does not hold; `VIEWER_TAB_ICONS` is
   the viewer's Content and Versions. Types `TabMeaning`, `TabIconTable`,
-  `ViewerIconTab`.
+  `ViewerIconTab`, `TabIconExtension`.
 - `tabIconFaults(source, { meanings, table })` (`gawdux/utils`): the walk
   the product's test did over its own files, as a reader. It lists a
   `TabTitle` with no icon, and one whose label the table knows that takes
   its icon from anywhere but the table (`TAB_ICONS.History`,
-  `TAB_ICONS['Signed copy']`, or the app's own table by `table`).
+  `TAB_ICONS['Signed copy']`, or the app's own table by `table`). The
+  shorthand `{icon}` is an icon given, named `icon`; a tag that takes a
+  spread (`{...tab}`) is judged only on what it writes out; the table's icon
+  is read however its brackets are spaced, in parentheses and with a
+  trailing `as`.
 - The house rule runner, lifted from a consuming product's guard:
   `createHouseRules(root, options)` and `houseRuleFiles(root, options)`
   (`gawdux/test-support`, Node only). It walks a tree's sources (`.svelte`,
@@ -31,13 +40,18 @@
   - `findings(read, { only, allow })`: exceptions by file, each with its
     reason (a reason alone, `{ finding, why }`, or several). An exception
     with no reason (under ten characters), one that allows nothing the
-    reader found and one for a file that is not read are findings.
+    reader found, a file listed with no exception left (`[]`) and one for a
+    file that is not read are findings.
   - `counted(read, allowed)`: what each file may hold of something counted
     (a shadow) and what it is; another number, a file with none allowed and
     a stale or unnamed entry are findings.
   - `phoneSorts(headsElsewhere)`: the phone sort rule over the tree. The
     files listed as heads sorted elsewhere each give why; a listed file must
-    still need its exception, and its `bar` must be clean and take the sort,
+    still need its exception and hold no other finding (heads with no
+    toolbar of its own is the one the list allows, as the product's guard
+    required: a listed file whose own toolbar takes no sort, or that draws a
+    phone sort of its own, is reported), and its `bar` must be clean and
+    take the sort,
     a `ListQueryBar`'s or a list toolbar's (`FilterBar`'s, through
     `ListSurface` or `ListPageScaffold`), where the product's map looked for
     a `ListQueryBar` alone.
@@ -52,10 +66,23 @@
   (a bar zone naming its tab beside `EditablePageScaffold` in a source with
   no `createPageTabHost`), `paddedTabColumns` (a `panel-col` with a padding
   utility) and `takesPhoneSort` (a toolbar or a list that takes a `sort`).
-  Each reads markup with comments, scripts and styles left out.
+  Each leaves comments out. The markup readers (`stockCaptions`,
+  `tabActsOutsideTabHost`, `paddedTabColumns`, `takesPhoneSort`) leave
+  scripts and styles out too, and `tabActsOutsideTabHost` looks for the
+  `createPageTabHost` call in the code, never in a comment;
+  `editModesWithoutDiscards` reads code, a component's script or a `.ts`
+  file; `hostChoiceChrome` reads markup and styles. `hostChoiceChrome`
+  takes the file's path as its second argument, as the other readers do,
+  and reads a `.css` file as a stylesheet, so the runner calls it as it
+  stands (`rules.findings(hostChoiceChrome)`); `true` still reads a
+  stylesheet.
 - `docs/UI_UX_PRINCIPLES.md`, the rulebook: the generic sections of a
   consuming product's rulebook, naming no product. How the rules are held
-  (one owner, one guard, the runner, exceptions with reasons), product feel,
+  (each section ends by saying which: a "Guard:" line names the readers
+  that hold it, an "Owner:" line the component that holds it with its
+  tests, a "Guidance:" line that it is held by review; only a guard is
+  checked by the runner; then the runner and exceptions with reasons),
+  product feel,
   the plain-language rule, the house surface (one page frame, one inset,
   light and dark, no shadow inside the page, one icon size, one icon button,
   rail rows, card padding, a choice of one, a register on a phone, the phone
@@ -84,14 +111,18 @@
   exceptions and their faults, counts, heads sorted elsewhere, the lifted
   readers on the product's cases, and the library's own sources clean) and
   `tests/rulebook.test.ts` (every exported reader is named in the rulebook;
-  every `--gawdux-*` token, class and export it names exists; no em dash or
-  en dash).
+  every `--gawdux-*` token, class and export it names exists; every section
+  ends with its guard, its owner or "held by review", a guard naming an
+  exported reader and a named test existing; no em dash or en dash).
 
 ### Migration
 
 - Nothing is removed and nothing drawn changes. A host that keeps a tab
-  icon table of its own builds it with `extendTabIcons` and drops the
-  meanings the base holds. A host whose guard walks its own files and keeps
+  icon table of its own builds it with `extendTabIcons`. It drops the
+  meanings it draws with the base's icon. A meaning it draws with another
+  icon either takes the base's (that tab's icon changes in the host) or is
+  kept and named in `replaces` with its reason; the call throws at module
+  load, naming them, for any left unnamed. A host whose guard walks its own files and keeps
   its own `findings` helper, or its own copies of the readers named above,
   takes the runner and the readers from here.
 

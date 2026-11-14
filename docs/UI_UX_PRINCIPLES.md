@@ -5,9 +5,9 @@
 - Purpose: one rulebook for the house surface, so every app reads as the same
   product and no page drifts on its own
 
-This is the generic rulebook. It states each rule in plain words, names the
-part of gawdux that owns it and names the reader or test that holds it. An
-app keeps its own rulebook for what only it has (its product names, its
+This is the generic rulebook. It states each rule in plain words and says
+how it is held: by a reader, by the part of gawdux that owns it, or by
+review alone. An app keeps its own rulebook for what only it has (its product names, its
 modules, its exemplar pages) and points here for the rest.
 
 Widths: "a phone" and "the compact width" both mean at or below 1024px
@@ -15,7 +15,20 @@ Widths: "a phone" and "the compact width" both mean at or below 1024px
 
 ## How the rules are held
 
-Every rule has one owner and one guard.
+A rule is held one of three ways, and each section ends by saying which:
+
+- A section that ends with a "Guard:" line is held by the readers that line
+  names. A host runs them over its own tree, and a finding fails its guard.
+- A section that ends with an "Owner:" line and no guard is held by the
+  component, token or helper named: a page that uses it gets the rule, and
+  the tests named beside it hold the owner itself. No reader looks through a
+  host's files for a page that goes around the owner.
+- A section that ends with a "Guidance:" line, and whatever an "Owner:" line
+  says is held by review, is held by review alone. Nothing fails when it is
+  broken, so it is read for at every change (Review checklist).
+
+The runner finds only what a guard's readers read. A host that points here
+does not take a section with no "Guard:" line as checked.
 
 - The owner is a gawdux component, token or helper. A page uses it and adds
   nothing of its own on top.
@@ -28,7 +41,8 @@ Every rule has one owner and one guard.
   tree answers `{}`.
 - An exception is named file by file, with its reason. An exception that
   gives no reason, that no longer allows anything, or that names a file that
-  is not read is itself a finding. A list of exceptions never outlives what
+  is not read is itself a finding, and so is a file left listed with no
+  exception. A list of exceptions never outlives what
   it allowed.
 - Geometry (sizes, gaps, what overlaps) is read in real Chromium with the
   harness in `gawdux/test-support` (`createGeometry`) at 360, 390, 900 and
@@ -70,6 +84,8 @@ admin template or as a one-off visual experiment.
 - Improve step by step, not by a style reset.
 - Reuse the shared components and layouts before making new ones.
 - Prefer clarity, hierarchy and confidence over decoration.
+
+Guidance: held by review.
 
 ## Plain language
 
@@ -126,6 +142,9 @@ strings. `readableDashes` lists every em dash and en dash in those strings;
 a host may declare one placeholder (a lone mark for an empty value). Both
 keep a removed phrase from coming back. Neither proves that the copy is
 plain. Reading every new or changed string out loud does that.
+
+Guard: `plainLanguageFaults`, `readableDashes`. Whether a sentence is plain
+is held by review.
 
 ## The house surface
 
@@ -232,6 +251,9 @@ is flat the same way and takes the header's quiet fill under the pointer
 (`--gawdux-header-control-hover-surface`). Keyboard focus keeps its visible
 ring on each.
 
+Owner: `IconButton` and the header's control tokens in `tokens.css`. A
+button drawn by hand in its place is held by review.
+
 ### A rail row lays itself out
 
 Every row of a list rail is `RailRowButton`, which lays it out: its icon (or
@@ -267,7 +289,8 @@ around it.
 A host draws the rail bare in its slot: no condition, no wrapper and no
 class of its own, and no edge styled onto the track or its pills.
 
-Guard: `hostChoiceChrome`.
+Guard: `hostChoiceChrome`, over components and stylesheets: the runner hands
+it each file's path, and it reads a `.css` file as a stylesheet.
 
 ### A register on a phone
 
@@ -307,7 +330,9 @@ register draws a phone sort of its own, and no register is given two.
 Guard: `registersWithoutPhoneSort`, which reads each register on its own.
 Heads whose toolbar is another file's are listed with why, and the runner
 checks that file takes the sort, a query bar's or a list toolbar's
-(`rules.phoneSorts`, `takesPhoneSort`).
+(`rules.phoneSorts`, `takesPhoneSort`). The list allows a file only its
+heads with no toolbar of its own: a listed file whose own toolbar takes no
+sort is still reported.
 
 ### One scroller per list
 
@@ -318,6 +343,11 @@ with its own overflow becomes the head's scroll box, grows with the rows and
 never scrolls, and the head rides away with them. Outside a list (a detail
 page's `TableContainer`) `.list-table-frame` is the sideways scroller and
 the heads do not stick.
+
+Owner: `.list-table-scroll` and `.list-table-frame` in `tokens.css`
+(`tests/density-and-tab-tokens.test.ts`, `tests/register-phone.test.ts`). No
+reader looks for a wrapper that scrolls around a table: that is held by
+review.
 
 ### One count pill
 
@@ -342,7 +372,10 @@ every strip. The icons come from the tab icon table: `TAB_ICONS` in
 Automation, History, Versions, Details, Overview and the administration
 tabs), keyed by the label a tab shows. An app adds its own meanings with
 `extendTabIcons` and names every tab from the table it gets back. The base's
-icon for a meaning is kept in every app.
+icon for a meaning is kept, unless the app's strips already draw that
+meaning another way: then the app names the meaning in `replaces` with its
+reason, and a change it does not name is refused. One meaning still has one
+icon in the app.
 
 While the strip's labelled tabs fit its own box, never the viewport's, they
 show their labels. When they do not (`fitLabels`), every tab shows its icon
@@ -361,6 +394,9 @@ and only there. `scrollEdges` marks it with the side or sides
 own mask, so nothing is laid over the strip. One rule serves a page's tab
 strip, a register's quick filters and a drawing in its box. A strip that
 shows all of itself carries no fade, and no strip draws a mark of its own.
+
+Owner: `scrollEdges` and `.gawdux-scroll-fade` (`tests/scroll-edges.test.ts`).
+A mark a strip draws of its own is held by review.
 
 ## The header
 
@@ -385,6 +421,11 @@ when the whole trail does not fit beside them at full size, a control shows
 its icon or avatar alone. The decision is made on the room the trail would
 have with the controls at full size, so a control never flickers between its
 two sizes.
+
+Owner: `Breadcrumbs`, `breadcrumbWords` and `createRoomYield`
+(`tests/Breadcrumbs.test.ts`, `tests/breadcrumb-overflow.test.ts`,
+`tests/room-yield.test.ts`, `tests/trail-place.geometry.test.ts`). A trail a
+page draws of its own is held by review.
 
 ### A status shows once
 
@@ -413,6 +454,9 @@ that edge. At the compact width the menu button has no padding or gap of its
 own around it, so its glyph sits close to the edge while its target keeps
 44px.
 
+Owner: `ShellHeader` (`tests/ShellHeader.test.ts`,
+`tests/phone-shell.geometry.test.ts`).
+
 ### Tight levels zero and one
 
 At or below 1024px the shell's nesting gives its width back to the content.
@@ -422,6 +466,9 @@ Level one, the panel's inset and the content inset of the hosts directly
 inside it, is 8px (`--gawdux-compact-inset`). A card, a field or a tile
 nested in the content keeps its own padding and gains the width. The rule is
 one, in `tokens.css`. A page does not set its own phone inset.
+
+Owner: `tokens.css` (`tests/compact-levels.test.ts`). A phone inset a page
+sets of its own is held by review.
 
 ## The command bar
 
@@ -563,6 +610,11 @@ from the message center (`createMessageCenter`, `MessageHost`): a success
 and an info leave on their own, a warning and an error stay until they are
 dismissed.
 
+Owner: the shells named above and `MessageHost`, for where a message shows
+(`tests/SurfaceFeedback.test.ts`, `tests/SurfaceFeedbackOutlet.test.ts`,
+`tests/MessageHost.test.ts`). The four kinds, the two parts and the copy
+rules are held by review: no reader reads an error's words.
+
 ## List tables
 
 - A list row whose only primary action is "open the detail page" is a row
@@ -576,6 +628,10 @@ dismissed.
 - A cell that holds free text wraps inside its own cell. Only identifiers
   and dates stay on one line.
 
+Owner: `activateRowLink` and `isRowClickTarget` (`tests/row-link.test.ts`,
+`tests/row-link-table.test.ts`), for the row link. The rest (no "View"
+button, where the actions live, what wraps) is held by review.
+
 ## Navigation
 
 - The rail and the trail name one place. The side rail marks the item the
@@ -585,6 +641,9 @@ dismissed.
 - In a collapsed sidebar, groups open on click only. Hover does not open a
   flyout. Only one flyout is open at a time. Opening another group, a press
   outside, Escape or a route change closes it.
+
+Owner: `resolveRailPlace` (`tests/shell-rail-place.test.ts`,
+`tests/shell-rail-trail.test.ts`) and `AppSidebar`, for its flyouts.
 
 ## Small sets: a list with its detail in place
 
@@ -601,6 +660,10 @@ selector rail and a detail pane.
   Nothing is modal. Actions that change something ride the command bar.
 
 Large sets keep the sortable list table.
+
+Owner: `MasterDetailShell` (`tests/MasterDetailShell.test.ts`). The deep
+link and the choice between this pattern and a list table are the page's,
+held by review.
 
 ## The phone shell
 
@@ -619,7 +682,9 @@ On a phone a register's filter row puts the filter button at the end of the
 row of quick filters, on a line below the search.
 
 Owner: `gawdux/shell` (`AppShell`, `ShellHeader`, `ShellBarEnd`,
-`AccountCard`).
+`AccountCard`), its geometry read in real Chromium
+(`tests/phone-shell.geometry.test.ts`, `tests/shell-bar.test.ts`). A second
+bar a page draws of its own is held by review.
 
 ## Long values
 
@@ -634,6 +699,9 @@ enough to read (`LongText`, `longTextRuns`):
 - A separator (" · ") stays with the part before it
   (`LEDGER_PART_SEPARATOR`), so no line starts with the dot.
 - A line built of parts wraps between its parts, never inside one.
+
+Owner: `LongText` and `longTextRuns` (`tests/long-text.test.ts`). A long
+value a page sets outside `LongText` is held by review.
 
 ## No text that states the obvious
 
@@ -650,6 +718,8 @@ without naming the button that makes the first one. An empty state's title
 is a label and never ends with a period. Its message, a sentence, keeps its
 own.
 
+Guidance: held by review.
+
 ## What a history row says
 
 A history row first says what happened, in the app's words ("Submitted",
@@ -657,6 +727,8 @@ A history row first says what happened, in the app's words ("Submitted",
 "Submitted · Note: Ready for review." The words a person typed are the row's
 note or reason, never its label. An app label never ends with a period. A
 person's words keep theirs.
+
+Guidance: held by review.
 
 ## Dates: a day is not a moment
 
@@ -685,6 +757,10 @@ zone named, so every reader sees the same clock.
   (`formatAuditDateTimeText`).
 - A day or a stamp is never broken inside itself.
 
+Owner: `formatCalendarDate`, `todayInZone` and `formatAuditDateTimeText`
+(`tests/temporal.test.ts`). A date a page formats of its own is held by
+review.
+
 ## Text contrast
 
 Text meets WCAG AA, 4.5:1. The 3:1 exemption for large text needs 24px or
@@ -699,6 +775,9 @@ more, or 18.66px bold, which almost nothing in an operator app reaches.
   themes by design.
 - Check contrast against the composited background, not the class name.
 
+Guidance: held by review. No reader pairs `text-gray-400` with its light
+counterpart or measures a contrast.
+
 ## Forms
 
 The house owns its form layer: `.form-input` in `tokens.css`. Do not add or
@@ -707,6 +786,9 @@ and attributes, restyles every native control the tokens deliberately leave
 alone (checkboxes and radios keep their own sizing), and changes an approved
 design across every form at once. If native control styling needs work,
 extend the token: one place, with a known reach.
+
+Owner: `.form-input` in `tokens.css`. No reader looks for the plugin in a
+host's stylesheet: that is held by review.
 
 ## Checking in a browser
 
@@ -717,6 +799,8 @@ turned off in the build. Never freeze or weaken a production visual to make
 headless tooling cheap or stable. If a surface misbehaves under reduced
 motion, that is a defect on the surface. Fix it there.
 
+Guidance: held by review.
+
 ## Spreading a pattern
 
 - Try a new pattern in the one surface it is for.
@@ -725,6 +809,8 @@ motion, that is a defect on the surface. Fix it there.
 
 A pattern every app needs goes into gawdux, with its guard, so each app gets
 it by its pin and none keeps a copy.
+
+Guidance: held by review.
 
 ## Review checklist
 

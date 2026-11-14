@@ -95,6 +95,48 @@ describe('a base an app extends', () => {
 		expect(extendTabIcons({ History: TAB_ICONS.History }).History).toBe(TAB_ICONS.History);
 	});
 
+	it('lets an app replace a base icon by naming the meaning with its reason, and refuses any other change', () => {
+		const icons = extendTabIcons(
+			{ Overview: BellOutline, Alerts: BellOutline },
+			{ replaces: { Overview: 'the bell is this app’s overview on every page' } }
+		);
+		expect(icons.Overview).toBe(BellOutline);
+		expect(icons.History).toBe(TAB_ICONS.History);
+		expect(Object.keys(icons)).toEqual([...MEANINGS, 'Alerts']);
+		expect(Object.isFrozen(icons)).toBe(true);
+		expect(viewerTab('overview', 'Overview', { icons }).icon).toBe(BellOutline);
+		// The base keeps its own.
+		expect(TAB_ICONS.Overview).not.toBe(BellOutline);
+		// A change the app does not name is still refused, beside one it names.
+		expect(() =>
+			extendTabIcons(
+				{ Overview: BellOutline, History: BellOutline },
+				{ replaces: { Overview: 'the bell is this app’s overview on every page' } }
+			)
+		).toThrow(/History has an icon in the base table/);
+		// A replacement says why.
+		expect(() => extendTabIcons({ Overview: BellOutline }, { replaces: { Overview: 'ours' } })).toThrow(
+			/Overview is replaced with no reason/
+		);
+		// A list of replacements never outlives what it replaced.
+		expect(() =>
+			extendTabIcons({ Alerts: BellOutline }, { replaces: { Overview: 'the bell is this app’s overview' } })
+		).toThrow(/Overview is named as replaced and takes the base's icon/);
+		expect(() =>
+			extendTabIcons(
+				{ Overview: TAB_ICONS.Overview },
+				{ replaces: { Overview: 'the bell is this app’s overview' } }
+			)
+		).toThrow(/Overview is named as replaced and takes the base's icon/);
+		expect(() =>
+			extendTabIcons({ Alerts: BellOutline }, { replaces: { Alerts: 'the bell is this app’s alerts tab' } })
+		).toThrow(/Alerts is not a meaning of the base table to replace/);
+		// A name every object has is no base meaning.
+		expect(() =>
+			extendTabIcons({ toString: BellOutline } as never, { replaces: { toString: 'a name every object has' } })
+		).toThrow(/toString is not a meaning of the base table/);
+	});
+
 	it('refuses a viewer tab whose label the table does not hold', () => {
 		expect(() => viewerTab('x', 'Alerts' as never)).toThrow(/Alerts is not in the tab icon table/);
 	});
@@ -123,6 +165,41 @@ describe('every tab takes its icon from the table', () => {
 		expect(
 			tabIconFaults('<TabTitle icon={CopyOutline} label="Signed copy" />', { meanings: ['Signed copy'] })
 		).toEqual(["Signed copy takes CopyOutline, not TAB_ICONS['Signed copy'] (line 1)"]);
+	});
+
+	it('reads the shorthand {icon} as an icon given, and leaves what a spread may give', () => {
+		// The shorthand gives an icon: for a meaning the table knows, the fault is that it is not the table's.
+		expect(read('<TabTitle slot="title" {icon} label="History" />')).toEqual([
+			'History takes icon, not TAB_ICONS.History (line 1)'
+		]);
+		expect(read('<TabTitle { icon } label="Alerts" />')).toEqual([]);
+		expect(read('<TabTitle {icon} label={tab.label} />')).toEqual([]);
+		// A spread may carry the icon and the label.
+		expect(read('<TabTitle {...tab} />')).toEqual([]);
+		expect(read('<TabTitle {...tab} label="History" />')).toEqual([]);
+		// What the tag writes out beside a spread is still read.
+		expect(read('<TabTitle {...tab} icon={ClockOutline} label="History" />')).toEqual([
+			'History takes ClockOutline, not TAB_ICONS.History (line 1)'
+		]);
+		expect(read('<TabTitle {...tab} icon={null} label="History" />')).toEqual([
+			'a tab with no icon: History (line 1)'
+		]);
+		// Another shorthand is no icon.
+		expect(read('<TabTitle {label} />')).toEqual(['a tab with no icon: {?} (line 1)']);
+	});
+
+	it("reads the table's icon however it is spaced or typed", () => {
+		expect(read('<TabTitle icon={TAB_ICONS[ "History" ]} label="History" />')).toEqual([]);
+		expect(read("<TabTitle icon={ TAB_ICONS[ 'History' ] } label=\"History\" />")).toEqual([]);
+		expect(read('<TabTitle icon={TAB_ICONS.History as Component} label="History" />')).toEqual([]);
+		expect(read('<TabTitle icon={(TAB_ICONS.History as Component<IconProps>)} label="History" />')).toEqual([]);
+		// Another meaning's icon typed the same way is still another's.
+		expect(read('<TabTitle icon={TAB_ICONS.Versions as Component} label="History" />')).toEqual([
+			'History takes TAB_ICONS.Versions, not TAB_ICONS.History (line 1)'
+		]);
+		expect(
+			tabIconFaults("<TabTitle icon={TAB_ICONS[ 'Seen as new' ]} label=\"Seen as new\" />", { meanings: ['Seen as new'] })
+		).toEqual([]);
 	});
 
 	it("passes the table's icon, an app's own table by its name, and a label the table does not know", () => {

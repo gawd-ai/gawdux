@@ -1,11 +1,12 @@
 /**
  * The rulebook (docs/UI_UX_PRINCIPLES.md) states each house rule in plain
- * words with its owner and its guard. This holds the document to the code:
- * every reader the library exports is named in it, every token and class it
- * names is one the stylesheet defines, every export it names exists, and it
- * keeps its own rule on dashes.
+ * words and says how it is held: by a guard, by its owner or by review. This
+ * holds the document to the code: every section says which, every reader
+ * the library exports is named in it, every token and class it names is one
+ * the stylesheet defines, every export it names exists, and it keeps its own
+ * rule on dashes.
  */
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import * as components from '../src/lib/components/index';
@@ -89,6 +90,39 @@ describe('the rulebook', () => {
 			expect(named, name).toContain(name);
 			expect(exports.has(name), name).toBe(true);
 		}
+	});
+
+	it('says at the end of every section how its rule is held: a guard, an owner or review', () => {
+		const exported = new Set([...readers.matchAll(/^export function (\w+)/gm)].map((match) => match[1]!));
+		// What the sections are for: how to read the others, and the questions that sum them up.
+		const about = new Set(['UI and UX principles', 'How the rules are held', 'Review checklist']);
+		const heads = [...book.matchAll(/^#{1,3} (.+)$/gm)];
+		const sections = heads.map((head, index) => ({
+			title: head[1]!,
+			body: book.slice(head.index! + head[0].length, heads[index + 1]?.index ?? book.length).trim()
+		}));
+		expect(sections.length).toBeGreaterThan(40);
+		const held = /^(Guard|Owner|Guidance): /m;
+		// A heading over its sub-sections alone states no rule.
+		const rules = sections.filter(({ title, body }) => body !== '' && !about.has(title));
+		expect(rules.length).toBeGreaterThan(35);
+		expect(rules.filter(({ body }) => !held.test(body)).map(({ title }) => title)).toEqual([]);
+		for (const { title, body } of rules) {
+			// The line that says how the rule is held is the section's last paragraph.
+			const last = body.split(/\n\s*\n/).at(-1)!;
+			expect(held.test(last), title).toBe(true);
+			const names = [...last.matchAll(/`([^`\n]+)`/g)].map((match) => match[1]!);
+			// A guard is a reader the library exports, and nothing less.
+			const guards = /(?:^|\. )Guard: /.test(last) ? names.filter((name) => exported.has(name)) : null;
+			if (guards) expect(guards.length, title).toBeGreaterThan(0);
+			// A section with no guard says so: its owner holds it, or review does.
+			if (!guards && !/^Owner: /.test(last)) expect(last, title).toContain('held by review');
+			// A test it names is one the library has.
+			for (const name of names.filter((name) => name.startsWith('tests/')))
+				expect(existsSync(path.join(ROOT, name)), `${title}: ${name}`).toBe(true);
+		}
+		// The book says which of the three a host may take as checked.
+		expect(book).toContain('does not take a section with no "Guard:" line as checked');
 	});
 
 	it('keeps its own rules: no em dash and no en dash', () => {

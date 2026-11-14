@@ -181,6 +181,18 @@ describe('exceptions by file, each with its reason', () => {
 		});
 	});
 
+	it('finds a file listed with no exception left, which allows nothing and gives no reason', () => {
+		const allow = { 'Menu.svelte': 'the open menu and its tooltip float', 'Raised.svelte': 'a page outside the app shell' };
+		// A clean file whose last exception was deleted and whose key was left behind.
+		expect(rules.findings(shadows, { allow: { ...allow, 'Card.svelte': [] } })).toEqual({
+			'Card.svelte': ['an exception that allows nothing: no exception is listed']
+		});
+		// An empty list hides nothing of a file that holds a finding.
+		expect(rules.findings(shadows, { allow: { ...allow, 'Raised.svelte': [] } })).toEqual({
+			'Raised.svelte': ['shadow-sm', 'an exception that allows nothing: no exception is listed']
+		});
+	});
+
 	it('finds an exception for a file that is not read, or that the rule does not read', () => {
 		const allow = {
 			'Menu.svelte': 'the open menu and its tooltip float',
@@ -238,10 +250,40 @@ describe('heads sorted elsewhere look for the phone sort, a query bar’s or a l
 			'Heads.svelte': [expect.stringContaining('sortable heads with no toolbar of its own')],
 			'Unsorted.svelte': ['a ListSurface with no sort (line 1)']
 		});
-		const rest = { 'Unsorted.svelte': { why: 'a fixture of a list with no sort' } };
 		expect(
-			rules.phoneSorts({ ...rest, 'Heads.svelte': { why: 'its page hands the query bar the sort', bar: 'HeadsPage.svelte' } })
-		).toEqual({});
+			rules.phoneSorts({ 'Heads.svelte': { why: 'its page hands the query bar the sort', bar: 'HeadsPage.svelte' } })
+		).toEqual({ 'Unsorted.svelte': ['a ListSurface with no sort (line 1)'] });
+	});
+
+	it('lets the list hide heads with no toolbar of their own, and nothing else a listed file holds', () => {
+		const heads = { 'Heads.svelte': { why: 'its page hands the query bar the sort', bar: 'HeadsPage.svelte' } };
+		// A list whose own toolbar takes no sort is not heads sorted elsewhere, whatever reason is given.
+		expect(rules.phoneSorts({ ...heads, 'Unsorted.svelte': { why: 'its heads are sorted by another file' } })).toEqual({
+			'Unsorted.svelte': [
+				'listed as heads sorted elsewhere, and its own toolbar takes no sort: a ListSurface with no sort (line 1)'
+			]
+		});
+		const own = createHouseRules([
+			{ rel: 'Bar.svelte', source: '<ListQueryBar /><SortableHeadCell key="n">N</SortableHeadCell>' },
+			{
+				rel: 'Snip.svelte',
+				source:
+					'<ListSurface sort={sort}>{#snippet mobileSort()}<select></select>{/snippet}<SortableHeadCell key="n">N</SortableHeadCell></ListSurface>'
+			},
+			{ rel: 'Heads.svelte', source: '<SortableHeadCell key="n">N</SortableHeadCell>' }
+		]);
+		const plain = own.phoneSorts();
+		expect(plain['Bar.svelte']).toEqual(['a ListQueryBar with no sort (line 1)']);
+		expect(plain['Snip.svelte']).toEqual(['a phone sort of its own (line 1)']);
+		const why = 'its heads are sorted by another file';
+		expect(own.phoneSorts({ 'Bar.svelte': { why }, 'Snip.svelte': { why }, 'Heads.svelte': { why } })).toEqual({
+			'Bar.svelte': [
+				'listed as heads sorted elsewhere, and its own toolbar takes no sort: a ListQueryBar with no sort (line 1)'
+			],
+			'Snip.svelte': [
+				'listed as heads sorted elsewhere, and its own toolbar takes no sort: a phone sort of its own (line 1)'
+			]
+		});
 	});
 
 	it("accepts a bar that takes the list toolbar's sort, not only a query bar's", () => {
@@ -251,32 +293,29 @@ describe('heads sorted elsewhere look for the phone sort, a query bar’s or a l
 		expect(takesPhoneSort('<FilterBar sort={sort} />')).toBe(true);
 		expect(takesPhoneSort('<ListQueryBar /><ListSurface />')).toBe(false);
 		expect(takesPhoneSort('<!-- <ListQueryBar sort={sort} /> --><DataTable sort={sort} />')).toBe(false);
-		const rest = { 'Unsorted.svelte': { why: 'a fixture of a list with no sort' } };
 		expect(
-			rules.phoneSorts({ ...rest, 'Heads.svelte': { why: 'its list hands its toolbar the sort', bar: 'Sorted.svelte' } })
-		).toEqual({});
+			rules.phoneSorts({ 'Heads.svelte': { why: 'its list hands its toolbar the sort', bar: 'Sorted.svelte' } })
+		).toEqual({ 'Unsorted.svelte': ['a ListSurface with no sort (line 1)'] });
 	});
 
 	it('finds a listed file that needs no exception, has no reason, or whose bar takes no sort', () => {
 		expect(
 			rules.phoneSorts({
 				'Sorted.svelte': { why: 'a list that sorts by its own toolbar' },
-				'Unsorted.svelte': { why: 'legacy' },
-				'Heads.svelte': { why: 'its page hands the query bar the sort', bar: 'BarePage.svelte' },
+				'Heads.svelte': { why: 'legacy', bar: 'BarePage.svelte' },
 				'Gone.svelte': { why: 'a register that was deleted' }
 			})
 		).toEqual({
 			'Sorted.svelte': ['listed as heads sorted elsewhere, and needs no exception'],
-			'Unsorted.svelte': ['listed as heads sorted elsewhere with no reason'],
-			'Heads.svelte': ['its bar takes no sort: BarePage.svelte'],
+			'Unsorted.svelte': ['a ListSurface with no sort (line 1)'],
+			'Heads.svelte': ['listed as heads sorted elsewhere with no reason', 'its bar takes no sort: BarePage.svelte'],
 			'Gone.svelte': ['listed as heads sorted elsewhere, and not read']
 		});
 		expect(
 			rules.phoneSorts({
-				'Unsorted.svelte': { why: 'a fixture of a list with no sort' },
 				'Heads.svelte': { why: 'its page hands the query bar the sort', bar: 'Missing.svelte' }
 			})
-		).toEqual({ 'Heads.svelte': ['its bar is not read: Missing.svelte'] });
+		).toEqual({ 'Unsorted.svelte': ['a ListSurface with no sort (line 1)'], 'Heads.svelte': ['its bar is not read: Missing.svelte'] });
 		// A bar that is itself a register with no sort is named with what it lacks.
 		expect(
 			rules.phoneSorts({ 'Heads.svelte': { why: 'its list hands its toolbar the sort', bar: 'Unsorted.svelte' } })
@@ -363,6 +402,27 @@ describe("a choice of one is not drawn: the rail and the track are the library's
 		).toEqual([]);
 		expect(hostChoiceChrome('/* .filter-pill { border: 1px solid; } */ .filter-pill { color: red; }', true)).toEqual([]);
 	});
+
+	it('takes the file as its second argument, so the runner calls it as it stands', () => {
+		const rail = '{#snippet rail()}{#if x}<SavedViewsRail />{/if}{/snippet}';
+		const sheet = '.saved-views-rail { box-shadow: 0 0 0 1px gray; }';
+		expect(hostChoiceChrome(rail, 'routes/A.svelte')).toEqual([
+			'the saved views rail drawn under a condition or beside markup'
+		]);
+		expect(hostChoiceChrome(sheet, 'styles/app.css')).toEqual(['an edge on .saved-views-rail']);
+		expect(hostChoiceChrome(sheet, true)).toEqual(['an edge on .saved-views-rail']);
+		// A component is not a stylesheet: a bare rule in its markup is no style of its.
+		expect(hostChoiceChrome(sheet, 'routes/A.svelte')).toEqual([]);
+		const rules = createHouseRules([
+			{ rel: 'routes/A.svelte', source: rail },
+			{ rel: 'routes/B.svelte', source: '{#snippet rail()}<SavedViewsRail />{/snippet}' },
+			{ rel: 'styles/app.css', source: sheet }
+		]);
+		expect(rules.findings(hostChoiceChrome)).toEqual({
+			'routes/A.svelte': ['the saved views rail drawn under a condition or beside markup'],
+			'styles/app.css': ['an edge on .saved-views-rail']
+		});
+	});
 });
 
 describe('every edit mode says whether cancelling would discard input', () => {
@@ -387,6 +447,14 @@ describe('an act that names its tab stands under a tab host', () => {
 		const beside =
 			'<EditablePageScaffold title="Members">\n\t<PageTabs />\n</EditablePageScaffold>\n<PageCommandBarCenter tab="invitations">\n\t<Button>Invite member</Button>\n</PageCommandBarCenter>';
 		expect(tabActsOutsideTabHost(beside)).toEqual(['<PageCommandBarCenter tab="invitations"> (line 4)']);
+		// A comment that names the host publishes none.
+		expect(tabActsOutsideTabHost(`<script>\n// todo: createPageTabHost()\n</script>\n${beside}`)).toEqual([
+			'<PageCommandBarCenter tab="invitations"> (line 7)'
+		]);
+		expect(tabActsOutsideTabHost(`<script>/* createPageTabHost() */</script>${beside}`)).toHaveLength(1);
+		expect(tabActsOutsideTabHost(`<!-- publish with createPageTabHost() later -->\n${beside}`)).toEqual([
+			'<PageCommandBarCenter tab="invitations"> (line 5)'
+		]);
 	});
 
 	it('leaves an act inside the scaffold, an act that names no tab and a source that publishes the host', () => {
@@ -435,10 +503,7 @@ describe('the runner over the library’s own sources', () => {
 	it('sets nothing of its own on the saved views rail or the pill track, outside their owners', () => {
 		// The owners draw the rail and the track: the components themselves and the stylesheet.
 		expect(
-			rules.findings((source, rel) => hostChoiceChrome(source, rel.endsWith('.css')), {
-				only: /\.(?:svelte|css)$/,
-				allow: OWNERS
-			})
+			rules.findings(hostChoiceChrome, { only: /\.(?:svelte|css)$/, allow: OWNERS })
 		).toEqual({});
 	});
 

@@ -13,12 +13,18 @@
  * exception that no longer excepts anything, names a file that is not read
  * or gives no reason is itself a finding, so an allowlist never outlives
  * what it allowed.
+ *
+ * Every reader of `gawdux/utils` whose second argument is the file's path
+ * is passed as it stands; one that takes options is wrapped
+ * (`(source) => tabIconFaults(source, { meanings })`).
  */
 import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { registersWithoutPhoneSort, takesPhoneSort } from '../utils/surface-rules.js';
 /** The shortest reason that says something. */
 const SHORTEST_REASON = 10;
+/** The one finding a file of heads sorted elsewhere has: heads, and no toolbar of its own. */
+const HEADS_WITH_NO_TOOLBAR = /^sortable heads with no toolbar of its own\b/;
 const TEST_FILE = /\.(?:test|spec)\.[cm]?[jt]s$|\.test\.svelte$/;
 /**
  * The sources under a root, in path order: every file of the endings asked
@@ -76,7 +82,10 @@ export function createHouseRules(from, options = {}) {
             let found = read(source, rel);
             const faults = [];
             if (rel in allow) {
-                for (const allowance of allowancesOf(allow[rel])) {
+                const allowances = allowancesOf(allow[rel]);
+                if (allowances.length === 0)
+                    faults.push('an exception that allows nothing: no exception is listed');
+                for (const allowance of allowances) {
                     const { finding, why } = allowance;
                     const named = finding ? ` (${finding})` : '';
                     if (!saysWhy(why))
@@ -134,8 +143,12 @@ export function createHouseRules(from, options = {}) {
             const faults = [];
             if (!saysWhy(why))
                 faults.push('listed as heads sorted elsewhere with no reason');
-            if (registersWithoutPhoneSort(source).length === 0)
+            const own = registersWithoutPhoneSort(source);
+            if (own.length === 0)
                 faults.push('listed as heads sorted elsewhere, and needs no exception');
+            for (const found of own)
+                if (!HEADS_WITH_NO_TOOLBAR.test(found))
+                    faults.push(`listed as heads sorted elsewhere, and its own toolbar takes no sort: ${found}`);
             if (bar !== undefined) {
                 const barSource = byRel.get(bar);
                 if (barSource === undefined)

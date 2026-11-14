@@ -67,7 +67,10 @@ export interface HouseRules {
      * The phone sort rule over the tree: every component that sorts by its
      * heads hands a toolbar the house phone sort (`registersWithoutPhoneSort`),
      * but the files listed, each with why. A listed file must still need its
-     * exception, and the file named as its `bar` must be clean and take the
+     * exception and hold nothing else: heads with no toolbar of its own is the
+     * one finding the list allows, so a listed file whose own toolbar takes no
+     * sort, or that draws a phone sort of its own, is still reported. The file
+     * named as its `bar` must be clean and take the
      * sort: a `ListQueryBar`'s, or a list toolbar's (`FilterBar`'s, through
      * `ListSurface` or `ListPageScaffold`).
      */

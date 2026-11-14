@@ -48,7 +48,7 @@ Supported package subpaths:
 - **detail and table primitives**: `StatTile`/`StatTileStrip` (a detail overview's KPI tiles: label, value, meta, icon, a state tone, a go-to icon drill-down; the strip wraps and never clips), `SectionLink` (the go-to-section arrow, no words, at the top right of a card header or tile; `CardContainer` takes it as `link`), `IconButton` (the house's icon action, flat in light and dark, named by its tooltip; `danger` turns red only on hover; `size="md"` in a header, a 44px target on a phone; a glyph as its children), `DataTable` (a `TableContainer` with column definitions, `SortableHeadCell` headers, cells from a snippet, each labelled with its column, and the house empty row; every register's table reads as labelled cards on a phone, tokens.css "A register on a phone"), `IconLabel` (an icon and a word, the shape of a cue), `StatusBadge` (a coloured word, optionally with an icon), `HeaderStatus` (a pane header's state: the status chip, always, and a lock beside it while the viewer cannot edit, the reason in its tooltip), `TableContainer`, `SortableHeadCell`, `HeadCell` (the labelled, non-sortable header of a hand-built table, with an optional column icon), `EmptyStateRow`, `CollectionEmptyState`.
 - **alert-ops**: `AlertOpsConsole`, the Alert Operations surface (alert groups, detail, silences), transport-agnostic. Its tabs carry icons; its denied and unavailable states are the house `CollectionEmptyState` on the page surface, and with `healthBar={false}` the host's bar carries status and Refresh, so the unavailable state offers no Retry of its own.
 - **admin** (`gawdux/admin`): tenant-administration blocks, presentation only (the host loads, authorizes and performs every change): `MemberAccessCard`, `SecurityActivityList`, `AuditHistoryTable`, `RoleMembersCard` (who holds a Role: a quiet trash icon raises the removal for the host to confirm, a picker adds), and the AI + Bots blocks: `AiUsageReport` (totals as tiles, `AiUsageBars` per day, one share-bar card per breakdown; turns and tokens, never money), `BotRail` (bots with avatar, role and one state, for every tab that picks a bot first), `BotIdentityHeader`, `BotConfigView` (a config read, the other half of `BotConfigFields`' edit), `BotContextCard` (the composed block a bot reads, by parts), `BotToolAccess`.
-- **the house rules**: the rulebook ([docs/UI_UX_PRINCIPLES.md](docs/UI_UX_PRINCIPLES.md): each rule in plain words, with its owner and its guard), the readers that hold it (`gawdux/utils`), the runner that applies them to a tree (`createHouseRules`, `gawdux/test-support`) and the tab icon table (`TAB_ICONS`, `extendTabIcons`, `gawdux/primitives`). See "The house rules".
+- **the house rules**: the rulebook ([docs/UI_UX_PRINCIPLES.md](docs/UI_UX_PRINCIPLES.md): each rule in plain words, and how it is held: a guard, an owner, or review), the readers that hold it (`gawdux/utils`), the runner that applies them to a tree (`createHouseRules`, `gawdux/test-support`) and the tab icon table (`TAB_ICONS`, `extendTabIcons`, `gawdux/primitives`). See "The house rules".
 - **styles/tokens.css**: the shared design tokens (color, spacing, density) that give host applications a common visual language.
 
 ## Row navigation
@@ -765,15 +765,23 @@ expect(
   allows every finding of the file, `{ finding, why }` the findings the
   pattern matches, and a file may hold several. An exception with a reason
   shorter than ten characters, one that allows nothing the reader found,
-  and one for a file that is not read are findings themselves, so an
-  allowlist never outlives what it allowed.
+  a file listed with no exception left (`[]`), and one for a file that is
+  not read are findings themselves, so an allowlist never outlives what it
+  allowed.
+- A reader whose second argument is the file's path is passed as it stands
+  (`rules.findings(hostChoiceChrome)`, which reads a `.css` file as a
+  stylesheet). One that takes options is wrapped:
+  `rules.findings((source) => tabIconFaults(source, { meanings }))`.
 - `counted(read, allowed)`: what each file may hold of something counted
   (a shadow), with what it is. A file with another number, a file with none
   allowed, and an entry that is stale or says nothing are findings.
 - `phoneSorts(headsElsewhere)`: `registersWithoutPhoneSort` over every
   component but the files listed, each with why. A listed file must still
-  need its exception, and the file named as its `bar` must be clean and
-  take the sort, a `ListQueryBar`'s or a list toolbar's (`takesPhoneSort`).
+  need its exception, and the list allows it one finding only, heads with
+  no toolbar of its own: a listed file whose own toolbar takes no sort, or
+  that draws a phone sort of its own, is still reported. The file named as
+  its `bar` must be clean and take the sort, a `ListQueryBar`'s or a list
+  toolbar's (`takesPhoneSort`).
 - `layoutResets()`: the routes that leave their layout (`+page@`,
   `+layout@`), for a host to list with why.
 - `source(rel)` and `has(rel)` answer one file, `files` all of them.
@@ -790,7 +798,9 @@ in a file that publishes no tab host), `paddedTabColumns` and
 This library holds its own sources with the runner
 (`tests/house-surface-rules.test.ts`, `tests/house-rules-runner.test.ts`),
 and `tests/rulebook.test.ts` holds the rulebook to the code: every reader is
-named in it, and every token, class and export it names exists.
+named in it, every token, class and export it names exists, and every
+section ends by saying how its rule is held. Only a section with a "Guard:"
+line is checked by a reader; the rest is the owner's or held by review.
 
 ### The tab icon table
 
@@ -814,13 +824,28 @@ export const APP_TAB_ICONS = extendTabIcons({ Alerts: BellOutline });
 ```
 
 `extendTabIcons` refuses, by name, a meaning the base holds given another
-icon. `viewerTab(id, label, { afterVersions, count, icons })` builds a
+icon, unless the app names it with its reason. An app whose strips already
+draw a base meaning another way keeps its own icon so:
+
+```ts
+export const APP_TAB_ICONS = extendTabIcons(
+  { Alerts: BellOutline, Overview: GridOutline },
+  { replaces: { Overview: 'the grid is this app\'s overview on every page' } }
+);
+```
+
+A replacement with no reason (under ten characters), one for a meaning the
+base does not hold and one that takes the base's icon after all are refused
+too, so the list never outlives what it replaced. `viewerTab(id, label, { afterVersions, count, icons })` builds a
 document viewer's extra tab with the icon its label has, and
 `VIEWER_TAB_ICONS` is the viewer's own Content and Versions.
 `tabIconFaults(source, { meanings, table })` (`gawdux/utils`) lists a
 `TabTitle` with no icon and one whose label the table knows that takes its
 icon from anywhere else; `table` is the name of the app's table
-(`'APP_TAB_ICONS'`), `meanings` its keys.
+(`'APP_TAB_ICONS'`), `meanings` its keys. The shorthand `{icon}` is an icon
+given (and, for a meaning the table knows, not the table's); a tag that
+takes a spread is judged only on what it writes out; the table's icon is
+read however its brackets are spaced and with a trailing `as`.
 
 ## Development Workflow
 
