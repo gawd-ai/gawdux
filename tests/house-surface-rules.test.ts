@@ -15,6 +15,7 @@ import {
 	pageSurfacesOutsideFrame,
 	plainLanguageFaults,
 	questioningConfirmations,
+	readableDashes,
 	registersWithoutPhoneSort,
 	shadowedFlowbiteImports,
 	statusAmongControls,
@@ -22,7 +23,8 @@ import {
 	tabsAfterHistory,
 	untabbedBarActs,
 	unlabelledRegisterCells,
-	vanishingDarkEdges
+	vanishingDarkEdges,
+	withoutComments
 } from '../src/lib/utils/surface-rules';
 
 // The house surface rules over this library's own markup and styles, read
@@ -63,7 +65,11 @@ import {
 //   PageCommandBarPair's, Cancel neutral and red only while it would discard
 //   input;
 // - plain everyday language: no string a person reads uses a phrase a plain
-//   rewrite removed (a backstop; it does not prove the copy is plain).
+//   rewrite removed (a backstop; it does not prove the copy is plain);
+// - no em dash or en dash in what a person reads, but the mark for an empty
+//   value the library declares, one em dash alone.
+// Every reader leaves comments out, found in one pass in source order, so a
+// `//` comment holding `/*` hides nothing after its line.
 
 // The tree read; another tree's src/lib (an archive of an earlier tag) can be
 // read for a fail-first run.
@@ -772,5 +778,131 @@ describe('plain everyday language', () => {
 		expect(plainLanguageFaults("const c = 'flex bg-surface text-sm';", 'a.ts')).toEqual([]);
 		expect(plainLanguageFaults("const k = 'holds';", 'a.ts')).toEqual([]);
 		expect(plainLanguageFaults('<p>Shareholders and households</p>')).toEqual([]);
+	});
+});
+
+describe('comments read in source order', () => {
+	it('reads the code after a // comment holding /*', () => {
+		expect(withoutComments("// every /app/* path\nconst a = 'shadow-md';\n/* note */")).toBe(
+			"\nconst a = 'shadow-md';\n"
+		);
+		expect(surfaceShadows("// every /app/* path\nconst a = 'shadow-md';\n/* note */")).toEqual(['shadow-md']);
+		// An app shell's layout: a script's line comment naming a path pattern
+		// before the page's own surface and landmark.
+		expect(
+			pageSurfacesOutsideFrame(
+				'<script>\n\t// The first item is a prefix of every /app/* path.\n\tlet open = false;\n</script>\n\n<div class="page-shell"><main>x</main></div>\n\n<style>\n\t/* the shell */\n</style>'
+			)
+		).toEqual(['page-shell (line 6)', '<main> (line 6)']);
+		expect(
+			vanishingDarkEdges(
+				'<script>\n\t// every /app/* path\n</script>\n<div class="border border-gray-200 dark:border-transparent"></div>\n<style>\n\t/* x */\n</style>'
+			)
+		).toEqual(['border-gray-200 is dark:border-transparent on gray-800 (line 4)']);
+	});
+
+	it('keeps every line where it was', () => {
+		expect(pageSurfacesOutsideFrame('<script>\n\t/*\n\t a\n\t b\n\t*/\n</script>\n<main>x</main>')).toEqual([
+			'<main> (line 7)'
+		]);
+	});
+
+	it('opens no comment inside a string, a template literal, a regular expression, a quoted value or text', () => {
+		expect(surfaceShadows("const a = '/* not a comment';\nconst c = 'shadow-md';\nconst b = '*/';")).toEqual([
+			'shadow-md'
+		]);
+		expect(surfaceShadows("const t = `a // b ${'shadow-md'}`;")).toEqual(['shadow-md']);
+		expect(surfaceShadows("function f(s) { return /[/*]/.test(s); }\nconst c = 'shadow-md';\n/* note */")).toEqual([
+			'shadow-md'
+		]);
+		expect(surfaceShadows("const r = /['" + '"' + "`]/; // shadow-md\nconst s = 'shadow-sm';")).toEqual(['shadow-sm']);
+		expect(
+			pageSurfacesOutsideFrame('<a href="/files/*">Files</a>\n<main>y</main>\n<style>\n\t/* x */\n</style>')
+		).toEqual(['<main> (line 2)']);
+		expect(pageSurfacesOutsideFrame('<p>a // b</p><main>x</main>')).toEqual(['<main> (line 1)']);
+		// A URL's scheme in a stylesheet is no comment.
+		expect(surfaceShadows('.a { background: url(https://x.test/a.png); box-shadow: 0 1px 2px red; }')).toEqual([
+			'box-shadow: 0 1px 2px red'
+		]);
+	});
+
+	it('still leaves out every comment', () => {
+		expect(surfaceShadows('/* shadow-md */\n// shadow-lg\nconst a = 1;')).toEqual([]);
+		expect(
+			pageSurfacesOutsideFrame(
+				'<!-- <main> -->\n<script>\n\t// <div class="page-shell">\n</script>\n<style>\n\t/* .page-shell {} */\n</style>'
+			)
+		).toEqual([]);
+		expect(pageSurfacesOutsideFrame('<p>{/* class="page-shell" */ name}</p>')).toEqual([]);
+	});
+});
+
+describe('no em dash or en dash in what a person reads', () => {
+	const EM = String.fromCodePoint(0x2014);
+	const EN = String.fromCodePoint(0x2013);
+	/** The library's copy modules, as the plain-language rule reads them. */
+	const COPY_MODULES = new Set(['alert-ops/types.ts']);
+	/**
+	 * The placeholders the library declares: its mark for an empty value in a
+	 * register's cell or a record's fact (an audit row's user or comment, an
+	 * alert's receiver) is one em dash alone.
+	 */
+	const PLACEHOLDERS = [EM];
+	const read = (source: string, rel: string, placeholders?: readonly string[]) =>
+		rel.endsWith('.svelte') || COPY_MODULES.has(rel) || /-copy\.ts$/.test(rel)
+			? readableDashes(source, { file: rel, ...(placeholders ? { placeholders } : {}) })
+			: [];
+
+	it('writes no dash a person reads but the declared mark for an empty value', () => {
+		expect(findings((source, rel) => read(source, rel, PLACEHOLDERS))).toEqual({});
+	});
+
+	it('uses the declared mark only alone', () => {
+		for (const found of Object.values(findings((source, rel) => read(source, rel))).flat())
+			expect(found).toMatch(new RegExp(`^em dash: "${EM}" \\(line \\d+\\)$`));
+	});
+
+	it('reads a dash in text, an attribute a person reads, a string, an entity and an escape', () => {
+		expect(readableDashes(`<p>Saved ${EM} reload the page.</p>`)).toEqual([
+			`em dash: "Saved ${EM} reload the page." (line 1)`
+		]);
+		expect(readableDashes(`<span title="Monday ${EN} Friday">x</span>`)).toEqual([
+			`en dash: "Monday ${EN} Friday" (line 1)`
+		]);
+		expect(readableDashes(`<script>\n\tconst a = 'Saved ${EM} now';\n</script>`)).toEqual([
+			`em dash: "Saved ${EM} now" (line 2)`
+		]);
+		expect(readableDashes('<p>Saved&mdash;now, 9&#8211;5</p>')).toEqual([
+			`em dash: "Saved${EM}now, 9${EN}5" (line 1)`,
+			`en dash: "Saved${EM}now, 9${EN}5" (line 1)`
+		]);
+		expect(readableDashes("<script>const a = 'Saved " + '\\' + "u2014 now';</script>")).toEqual([
+			`em dash: "Saved ${EM} now" (line 1)`
+		]);
+		expect(readableDashes(`<td>{a} ${EM} {b}</td>`, { placeholders: [EM] })).toEqual([
+			`em dash: "… ${EM} …" (line 1)`
+		]);
+		expect(readableDashes(`export const range = (a: string) => \`\${a} ${EN} today\`;`, { file: 'a-copy.ts' })).toEqual([
+			`en dash: "… ${EN} today" (line 1)`
+		]);
+	});
+
+	it('passes a declared placeholder alone, and only alone', () => {
+		const placeholders = [EM];
+		expect(readableDashes(`<td>${EM}</td>`)).toEqual([`em dash: "${EM}" (line 1)`]);
+		expect(readableDashes(`<td>${EM}</td>`, { placeholders })).toEqual([]);
+		expect(readableDashes(`<td><span class="text-gray-300">${EM}</span></td>`, { placeholders })).toEqual([]);
+		expect(readableDashes(`<td>{row.user || '${EM}'}</td>`, { placeholders })).toEqual([]);
+		expect(readableDashes('<td>&mdash;</td>', { placeholders })).toEqual([]);
+		expect(readableDashes(`<td>${EM} ms</td>`, { placeholders })).toEqual([`em dash: "${EM} ms" (line 1)`]);
+		expect(readableDashes(`<td>${EN}</td>`, { placeholders })).toEqual([`en dash: "${EN}" (line 1)`]);
+	});
+
+	it('leaves comments, a console line, a regular expression and a hyphen', () => {
+		expect(
+			readableDashes(
+				`<!-- a ${EM} b -->\n<script>\n\t// a ${EM} b\n\t/* a ${EN} b */\n\tconsole.warn('a ${EM} b');\n\tconst r = /[${EN}${EM}]/;\n</script>\n<p>A well-known 3-4 range</p>`
+			)
+		).toEqual([]);
 	});
 });

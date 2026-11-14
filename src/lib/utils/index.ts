@@ -168,6 +168,7 @@ export {
 	pageSurfacesOutsideFrame,
 	PLAIN_LANGUAGE_PHRASES,
 	plainLanguageFaults,
+	readableDashes,
 	handDrawnIconCounts,
 	handRolledRailRows,
 	handSetCardPadding,

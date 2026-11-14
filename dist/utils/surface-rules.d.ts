@@ -100,9 +100,24 @@
  *   person reads, its strings or a copy module uses. It is a backstop: it
  *   keeps a phrase a plain rewrite removed from coming back, and does not
  *   prove the copy is plain; a person reading it does that.
+ * - No em dash or en dash in what a person reads. A comma, a colon,
+ *   parentheses or a new sentence say it instead. `readableDashes` lists
+ *   every em dash and en dash in the strings `plainLanguageFaults` reads, a
+ *   single word or mark among them, written as a character, an HTML entity
+ *   or a script's escape; a string that is wholly a placeholder the host
+ *   declares (its mark for an empty value) is passed.
+ *
+ * Every reader reads a source with its comments left out, found in one pass
+ * in source order (`withoutComments`), so a `//` comment holding `/*` hides
+ * nothing after its line and a comment's marker inside a string opens none.
  */
-/** A source with its comments removed, so prose about a shadow is not one. */
-export declare function withoutComments(source: string): string;
+/**
+ * A source with its comments removed, so prose about a shadow is not one.
+ * Comments are found in source order, outside strings (`commentRanges`); a
+ * `.svelte` file is read as a component, any other file as code, and with no
+ * file a source that opens with markup is a component.
+ */
+export declare function withoutComments(source: string, file?: string): string;
 /** Every shadow the source writes, as written, comments excluded. */
 export declare function surfaceShadows(source: string): string[];
 /** Every in-page Flowbite component the source imports that hard-codes a shadow. */
@@ -289,3 +304,16 @@ export declare const PLAIN_LANGUAGE_PHRASES: readonly PlainLanguagePhrase[];
  * prove the copy is plain, which only a person reading it can.
  */
 export declare function plainLanguageFaults(source: string, file?: string): string[];
+/**
+ * Every em dash and en dash in a string of the source a person reads, as
+ * `em dash: "excerpt" (line n)`, one finding for each kind of dash in each
+ * string. The strings are those `plainLanguageFaults` reads, a single word
+ * or mark among them; a dash counts as a character, an HTML entity or a
+ * script's escape. A comma, a colon, parentheses or a new sentence say it
+ * instead. A string that is wholly one of the `placeholders` a host declares
+ * (its mark for an empty value, one dash alone) is passed.
+ */
+export declare function readableDashes(source: string, options?: {
+    file?: string;
+    placeholders?: readonly string[];
+}): string[];

@@ -1,5 +1,44 @@
 # Changelog
 
+## 0.42.1 - readers that can be trusted
+
+### Fixed
+
+- The surface readers find comments in one pass in source order, so the
+  marker that comes first wins, and a marker inside a string, a template
+  literal, a regular expression or a quoted attribute value opens nothing.
+  They stripped block comments before line comments, so a `//` comment
+  holding `/*` (a path pattern such as `/app/*` in an app shell's layout)
+  hid every line up to the next `*/`, and `pageSurfacesOutsideFrame`,
+  `surfaceShadows`, `insetOverrides`, `elevationReads`,
+  `shadowedFlowbiteImports`, `tabsAfterHistory` and `vanishingDarkEdges`
+  missed what stood there. A component is read as Svelte reads it: an HTML
+  comment in its markup, the code of its scripts and its expressions, and
+  its styles; its text and its quoted attribute values hold no comment.
+  `withoutComments` takes the file as an optional second argument (a
+  `.svelte` file is a component; with none, a source that opens with markup
+  is one). `pageSurfacesOutsideFrame` and `vanishingDarkEdges` still blank
+  a comment in place, so a finding's line is the source's line. On this
+  library's own sources every reader finds what it found before.
+- A script's Unicode escape (`\u{2014}`, `\u{a0}`) reads as its character
+  in the strings the readers read, where it read as the letters after the
+  backslash.
+
+### Added
+
+- `readableDashes` in `gawdux/utils`: the dash rule as a reader. It lists
+  every em dash (U+2014) and en dash (U+2013) in a string a person reads,
+  as `em dash: "excerpt" (line n)`, one finding for each kind in each
+  string: the strings `plainLanguageFaults` reads, a single word or mark
+  among them, the dash written as a character, an HTML entity (`&mdash;`,
+  `&#8211;`) or a script's escape. A comma, a colon, parentheses or a new
+  sentence say it instead. A host declares its placeholders
+  (`placeholders`: its mark for an empty value, one dash alone), and a
+  string that is wholly one of them is passed; the same dash inside a
+  longer string is not. The library's house-surface-rules test holds every
+  component and its copy module (`alert-ops/types.ts`) to none, with the
+  library's own mark for an empty value, one em dash alone, declared.
+
 ## 0.42.0 - plain everyday language
 
 ### Added
