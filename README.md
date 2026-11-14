@@ -749,14 +749,24 @@ its container, above the table, where it stands on the cards' inset:
 
 `registersWithoutPhoneSort` accepts a `ListPhoneSort` that takes the sort
 for the heads it serves (and lists a toolbar of the same register that
-takes it too), and lists a `DataTable` written with `responsive-card-table`
-and `onSort` that takes no `sort` while no `ListPhoneSort` of its file does.
+takes it too). A `DataTable` is a register of its own, or its list's when
+a list holds it. One that sorts by its heads (`onSort`) and reads as cards
+(`responsive-card-table` written out in its own `className` or in the class
+of an element around it; a class given as an expression is not read) is
+listed when it takes no `sort` and no toolbar of its register does: the
+list holding it, or a `ListPhoneSort`, `ListQueryBar` or `FilterBar` above
+it that serves no other register. One that takes `sort` is listed when such
+a toolbar takes the sort too (two phone sorts), and when it does not read
+as cards and no list holds it, where "Sort by" would stand above heads that
+are still drawn. A table whose heads are sorted by another file's toolbar
+is listed as heads sorted elsewhere, as hand-written heads are.
 
 A card's cell is as tall as what it holds. A row height set for the app's
-tables (`--gawdux-table-row-height`) is a table row's least height above
-the compact width; at or below it the card rule gives every cell its own
-height, so a value with a second line never draws over the next line of
-its card, and an app needs no rule of its own for it.
+tables (`--gawdux-table-row-height`) is a table row's least height
+wherever the table stays a table, a phone included; where it reads as cards
+the card rule gives every cell its own height, so a value with a second
+line never draws over the next line of its card, and an app needs no rule
+of its own for it.
 
 A key says its own orders. Each kind has its words (text "A to Z" and "Z to
 A", a date "latest first" and "earliest first", a number "highest first"

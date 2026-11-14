@@ -309,14 +309,18 @@ and no phone list of its own. `DataTable` labels its cells from its column
 definitions.
 
 A card's cell is as tall as what it holds. A row height an app sets for its
-tables (`--gawdux-table-row-height`) is the least a table's row may be, and
-it applies above 1024px only: in a card a value with a second line takes
-the room it needs, and never draws over the next line of its card. An app
-writes no rule of its own for it.
+tables (`--gawdux-table-row-height`) is the least a table's row may be.
+Where a table reads as cards (at or below 1024px, in
+`.responsive-card-table` or a list's table), it is not a card cell's
+height: a value with a second line takes the room it needs, and never draws
+over the next line of its card. A table that does not read as cards keeps
+its row height at every width. An app writes no rule of its own for it.
 
 A table in a card of a detail page reads as cards the same way: its
 container takes `.responsive-card-table` (`TableContainer`'s or
-`DataTable`'s `className`).
+`DataTable`'s `className`). The class is written out, on the table's own
+`className` or on an element around it in the same file, so the guard can
+read it: a class given as an expression is not read.
 
 Guard: `unlabelledRegisterCells`.
 
@@ -360,8 +364,11 @@ one order's words to a line that says how a register is sorted.
 
 Guard: `registersWithoutPhoneSort`, which reads each register on its own,
 accepts a `ListPhoneSort` that takes the sort for the heads it serves, and
-lists a `DataTable` written as cards on a phone that sorts by its heads and
-draws no sort; and `unwordedSequenceSorts`, which lists every sequence key written with no
+lists a `DataTable` that sorts by its heads, reads as cards on a phone
+(`responsive-card-table` written out in its own class or in the class of an
+element around it) and has no sort, its own or a toolbar's of its register,
+one given both, and one that takes `sort` where its heads stay drawn; and
+`unwordedSequenceSorts`, which lists every sequence key written with no
 words (`listSortKeyFaults` reads the keys themselves, for keys no source
 writes out).
 Heads whose toolbar is another file's are listed with why, and the runner

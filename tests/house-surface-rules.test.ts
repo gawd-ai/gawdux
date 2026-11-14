@@ -512,11 +512,107 @@ describe('a phone sort on every sorted register', () => {
 		expect(registersWithoutPhoneSort(`<ListPhoneSort {sort} />\n<DataTable {columns} {rows} {onSort} ${cards} />`)).toEqual([]);
 		expect(
 			registersWithoutPhoneSort(`<ListPhoneSort {sort} />\n<DataTable {columns} {rows} {onSort} {sort} ${cards} />`)
-		).toEqual(["two phone sorts: a ListPhoneSort's and a DataTable's (line 2)"]);
+		).toEqual(["two phone sorts: a ListPhoneSort's (line 1) and a DataTable's (line 2)"]);
 		// A table whose heads stay drawn, and one that does not sort, need none.
 		expect(registersWithoutPhoneSort('<DataTable {columns} {rows} {sortField} {onSort} />')).toEqual([]);
 		expect(registersWithoutPhoneSort(`<DataTable {columns} {rows} ${cards} />`)).toEqual([]);
 		expect(registersWithoutPhoneSort(`<DataTable {columns} {rows} {onSort} className="responsive-card-table-own" />`)).toEqual([]);
+	});
+
+	it('reads a DataTable beside a hand-written card register on its own', () => {
+		const cards = 'className="responsive-card-table"';
+		const heads = (field: string) => `<SortableHeadCell field="${field}" label="Name" {sortField} onSort={toggle} />`;
+		const written = `<TableContainer ${cards}>\n<ListPhoneSort {sort} />\n<Table><TableHead>${heads('a')}</TableHead></Table>\n</TableContainer>`;
+		// The written register's sort is its own: the DataTable's is not a second.
+		expect(registersWithoutPhoneSort(`<DataTable {columns} {rows} {onSort} {sort} ${cards} />\n${written}`)).toEqual([]);
+		// And it serves no DataTable: one with no sort is still listed.
+		expect(registersWithoutPhoneSort(`<DataTable {columns} {rows} {onSort} ${cards} />\n${written}`)).toEqual([
+			'a DataTable read as cards on a phone with no sort (line 1)'
+		]);
+		expect(registersWithoutPhoneSort(`${written}\n<DataTable {columns} {rows} {onSort} ${cards} />`)).toEqual([
+			'a DataTable read as cards on a phone with no sort (line 5)'
+		]);
+		// A sort drawn above a DataTable after a written register is the DataTable's.
+		expect(
+			registersWithoutPhoneSort(`${written}\n<ListPhoneSort {sort} />\n<DataTable {columns} {rows} {onSort} ${cards} />`)
+		).toEqual([]);
+		// One sort serves the DataTable after it, not every DataTable of the file.
+		expect(
+			registersWithoutPhoneSort(
+				`<ListPhoneSort {sort} />\n<DataTable {columns} {rows} {onSort} ${cards} />\n<DataTable {columns} {rows} {onSort} ${cards} />`
+			)
+		).toEqual(['a DataTable read as cards on a phone with no sort (line 3)']);
+	});
+
+	it("accepts a DataTable whose register's toolbar takes the sort, and reads the two a sort of its own then draws", () => {
+		const table = '<DataTable {columns} {rows} {onSort} className="responsive-card-table" />';
+		const both = '<DataTable {columns} {rows} {onSort} {sort} className="responsive-card-table" />';
+		expect(registersWithoutPhoneSort(`<ListSurface {sort}>\n${table}\n</ListSurface>`)).toEqual([]);
+		expect(registersWithoutPhoneSort(`<ListPageScaffold sort={sort}>\n${table}\n</ListPageScaffold>`)).toEqual([]);
+		expect(registersWithoutPhoneSort(`<ListQueryBar {sort} />\n${table}`)).toEqual([]);
+		expect(registersWithoutPhoneSort(`<FilterBar sort={s} />\n${table}`)).toEqual([]);
+		expect(registersWithoutPhoneSort(`<ListSurface {sort}>\n${both}\n</ListSurface>`)).toEqual([
+			"two phone sorts: a ListSurface's (line 1) and a DataTable's (line 2)"
+		]);
+		expect(registersWithoutPhoneSort(`<ListPageScaffold sort={sort}>\n${both}\n</ListPageScaffold>`)).toEqual([
+			"two phone sorts: a ListPageScaffold's (line 1) and a DataTable's (line 2)"
+		]);
+		expect(registersWithoutPhoneSort(`<ListQueryBar {sort} />\n${both}`)).toEqual([
+			"two phone sorts: a ListQueryBar's (line 1) and a DataTable's (line 2)"
+		]);
+		// A list that takes no sort serves no table of its own.
+		expect(registersWithoutPhoneSort(`<ListSurface mode="tab">\n${table}\n</ListSurface>`)).toEqual([
+			'a DataTable read as cards on a phone with no sort (line 2)'
+		]);
+		// A list's table reads as cards without the class: one sort of the two is enough.
+		expect(registersWithoutPhoneSort('<ListSurface {sort}>\n<DataTable {columns} {onSort} {sort} />\n</ListSurface>')).toEqual([
+			"two phone sorts: a ListSurface's (line 1) and a DataTable's (line 2)"
+		]);
+		expect(registersWithoutPhoneSort('<ListSurface mode="tab">\n<DataTable {columns} {onSort} {sort} />\n</ListSurface>')).toEqual([]);
+	});
+
+	it('reads a DataTable that takes a sort where its heads stay drawn, and the card class of an element around it', () => {
+		expect(registersWithoutPhoneSort('<DataTable {columns} {items} {onSort} sort={sort} />')).toEqual([
+			'a DataTable that takes a sort and does not read as cards on a phone (line 1)'
+		]);
+		expect(registersWithoutPhoneSort('<DataTable {columns} {items} {onSort} {sort} className="data-table-own" />')).toEqual([
+			'a DataTable that takes a sort and does not read as cards on a phone (line 1)'
+		]);
+		// The class of an element around it reads it as cards.
+		expect(
+			registersWithoutPhoneSort('<div class="responsive-card-table">\n<DataTable {columns} {rows} {onSort} />\n</div>')
+		).toEqual(['a DataTable read as cards on a phone with no sort (line 2)']);
+		expect(
+			registersWithoutPhoneSort('<div class="responsive-card-table">\n<DataTable {columns} {rows} {onSort} {sort} />\n</div>')
+		).toEqual([]);
+		// An element that closed before it is not around it.
+		expect(
+			registersWithoutPhoneSort('<div class="responsive-card-table"><p>x</p></div>\n<DataTable {columns} {rows} {onSort} />')
+		).toEqual([]);
+		// A class given as an expression is not read: nothing is said of it.
+		expect(registersWithoutPhoneSort('<DataTable {columns} {rows} {onSort} className={cls} />')).toEqual([]);
+		expect(registersWithoutPhoneSort('<DataTable {columns} {rows} {onSort} {sort} className={cls} />')).toEqual([]);
+	});
+
+	it('reads each card table as a register of its own: a second with sortable heads and no sort is listed in either order', () => {
+		const cards = 'className="responsive-card-table"';
+		const heads = (field: string) => `<SortableHeadCell field="${field}" label="Name" {sortField} onSort={toggle} />`;
+		const sorted = `<TableContainer ${cards}><ListPhoneSort {sort} /><Table><TableHead>${heads('a')}</TableHead></Table></TableContainer>`;
+		const bare = `<TableContainer ${cards}><Table><TableHead>${heads('b')}${heads('c')}</TableHead></Table></TableContainer>`;
+		const none = [
+			"sortable heads with no toolbar of its own that takes the sort (ListQueryBar's, FilterBar's through ListSurface or ListPageScaffold, or a card's own ListPhoneSort)"
+		];
+		expect(registersWithoutPhoneSort(`${sorted}\n${bare}`)).toEqual(none);
+		expect(registersWithoutPhoneSort(`${bare}\n${sorted}`)).toEqual(none);
+		expect(registersWithoutPhoneSort(`${sorted}\n${sorted}`)).toEqual([]);
+		// Plain markup's thead is a table's head too.
+		expect(
+			registersWithoutPhoneSort(`<ListPhoneSort {sort} /><table><thead>${heads('a')}</thead></table><table><thead>${heads('b')}</thead></table>`)
+		).toEqual(none);
+		// A list holds its heads as one register, however many tables draw them.
+		expect(
+			registersWithoutPhoneSort(`<ListSurface {sort}><Table><TableHead>${heads('a')}</TableHead></Table><Table><TableHead>${heads('b')}</TableHead></Table></ListSurface>`)
+		).toEqual([]);
 	});
 
 	it('reads each register on its own: a sorted list passes no other list, and two lists are not one given two sorts', () => {

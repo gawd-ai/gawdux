@@ -77,8 +77,10 @@ export type HouseRuleFindings = Record<string, string[]>;
 /** The shortest reason that says something. */
 const SHORTEST_REASON = 10;
 
-/** The one finding a file of heads sorted elsewhere has: heads, and no toolbar of its own. */
-const HEADS_WITH_NO_TOOLBAR = /^sortable heads with no toolbar of its own\b/;
+/** The findings a file of heads sorted elsewhere has: heads, or a table's own heads read as
+ *  cards on a phone, and no toolbar of its own. */
+const HEADS_WITH_NO_TOOLBAR =
+	/^(?:sortable heads with no toolbar of its own|a DataTable read as cards on a phone with no sort)\b/;
 
 const TEST_FILE = /\.(?:test|spec)\.[cm]?[jt]s$|\.test\.svelte$/;
 
@@ -144,8 +146,9 @@ export interface HouseRules {
 	 * The phone sort rule over the tree: every component that sorts by its
 	 * heads hands a toolbar the house phone sort (`registersWithoutPhoneSort`),
 	 * but the files listed, each with why. A listed file must still need its
-	 * exception and hold nothing else: heads with no toolbar of its own is the
-	 * one finding the list allows, so a listed file whose own toolbar takes no
+	 * exception and hold nothing else: heads with no toolbar of its own (a
+	 * `DataTable`'s, read as cards on a phone with no sort, among them) is
+	 * all the list allows, so a listed file whose own toolbar takes no
 	 * sort, or that draws a phone sort of its own, is still reported. The file
 	 * named as its `bar` must be clean and take the
 	 * sort: a `ListQueryBar`'s, or a list toolbar's (`FilterBar`'s, through

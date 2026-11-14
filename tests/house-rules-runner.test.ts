@@ -263,6 +263,15 @@ describe('heads sorted elsewhere look for the phone sort, a query bar’s or a l
 				'listed as heads sorted elsewhere, and its own toolbar takes no sort: a ListSurface with no sort (line 1)'
 			]
 		});
+		// A DataTable read as cards whose toolbar is another file's is heads sorted elsewhere too.
+		const table = createHouseRules([
+			{ rel: 'Table.svelte', source: '<DataTable {columns} {rows} {onSort} className="responsive-card-table" />' },
+			{ rel: 'Page.svelte', source: '<ListQueryBar {sort} /><Table />' }
+		]);
+		expect(table.phoneSorts()).toEqual({
+			'Table.svelte': ['a DataTable read as cards on a phone with no sort (line 1)']
+		});
+		expect(table.phoneSorts({ 'Table.svelte': { why: 'its page hands the query bar the sort', bar: 'Page.svelte' } })).toEqual({});
 		const own = createHouseRules([
 			{ rel: 'Bar.svelte', source: '<ListQueryBar /><SortableHeadCell key="n">N</SortableHeadCell>' },
 			{

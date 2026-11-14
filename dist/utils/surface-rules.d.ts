@@ -232,9 +232,14 @@ export declare function itemActsInCards(source: string): string[];
  * sort above its table: it is then served, and listed only when a toolbar
  * of its takes the sort too. A `DataTable` draws its own heads and its own
  * phone sort (its `sort`), so one written as cards on a phone
- * (`responsive-card-table` in its class) that sorts by its heads (`onSort`)
- * is listed when it takes no `sort` and no `ListPhoneSort` of the source
- * does.
+ * (`responsive-card-table` written out in its own class or in the class of
+ * an element around it; a class given as an expression is not read) that
+ * sorts by its heads (`onSort`) is listed when it takes no `sort` and no
+ * toolbar of its register does: the list holding it, a toolbar of that
+ * list, or a toolbar above it that serves no other register. One that takes
+ * `sort` is listed when such a toolbar takes the sort too, which draws two,
+ * and when it does not read as cards and no list holds it, where its heads
+ * stay drawn beside the sort.
  */
 export declare function registersWithoutPhoneSort(source: string): string[];
 /** Whether a source draws a tab strip: `PageTabs`, a `TabItem`, or a viewer's extra tabs. */

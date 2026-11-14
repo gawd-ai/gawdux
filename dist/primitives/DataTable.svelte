@@ -23,7 +23,11 @@
        (`className="responsive-card-table"`) has its heads hidden there, so
        one that sorts by them passes `sort` too (a ListSort: the same field
        and direction in words): the house phone sort, drawn above the table
-       at or below the compact width and not drawn above it. -->
+       at or below the compact width and not drawn above it. It is drawn
+       whenever `sort` is given, so a table that does not read as cards, or
+       one in a list whose toolbar takes the sort, is given none (the guard
+       registersWithoutPhoneSort lists both, and reads the class only where
+       it is written out). -->
 <script lang="ts" generics="T">
 	import type { Snippet } from 'svelte';
 	import { Table, TableBody, TableBodyCell, TableBodyRow, TableHead } from 'flowbite-svelte';

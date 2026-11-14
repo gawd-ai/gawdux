@@ -28,8 +28,9 @@
   (`--gawdux-table-row-height`, applied as a cell's height) or a cell's own
   height utility stayed a fixed height there: a value with a second line
   drew over the next line of its card. The card rule now gives every cell
-  `height: auto` at or below the compact width. Above it a table keeps its
-  row height. A host that wrote its own rule for this (`height: auto` on
+  `height: auto` at or below the compact width. Above it, and at every
+  width in a table that does not read as cards, a table keeps its row
+  height. A host that wrote its own rule for this (`height: auto` on
   the cells of `.responsive-card-table` and `.list-table-scroll` at the
   compact width) can delete it.
 
@@ -42,12 +43,27 @@
   (ListQueryBar's, FilterBar's through ListSurface or ListPageScaffold, or
   a card's own ListPhoneSort)"; it still begins "sortable heads with no
   toolbar of its own".
-- New finding: `registersWithoutPhoneSort` lists a `DataTable` written with
-  `responsive-card-table` in its class and `onSort` that takes no `sort`,
-  while no `ListPhoneSort` of the same file takes one ("a DataTable read as
-  cards on a phone with no sort"), and one given both ("two phone sorts").
-  A host with such a table gives it `sort`; a phone sort drawn by hand
-  beside it is replaced by it.
+- New findings: `registersWithoutPhoneSort` reads a `DataTable` as a
+  register, its list's when a list holds it and else one of its own,
+  served by the toolbars above it that serve no other register. One with
+  `onSort` that reads as cards (`responsive-card-table` written out in its
+  own class or in the class of an element around it; a class given as an
+  expression is not read) and takes no `sort`, while no toolbar of its
+  register takes one, is listed ("a DataTable read as cards on a phone with
+  no sort"). One that takes `sort` while its list or a toolbar of its
+  register takes the sort too is listed ("two phone sorts: a …'s (line n)
+  and a DataTable's (line n)"), and so is one that takes `sort`, does not
+  read as cards and is held by no list ("a DataTable that takes a sort and
+  does not read as cards on a phone"). A host with such a table gives it
+  `sort` unless a toolbar of its register already takes it; a phone sort
+  drawn by hand beside it is replaced by it. The runner's `phoneSorts`
+  allows a file listed as heads sorted elsewhere the first of these, as it
+  allows heads with no toolbar of their own.
+- `registersWithoutPhoneSort` reads each table's heads no list holds as a
+  register of their own: a table's head (`TableHead`, `thead`) after
+  sortable heads starts a new one, so a second card whose table has
+  sortable heads and no sort is listed whatever card comes first. A file
+  that draws two such tables under one toolbar has the second listed.
 - `DataTable` now draws its own phone sort, so a guard that listed the
   library's `DataTable` as heads sorted elsewhere needs no such entry. A
   host's own files are read as before.

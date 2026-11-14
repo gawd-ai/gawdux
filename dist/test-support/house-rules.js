@@ -23,8 +23,9 @@ import path from 'node:path';
 import { registersWithoutPhoneSort, takesPhoneSort } from '../utils/surface-rules.js';
 /** The shortest reason that says something. */
 const SHORTEST_REASON = 10;
-/** The one finding a file of heads sorted elsewhere has: heads, and no toolbar of its own. */
-const HEADS_WITH_NO_TOOLBAR = /^sortable heads with no toolbar of its own\b/;
+/** The findings a file of heads sorted elsewhere has: heads, or a table's own heads read as
+ *  cards on a phone, and no toolbar of its own. */
+const HEADS_WITH_NO_TOOLBAR = /^(?:sortable heads with no toolbar of its own|a DataTable read as cards on a phone with no sort)\b/;
 const TEST_FILE = /\.(?:test|spec)\.[cm]?[jt]s$|\.test\.svelte$/;
 /**
  * The sources under a root, in path order: every file of the endings asked
