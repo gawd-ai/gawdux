@@ -1,6 +1,7 @@
 import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
 import type { SurfaceNoticeTone } from './surface-feedback-context';
 import type { ListPagination } from './list-pagination';
+import type { ListSort } from './list-query';
 interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> = any, Events extends Record<string, any> = any, Slots extends Record<string, any> = any, Exports = {}, Bindings = string> {
     new (options: import('svelte').ComponentConstructorOptions<Props>): import('svelte').SvelteComponent<Props, Events, Slots> & {
         $$bindings?: Bindings;
@@ -44,6 +45,10 @@ declare const ListSurface: $$__sveltets_2_IsomorphicComponent<$$__sveltets_2_Pro
     /** A standing condition of the list (a read-only scope). Same strip,
             not dismissable. */ notice?: string | null | undefined;
     noticeTone?: SurfaceNoticeTone;
+    /** The register's sort, for its toolbar (FilterBar) to draw as the house
+            phone sort at or below the compact width, where the register's heads
+            are hidden. A list with no filters and no rail draws its toolbar only
+            there, for the sort. */ sort?: ListSort | undefined;
 }, {
     actions: {};
     footer: {};

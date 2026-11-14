@@ -6,6 +6,13 @@
     A failed case opens. The host heads it (protocol, version, where and
     when) and supplies the notice that replaces observations it withholds;
     nothing here signs, completes or changes an execution.
+
+    Manual cases, optionally: a case's recorded observation (`manual`: what
+    was observed, by whom, when) follows its steps and is withheld with
+    them; a case the host lets the reader complete (`canComplete`) offers
+    "Record manual observation" when the host passes `onmanual`, which opens
+    the host's drawer (ManualObservationCommandSurface). A report with
+    neither reads as it did without them.
 -->
 <script lang="ts">
 	import type { ValidationExecutionView } from './types.js';
@@ -13,11 +20,18 @@
 
 	let {
 		execution,
-		heldNotice = null
+		heldNotice = null,
+		onmanual = undefined
 	}: {
 		execution: ValidationExecutionView;
 		/** What a reader reads in place of observations and captures the host withholds. */
 		heldNotice?: string | null;
+		/**
+		 * Opens the host's drawer to record a manual case's observation, from
+		 * the "Record manual observation" a case it lets the reader complete
+		 * offers. None: no case offers it.
+		 */
+		onmanual?: ((caseId: string) => void) | undefined;
 	} = $props();
 
 	const counts = $derived(resultCounts(execution.cases));
@@ -88,7 +102,18 @@
 									</ul>
 								{/if}
 							</section>
-						{/each}
+						{/each}{#if item.manual}
+							<!-- The blocks abut: a report with no manual parts holds no
+							     node more than one without them ever did. -->
+							<div class="manual" data-run-manual>
+								<p class="observation">{item.manual.observed}</p>
+								<p class="muted">Recorded by {item.manual.enteredBy} · {item.manual.enteredAt}</p>
+							</div>
+						{/if}
+					{/if}{#if item.canComplete && onmanual}
+						<button type="button" class="record" data-run-record={item.id} onclick={() => onmanual?.(item.id)}
+							>Record manual observation</button
+						>
 					{/if}
 				</div>
 			</details>
@@ -234,6 +259,27 @@
 	.observation {
 		white-space: pre-wrap;
 		overflow-wrap: anywhere;
+	}
+	.manual {
+		margin-top: 0.75rem;
+	}
+	.record {
+		margin-top: 0.75rem;
+		padding: 0.5rem 0.8rem;
+		border: 1px solid var(--gawdux-border-input);
+		border-radius: 0.375rem;
+		background: transparent;
+		color: var(--gawdux-text-accent);
+		font: inherit;
+		font-size: 0.8125rem;
+		cursor: pointer;
+	}
+	.record:hover {
+		background: var(--gawdux-surface-subtle);
+	}
+	.record:focus-visible {
+		outline: 2px solid var(--gawdux-text-accent);
+		outline-offset: 2px;
 	}
 	.captures {
 		display: grid;

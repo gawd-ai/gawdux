@@ -60,10 +60,12 @@
  *   card; a row's own act in a list stays on its row. `itemActsInCards` lists
  *   every such button in a card or a master-detail page's detail.
  * - A phone sort on every sorted register. A register that sorts by its
- *   column heads gives its query bar the sort (`ListQueryBar`'s `sort`), the
- *   house phone sort at or below the compact width, where the heads are
- *   hidden. `registersWithoutPhoneSort` lists every register that does not,
- *   and every phone sort a host draws itself.
+ *   column heads gives its toolbar the sort, the house phone sort at or
+ *   below the compact width, where the heads are hidden: its query bar's
+ *   (`ListQueryBar`'s `sort`) or its list's (`FilterBar`'s `sort`, which
+ *   `ListSurface` and `ListPageScaffold` pass on). `registersWithoutPhoneSort`
+ *   lists every register that does not, every phone sort a host draws
+ *   itself, and a register given two.
  * - The bar holds the open tab's acts. On a tabbed page every act in the
  *   command bar names its tab (`PageCommandBarCenter`'s `tab`, a scaffold
  *   act's `tab`), so it shows only while its tab is open and a tab with no
@@ -1357,12 +1359,25 @@ export function itemActsInCards(source: string): string[] {
 	return found;
 }
 
+/** The list toolbars that draw a register's phone sort from their `sort`. */
+const PHONE_SORT_LISTS = new Set(['FilterBar', 'ListSurface', 'ListPageScaffold']);
+
+/** A component tag that takes a `sort` (`sort={…}` or `{sort}`). */
+function takesSort(raw: string): boolean {
+	return /\ssort=|\s\{sort\}/.test(raw);
+}
+
 /**
  * Every register that sorts by its column heads and offers no house phone
- * sort: a component drawing `SortableHeadCell` whose `ListQueryBar` takes no
- * `sort`, or that draws no `ListQueryBar` (its query bar is another file's,
- * which a guard then reads), and every phone sort a host draws itself (a
- * `mobileSort` snippet).
+ * sort, and every phone sort a host draws itself (a `mobileSort` snippet).
+ * The house phone sort is a toolbar's `sort`: `ListQueryBar`'s, or the
+ * list's own toolbar's (`FilterBar`'s, which `ListSurface` and
+ * `ListPageScaffold` pass on). A component drawing `SortableHeadCell` is
+ * listed when no toolbar of its takes the sort: each `ListQueryBar` with
+ * none, else each list toolbar with none, else the heads themselves when it
+ * draws no toolbar (its toolbar is another file's, which a guard then
+ * reads); and when both a `ListQueryBar` and a list toolbar take it, which
+ * draws two.
  */
 export function registersWithoutPhoneSort(source: string): string[] {
 	const markup = markupOf(source);
@@ -1370,10 +1385,26 @@ export function registersWithoutPhoneSort(source: string): string[] {
 	for (const match of markup.matchAll(/\{#snippet\s+mobileSort\b/g))
 		found.push(`a phone sort of its own (line ${lineAt(markup, match.index!)})`);
 	if (!/<SortableHeadCell\b/.test(markup)) return found;
-	const bars = markupTags(markup).filter((tag) => !tag.close && tag.name === 'ListQueryBar');
-	if (bars.length === 0) found.push('sortable heads with no query bar of its own');
+	const opened = markupTags(markup).filter((tag) => !tag.close);
+	const bars = opened.filter((tag) => tag.name === 'ListQueryBar');
+	const lists = opened.filter((tag) => PHONE_SORT_LISTS.has(tag.name));
+	const sortingList = lists.find((tag) => takesSort(tag.raw));
+	if (sortingList) {
+		for (const bar of bars)
+			if (takesSort(bar.raw))
+				found.push(
+					`two phone sorts: a ListQueryBar's (line ${lineAt(markup, bar.at)}) and a ${sortingList.name}'s (line ${lineAt(markup, sortingList.at)})`
+				);
+		return found;
+	}
 	for (const bar of bars)
-		if (!/\ssort=|\s\{sort\}/.test(bar.raw)) found.push(`a ListQueryBar with no sort (line ${lineAt(markup, bar.at)})`);
+		if (!takesSort(bar.raw)) found.push(`a ListQueryBar with no sort (line ${lineAt(markup, bar.at)})`);
+	if (bars.length > 0) return found;
+	for (const list of lists) found.push(`a ${list.name} with no sort (line ${lineAt(markup, list.at)})`);
+	if (lists.length === 0)
+		found.push(
+			"sortable heads with no toolbar of its own that takes the sort (ListQueryBar's, or FilterBar's through ListSurface or ListPageScaffold)"
+		);
 	return found;
 }
 

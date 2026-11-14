@@ -1,5 +1,95 @@
 # Changelog
 
+## 0.43.0 - validation drawers, the bar's zones and the phone sort in a list's toolbar
+
+### Added
+
+- `SignatureCommandSurface` and `signatureStatement` in `gawdux/validation`:
+  the sign drawer, lifted from a consuming product with its tests. The
+  drawer rises out of the command bar (`CommandDrawer`) and holds the
+  statement (`signatureStatement({ step, subject, meaning })`: "You are
+  about to sign step ... on ... with the meaning ..."), what follows from
+  the signature (`consequence`), the signer ("Signing as" the name and the
+  email), the password, entered again for every signature, and a reason
+  (`reasonLabel`; at least `reasonMin` characters, 10 by default, the rule
+  stated under the field and counted before the button refuses; 1 required
+  with no length, 0 optional); `fields` draws what the signature carries
+  before them. Cancel and the confirm are `PageCommandBarPair`'s in the
+  bar's center zone, the confirm red for a withdrawal (`tone`), Cancel red
+  only while a typed reason would be lost. It hands the password and the
+  reason to `onconfirm` and signs nothing itself: the host's signature
+  service checks the password and records the signature. A refusal
+  (`error`) shows inside the drawer, which stays open, and returns focus to
+  the password; a refused password (`errorReason` "password_incorrect")
+  marks the field. Escape closes the drawer and nothing behind it, never
+  while a write is in flight (`busy`); a result the host could not confirm
+  holds only the confirm (`confirmDisabled`); the password and the reason
+  are cleared on every close. A read-only username field holding the
+  signer's email stands before the password for the password manager, so a
+  browser never fills a search box on the page with it.
+- `ManualObservationCommandSurface` in `gawdux/validation`: the drawer
+  that records a manual case's observation, beside the sign drawer, with
+  the inputs the 0.26 form took (the case's id and title, the revision the
+  reader saw, `oncomplete` and `oncancel`). It holds what the person
+  observed and the result they choose, Pass or Fail after "Select a
+  result", none chosen for them; Save observation runs only once both are
+  given, and Cancel turns red while typed input would be lost. It hands
+  `{ caseId, expectedRevision, observed, result }`
+  (`ManualObservationInput`, again exported) to `oncomplete`, holds still
+  while a promise it returns runs (one save, no Escape, no Cancel, "Saving…"),
+  and shows a rejected one as a refusal inside the drawer, which stays open
+  with what was typed. A host that tracks the write itself passes `busy`
+  and `error`. What was typed is cleared on every close and when the host
+  opens the drawer for another case.
+- `ValidationRunReport` takes back, as optional parts, what 0.27.0 removed
+  for manual cases, drawn as 0.26.13 drew them: a case's recorded
+  observation (`ValidationCaseView.manual`, `ValidationManualObservation`:
+  what was observed, then "Recorded by" whom "·" when) after its steps,
+  withheld with them; and "Record manual observation" on a case the host
+  lets the reader complete (`canComplete`) when the host passes `onmanual`,
+  which hands over the case's id for the host to open the drawer. A report
+  with neither reads exactly as 0.42's: a test renders both, with evidence
+  shown and withheld, and compares their markup.
+- `PageCommandBarZones` in `gawdux/primitives`, beside
+  `createPageCommandBarRegistry`: the command bar's three zones as state an
+  app shell holds, the small class each app shell wrote for itself. The
+  shell makes one, publishes its `context` as `PAGE_COMMAND_BAR_CONTEXT` and
+  hands the instance to `PageFrame` as its `bar`; each zone is the newest
+  live registration's snippet. It implements `PageCommandBarSlots`, whose
+  name the plain shape already holds.
+- The house phone sort in a list's own toolbar: `FilterBar` takes `sort`
+  (a `ListSort`, as `ListQueryBar` takes it), and `ListSurface` and
+  `ListPageScaffold` pass it on. At or below the compact width, where a
+  register's heads are hidden and its rows read as cards, the toolbar draws
+  "Sort by" under the filter row, one choice per key and direction, each
+  order worded (`listSortOptions`: A to Z, latest first), "Default order"
+  before a key is chosen; a choice writes the sort at once through
+  `onsort`, as a head's click does, never staged with the filters. Above
+  the compact width it is not drawn (`.mobile-sort`), and a list in a tab
+  with no filters and no rail draws its toolbar for the sort only at the
+  compact width (`.filter-bar-sort-only`). A filter row with nothing in it
+  takes no room above the sort (`.filter-bar-has-sort`).
+
+### Changed
+
+- `registersWithoutPhoneSort` accepts the new sort: a component drawing
+  `SortableHeadCell` whose `ListPageScaffold`, `ListSurface` or
+  `FilterBar` takes a `sort` is not listed, nor is a `ListQueryBar` with no
+  sort beside it. It lists such a list toolbar with no sort ("a
+  ListPageScaffold with no sort (line n)") when the component draws no
+  `ListQueryBar`, and a register given both sorts ("two phone sorts").
+  The heads of a component with no toolbar of its own read "sortable heads
+  with no toolbar of its own that takes the sort (ListQueryBar's, or
+  FilterBar's through ListSurface or ListPageScaffold)", where they read
+  "sortable heads with no query bar of its own": a guard that names the
+  old message takes the new one. Shown failing on 0.42's reader.
+- `UserMenu`'s `compactBelow` 1024 is compact at or below 1024px, the
+  compact width (`SHELL_BAR_QUERY`), where it was strictly below 1024
+  (`max-width: 1023.98px`): at 1024 itself the menu is the avatar, as the
+  shell bar and every other compact part are. 768 stays strictly below 768.
+  A test reads the class's query from the component's styles and holds it
+  compact at exactly 1024, shown failing on 0.42's menu.
+
 ## 0.42.1 - readers that can be trusted
 
 ### Fixed

@@ -85,7 +85,9 @@ export interface UserMenuProps {
 	label?: string;
 	/**
 	 * Below this viewport width the closed menu is the avatar alone (44 by 44);
-	 * open, the panel grows to the left and the avatar stays put. 0 never.
+	 * open, the panel grows to the left and the avatar stays put. 768: below
+	 * 768px. 1024: at or below 1024px, the compact width (SHELL_BAR_QUERY), so
+	 * the menu is compact at 1024 itself as every compact part is. 0 never.
 	 */
 	compactBelow?: 0 | 768 | 1024;
 	/**

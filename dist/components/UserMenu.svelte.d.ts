@@ -14,7 +14,9 @@ import type { UserMenuProps } from '../types/user-menu.types';
  * in light and dark, the header's surface showing through it, and takes the
  * header's quiet fill under the pointer (--gawdux-header-control-hover-surface),
  * never a shadow; open, it lifts (border, shadow, the raised menu surface). Below
- * `compactBelow` the closed card is the avatar alone; open, the panel grows to
+ * `compactBelow` (768: below 768px; 1024: at or below 1024px, the compact width
+ * of SHELL_BAR_QUERY, 1024 itself included) the closed card is the avatar
+ * alone; open, the panel grows to
  * the left from the avatar, which stays where it was (the trigger row is
  * mirrored), and never past the 16px gutter on the left. `compact` gives the
  * same avatar at every width, for a header whose trail needs the room

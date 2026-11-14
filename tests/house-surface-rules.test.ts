@@ -448,6 +448,39 @@ describe('a phone sort on every sorted register', () => {
 			registersWithoutPhoneSort('<ListQueryBar>{#snippet mobileSort()}<select></select>{/snippet}</ListQueryBar>')
 		).toHaveLength(1);
 	});
+
+	it("accepts a list whose own toolbar takes the sort, FilterBar's through ListSurface or ListPageScaffold", () => {
+		const heads = '<SortableHeadCell field="name" label="Name" {sortField} onSort={toggle} />';
+		expect(registersWithoutPhoneSort(`<ListPageScaffold {pagination} sort={sort}>\n${heads}\n</ListPageScaffold>`)).toEqual([]);
+		expect(registersWithoutPhoneSort(`<ListSurface mode="tab" {sort}>${heads}</ListSurface>`)).toEqual([]);
+		expect(registersWithoutPhoneSort(`<FilterBar sort={listSort}><input /></FilterBar>${heads}`)).toEqual([]);
+		// A query bar in the list's filters needs none of its own: the list draws the sort.
+		expect(
+			registersWithoutPhoneSort(
+				`<ListPageScaffold sort={sort}><svelte:fragment slot="filters"><ListQueryBar value="" /></svelte:fragment>${heads}</ListPageScaffold>`
+			)
+		).toEqual([]);
+	});
+
+	it('reads a list toolbar that takes no sort, two phone sorts, and names both sorts when there is no toolbar', () => {
+		const heads = '<SortableHeadCell field="name" label="Name" {sortField} onSort={toggle} />';
+		expect(registersWithoutPhoneSort(`<ListPageScaffold {pagination}>\n${heads}\n</ListPageScaffold>`)).toEqual([
+			'a ListPageScaffold with no sort (line 1)'
+		]);
+		expect(registersWithoutPhoneSort(`<ListSurface mode="tab">${heads}</ListSurface>`)).toEqual([
+			'a ListSurface with no sort (line 1)'
+		]);
+		// A query bar with no sort is the one named, as before.
+		expect(
+			registersWithoutPhoneSort(`<ListPageScaffold>\n<ListQueryBar value="" />${heads}</ListPageScaffold>`)
+		).toEqual(['a ListQueryBar with no sort (line 2)']);
+		expect(
+			registersWithoutPhoneSort(`<ListPageScaffold sort={sort}>\n<ListQueryBar {sort} />${heads}</ListPageScaffold>`)
+		).toEqual(["two phone sorts: a ListQueryBar's (line 2) and a ListPageScaffold's (line 1)"]);
+		expect(registersWithoutPhoneSort(heads)).toEqual([
+			"sortable heads with no toolbar of its own that takes the sort (ListQueryBar's, or FilterBar's through ListSurface or ListPageScaffold)"
+		]);
+	});
 });
 
 describe("the bar holds the open tab's acts", () => {

@@ -8,6 +8,7 @@
 	import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
 	import type { SurfaceNoticeTone } from './surface-feedback-context';
 	import type { ListPagination } from './list-pagination';
+	import type { ListSort } from './list-query';
 	import { createEventDispatcher } from 'svelte';
 
 	export let mode: 'page' | 'tab' | 'embedded' = 'page';
@@ -41,6 +42,11 @@
 	    not dismissable. */
 	export let notice: string | null | undefined = null;
 	export let noticeTone: SurfaceNoticeTone = 'warning';
+	/** The register's sort, for its toolbar (FilterBar) to draw as the house
+	    phone sort at or below the compact width, where the register's heads
+	    are hidden. A list with no filters and no rail draws its toolbar only
+	    there, for the sort. */
+	export let sort: ListSort | undefined = undefined;
 
 	const dispatch = createEventDispatcher<{ dismiss: void }>();
 
@@ -62,6 +68,10 @@
 	$: hasHeader = !!$$slots.header;
 	$: renderRail = hasRail ?? !!$$slots.rail;
 	$: hasFilters = isPage || !!$$slots.filters || renderRail;
+	$: hasSort = !!sort && sort.keys.length > 0;
+	// A toolbar drawn only for the phone sort is drawn only where it shows,
+	// and the list's modifiers stay as they are without it.
+	$: sortOnly = hasSort && !hasFilters;
 	$: surfaceModifiers = [
 		hasHeader ? 'list-surface-has-header' : '',
 		hasFilters ? 'list-surface-has-filters' : '',
@@ -121,8 +131,8 @@
 				<slot name="header" />
 			</div>
 		{/if}
-		{#if hasFilters}
-			<FilterBar hasRail={renderRail}>
+		{#if hasFilters || hasSort}
+			<FilterBar hasRail={renderRail} {sort} className={sortOnly ? 'filter-bar-sort-only' : ''}>
 				<svelte:fragment slot="rail">
 					<slot name="rail" />
 				</svelte:fragment>

@@ -563,6 +563,9 @@
   .filter-field {
     flex: none;
   }
+  .filter-bar-has-sort > .filter-row:not(:has(*)) {
+    display: none !important;
+  }
   .list-query-inline-field {
     display: flex;
     flex-shrink: 0;
@@ -1121,6 +1124,9 @@ div.inline-flex.items-center.justify-center.font-medium {
     flex-direction: column;
     gap: 0.25rem;
   }
+  .mobile-sort > .form-label {
+    margin-bottom: 0;
+  }
   .mobile-sort select {
     min-height: 44px;
     width: 100%;
@@ -1278,6 +1284,9 @@ div.inline-flex.items-center.justify-center.font-medium {
 }
 @media (min-width: 1025px) {
   .mobile-sort {
+    display: none;
+  }
+  .filter-bar-sort-only {
     display: none;
   }
 }

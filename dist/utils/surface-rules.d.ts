@@ -60,10 +60,12 @@
  *   card; a row's own act in a list stays on its row. `itemActsInCards` lists
  *   every such button in a card or a master-detail page's detail.
  * - A phone sort on every sorted register. A register that sorts by its
- *   column heads gives its query bar the sort (`ListQueryBar`'s `sort`), the
- *   house phone sort at or below the compact width, where the heads are
- *   hidden. `registersWithoutPhoneSort` lists every register that does not,
- *   and every phone sort a host draws itself.
+ *   column heads gives its toolbar the sort, the house phone sort at or
+ *   below the compact width, where the heads are hidden: its query bar's
+ *   (`ListQueryBar`'s `sort`) or its list's (`FilterBar`'s `sort`, which
+ *   `ListSurface` and `ListPageScaffold` pass on). `registersWithoutPhoneSort`
+ *   lists every register that does not, every phone sort a host draws
+ *   itself, and a register given two.
  * - The bar holds the open tab's acts. On a tabbed page every act in the
  *   command bar names its tab (`PageCommandBarCenter`'s `tab`, a scaffold
  *   act's `tab`), so it shows only while its tab is open and a tab with no
@@ -208,10 +210,15 @@ export declare function miscasedActionLabels(source: string, options?: {
 export declare function itemActsInCards(source: string): string[];
 /**
  * Every register that sorts by its column heads and offers no house phone
- * sort: a component drawing `SortableHeadCell` whose `ListQueryBar` takes no
- * `sort`, or that draws no `ListQueryBar` (its query bar is another file's,
- * which a guard then reads), and every phone sort a host draws itself (a
- * `mobileSort` snippet).
+ * sort, and every phone sort a host draws itself (a `mobileSort` snippet).
+ * The house phone sort is a toolbar's `sort`: `ListQueryBar`'s, or the
+ * list's own toolbar's (`FilterBar`'s, which `ListSurface` and
+ * `ListPageScaffold` pass on). A component drawing `SortableHeadCell` is
+ * listed when no toolbar of its takes the sort: each `ListQueryBar` with
+ * none, else each list toolbar with none, else the heads themselves when it
+ * draws no toolbar (its toolbar is another file's, which a guard then
+ * reads); and when both a `ListQueryBar` and a list toolbar take it, which
+ * draws two.
  */
 export declare function registersWithoutPhoneSort(source: string): string[];
 /** Whether a source draws a tab strip: `PageTabs`, a `TabItem`, or a viewer's extra tabs. */

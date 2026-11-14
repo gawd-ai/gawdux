@@ -1,4 +1,5 @@
 import type { ListPagination } from './list-pagination';
+import type { ListSort } from './list-query';
 import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
 import type { SurfaceNoticeTone } from './surface-feedback-context';
 interface $$__sveltets_2_IsomorphicComponent<Props extends Record<string, any> = any, Events extends Record<string, any> = any, Slots extends Record<string, any> = any, Exports = {}, Bindings = string> {
@@ -32,6 +33,9 @@ declare const ListPageScaffold: $$__sveltets_2_IsomorphicComponent<$$__sveltets_
     dismissableFeedback?: boolean;
     notice?: string | null | undefined;
     noticeTone?: SurfaceNoticeTone;
+    /** The register's sort, which its column heads set above the compact
+            width: the list's toolbar draws it as the house phone sort at or
+            below it, "Sort by" under the filters (FilterBar's `sort`). */ sort?: ListSort | undefined;
 }, {
     actions: {};
     rail: {};

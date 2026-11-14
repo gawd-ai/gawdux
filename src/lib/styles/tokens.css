@@ -749,6 +749,15 @@
 		@apply flex-none;
 	}
 
+	/* The phone sort (FilterBar's `sort`, ListPhoneSort) stands under the
+	   filter row as a field of its own, the filter row's gap above it; it
+	   shows only at or below the compact width (`.mobile-sort`). A filter
+	   row with nothing in it takes no room above it, whatever a host's
+	   filter grid says. */
+	.filter-bar-has-sort > .filter-row:not(:has(*)) {
+		display: none !important;
+	}
+
 	/* A filter placed directly in the query bar instead of behind the Filters
 	   disclosure. With one or two filters the disclosure hides less than it
 	   costs: at full width the search input already has room to spare, and the
@@ -1502,7 +1511,8 @@ div.inline-flex.items-center.justify-center.font-medium {
    - An empty-state row (a cell spanning the columns) is a centred line.
    Companion scopes: `.responsive-list-page` (filter grid + touch targets),
    `.responsive-detail-page` (touch targets on detail forms), `.mobile-sort`
-   (the phone-width substitute for sortable column headers).
+   (the phone-width substitute for sortable column headers: FilterBar's
+   `sort`).
    All colors consume the --gawdux-* theme variables above, so both light and
    dark render from the same rules. */
 @media (max-width: 1024px) {
@@ -1563,6 +1573,10 @@ div.inline-flex.items-center.justify-center.font-medium {
 		min-width: 0;
 		flex-direction: column;
 		gap: 0.25rem;
+	}
+
+	.mobile-sort > .form-label {
+		margin-bottom: 0;
 	}
 
 	.mobile-sort select {
@@ -1750,6 +1764,12 @@ div.inline-flex.items-center.justify-center.font-medium {
 
 @media (min-width: 1025px) {
 	.mobile-sort {
+		display: none;
+	}
+
+	/* A list's toolbar drawn only for its phone sort (ListSurface with no
+	   filters and no rail) is not drawn where the heads sort. */
+	.filter-bar-sort-only {
 		display: none;
 	}
 }

@@ -41,7 +41,7 @@ Supported package subpaths:
 ## What's Inside
 
 - **components**: `AppSidebar`, `SidebarDropdownGroup`, `SidebarFlyout`: the collapsible app navigation shell; `UserMenu`: the top bar's account menu.
-- **primitives**: list and page building blocks: `Breadcrumbs` (the header's trail on one line, folding its middle into a menu), `ListSurface`, `ListQueryBar`, `ListPaginationNav`, `FilterBar`/`FilterPillRow`, `SavedViewsRail` (drawn only with a saved view to choose or a query to save), `MasterDetailShell` (its rail rows `RailRowButton`: the icon on the title line, the meta line under it at the row's edge), `ListPageScaffold`/`EditablePageScaffold`, `PageCommandBar`, `PageTabs` (its status after its strip, never over a tab; each tab an icon and its label from `TabTitle`, the icons alone while the labels do not fit the strip's box), `fitLabels` (a row of labelled controls, a tab strip or a strip with its tools, shows its labels while they fit its own box and its icons alone when they do not, a tool then the house icon button and a choice its short value), `scrollEdges` (anything that scrolls sideways fades at the edge where more of it lies, one way: a tab strip, a row of filter pills, a drawing in its box), `FormField`, `ReadonlyField`, `CardContainer`, and more.
+- **primitives**: list and page building blocks: `Breadcrumbs` (the header's trail on one line, folding its middle into a menu), `ListSurface`, `ListQueryBar`, `ListPaginationNav`, `FilterBar` (a list's toolbar; its `sort` is the house phone sort, which `ListSurface` and `ListPageScaffold` pass on)/`FilterPillRow`, `SavedViewsRail` (drawn only with a saved view to choose or a query to save), `MasterDetailShell` (its rail rows `RailRowButton`: the icon on the title line, the meta line under it at the row's edge), `ListPageScaffold`/`EditablePageScaffold`, `PageCommandBar`, `PageCommandBarZones` (the bar's three zones as state an app shell holds, for `PageFrame`), `PageTabs` (its status after its strip, never over a tab; each tab an icon and its label from `TabTitle`, the icons alone while the labels do not fit the strip's box), `fitLabels` (a row of labelled controls, a tab strip or a strip with its tools, shows its labels while they fit its own box and its icons alone when they do not, a tool then the house icon button and a choice its short value), `scrollEdges` (anything that scrolls sideways fades at the edge where more of it lies, one way: a tab strip, a row of filter pills, a drawing in its box), `FormField`, `ReadonlyField`, `CardContainer`, and more.
 - **detail and table primitives**: `StatTile`/`StatTileStrip` (a detail overview's KPI tiles: label, value, meta, icon, a state tone, a go-to icon drill-down; the strip wraps and never clips), `SectionLink` (the go-to-section arrow, no words, at the top right of a card header or tile; `CardContainer` takes it as `link`), `IconButton` (the house's icon action, flat in light and dark, named by its tooltip; `danger` turns red only on hover; `size="md"` in a header, a 44px target on a phone; a glyph as its children), `DataTable` (a `TableContainer` with column definitions, `SortableHeadCell` headers, cells from a snippet, each labelled with its column, and the house empty row; every register's table reads as labelled cards on a phone, tokens.css "A register on a phone"), `IconLabel` (an icon and a word, the shape of a cue), `StatusBadge` (a coloured word, optionally with an icon), `HeaderStatus` (a pane header's state: the status chip, always, and a lock beside it while the viewer cannot edit, the reason in its tooltip), `TableContainer`, `SortableHeadCell`, `HeadCell` (the labelled, non-sortable header of a hand-built table, with an optional column icon), `EmptyStateRow`, `CollectionEmptyState`.
 - **alert-ops**: `AlertOpsConsole`, the Alert Operations surface (alert groups, detail, silences), transport-agnostic. Its tabs carry icons; its denied and unavailable states are the house `CollectionEmptyState` on the page surface, and with `healthBar={false}` the host's bar carries status and Refresh, so the unavailable state offers no Retry of its own.
 - **admin** (`gawdux/admin`): tenant-administration blocks, presentation only (the host loads, authorizes and performs every change): `MemberAccessCard`, `SecurityActivityList`, `AuditHistoryTable`, `RoleMembersCard` (who holds a Role: a quiet trash icon raises the removal for the host to confirm, a picker adds), and the AI + Bots blocks: `AiUsageReport` (totals as tiles, `AiUsageBars` per day, one share-bar card per breakdown; turns and tokens, never money), `BotRail` (bots with avatar, role and one state, for every tab that picks a bot first), `BotIdentityHeader`, `BotConfigView` (a config read, the other half of `BotConfigFields`' edit), `BotContextCard` (the composed block a bot reads, by parts), `BotToolAccess`.
@@ -288,8 +288,10 @@ rows, sign-out and the product's version.
   reflows, and is as wide as the trigger's content between
   `--gawdux-user-menu-min-width` (208px) and `--gawdux-user-menu-width`
   (272px); the open body never widens it. The panel grows to its natural
-  height above the page (z-index 60). Below `compactBelow` (768 by default,
-  1024, or 0 for never) the closed menu is the avatar alone; open, the avatar
+  height above the page (z-index 60). Below `compactBelow` (768 by default:
+  below 768px; 1024: at or below 1024px, the compact width of
+  `SHELL_BAR_QUERY`, 1024 itself included; or 0 for never) the closed menu
+  is the avatar alone; open, the avatar
   stays put, the panel grows to its left and stops at the 16px gutter.
   `compact` gives the same avatar at every width, for a header whose trail
   needs the room (see [Giving the trail room](#giving-the-trail-room)); the
@@ -501,8 +503,50 @@ remount the presentation; hosts must give a new decision a new id.
 changes ("Keep editing", the destination's confirm), and `CommandDrawer` is
 the house drawer for a decision that takes words or fields. None has chrome
 of its own or a shadow. The surface supplies guarded callbacks; the host still
-owns the action, authorization and outcome. `ConfirmationCommandRequest` and
-`createPageCommandBarRegistry` are shared exports, not host-local copies.
+owns the action, authorization and outcome. `ConfirmationCommandRequest`,
+`createPageCommandBarRegistry` and `PageCommandBarZones` are shared exports,
+not host-local copies.
+
+### The command bar's zones
+
+An app shell holds the bar's three zones as one `PageCommandBarZones`, made
+once in its persistent layout: it publishes the instance's `context` as
+`PAGE_COMMAND_BAR_CONTEXT`, where pages register what they put in the bar,
+and hands the instance to `PageFrame`, which renders each zone. Read the
+zones in runes mode: a legacy-mode template does not track state on a class
+instance.
+
+```svelte
+<script lang="ts">
+  import { setContext } from 'svelte';
+  import { PAGE_COMMAND_BAR_CONTEXT, PageCommandBarZones, PageFrame } from 'gawdux/primitives';
+  let { children } = $props();
+  const bar = new PageCommandBarZones();
+  setContext(PAGE_COMMAND_BAR_CONTEXT, bar.context);
+</script>
+
+<PageFrame {bar}>{@render children()}</PageFrame>
+```
+
+### A register's phone sort
+
+At or below the compact width a register's rows read as cards and its
+column heads are hidden. The list's toolbar then offers the register's sort:
+"Sort by", one choice per key and direction, each order worded (A to Z,
+latest first). Give `ListPageScaffold` (or `ListSurface`, or `FilterBar`
+itself) the same sort its heads set, as a `ListSort`:
+
+```svelte
+<ListPageScaffold {pagination} sort={{ keys, field, direction, onsort }}>
+```
+
+A choice writes the sort at once, as a head's click does, through `onsort`;
+it is not staged with the filters. The control stands under the filter row
+and is not drawn above the compact width; a list in a tab with no filters
+and no rail draws its toolbar for the sort only at the compact width.
+`ListQueryBar`'s `sort` is the same sort in a query bar.
+`registersWithoutPhoneSort` (`gawdux/utils`) accepts either, and lists a
+register that sorts by its heads with neither, or with both.
 
 ## Development Workflow
 
@@ -584,12 +628,31 @@ MIT (see [LICENSE](LICENSE)).
 
 ## Validation presentation
 
-`gawdux/validation` exports `ValidationRunReport`, `SignatureHistory`, and
-`ManualObservationForm`. Hosts pass authorized view models and own all writes,
-credential checks, review policy and evidence links. The form requires an explicit
-pass/fail result, sends the retained revision with the observation and prevents
-concurrent submissions. Historical signature verification can be unavailable; the
-history component distinguishes that from verified or failed content.
+`gawdux/validation` exports `ValidationRunReport`, `SignatureCommandSurface`
+with `signatureStatement`, and `ManualObservationCommandSurface`. Hosts pass
+authorized view models and own all writes, credential checks, review policy
+and evidence links.
+
+- `ValidationRunReport` reads an execution: its cases with their results,
+  each step with what was observed and its captures, the requirements each
+  case covers and the execution's identity. Optionally, a manual case's
+  recorded observation (`ValidationCaseView.manual`: what was observed, by
+  whom, when) follows its steps, withheld with them; and a case the host lets
+  the reader complete (`canComplete`) offers "Record manual observation" when
+  the host passes `onmanual`. A report with neither reads as it did without
+  them.
+- `ManualObservationCommandSurface` is the drawer that action opens: what
+  was observed and an explicit Pass or Fail, Cancel and Save observation in
+  the command bar. It hands the case, the revision the reader saw, the
+  observation and the result to `oncomplete`, holds still while the promise
+  runs and shows a refusal inside the drawer.
+- `SignatureCommandSurface` is the sign drawer: the statement
+  (`signatureStatement({ step, subject, meaning })`), what follows from the
+  signature, the signer, the password each time, a reason, a `fields` slot
+  for what the signature carries, Cancel and the confirm in the command bar.
+  It hands the password and the reason to `onconfirm`; the host's signature
+  service checks the password and records the signature, and a refused
+  password (`errorReason` "password_incorrect") marks the field.
 
 A runnable synthetic protocol preview is provided by the platform reference app.
 The components do not infer permission from a displayed status or sign a record.

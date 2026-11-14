@@ -1,6 +1,7 @@
 <script lang="ts">
 	import ListSurface from './ListSurface.svelte';
 	import type { ListPagination } from './list-pagination';
+	import type { ListSort } from './list-query';
 	import type { SurfaceFeedbackAction } from './PageFeedback.svelte';
 	import type { SurfaceNoticeTone } from './surface-feedback-context';
 
@@ -18,6 +19,10 @@
 	export let dismissableFeedback = true;
 	export let notice: string | null | undefined = null;
 	export let noticeTone: SurfaceNoticeTone = 'warning';
+	/** The register's sort, which its column heads set above the compact
+	    width: the list's toolbar draws it as the house phone sort at or
+	    below it, "Sort by" under the filters (FilterBar's `sort`). */
+	export let sort: ListSort | undefined = undefined;
 </script>
 
 <ListSurface
@@ -32,6 +37,7 @@
 	{dismissableFeedback}
 	{notice}
 	{noticeTone}
+	{sort}
 	on:dismiss
 	hasActions={!!$$slots.actions}
 	hasFooter={!!$$slots.footer}

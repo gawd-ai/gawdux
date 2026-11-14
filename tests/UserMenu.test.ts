@@ -2,6 +2,8 @@ import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/sv
 import { tick } from 'svelte';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LockOutline, UsersOutline } from 'flowbite-svelte-icons';
+import postcss, { type AtRule } from 'postcss';
+import { SHELL_BAR_QUERY } from '../src/lib/primitives/shell-bar';
 import UserMenu from '../src/lib/components/UserMenu.svelte';
 import userMenuSource from '../src/lib/components/UserMenu.svelte?raw';
 import UserMenuHarness from './fixtures/UserMenuHarness.svelte';
@@ -467,6 +469,41 @@ describe('UserMenu compact', () => {
 		b.unmount();
 		const c = renderMenu({ compactBelow: 0 });
 		expect(c.root.className).not.toMatch(/compact-/);
+	});
+
+	// The compact width is one number: SHELL_BAR_QUERY, at or below 1024px,
+	// 1024 itself included. With compactBelow 1024 the menu is the avatar at
+	// exactly 1024, as the shell bar and every compact part of the library
+	// are, and full size from 1025; with 768 it stays strictly below 768.
+	it('is compact at exactly 1024 with compactBelow 1024, under the compact width of the shell bar', () => {
+		const styles = postcss.parse(userMenuSource.match(/<style>([\s\S]*)<\/style>/)![1]!);
+		const queryOf = (selector: string) => {
+			const found = new Set<string>();
+			styles.walkRules((rule) => {
+				if (rule.selectors.map((s) => s.trim()).includes(selector) && rule.parent?.type === 'atrule')
+					found.add((rule.parent as AtRule).params);
+			});
+			return [...found];
+		};
+		/** Whether a `(max-width: Npx)` query holds at a viewport this wide. */
+		const holdsAt = (query: string, width: number) => {
+			const max = query.match(/^\(max-width: ([\d.]+)px\)$/);
+			expect(max, query).not.toBeNull();
+			return width <= Number(max![1]);
+		};
+
+		const compact1024 = queryOf('.compact-1024');
+		expect(compact1024).toEqual([SHELL_BAR_QUERY]);
+		expect(holdsAt(compact1024[0]!, 1024)).toBe(true);
+		expect(holdsAt(compact1024[0]!, 1025)).toBe(false);
+		// Every rule of the class sits under that one query.
+		for (const selector of ['.compact-1024 .room-full', '.compact-1024 .panel', '.compact-1024 .trigger', '.compact-1024 .chevron'])
+			expect(queryOf(selector), selector).toEqual([SHELL_BAR_QUERY]);
+
+		const compact768 = queryOf('.compact-768');
+		expect(compact768).toHaveLength(1);
+		expect(holdsAt(compact768[0]!, 767)).toBe(true);
+		expect(holdsAt(compact768[0]!, 768)).toBe(false);
 	});
 
 	it('shows the avatar alone at every width when the host compacts it, the name still its accessible name', () => {
