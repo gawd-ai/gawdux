@@ -499,6 +499,7 @@ toast, placed clear of the bar.
 {#snippet brand({ collapsed })}<img src="/mark.png" alt="" /><span class:collapsed>Example</span>{/snippet}
 {#snippet account({ compact })}<UserMenu name={user.name} {compact} compactBelow={1024} ... />{/snippet}
 {#snippet barAccount()}<UserMenu name={user.name} theme={{ cookieName: 'example.theme' }} ... />{/snippet}
+<!-- Neither menu is given an id: the bar's takes its own. A host that names one names both, differently. -->
 {#snippet barEnd()}<ShellBarEnd account={barAccount} />{/snippet}
 
 {#snippet sidebar()}
@@ -536,8 +537,12 @@ toast, placed clear of the bar.
   something (`rightColumn`), the shell's own bar otherwise (`barEnd`), so
   the account is at the bar's right end with chat on or off. `navigationOpen`
   (bindable) draws `drawer`; a drawer left open closes when the screen grows
-  past the compact width. `compact` (bindable) is the shell's one reading of
-  the compact width in script.
+  past the compact width, and the drawer is never drawn above it, whoever
+  set `navigationOpen` there. `compact` (bindable) is the shell's one reading
+  of the compact width in script. Above the compact width the rail ends
+  level with the page's panel (`PageFrame`'s), the frame's gutter off the
+  screen's bottom. A printout is the page: the rail, the shell's own bar
+  with its room and an open drawer are left out.
 - **`ShellHeader`**: the menu button (a 44px target tight to the screen's
   edge, at the compact width alone), the trail (`Breadcrumbs`), then above
   the compact width the host's `switcher`, `account` and `notices`, and the
@@ -546,11 +551,17 @@ toast, placed clear of the bar.
   controls at its end is drawn. `account` and `switcher` are told `compact`
   while the trail needs their room (`createRoomYield`).
 - **`ShellSidebar`**: `AppSidebar` with the home link and the host's `brand`
-  at its head and the collapse button at its foot. **`ShellNavigationDrawer`**:
+  at its head and the collapse button at its foot. `initialOpen` is
+  `AppSidebar`'s own: pass the rail's state when the server knows it (a
+  cookie), or leave it out and the rail restores it from the config's
+  `storageKey` when it mounts. **`ShellNavigationDrawer`**:
   the same rail as a modal drawer from the left edge. The focus stays inside
   it, Escape, a press on the backdrop and a press on a link close it,
   everything beside it is inert and the page does not scroll: all of it is
   `activateFocusScope` (`gawdux/utils`), and the drawer adds none of its own.
+  Its layer covers the screen at every width: a host that composes it
+  without `AppShell` draws it at or below the compact width only, and closes
+  it when the screen grows.
 - **`ShellMainColumn`**: the header, then the page. `covered` makes it inert
   and hidden from assistive technology while a panel is the view.
 - **`ShellRightColumn`**: a cap level with the header (a spacer the open
@@ -559,7 +570,11 @@ toast, placed clear of the bar.
   width and its cap is not drawn; `viewLabel` names the open panel as a
   dialog while it is the view.
 - **`ShellBarEnd`**: the `notices`, then the `account`, last in the bar
-  (`ShellBar`'s `end`).
+  (`ShellBar`'s `end`). The header's account and the bar's are both in the
+  page at every width, one of them not drawn. A `UserMenu` with no `id` takes
+  `gawdux-user-menu` in the header and `gawdux-user-menu-bar` in the bar, so
+  no id is in the page twice; a host that gives the two menus an `id` gives
+  them two.
 - **`AccountCard`**: the account card, for a host that opts into it by
   drawing it in place of `UserMenu`. It is `UserMenu` with its own
   `presentation`, so the keyboard, pointer and focus behaviour are the
@@ -591,7 +606,9 @@ item holds would be marked as the home. Hand the sidebar the item itself
 trail (`pageData.appBreadcrumb`) that trail; a page that states a trail of no
 levels (an address no item holds) the rail's place and nothing below it, so
 a hidden item reads exactly as an unknown one; any other page the rail's
-place and the address's levels below it. The first crumb alone carries the
+place and the address's levels below it. A page an item holds by a scope
+lies outside the item's own address: its trail is the rail's place, then the
+address's own levels, each a link to its own address. The first crumb alone carries the
 section's icon (`icons`, by a page's `iconKey`, a rail group's or item's id,
 or an address's first segment); every later crumb the separator. `appPath`
 and `href` take a host's prefix off an address and put it back, `root` is

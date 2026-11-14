@@ -2,17 +2,18 @@ function trimmed(href) {
     return href.replace(/\/+$/, '');
 }
 /** How much of the address an item holds it by: the length of its own
- *  address or the scope's that holds it, 0 when it holds it not. */
-function holdLength(href, activeUrl, scopes, isHome) {
+ *  address or the scope's that holds it (the scope named), 0 when it holds
+ *  it not. */
+function hold(href, activeUrl, scopes, isHome) {
     if (activeUrl === href)
-        return href.length;
+        return { length: href.length };
     if (!isHome(href) && activeUrl.startsWith(href + '/'))
-        return href.length;
+        return { length: href.length };
     for (const scope of scopes) {
         if (activeUrl === scope || activeUrl.startsWith(scope + '/'))
-            return scope.length;
+            return { length: scope.length, scope };
     }
-    return 0;
+    return { length: 0 };
 }
 /** The rail's place of `activeUrl`, null for a page no item holds. */
 export function resolveRailPlace(activeUrl, config, options = {}) {
@@ -26,13 +27,14 @@ export function resolveRailPlace(activeUrl, config, options = {}) {
     const consider = (item, group) => {
         if (!item.href)
             return;
-        const length = holdLength(item.href, activeUrl, scopes[item.href] ?? [], isHome);
+        const { length, scope } = hold(item.href, activeUrl, scopes[item.href] ?? [], isHome);
         if (length === 0 || length <= foundLength)
             return;
         foundLength = length;
         found = {
             group,
-            item: { id: item.id ?? item.href, label: item.label ?? '', href: item.href }
+            item: { id: item.id ?? item.href, label: item.label ?? '', href: item.href },
+            ...(scope === undefined ? {} : { scope })
         };
     };
     for (const group of config?.groups ?? []) {

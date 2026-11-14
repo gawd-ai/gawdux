@@ -5,7 +5,8 @@
  * the header as one row at the compact width, the menu button at the
  * screen's edge and the page's name opening its path; the account's sheet
  * above the bar with the theme as a row; the frame leaving the bar's room
- * and dropping the side rail; the navigation drawer from the left edge.
+ * and dropping the side rail; the navigation drawer from the left edge;
+ * the rail's foot level with the page's panel; the frame under print media.
  * At 360, 390, 900 and 1440, in light and dark where a colour is read.
  */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -207,6 +208,39 @@ describe.skipIf(GEOMETRY_SKIP !== null)('the header on a phone', () => {
 		});
 	}
 
+	// The page's row leads with the section's icon: the first crumb's, at
+	// the house size, 8px before the page's name, drawn in light and dark.
+	for (const dark of [false, true]) {
+		it(`leads the page's row with the section's icon at 390, ${dark ? 'dark' : 'light'}`, async () => {
+			const page = await serverPage(browser, Header, 390, {}, dark);
+			const got = await page.$eval('[data-shell-header] nav.gawdux-breadcrumbs', (nav) => {
+				const icon = nav.querySelector<SVGElement>('.page-row [data-trail-icon]');
+				const name = nav.querySelector<HTMLElement>('.page-row .page-name');
+				const control = nav.querySelector<HTMLElement>('.page-row > :is(button, span)');
+				if (!icon || !name || !control) return null;
+				const i = icon.getBoundingClientRect();
+				const n = name.getBoundingClientRect();
+				const c = control.getBoundingClientRect();
+				return {
+					width: i.width,
+					height: i.height,
+					gap: n.left - i.right,
+					inControl: i.left >= c.left && i.right <= c.right,
+					centred: Math.abs(i.top + i.height / 2 - (n.top + n.height / 2)),
+					color: getComputedStyle(icon).color
+				};
+			});
+			await page.close();
+			expect(got, 'the section icon on the page row').not.toBeNull();
+			expect(got!.width).toBe(20);
+			expect(got!.height).toBe(20);
+			expect(got!.inControl).toBe(true);
+			expect(Math.abs(got!.gap - 8)).toBeLessThanOrEqual(0.5);
+			expect(got!.centred).toBeLessThanOrEqual(1);
+			expect(got!.color).not.toBe('rgba(0, 0, 0, 0)');
+		});
+	}
+
 	it('keeps an identifier that fits whole', async () => {
 		const page = await serverPage(browser, Header, 360, {
 			trail: [
@@ -262,6 +296,126 @@ describe.skipIf(GEOMETRY_SKIP !== null)('the header on a phone', () => {
 		const lefts: number[] = [];
 		for (const selector of order) lefts.push((await boxes(page, selector))[0]!.left);
 		expect([...lefts].sort((a, b) => a - b)).toEqual(lefts);
+		await page.close();
+	});
+});
+
+const PAGE_BUTTON = '[data-shell-header] nav.gawdux-breadcrumbs .page-row button';
+
+/** The open path under the header: its box and its rows, in the order they read. */
+async function openPath(page: Page) {
+	return page.$eval('[data-shell-header] nav.gawdux-breadcrumbs', (nav) => {
+		const menu = nav.querySelector<HTMLElement>('.menu.path');
+		if (!menu) return null;
+		const r = menu.getBoundingClientRect();
+		return {
+			left: r.left,
+			right: r.right,
+			top: r.top,
+			bottom: r.bottom,
+			rows: Array.from(menu.querySelectorAll<HTMLElement>('[role="menuitem"]'), (row) => {
+				const words = Array.from(row.querySelectorAll<HTMLElement>('.word'));
+				return {
+					text: row.textContent?.replace(/\s+/g, ' ').trim() ?? '',
+					href: row.getAttribute('href'),
+					current: row.getAttribute('aria-current'),
+					height: row.getBoundingClientRect().height,
+					cut: row.scrollWidth > row.clientWidth,
+					broken: words.filter((word) => word.getClientRects().length > 1).length,
+					lines: new Set(words.map((word) => Math.round(word.getBoundingClientRect().top))).size
+				};
+			})
+		};
+	});
+}
+
+/** The element holding the focus, as the test reads it. */
+const focused = (page: Page) =>
+	page.evaluate(
+		(selector) => (document.activeElement?.matches(selector) ? 'page button' : 'elsewhere'),
+		PAGE_BUTTON
+	);
+
+describe.skipIf(GEOMETRY_SKIP !== null)("the trail's path on a phone", () => {
+	for (const width of [360, 390]) {
+		it(`opens under the header on a press: every level from the top down, each a link, the current page last and marked, each name whole, at ${width}`, async () => {
+			const page = await livePage(browser, Header, HEADER, width);
+			expect(await openPath(page)).toBeNull();
+			await page.click(PAGE_BUTTON);
+			const [header] = await boxes(page, '[data-shell-header]');
+			const path = (await openPath(page))!;
+			expect(path).not.toBeNull();
+			// Under the header, inside the screen's 8px gutter, within the screen.
+			expect(path.top).toBeGreaterThanOrEqual(header!.bottom - 0.5);
+			expect(path.top - header!.bottom).toBeLessThanOrEqual(8);
+			expect(Math.abs(path.left - 8)).toBeLessThanOrEqual(1);
+			expect(Math.abs(width - 8 - path.right)).toBeLessThanOrEqual(1);
+			expect(path.bottom).toBeLessThanOrEqual(HEIGHT);
+			expect(path.rows.map((row) => row.text)).toEqual(RECORD_TRAIL.map((crumb) => crumb.label));
+			expect(path.rows.map((row) => row.href)).toEqual([
+				'/app/audit',
+				'/app/reviews',
+				'/app/reviews/folder/5',
+				null
+			]);
+			expect(path.rows.map((row) => row.current)).toEqual([null, null, null, 'page']);
+			for (const row of path.rows) {
+				expect(row.height, row.text).toBeGreaterThanOrEqual(44);
+				expect(row.cut, row.text).toBe(false);
+				expect(row.broken, row.text).toBe(0);
+			}
+			// The page's full name wraps between its words, never cut.
+			expect(path.rows.at(-1)!.lines).toBeGreaterThan(1);
+			expect(await page.$eval(PAGE_BUTTON, (b) => b.getAttribute('aria-expanded'))).toBe('true');
+			expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
+			await page.close();
+		});
+	}
+
+	// The current level wears the house's selected row, the tint and the
+	// accent's text a sidebar's current page wears, not weight alone.
+	it("marks the current level with the house's selected row, the others plain", async () => {
+		const page = await livePage(browser, Header, HEADER, 390);
+		await page.click(PAGE_BUTTON);
+		const rows = await page.$$eval('[data-shell-header] .menu.path [role="menuitem"]', (items) =>
+			items.map((row) => {
+				const style = getComputedStyle(row);
+				return {
+					current: row.getAttribute('aria-current'),
+					fill: style.backgroundColor,
+					text: style.color
+				};
+			})
+		);
+		const current = rows.filter((row) => row.current === 'page');
+		expect(current).toHaveLength(1);
+		expect(current[0]).toMatchObject({ fill: 'rgb(239, 246, 255)', text: 'rgb(37, 99, 235)' });
+		for (const row of rows.filter((entry) => entry.current !== 'page'))
+			expect(row.fill).toBe('rgba(0, 0, 0, 0)');
+		await page.close();
+	});
+
+	it('closes on Escape and on a press outside, the focus back on the page button', async () => {
+		const page = await livePage(browser, Header, HEADER, 390);
+		await page.click(PAGE_BUTTON);
+		expect(await openPath(page)).not.toBeNull();
+		await page.keyboard.press('Escape');
+		expect(await openPath(page)).toBeNull();
+		expect(await focused(page)).toBe('page button');
+		await page.click(PAGE_BUTTON);
+		expect(await openPath(page)).not.toBeNull();
+		await page.mouse.click(195, 600);
+		expect(await openPath(page)).toBeNull();
+		expect(await focused(page)).toBe('page button');
+		await page.close();
+	});
+
+	it('is not there above the compact width, where the trail is one line', async () => {
+		const page = await livePage(browser, Header, HEADER, 1440);
+		for (const button of await boxes(page, PAGE_BUTTON)) expect(button.width).toBe(0);
+		const crumbs = await boxes(page, '[data-shell-header] nav.gawdux-breadcrumbs > ol > li');
+		expect(crumbs.length).toBe(4);
+		expect(new Set(crumbs.map((crumb) => Math.round(crumb.top + crumb.height / 2))).size).toBe(1);
 		await page.close();
 	});
 });
@@ -504,6 +658,104 @@ describe.skipIf(GEOMETRY_SKIP !== null)('the frame on a phone', () => {
 	});
 });
 
+describe.skipIf(GEOMETRY_SKIP !== null)("the rail's foot above the compact width", () => {
+	// The page's panel stands the frame's gutter off the screen's bottom. A
+	// rail running to the screen's edge ended 8px past it.
+	it('ends level with the panel of the page at 1440, its inner corner rounded', async () => {
+		const page = await serverPage(browser, Shell, 1440, { frame: true });
+		const [rail] = await boxes(page, '[data-shell-rail] .app-sidebar');
+		const [panel] = await boxes(page, '.page-frame-panel');
+		expect(panel!.bottom).toBe(HEIGHT - 8);
+		expect(rail!.bottom).toBe(panel!.bottom);
+		expect(rail!.top).toBe(0);
+		expect(rail!.left).toBe(0);
+		const corner = await page.$eval('[data-shell-rail] .app-sidebar', (element) => {
+			const style = getComputedStyle(element);
+			return { radius: style.borderBottomRightRadius, overflow: style.overflowY };
+		});
+		expect(corner).toEqual({ radius: '8px', overflow: 'hidden' });
+		// The frame itself still fills the screen and does not scroll.
+		expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBe(HEIGHT);
+		await page.close();
+	});
+
+	// The drawer's rail is as tall as the drawer: one only as tall as its
+	// items could not scroll a list longer than the screen.
+	it('keeps the drawer flush to the bottom edge and square at 390', async () => {
+		const page = await livePage(browser, Shell, SHELL, 390);
+		await page.click('[aria-label="Open navigation"]');
+		await page.waitForSelector('.gawdux-shell-navigation-drawer');
+		const [rail] = await boxes(page, '.gawdux-shell-navigation-drawer .app-sidebar');
+		expect(rail!.top).toBe(0);
+		expect(rail!.bottom).toBe(HEIGHT);
+		expect(rail!.width).toBe(288);
+		expect(
+			await page.$eval(
+				'.gawdux-shell-navigation-drawer .app-sidebar',
+				(element) => getComputedStyle(element).borderBottomRightRadius
+			)
+		).toBe('0px');
+		await page.close();
+	});
+});
+
+describe.skipIf(GEOMETRY_SKIP !== null)('the frame on paper', () => {
+	/** The shell under print media at a printed page's width. */
+	async function printed(page: Page) {
+		await page.emulateMedia({ media: 'print' });
+		return page.$eval('[data-app-shell]', (shell) => {
+			const style = getComputedStyle(shell);
+			return {
+				display: style.display,
+				padding: [style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft]
+			};
+		});
+	}
+	/** The boxes of what is drawn: an element not displayed has none. */
+	const drawn = async (page: Page, selector: string) =>
+		(await boxes(page, selector)).filter((box) => box.width > 0 || box.height > 0);
+
+	// A printed page (Letter and A4 upright are 794 to 816 CSS px wide) is
+	// narrower than the compact width: the bar's rules match it. The fixed
+	// bar was printed at the foot of every page, with 48px left under it.
+	for (const right of [false, true]) {
+		it(`prints the page alone at 816, ${right ? 'with a right column' : 'with no right column'}: no bar, no room left for one, no rail`, async () => {
+			const page = await serverPage(browser, Shell, 816, { right, panelOpen: right });
+			// On the screen at this width the bar is there, with its room.
+			expect(await drawn(page, '.gawdux-shell-bar')).toHaveLength(1);
+			const shell = await printed(page);
+			expect(shell.display).toBe('block');
+			expect(shell.padding).toEqual(['0px', '0px', '0px', '0px']);
+			expect(await drawn(page, '.gawdux-shell-bar')).toEqual([]);
+			expect(await drawn(page, '[data-shell-rail]')).toEqual([]);
+			expect(await drawn(page, '[data-shell-header]')).toEqual([]);
+			expect((await drawn(page, '[data-testid="page"]')).length).toBe(1);
+			await page.close();
+		});
+	}
+
+	it('prints no rail at a width above the compact one', async () => {
+		const page = await serverPage(browser, Shell, 1440, { frame: true });
+		const shell = await printed(page);
+		expect(shell.padding).toEqual(['0px', '0px', '0px', '0px']);
+		expect(await drawn(page, '[data-shell-rail]')).toEqual([]);
+		expect(await drawn(page, '.gawdux-shell-bar')).toEqual([]);
+		await page.close();
+	});
+
+	it('prints no open drawer over the page at 390', async () => {
+		const page = await livePage(browser, Shell, SHELL, 390);
+		await page.click('[aria-label="Open navigation"]');
+		await page.waitForSelector('.gawdux-shell-navigation-drawer');
+		expect(await drawn(page, '.gawdux-shell-navigation-layer')).toHaveLength(1);
+		await printed(page);
+		expect(await drawn(page, '.gawdux-shell-navigation-layer')).toEqual([]);
+		expect(await drawn(page, '.gawdux-shell-navigation-drawer')).toEqual([]);
+		expect(await drawn(page, '.gawdux-shell-bar')).toEqual([]);
+		await page.close();
+	});
+});
+
 describe.skipIf(GEOMETRY_SKIP !== null)('the navigation drawer on a phone', () => {
 	for (const width of [360, 390]) {
 		it(`opens from the left edge over the page, 288px wide and as tall as the screen, at ${width}`, async () => {
@@ -558,6 +810,31 @@ describe.skipIf(GEOMETRY_SKIP !== null)('the navigation drawer on a phone', () =
 		for (const box of await boxes(page, '[aria-label="Open navigation"]'))
 			expect(box.width).toBe(0);
 		expect(await boxes(page, '.gawdux-shell-navigation-layer')).toHaveLength(0);
+		await page.close();
+	});
+
+	// Opened by the host on a wide screen it was a modal over the whole
+	// screen, 1440 by 844, the page behind it inert.
+	it('is not drawn above the compact width when the host opens it there: the page stays live', async () => {
+		const page = await livePage(browser, Shell, SHELL, 1440, { navigationOpen: true });
+		expect(await boxes(page, '.gawdux-shell-navigation-layer')).toHaveLength(0);
+		expect(
+			await page.evaluate(() => document.querySelector<HTMLElement>('[data-shell-main]')!.inert)
+		).toBe(false);
+		expect(
+			await page.evaluate(() => document.querySelector<HTMLElement>('[data-shell-rail]')!.inert)
+		).toBe(false);
+		expect(await page.evaluate(() => getComputedStyle(document.body).overflow)).not.toBe('hidden');
+		const [rail] = await boxes(page, '[data-shell-rail]');
+		expect(rail!.width).toBeGreaterThan(0);
+		await page.close();
+	});
+
+	it('is drawn when the host opens it at the compact width', async () => {
+		const page = await livePage(browser, Shell, SHELL, 390, { navigationOpen: true });
+		await page.waitForSelector('.gawdux-shell-navigation-drawer');
+		const [layer] = await boxes(page, '.gawdux-shell-navigation-layer');
+		expect(layer).toMatchObject({ left: 0, top: 0, width: 390, height: HEIGHT });
 		await page.close();
 	});
 });

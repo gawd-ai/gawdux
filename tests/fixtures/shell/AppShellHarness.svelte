@@ -10,12 +10,14 @@
 	import ShellBarEnd from '../../../src/lib/shell/ShellBarEnd.svelte';
 	import ShellBar from '../../../src/lib/primitives/ShellBar.svelte';
 	import AccountCard from '../../../src/lib/shell/AccountCard.svelte';
+	import PageFrame from '../../../src/lib/primitives/PageFrame.svelte';
 	import { PERSON, RAIL, RECORD_TRAIL } from './shell-fixtures';
 
 	let {
 		right = false,
 		panelOpen = false,
 		covered = false,
+		frame = false,
 		navigationOpen = $bindable(false),
 		compact = $bindable(false)
 	}: {
@@ -23,6 +25,8 @@
 		right?: boolean;
 		panelOpen?: boolean;
 		covered?: boolean;
+		/** The page is in the frame (PageFrame), as a host draws it. */
+		frame?: boolean;
 		navigationOpen?: boolean;
 		compact?: boolean;
 	} = $props();
@@ -103,7 +107,11 @@
 	data-testid="shell"
 >
 	<ShellMainColumn {header} {covered}>
-		<main data-testid="page" style="flex:1 1 0%;min-height:0">Page</main>
+		{#if frame}
+			<PageFrame aria-label="Page"><div data-testid="page">Page</div></PageFrame>
+		{:else}
+			<main data-testid="page" style="flex:1 1 0%;min-height:0">Page</main>
+		{/if}
 	</ShellMainColumn>
 </AppShell>
 

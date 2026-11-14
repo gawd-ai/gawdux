@@ -18,6 +18,11 @@ export type RailPlace = {
         label: string;
         href: string;
     };
+    /**
+     * The scope the item holds the page by, when the page lies outside the
+     * item's own address: the trail names it under the item.
+     */
+    scope?: string;
 };
 type RailItem = {
     id?: string;

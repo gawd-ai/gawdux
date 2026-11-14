@@ -169,26 +169,52 @@ export function createAppTrail(options: AppTrailOptions = {}): AppTrail {
 	 * The levels of the place the rail marks: its group, which has no page
 	 * of its own, then its item, a link unless the page is the item itself.
 	 * A page the rail holds but that states no trail of its own adds the
-	 * address's levels below the item.
+	 * address's levels below the item. A page the item holds by a scope lies
+	 * outside the item's own address, so nothing of its address is below the
+	 * item: it adds the scope, named by its last level, and the levels below
+	 * the scope, each a link to its own address. A place that names no scope
+	 * for such a page adds the address's own levels.
 	 */
 	function railPlaceCrumbs(place: RailPlace, pathname: string, withBelow: boolean): CrumbText[] {
 		const page = appPath(pathname);
 		const itemPath = appPath(place.item.href);
 		const onItem = page === itemPath;
-		const below =
-			onItem || !withBelow ? [] : page.slice(itemPath.length).split('/').filter(Boolean);
+		const holds = (address: string) =>
+			page === address || page.startsWith(address.replace(/\/+$/, '') + '/');
 		const item: CrumbText = onItem
 			? { label: place.item.label }
 			: { label: place.item.label, href: place.item.href };
 		const levels: CrumbText[] = [...(place.group ? [{ label: place.group.label }] : []), item];
-		below.forEach((segment, i) => {
-			const isLast = i === below.length - 1;
-			levels.push({
+		if (onItem || !withBelow) return levels;
+		/** The levels of the page below `address`, linked under `href`. */
+		const below = (address: string, href: string): CrumbText[] => {
+			const segments = page.slice(address.length).split('/').filter(Boolean);
+			return segments.map((segment, i) => ({
 				label: segmentLabel(segment),
-				...(isLast ? {} : { href: place.item.href + '/' + below.slice(0, i + 1).join('/') })
-			});
-		});
-		return levels;
+				...(i === segments.length - 1
+					? {}
+					: { href: href.replace(/\/+$/, '') + '/' + segments.slice(0, i + 1).join('/') })
+			}));
+		};
+		if (holds(itemPath)) return [...levels, ...below(itemPath, place.item.href)];
+		const scopePath = place.scope === undefined ? null : appPath(place.scope);
+		if (place.scope !== undefined && scopePath !== null && holds(scopePath)) {
+			const name = scopePath.split('/').filter(Boolean).at(-1);
+			const under = below(scopePath, place.scope);
+			return [
+				...levels,
+				...(name === undefined
+					? []
+					: [
+							{
+								label: segmentLabel(name),
+								...(under.length > 0 ? { href: place.scope } : {})
+							}
+						]),
+				...under
+			];
+		}
+		return [...levels, ...pathCrumbs(segmentsOf(pathname))];
 	}
 
 	function placeIcon(place: RailPlace): Component {

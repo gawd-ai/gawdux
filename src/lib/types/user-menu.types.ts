@@ -99,7 +99,13 @@ export interface UserMenuProps {
 	 * left as it does below the breakpoint.
 	 */
 	compact?: boolean;
-	/** Prefix of the element ids (trigger, body, context, menu); unique per page. */
+	/**
+	 * Prefix of the element ids (trigger, body, context, menu); unique per
+	 * page. Left out it is `gawdux-user-menu`, and `gawdux-user-menu-bar`
+	 * for a menu in a ShellBar, so a shell that draws the account in its
+	 * header and again in its bar has no id twice. A host that gives an id
+	 * to both gives two.
+	 */
 	id?: string;
 	/**
 	 * Bindable. A host closes the menu on its own navigations by binding this

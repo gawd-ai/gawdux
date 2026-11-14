@@ -41,8 +41,16 @@ type $$ComponentProps = Omit<HTMLAttributes<HTMLDivElement>, 'children' | 'class
  * safe-area insets at its sides.
  *
  * `compact` (bindable) is the shell's one reading of the compact width in
- * script. A drawer left open closes when the screen grows past it, so
- * nothing stays inert behind a drawer that is no longer drawn.
+ * script. The drawer is drawn at or below it only: one left open closes
+ * when the screen grows past it, and `navigationOpen` set on a wider screen
+ * is put back, so nothing is inert behind a drawer nobody asked for there.
+ *
+ * Above the compact width the rail ends level with the page's panel
+ * (PageFrame's): it stands the frame's gutter off the screen's bottom, its
+ * inner corner rounded.
+ *
+ * A printout is the page: the shell grows to its content, and the rail,
+ * the shell's own bar with its room, and an open drawer are left out.
  *
  * The parts are the host's: ShellSidebar, ShellNavigationDrawer,
  * ShellMainColumn with ShellHeader, ShellRightColumn. A part left out is

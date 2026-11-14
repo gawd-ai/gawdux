@@ -11,6 +11,11 @@ export type RailPlace = {
 	/** The group holding the item; null for an item at the rail's root. */
 	group: { id: string; label: string } | null;
 	item: { id: string; label: string; href: string };
+	/**
+	 * The scope the item holds the page by, when the page lies outside the
+	 * item's own address: the trail names it under the item.
+	 */
+	scope?: string;
 };
 
 type RailItem = { id?: string; label?: string; href?: string };
@@ -42,19 +47,21 @@ function trimmed(href: string): string {
 }
 
 /** How much of the address an item holds it by: the length of its own
- *  address or the scope's that holds it, 0 when it holds it not. */
-function holdLength(
+ *  address or the scope's that holds it (the scope named), 0 when it holds
+ *  it not. */
+function hold(
 	href: string,
 	activeUrl: string,
 	scopes: readonly string[],
 	isHome: (href: string) => boolean
-): number {
-	if (activeUrl === href) return href.length;
-	if (!isHome(href) && activeUrl.startsWith(href + '/')) return href.length;
+): { length: number; scope?: string } {
+	if (activeUrl === href) return { length: href.length };
+	if (!isHome(href) && activeUrl.startsWith(href + '/')) return { length: href.length };
 	for (const scope of scopes) {
-		if (activeUrl === scope || activeUrl.startsWith(scope + '/')) return scope.length;
+		if (activeUrl === scope || activeUrl.startsWith(scope + '/'))
+			return { length: scope.length, scope };
 	}
-	return 0;
+	return { length: 0 };
 }
 
 /** The rail's place of `activeUrl`, null for a page no item holds. */
@@ -73,12 +80,13 @@ export function resolveRailPlace(
 	let foundLength = 0;
 	const consider = (item: RailItem, group: RailPlace['group']) => {
 		if (!item.href) return;
-		const length = holdLength(item.href, activeUrl, scopes[item.href] ?? [], isHome);
+		const { length, scope } = hold(item.href, activeUrl, scopes[item.href] ?? [], isHome);
 		if (length === 0 || length <= foundLength) return;
 		foundLength = length;
 		found = {
 			group,
-			item: { id: item.id ?? item.href, label: item.label ?? '', href: item.href }
+			item: { id: item.id ?? item.href, label: item.label ?? '', href: item.href },
+			...(scope === undefined ? {} : { scope })
 		};
 	};
 	for (const group of config?.groups ?? []) {

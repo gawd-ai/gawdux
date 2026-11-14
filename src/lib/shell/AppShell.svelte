@@ -14,8 +14,16 @@
 	safe-area insets at its sides.
 
 	`compact` (bindable) is the shell's one reading of the compact width in
-	script. A drawer left open closes when the screen grows past it, so
-	nothing stays inert behind a drawer that is no longer drawn.
+	script. The drawer is drawn at or below it only: one left open closes
+	when the screen grows past it, and `navigationOpen` set on a wider screen
+	is put back, so nothing is inert behind a drawer nobody asked for there.
+
+	Above the compact width the rail ends level with the page's panel
+	(PageFrame's): it stands the frame's gutter off the screen's bottom, its
+	inner corner rounded.
+
+	A printout is the page: the shell grows to its content, and the rail,
+	the shell's own bar with its room, and an open drawer are left out.
 
 	The parts are the host's: ShellSidebar, ShellNavigationDrawer,
 	ShellMainColumn with ShellHeader, ShellRightColumn. A part left out is
@@ -63,16 +71,21 @@
 	} = $props();
 
 	const viewport = createCompactViewport();
-	onMount(() => viewport.watch());
+	/** The screen's width has been read: `viewport.compact` is the screen's. */
+	let watched = $state(false);
+	onMount(() => {
+		const stop = viewport.watch();
+		watched = true;
+		return stop;
+	});
 	$effect(() => {
 		compact = viewport.compact;
 	});
-	// The drawer is the compact width's alone.
-	let wasCompact = false;
+	// The drawer is the compact width's alone: it is drawn there only, and
+	// an open one on a wider screen (left open as the screen grew, or set by
+	// the host) is closed, so its focus scope never runs undrawn.
 	$effect(() => {
-		const now = viewport.compact;
-		if (wasCompact && !now) navigationOpen = false;
-		wasCompact = now;
+		if (watched && !viewport.compact && navigationOpen) navigationOpen = false;
 	});
 
 	const hasBar = $derived(Boolean(rightColumn || barEnd));
@@ -86,7 +99,7 @@
 		<div class="rail" data-shell-rail>{@render sidebar()}</div>
 	{/if}
 
-	{#if navigationOpen && drawer}
+	{#if navigationOpen && viewport.compact && drawer}
 		{@render drawer({ close })}
 	{/if}
 
@@ -118,6 +131,13 @@
 		flex-shrink: 0;
 		min-height: 0;
 	}
+	/* The rail ends level with the page's panel, which stands the frame's
+	   gutter off the screen's bottom, its inner corner rounded. */
+	.rail :global(.app-sidebar) {
+		margin-bottom: var(--gawdux-frame-gutter, 8px);
+		border-bottom-right-radius: 0.5rem;
+		overflow: hidden;
+	}
 	.main {
 		position: relative;
 		display: flex;
@@ -143,17 +163,21 @@
 		}
 	}
 
-	/* A printout is the page: the shell grows to its content and the rail
-	   is left out. */
+	/* A printout is the page: the shell grows to its content, and the rail
+	   and the shell's own bar, with the room left for it, are left out. A
+	   printed page is narrower than the compact width, so the reset names
+	   the shell with a bar too. */
 	@media print {
-		.gawdux-app-shell {
+		.gawdux-app-shell,
+		.gawdux-app-shell.has-bar {
 			display: block;
 			height: auto;
 			min-height: 0;
 			overflow: visible;
 			padding: 0;
 		}
-		.rail {
+		.rail,
+		.gawdux-app-shell > :global(.gawdux-shell-bar) {
 			display: none;
 		}
 	}

@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushSync, mount, tick, unmount } from 'svelte';
 import Shell from './fixtures/shell/AppShellHarness.svelte';
+import TwoMenus from './fixtures/shell/ShellTwoMenusHarness.svelte';
 
 type Media = { matches: boolean; listeners: Set<() => void> };
 let media: Media;
@@ -160,6 +161,81 @@ describe('the app shell frame', () => {
 		expect(document.querySelector('[data-shell-navigation-layer]')).toBeNull();
 		expect(document.querySelector<HTMLElement>('[data-shell-main]')!.inert).toBe(false);
 		expect(document.body.style.overflow).not.toBe('hidden');
+	});
+
+	// The drawer is the compact width's alone. Drawn on a wider screen it
+	// was a modal over the whole page, the page inert and its scroll locked.
+	it('draws no drawer above the compact width when the host opens it there, and puts the flag back', async () => {
+		const seen: boolean[] = [];
+		const props = {
+			get navigationOpen() {
+				return seen.at(-1) ?? true;
+			},
+			set navigationOpen(value: boolean) {
+				seen.push(value);
+			}
+		};
+		app = mount(Shell, { target: document.body, props });
+		flushSync();
+		await tick();
+		expect(document.querySelector('[data-shell-navigation-layer]')).toBeNull();
+		// Never made inert: jsdom has no `inert` of its own to read as false.
+		expect(document.querySelector<HTMLElement>('[data-shell-main]')!.inert).not.toBe(true);
+		expect(document.querySelector<HTMLElement>('[data-shell-rail]')!.inert).not.toBe(true);
+		expect(document.body.style.overflow).not.toBe('hidden');
+		expect(seen.at(-1)).toBe(false);
+	});
+
+	it('draws a drawer the host opens at the compact width', async () => {
+		media.matches = true;
+		app = mount(Shell, { target: document.body, props: { navigationOpen: true } });
+		flushSync();
+		await tick();
+		expect(document.querySelector('[data-shell-navigation-layer]')).not.toBeNull();
+		expect(document.querySelector<HTMLElement>('[data-shell-main]')!.inert).toBe(true);
+	});
+
+	/** Every id in the page that more than one element carries. */
+	const repeatedIds = () => {
+		const ids = Array.from(document.querySelectorAll('[id]'), (element) => element.id);
+		return [...new Set(ids.filter((id, index) => ids.indexOf(id) !== index))];
+	};
+
+	// The header's account and the bar's are both in the page at every
+	// width. Two UserMenus on the default id put every id of the menu in the
+	// page twice, so a trigger's aria-controls named two menus.
+	it('has no id twice with UserMenu in the header and in the bar, neither given an id', () => {
+		app = mount(TwoMenus, { target: document.body });
+		flushSync();
+		const triggers = Array.from(
+			document.querySelectorAll<HTMLElement>('[aria-haspopup="menu"][aria-controls]')
+		);
+		expect(triggers).toHaveLength(2);
+		expect(repeatedIds()).toEqual([]);
+		expect(triggers.map((trigger) => trigger.id).sort()).toEqual([
+			'gawdux-user-menu-bar-trigger',
+			'gawdux-user-menu-trigger'
+		]);
+		// Each trigger names its own menu, in its own part of the shell.
+		for (const trigger of triggers) {
+			const menus = document.querySelectorAll(`[id="${trigger.getAttribute('aria-controls')}"]`);
+			expect(menus).toHaveLength(1);
+			expect(menus[0]!.getAttribute('aria-labelledby')).toBe(trigger.id);
+			const part = (element: Element) =>
+				element.closest('.gawdux-shell-bar') ? 'bar' : 'header';
+			expect(part(menus[0]!)).toBe(part(trigger));
+		}
+		expect(
+			document.querySelector('.gawdux-shell-bar #gawdux-user-menu-bar-trigger')
+		).not.toBeNull();
+	});
+
+	it('keeps the ids a host gives the two menus', () => {
+		app = mount(TwoMenus, { target: document.body, props: { ids: true } });
+		flushSync();
+		expect(repeatedIds()).toEqual([]);
+		expect(document.getElementById('example-account-trigger')).not.toBeNull();
+		expect(document.getElementById('example-account-bar-trigger')).not.toBeNull();
 	});
 
 	it('reads the compact width once for the host', async () => {

@@ -14,6 +14,11 @@
 
 	The rail never stores its open state here: the drawer is always open at
 	its full width.
+
+	The layer covers the screen at every width, and no stylesheet hides it
+	above the compact one: hiding it would leave the page inert behind
+	nothing. The host draws it at or below the compact width only (AppShell
+	does, and closes it when the screen grows). It is not printed.
 -->
 <script lang="ts">
 	import { onMount, type Snippet } from 'svelte';
@@ -94,11 +99,18 @@
 </div>
 
 <style>
-	/* The layer is the compact width's alone (tokens.css draws it there). */
+	/* The layer covers the screen at every width: the host draws it at or
+	   below the compact width only (AppShell does). */
 	.gawdux-shell-navigation-layer {
 		position: fixed;
 		inset: 0;
 		z-index: 80;
+	}
+	/* A printout is the page, never the drawer over it. */
+	@media print {
+		.gawdux-shell-navigation-layer {
+			display: none;
+		}
 	}
 	.backdrop {
 		position: absolute;
@@ -114,6 +126,8 @@
 	.gawdux-shell-navigation-drawer {
 		position: relative;
 		box-sizing: border-box;
+		/* The rail is as tall as the drawer, so a long rail scrolls inside it. */
+		display: flex;
 		width: 18rem;
 		max-width: calc(100vw - 3rem);
 		height: 100%;

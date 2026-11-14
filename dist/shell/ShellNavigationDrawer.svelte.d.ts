@@ -30,6 +30,11 @@ type $$ComponentProps = {
  *
  * The rail never stores its open state here: the drawer is always open at
  * its full width.
+ *
+ * The layer covers the screen at every width, and no stylesheet hides it
+ * above the compact one: hiding it would leave the page inert behind
+ * nothing. The host draws it at or below the compact width only (AppShell
+ * does, and closes it when the screen grows). It is not printed.
  */
 declare const ShellNavigationDrawer: import("svelte").Component<$$ComponentProps, {}, "">;
 type ShellNavigationDrawer = ReturnType<typeof ShellNavigationDrawer>;

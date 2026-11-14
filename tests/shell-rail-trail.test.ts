@@ -353,6 +353,81 @@ describe('the rail and the trail name the same place', () => {
 		]);
 	});
 
+	// A page an item holds by a scope lies outside the item's own address.
+	// Read as "below the item", its address was cut by the item's length:
+	// a name cut mid-word and links under the item that lead nowhere.
+	it('names the scope under the item on a scoped page that states no trail, each level a link to its own address', () => {
+		const rail = adminRail();
+		const assigned = withTenant('/app/tasks/assigned/42/steps');
+		const trail = buildAppTrail({
+			pathname: assigned,
+			pageData: {},
+			place: resolveRailPlace(assigned, rail, OPTIONS)
+		});
+		expect(trail.map((crumb) => crumb.label)).toEqual([
+			'Tasks',
+			'My tasks',
+			'Assigned',
+			'42',
+			'Steps'
+		]);
+		expect(trail.map((crumb) => crumb.href)).toEqual([
+			undefined,
+			withTenant('/app/tasks/mine'),
+			withTenant('/app/tasks/assigned'),
+			withTenant('/app/tasks/assigned/42'),
+			undefined
+		]);
+		// The scope's own page is named, not linked.
+		const scope = withTenant('/app/tasks/completed');
+		const own = buildAppTrail({
+			pathname: scope,
+			pageData: {},
+			place: resolveRailPlace(scope, rail, OPTIONS)
+		});
+		expect(own.map((crumb) => [crumb.label, crumb.href])).toEqual([
+			['Tasks', undefined],
+			['My tasks', withTenant('/app/tasks/mine')],
+			['Completed', undefined]
+		]);
+	});
+
+	it('names a scope of another section whole, never the letters left after the item', () => {
+		const devices = withTenant('/app/devices');
+		const rail: RailConfig = { rootItems: [item('devices', 'Devices', '/app/devices')] };
+		const options = { scopes: { [devices]: [withTenant('/app/agent-updates')] } };
+		const page = withTenant('/app/agent-updates/rollouts/7');
+		const trail = buildAppTrail({
+			pathname: page,
+			pageData: {},
+			place: resolveRailPlace(page, rail, options)
+		});
+		expect(trail.map((crumb) => [crumb.label, crumb.href])).toEqual([
+			['Devices', devices],
+			['Agent updates', withTenant('/app/agent-updates')],
+			['Rollouts', withTenant('/app/agent-updates/rollouts')],
+			['7', undefined]
+		]);
+	});
+
+	it("adds the address's own levels for a place that names no scope", () => {
+		const place: RailPlace = {
+			group: null,
+			item: { id: 'devices', label: 'Devices', href: withTenant('/app/devices') }
+		};
+		const trail = buildAppTrail({
+			pathname: withTenant('/app/agent-updates/rollouts/7'),
+			pageData: {},
+			place
+		});
+		expect(trail.map((crumb) => [crumb.label, crumb.href])).toEqual([
+			['Devices', withTenant('/app/devices')],
+			['Agent updates', withTenant('/app/agent-updates')],
+			['Rollouts', withTenant('/app/agent-updates/rollouts')],
+			['7', undefined]
+		]);
+	});
+
 	it("leads the trail with the icon of the rail's group, else of its item", () => {
 		const rail = adminRail();
 		const history = withTenant('/app/admin/history');

@@ -8,6 +8,10 @@
 	The brand is the host's (`brand`: its mark and its name): the kit names no
 	product. It is told `collapsed`, so a name can fade as the rail narrows,
 	and `drawer`.
+
+	`initialOpen` is AppSidebar's own: a host that reads the rail's state on
+	the server passes it; left out, the rail restores it from the config's
+	`storageKey` when it mounts.
 -->
 <script lang="ts">
 	import type { Snippet } from 'svelte';
@@ -32,7 +36,11 @@
 		config: AppSidebarProps['config'];
 		/** The address the rail marks (`sidebarActiveUrl`). */
 		activeUrl: string;
-		initialOpen: boolean;
+		/**
+		 * The rail's state as the server knows it. Left out, the rail
+		 * restores it from `config.storageKey` when it mounts.
+		 */
+		initialOpen?: boolean;
 		/** Where the brand leads: the app's home. */
 		homeHref: string;
 		/** The home link's tooltip. */
@@ -57,7 +65,7 @@
 <AppSidebar
 	{config}
 	{activeUrl}
-	{initialOpen}
+	{...initialOpen === undefined ? {} : { initialOpen }}
 	ontoggle={handleToggle}
 	class={drawer ? 'gawdux-shell-sidebar-drawer' : ''}
 >

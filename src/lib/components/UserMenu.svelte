@@ -76,7 +76,7 @@
 		label,
 		compactBelow = 768,
 		compact = false,
-		id = 'gawdux-user-menu',
+		id: givenId,
 		open = $bindable(false),
 		onopenchange,
 		presentation
@@ -101,6 +101,10 @@
 	let leaveTimer: ReturnType<typeof setTimeout> | undefined;
 	/** In the phone shell's bar: the avatar alone, the body a sheet above the bar. */
 	const inBar = inShellBar();
+	// A shell draws the account in its header and again in its bar, both in
+	// the page at every width: the default id is the bar's own there, so no
+	// id of the menu is in the page twice. An id the host gives is kept.
+	const id = $derived(givenId ?? (inBar ? 'gawdux-user-menu-bar' : 'gawdux-user-menu'));
 
 	function rootAction(node: HTMLElement) {
 		root = node;

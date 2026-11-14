@@ -173,7 +173,15 @@ describe('the rail place of an address', () => {
 		});
 		expect(place?.item).toEqual({ id: 'documents', label: 'Documents', href: '/app/documents' });
 		expect(place?.group).toBeNull();
+		// The scope that holds the page is named, for the trail.
+		expect(place?.scope).toBe('/app/inbox');
 		expect(resolveRailPlace('/app/inbox/7', sidebarConfig)).toBeNull();
+		// A page under the item's own address names none.
+		expect(
+			resolveRailPlace('/app/documents/7', sidebarConfig, {
+				scopes: { '/app/documents': ['/app/inbox'] }
+			})
+		).not.toHaveProperty('scope');
 	});
 
 	it('names the group holding the item', () => {

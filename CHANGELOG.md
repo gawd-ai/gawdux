@@ -19,11 +19,17 @@
     safe-area insets at its sides, and the bar is the right column's rail
     when the column holds something (`rightColumn`), the shell's own
     `ShellBar` otherwise (`barEnd`): the account is at the bar's right end
-    with chat on or off. `navigationOpen` (bindable) draws `drawer`; a
-    drawer left open closes when the screen grows past the compact width,
-    so nothing stays inert behind a drawer that is no longer drawn.
-    `compact` (bindable) is the shell's one reading of the compact width in
-    script. A printout is the page: the shell grows to its content.
+    with chat on or off. `navigationOpen` (bindable) draws `drawer`, at or
+    below the compact width only: a drawer left open closes when the screen
+    grows past it, and `navigationOpen` set on a wider screen is put back,
+    so nothing is inert behind a drawer that is not drawn. `compact`
+    (bindable) is the shell's one reading of the compact width in script.
+    Above the compact width the rail ends level with the page's panel: it
+    stands the frame's gutter (`--gawdux-frame-gutter`, 8px) off the
+    screen's bottom, its inner corner rounded, so a host adds no rule of
+    its own for it. A printout is the page: the shell grows to its content,
+    and the rail, the shell's own bar with the room left for it, and an
+    open drawer are left out.
   - `ShellHeader`: the header row. The menu button, the trail
     (`Breadcrumbs`), then above the compact width the host's `switcher`,
     `account` and `notices` and, with `themeCookieName`, the theme toggle (a
@@ -35,12 +41,18 @@
     `compact`, the account first.
   - `ShellSidebar`: `AppSidebar` with the home link and the host's `brand`
     (told `collapsed` and `drawer`) at its head and the collapse button at
-    its foot. `ShellNavigationDrawer`: the same rail as a modal drawer from
+    its foot. `initialOpen` is optional, as `AppSidebar`'s is: left out,
+    the rail restores its state from the config's `storageKey` when it
+    mounts. `ShellNavigationDrawer`: the same rail as a modal drawer from
     the left edge, 288px wide, with a Close button (a 44px target). The
     focus trap, Escape, the inert background and the scroll lock are
     `activateFocusScope`; the drawer adds none of its own. A press on the
     backdrop and a press on a link of the rail close it, the link's own
-    action left to run. The drawer never stores the rail's open state.
+    action left to run. The drawer never stores the rail's open state, and
+    its rail is as tall as the drawer, so a long rail scrolls inside it. Its
+    layer covers the screen at every width and is not printed: a host that
+    composes it without `AppShell` draws it at or below the compact width
+    only.
   - `ShellMainColumn`: the header, then the page; `covered` makes it inert
     and hidden from assistive technology while a panel is the view.
   - `ShellRightColumn`: a cap level with the header (a spacer the open
@@ -50,6 +62,11 @@
     panel as a dialog while it is the view.
   - `ShellBarEnd`: the host's controls at the end of the bar (`ShellBar`'s
     `end`): the `notices`, then the `account`, last in the bar.
+  - `UserMenu` in a `ShellBar` with no `id` takes `gawdux-user-menu-bar`
+    for its ids (`gawdux-user-menu` anywhere else, as before): a shell
+    draws the account in its header and again in its bar, both in the page
+    at every width, and no id is in the page twice. An `id` the host gives
+    is kept as given.
   - `AccountCard`: the account card, a presentation of `UserMenu` a host
     opts into by drawing it in place of `UserMenu`. The menu's keyboard,
     pointer and focus behaviour is `UserMenu`'s own (`presentation`). In a
@@ -80,6 +97,10 @@
     `unlinked` and `filed` (an address filed under another parent than its
     path says). A page that states a trail of no levels names the rail's
     place and nothing below it, so a hidden item reads as an unknown one.
+    A page an item holds by a scope lies outside the item's own address: its
+    trail is the rail's place, then the address's own levels, each a link
+    to its own address, never the item's address with the scope's letters
+    after it.
     `getAppBreadcrumb`, `segmentLabel`, `displayNameFor`,
     `initialsForDisplayName` and `rightColumnHolds` come with them.
   - The page heading controller: `APP_PAGE_HEADING_CONTEXT`,
@@ -121,7 +142,9 @@
   (`tests/AccountCard.test.ts`), `PlaceDoor`, the harness's choice of
   Chromium (`tests/geometry-harness.test.ts`), and in real Chromium at 360,
   390, 900 and 1440, light and dark: the bar, the header, the account's
-  sheet and card, the frame and the drawer
+  sheet and card, the frame and the drawer, the section's icon on the
+  page's row, the trail's path opened on a phone, the rail's foot against
+  the panel and the frame under print media
   (`tests/phone-shell.geometry.test.ts`) and the trail ending at an item's
   place (`tests/trail-place.geometry.test.ts`). The geometry tests skip,
   printing why, on a machine with no Chromium of the expected revision.
@@ -130,8 +153,10 @@
 
 - The toast is not part of the kit: `MessageHost` over
   `createMessageCenter` is the toast, as before.
-- Nothing existing changes: `UserMenu`, `ShellBar`, `Breadcrumbs`,
-  `AppSidebar` and `tokens.css` are as 0.43.0 left them.
+- Nothing existing changes but one default: `ShellBar`, `Breadcrumbs`,
+  `AppSidebar` and `tokens.css` are as 0.43.0 left them, and so is
+  `UserMenu` except the ids of one drawn in a `ShellBar` with no `id` of
+  its own, which now end in `-bar`.
 - `playwright-core` (1.61.1, the release whose headless shell the geometry
   tests were measured in) and `esbuild` are new dev dependencies.
 
