@@ -102,18 +102,25 @@
  *   prove the copy is plain; a person reading it does that.
  * - No em dash or en dash in what a person reads. A comma, a colon,
  *   parentheses or a new sentence say it instead. `readableDashes` lists
- *   every em dash and en dash in the strings `plainLanguageFaults` reads, a
- *   single word or mark among them, written as a character, an HTML entity
- *   or a script's escape; a string that is wholly a placeholder the host
- *   declares (its mark for an empty value) is passed.
+ *   every em dash and en dash in the strings `plainLanguageFaults` reads and
+ *   in every quoted attribute value a person reads, a single word or mark
+ *   among them, written as a character, an HTML entity or a script's
+ *   escape; a string that is wholly a placeholder the host declares (its
+ *   mark for an empty value) is passed, and a text run between two elements
+ *   never is.
  *
  * Every reader reads a source with its comments left out, found in one pass
  * in source order (`withoutComments`), so a `//` comment holding `/*` hides
  * nothing after its line and a comment's marker inside a string opens none.
  */
 
-/** A character that may stand before a regular expression's opening slash, never before a division. */
-const BEFORE_REGEX = /[(,=:[!&|?{};]/;
+/**
+ * A character that may stand before a regular expression's opening slash,
+ * never before a division: an opening bracket, a separator, or an operator
+ * that is never postfix (the arrow `=>`, `>`, `<`, `*`). A `+` or a `-` may
+ * be postfix (`i++ / 2`), so neither is one.
+ */
+const BEFORE_REGEX = /[(,=:[!&|?{};<>*%^~]/;
 /** The keywords a regular expression may follow (`return /x/`). */
 const REGEX_KEYWORDS = new Set([
 	'return',
@@ -133,15 +140,27 @@ const REGEX_KEYWORDS = new Set([
 ]);
 
 /**
+ * Whether a slash opens a regular expression: at the start of code, after a
+ * character of `BEFORE_REGEX` (`prev`, the last one that is not a space) or
+ * after a keyword of `REGEX_KEYWORDS` (`word`, the word that ends there).
+ */
+function opensRegex(prev: string, word: string): boolean {
+	return prev === '' || BEFORE_REGEX.test(prev) || REGEX_KEYWORDS.has(word);
+}
+
+/**
  * Where a source's comments lie, found in one pass in source order, so the
  * marker that comes first wins: a `//` comment holding `/*` ends with its
  * line, and a marker inside a string, a template literal or a regular
  * expression opens nothing. A component (a `.svelte` file; with no file, a
  * source that opens with markup or an expression) is read as Svelte reads
  * it: an HTML comment in its markup, the code of its scripts and of its
- * markup's expressions, and its styles; its text and its quoted attribute
- * values hold no comment. Any other source is read as code. In code and in
- * a style, a `//` right after a colon is a URL's scheme and not a comment.
+ * markup's expressions, its styles and the CSS of its style attributes; its
+ * text and its other quoted attribute values hold no comment. Any other
+ * source is read as code. A slash opens a regular expression where it may
+ * (`opensRegex`: after `=>` or `return` too) and the expression closes on
+ * its line; otherwise it is a division. In code and in a style, a `//`
+ * right after a colon is a URL's scheme and not a comment.
  */
 function commentRanges(source: string, file?: string): [number, number][] {
 	const ranges: [number, number][] = [];
@@ -214,7 +233,7 @@ function commentRanges(source: string, file?: string): [number, number][] {
 			}
 			if (
 				char === '/' &&
-				(prev === '' || BEFORE_REGEX.test(prev) || REGEX_KEYWORDS.has(word)) &&
+				opensRegex(prev, word) &&
 				// A stylesheet's `url(` takes a path, never a regular expression.
 				!/\burl\(\s*$/i.test(source.slice(Math.max(from, j - 8), j))
 			) {
@@ -256,9 +275,17 @@ function commentRanges(source: string, file?: string): [number, number][] {
 		const keyword = source.slice(at + 1, Math.min(to, at + 40)).match(/^\s*[#:/@][a-z]+/);
 		return Math.min(code(at + 1 + (keyword?.[0].length ?? 0), to, true) + 1, to);
 	};
-	// A tag to its end: a quoted value holds no comment, an expression is code.
+	// A tag to its end: an expression is code, and a quoted value holds no
+	// comment but a style's (`style`, `style:color`), whose value is CSS: a
+	// `/*` in it opens a comment to its `*/` or the value's end, and a CSS
+	// string in it opens none.
 	const tag = (at: number, to: number): number => {
 		let quote: string | null = null;
+		let css = false;
+		const valueEnd = (from: number) => {
+			const end = source.indexOf(quote!, from);
+			return end < 0 || end > to ? to : end;
+		};
 		let j = at + 1;
 		while (j < to) {
 			const char = source[j];
@@ -268,8 +295,22 @@ function commentRanges(source: string, file?: string): [number, number][] {
 			}
 			if (quote) {
 				if (char === quote) quote = null;
-			} else if (char === '"' || char === "'") quote = char;
-			else if (char === '>') return j + 1;
+				else if (css && char === '/' && source[j + 1] === '*') {
+					const close = valueEnd(j + 2);
+					const end = source.indexOf('*/', j + 2);
+					j = comment(j, end < 0 || end + 2 > close ? close : end + 2);
+					continue;
+				} else if (css && (char === '"' || char === "'")) {
+					const end = source.indexOf(char, j + 1);
+					if (end >= 0 && end < valueEnd(j + 1)) {
+						j = end + 1;
+						continue;
+					}
+				}
+			} else if (char === '"' || char === "'") {
+				quote = char;
+				css = /\sstyle(?::[\w-]+)?\s*=\s*$/i.test(source.slice(at, j));
+			} else if (char === '>') return j + 1;
 			j++;
 		}
 		return to;
@@ -859,27 +900,30 @@ function scanCode(code: string): CodeScan {
 		strings.push({ start: at, end: j + 1, text });
 		return j + 1;
 	};
+	// A regular expression closes on its own line; a slash that does not
+	// was a division (as `commentRanges` reads it).
 	const readRegex = (at: number): number => {
-		let j = at + 1;
 		let inClass = false;
-		for (; j < code.length && code[j] !== '\n'; j++) {
+		for (let j = at + 1; j < code.length && code[j] !== '\n'; j++) {
 			const char = code[j];
 			if (char === '\\') j++;
 			else if (char === '[') inClass = true;
 			else if (char === ']') inClass = false;
 			else if (char === '/' && !inClass) return j + 1;
 		}
-		return j;
+		return at + 1;
 	};
 	function scan(from: number, untilBrace: boolean): number {
 		const opens: number[] = [];
 		let prev = '';
+		let word = '';
 		let j = from;
 		while (j < code.length) {
 			const char = code[j]!;
 			if (char === '"' || char === "'" || char === '`') {
 				j = readString(j);
 				prev = 'a';
+				word = '';
 				continue;
 			}
 			if (char === '/' && code[j + 1] === '/') {
@@ -892,10 +936,14 @@ function scanCode(code: string): CodeScan {
 				j = end < 0 ? code.length : end + 2;
 				continue;
 			}
-			if (char === '/' && (prev === '' || /[(,=:[!&|?{};]/.test(prev))) {
-				j = readRegex(j);
-				prev = 'a';
-				continue;
+			if (char === '/' && opensRegex(prev, word)) {
+				const end = readRegex(j);
+				if (end > j + 1) {
+					j = end;
+					prev = 'a';
+					word = '';
+					continue;
+				}
 			}
 			if (char === '{' || char === '(' || char === '[') opens.push(j);
 			else if (char === '}' || char === ')' || char === ']') {
@@ -903,6 +951,8 @@ function scanCode(code: string): CodeScan {
 					if (untilBrace && char === '}') return j;
 				} else close.set(opens.pop()!, j);
 			}
+			if (/[\w$]/.test(char)) word = /[\w$]/.test(code[j - 1] ?? '') ? word + char : char;
+			else if (!/\s/.test(char)) word = '';
 			if (!/\s/.test(char)) prev = char;
 			j++;
 		}
@@ -1825,21 +1875,51 @@ const PROSE_ATTRIBUTES = ['title', 'aria-label', 'placeholder', 'label', 'descri
 /** A string that reads as words: two words with something between them, not a key or a class token. */
 const PROSE = /\p{L}{2,}[^\p{L}\n]+\p{L}{2,}/u;
 
+/** A string a person reads, and a markup text run as the page shows it. */
+interface ReadableString extends CodeString {
+	/**
+	 * A text run as the page shows it, where it differs from `text`: an
+	 * element beside it (a sibling, not its parent) stands as `VALUE`, and
+	 * the space at an end is kept unless the end is its element's or its
+	 * block's and the space breaks a line. A run between two elements
+	 * (`<b>a</b> &mdash; <i>b</i>`) is never a lone placeholder.
+	 */
+	shown?: string;
+}
+
+/** What stands on one side of a text run: its element's or its block's edge, or a sibling. */
+type RunSide = 'edge' | 'sibling';
+
 /** The text runs of a component's markup, each from where it starts: a tag ends a run, an expression stands as a value, a block ends a run. */
-function markupTexts(markup: string, scan: CodeScan): CodeString[] {
-	const runs: CodeString[] = [];
+function markupTexts(markup: string, scan: CodeScan): ReadableString[] {
+	const runs: ReadableString[] = [];
 	let text = '';
 	let start = -1;
-	const flush = (end: number) => {
-		if (text.trim()) runs.push({ start, end, text: text.trim() });
+	let before: RunSide = 'edge';
+	// A run ends at a boundary, which is `after` to the run before it and
+	// `next` to the run after it: an element's opening tag is a sibling
+	// after a run and its edge before one, a closing tag the other way.
+	const flush = (end: number, after: RunSide, next: RunSide) => {
+		const trimmed = text.trim();
+		if (trimmed) {
+			const space = (found: string, side: RunSide) =>
+				found && (side === 'sibling' || !found.includes('\n')) ? ' ' : '';
+			const shown =
+				(before === 'sibling' ? VALUE : '') +
+				space(text.match(/^\s*/)![0], before) +
+				trimmed +
+				space(text.match(/\s*$/)![0], after) +
+				(after === 'sibling' ? VALUE : '');
+			runs.push({ start, end, text: trimmed, ...(shown === trimmed ? {} : { shown }) });
+		}
 		text = '';
 		start = -1;
+		before = next;
 	};
 	let i = 0;
 	while (i < markup.length) {
 		const char = markup[i]!;
 		if (char === '<' && /[A-Za-z/!]/.test(markup[i + 1] ?? '')) {
-			flush(i);
 			let end = i + 1;
 			let depth = 0;
 			let quote: string | null = null;
@@ -1852,6 +1932,11 @@ function markupTexts(markup: string, scan: CodeScan): CodeString[] {
 				else if (next === '}') depth--;
 				else if (next === '>' && depth === 0) break;
 			}
+			const name = markup.slice(i + 1, i + 64).match(/^[A-Za-z][\w:.-]*/)?.[0].toLowerCase();
+			if (markup[i + 1] === '!') flush(i, 'edge', 'edge');
+			else if (markup[i + 1] === '/') flush(i, 'edge', 'sibling');
+			else if (markup[end - 1] === '/' || VOID_ELEMENTS.has(name ?? '')) flush(i, 'sibling', 'sibling');
+			else flush(i, 'sibling', 'edge');
 			i = end + 1;
 			continue;
 		}
@@ -1859,7 +1944,10 @@ function markupTexts(markup: string, scan: CodeScan): CodeString[] {
 			const closeAt = scan.close.get(i) ?? markup.indexOf('}', i);
 			const end = closeAt < 0 ? markup.length : closeAt + 1;
 			const body = markup.slice(i + 1, end - 1);
-			if (/^\s*[#:/@]/.test(body) || !body.trim()) flush(i);
+			// `{@html}` and `{@render}` draw content beside the run; a block,
+			// `{@const}` and an empty expression draw none.
+			if (/^\s*@(?:html|render)\b/.test(body)) flush(i, 'sibling', 'sibling');
+			else if (/^\s*[#:/@]/.test(body) || !body.trim()) flush(i, 'edge', 'edge');
 			else {
 				if (start < 0) start = i;
 				text += VALUE;
@@ -1871,22 +1959,79 @@ function markupTexts(markup: string, scan: CodeScan): CodeString[] {
 		text += char;
 		i++;
 	}
-	flush(markup.length);
+	flush(markup.length, 'edge', 'edge');
 	return runs;
+}
+
+/** Where a braced expression that opens at `at` closes (past its brace), its strings read through. */
+function braceEnd(text: string, at: number): number {
+	let depth = 0;
+	let quote: string | null = null;
+	for (let k = at; k < text.length; k++) {
+		const char = text[k]!;
+		if (quote) {
+			if (char === '\\') k++;
+			else if (char === quote) quote = null;
+		} else if (char === '"' || char === "'" || char === '`') quote = char;
+		else if (char === '{') depth++;
+		else if (char === '}' && --depth === 0) return k + 1;
+	}
+	return text.length;
+}
+
+/**
+ * A tag's quoted attribute values as it writes them (`name="value"`), each
+ * from the space before its name, a braced value, a spread and a braced
+ * expression read past, and an expression inside a value read as `VALUE`.
+ */
+function quotedAttributes(tag: Tag): (CodeString & { name: string })[] {
+	const { raw } = tag;
+	const found: (CodeString & { name: string })[] = [];
+	let j = 1;
+	while (j < raw.length) {
+		if (raw[j] === '{') {
+			j = braceEnd(raw, j);
+			continue;
+		}
+		const attribute = /\s/.test(raw[j - 1]!) ? raw.slice(j).match(/^([^\s=/>"'{}]+)\s*=\s*(["'])/) : null;
+		if (!attribute) {
+			j++;
+			continue;
+		}
+		const quote = attribute[2]!;
+		let k = j + attribute[0].length;
+		let text = '';
+		while (k < raw.length && raw[k] !== quote) {
+			if (raw[k] === '{') {
+				k = braceEnd(raw, k);
+				text += VALUE;
+				continue;
+			}
+			text += raw[k];
+			k++;
+		}
+		found.push({ name: attribute[1]!, start: tag.at + j - 1, end: tag.at + k + 1, text });
+		j = k + 1;
+	}
+	return found;
 }
 
 /**
  * The strings of a source a person reads: in a component, its markup's text,
- * the quoted values of the attributes a person reads (`title`, `aria-label`,
- * `placeholder`, `label`, `description`) and the string literals of its
- * scripts and its markup's expressions; in any other source (a copy module:
- * a file of messages, labels and captions, which a guard chooses), its
- * string literals. A console line is never one.
+ * the quoted values of the attributes a person reads (by default `title`,
+ * `aria-label`, `placeholder`, `label`, `description`) and the string
+ * literals of its scripts and its markup's expressions; in any other source
+ * (a copy module: a file of messages, labels and captions, which a guard
+ * chooses), its string literals. A console line is never one.
  */
-function readableStrings(source: string, file: string): CodeString[] {
+function readableStrings(
+	source: string,
+	file: string,
+	readsAttribute: (name: string) => boolean = (name) => PROSE_ATTRIBUTES.includes(name)
+): ReadableString[] {
 	const scan = scanCode(codeView(source, file));
 	// A console line is the developer's, never a person's.
-	const found = scan.strings.filter(
+	const found: ReadableString[] = scan.strings.filter(
 		(token) => !/console\.\w+\(\s*$/.test(scan.code.slice(Math.max(0, token.start - 40), token.start))
 	);
 	if (file.endsWith('.svelte')) {
@@ -1894,13 +2039,7 @@ function readableStrings(source: string, file: string): CodeString[] {
 		found.push(...markupTexts(markup, scan));
 		for (const tag of markupTags(markup)) {
 			if (tag.close) continue;
-			for (const name of PROSE_ATTRIBUTES) {
-				const match = tag.raw.match(new RegExp(`\\s${name}=(?:"([^"]*)"|'([^']*)')`));
-				if (!match) continue;
-				const value = match[1] ?? match[2]!;
-				const at = tag.at + match.index!;
-				found.push({ start: at, end: at + match[0].length, text: value.replace(/\{[^}]*\}/g, VALUE) });
-			}
+			for (const { name, ...value } of quotedAttributes(tag)) if (readsAttribute(name)) found.push(value);
 		}
 	}
 	return found.sort((a, b) => a.start - b.start);
@@ -1959,13 +2098,78 @@ function entityDashes(text: string): string {
 }
 
 /**
+ * The attributes whose quoted value no person reads: a class, a style, an
+ * address, an id or a reference to one, a token the browser reads, an SVG
+ * shape. A directive (`bind:`, `class:`, `style:`), a `data-` attribute and
+ * a CSS custom property (`--name`) are not read either.
+ */
+const UNREAD_ATTRIBUTES = new Set([
+	'class',
+	'style',
+	'href',
+	'src',
+	'srcset',
+	'sizes',
+	'id',
+	'name',
+	'type',
+	'for',
+	'role',
+	'rel',
+	'target',
+	'lang',
+	'dir',
+	'method',
+	'action',
+	'enctype',
+	'autocomplete',
+	'inputmode',
+	'pattern',
+	'accept',
+	'tabindex',
+	'slot',
+	'xmlns',
+	'viewbox',
+	'd',
+	'points',
+	'transform',
+	'fill',
+	'stroke',
+	'width',
+	'height',
+	'aria-labelledby',
+	'aria-describedby',
+	'aria-controls',
+	'aria-owns',
+	'aria-activedescendant',
+	'aria-details',
+	'aria-errormessage',
+	'aria-flowto'
+]);
+
+/** Whether a person reads an attribute's quoted value: every one but `UNREAD_ATTRIBUTES`'. */
+function readByAPerson(name: string): boolean {
+	return !UNREAD_ATTRIBUTES.has(name.toLowerCase()) && !/:|^data-|^--/i.test(name);
+}
+
+/**
  * Every em dash and en dash in a string of the source a person reads, as
  * `em dash: "excerpt" (line n)`, one finding for each kind of dash in each
  * string. The strings are those `plainLanguageFaults` reads, a single word
- * or mark among them; a dash counts as a character, an HTML entity or a
- * script's escape. A comma, a colon, parentheses or a new sentence say it
- * instead. A string that is wholly one of the `placeholders` a host declares
- * (its mark for an empty value, one dash alone) is passed.
+ * or mark among them, and the quoted value of every attribute but the ones
+ * no person reads (`class`, `style`, `href`, `src`, `id`, `name`, `type`,
+ * `for`, `role`, `rel`, `target`, an id reference, a token the browser
+ * reads, an SVG shape, a directive, `data-` and `--`), so a component's
+ * `message`, `heading`, `emptyText`, `confirmLabel` and an image's `alt`
+ * are read; a dash counts as a character, an HTML entity or a script's
+ * escape. A comma, a colon, parentheses or a new sentence say it instead.
+ * A string that is wholly one of the `placeholders` a host declares (its
+ * mark for an empty value, one dash alone) is passed. A text run of markup
+ * is judged as the page shows it: a run between two elements
+ * (`<b>a</b> &mdash; <i>b</i>`) is never wholly a placeholder. A finding on
+ * a mark with no words beside it quotes the string as the page shows it,
+ * its spaces and the elements beside it (`…`) kept, so a separator with a
+ * space on each side never reads as the lone mark.
  */
 export function readableDashes(
 	source: string,
@@ -1974,13 +2178,16 @@ export function readableDashes(
 	const file = options.file ?? 'Component.svelte';
 	const placeholders = new Set((options.placeholders ?? []).map(entityDashes));
 	const found: string[] = [];
-	for (const token of readableStrings(source, file)) {
-		const text = entityDashes(token.text);
-		if (placeholders.has(text)) continue;
-		const subject = text.replaceAll(VALUE, '…').replace(/\s+/g, ' ').trim();
+	for (const token of readableStrings(source, file, readByAPerson)) {
+		const shown = entityDashes(token.shown ?? token.text);
+		if (placeholders.has(shown)) continue;
+		const subject = entityDashes(token.text).replaceAll(VALUE, '…').replace(/\s+/g, ' ').trim();
+		const bare = !/[\p{L}\p{N}…]/u.test(subject);
+		const quoted = bare ? shown.replaceAll(VALUE, '…').replace(/\s+/g, ' ') : null;
 		for (const [dash, name] of DASHES) {
 			const at = subject.indexOf(dash);
-			if (at >= 0) found.push(`${name}: "${excerpt(subject, at, dash.length)}" (line ${lineAt(source, token.start)})`);
+			if (at >= 0)
+				found.push(`${name}: "${quoted ?? excerpt(subject, at, dash.length)}" (line ${lineAt(source, token.start)})`);
 		}
 	}
 	return found;

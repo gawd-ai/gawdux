@@ -13,13 +13,24 @@
   `surfaceShadows`, `insetOverrides`, `elevationReads`,
   `shadowedFlowbiteImports`, `tabsAfterHistory` and `vanishingDarkEdges`
   missed what stood there. A component is read as Svelte reads it: an HTML
-  comment in its markup, the code of its scripts and its expressions, and
-  its styles; its text and its quoted attribute values hold no comment.
+  comment in its markup, the code of its scripts and its expressions, its
+  styles and the CSS of its style attributes (`style`, `style:color`), so
+  a `/*` in a style attribute opens a comment to its `*/` or the value's
+  end; its text and its other quoted attribute values hold no comment.
   `withoutComments` takes the file as an optional second argument (a
   `.svelte` file is a component; with none, a source that opens with markup
   is one). `pageSurfacesOutsideFrame` and `vanishingDarkEdges` still blank
   a comment in place, so a finding's line is the source's line. On this
   library's own sources every reader finds what it found before.
+- A slash after an arrow, an operator that is never postfix (`>`, `<`,
+  `*`, `%`, `^`, `~`) or a keyword (`return`) opens a regular expression,
+  so nothing in it opens a comment, a string or a template literal: in
+  `(s) => /[/*]/.test(s)` the `/*` hid the code up to the next `*/`, and a
+  backtick, a quote or a `\//` in such an expression opened a template
+  literal, a string or a line comment. The comments and the strings the
+  readers read follow one rule, so `plainLanguageFaults` reads the strings
+  after a regular expression that holds a quote from where they start; a
+  slash whose expression does not close on its line is a division.
 - A script's Unicode escape (`\u{2014}`, `\u{a0}`) reads as its character
   in the strings the readers read, where it read as the letters after the
   backslash.
@@ -29,15 +40,32 @@
 - `readableDashes` in `gawdux/utils`: the dash rule as a reader. It lists
   every em dash (U+2014) and en dash (U+2013) in a string a person reads,
   as `em dash: "excerpt" (line n)`, one finding for each kind in each
-  string: the strings `plainLanguageFaults` reads, a single word or mark
-  among them, the dash written as a character, an HTML entity (`&mdash;`,
-  `&#8211;`) or a script's escape. A comma, a colon, parentheses or a new
-  sentence say it instead. A host declares its placeholders
-  (`placeholders`: its mark for an empty value, one dash alone), and a
-  string that is wholly one of them is passed; the same dash inside a
-  longer string is not. The library's house-surface-rules test holds every
-  component and its copy module (`alert-ops/types.ts`) to none, with the
-  library's own mark for an empty value, one em dash alone, declared.
+  string: the strings `plainLanguageFaults` reads and the quoted value of
+  every attribute a person reads, a single word or mark among them, the
+  dash written as a character, an HTML entity (`&mdash;`, `&#8211;`) or a
+  script's escape. Every quoted attribute is read (a component's `message`,
+  `heading`, `subtitle`, `emptyText`, `confirmLabel`, `ariaLabel`, an
+  image's `alt`) but the ones no person reads: `class`, `style`, `href`,
+  `src`, `srcset`, `sizes`, `id`, `name`, `type`, `for`, `role`, `rel`,
+  `target`, `lang`, `dir`, `method`, `action`, `enctype`, `autocomplete`,
+  `inputmode`, `pattern`, `accept`, `tabindex`, `slot`, `xmlns`, an SVG
+  shape's (`viewBox`, `d`, `points`, `transform`, `fill`, `stroke`,
+  `width`, `height`), an id reference (`aria-labelledby`,
+  `aria-describedby`, `aria-controls` and the like), a directive, a
+  `data-` attribute and a CSS custom property. A comma, a colon,
+  parentheses or a new sentence say it instead. A host declares its
+  placeholders (`placeholders`: its mark for an empty value, one dash
+  alone), and a string that is wholly one of them is passed; the same dash
+  inside a longer string is not. A text run of markup is judged as the
+  page shows it: a run between two elements (`<b>a</b> &mdash; <i>b</i>`)
+  is never wholly a placeholder, while a run that is all its element's or
+  its block's text (a cell's mark, an `{:else}` branch's) is. A finding on
+  a mark with no words beside it quotes the string as the page shows it,
+  its spaces and the elements beside it (`…`) kept, so a separator with a
+  space on each side never reads as the lone mark. The library's
+  house-surface-rules test holds every component and its copy module
+  (`alert-ops/types.ts`) to none, with the library's own mark for an empty
+  value, one em dash alone, declared.
 
 ## 0.42.0 - plain everyday language
 

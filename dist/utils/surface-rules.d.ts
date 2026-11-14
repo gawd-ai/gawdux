@@ -102,10 +102,12 @@
  *   prove the copy is plain; a person reading it does that.
  * - No em dash or en dash in what a person reads. A comma, a colon,
  *   parentheses or a new sentence say it instead. `readableDashes` lists
- *   every em dash and en dash in the strings `plainLanguageFaults` reads, a
- *   single word or mark among them, written as a character, an HTML entity
- *   or a script's escape; a string that is wholly a placeholder the host
- *   declares (its mark for an empty value) is passed.
+ *   every em dash and en dash in the strings `plainLanguageFaults` reads and
+ *   in every quoted attribute value a person reads, a single word or mark
+ *   among them, written as a character, an HTML entity or a script's
+ *   escape; a string that is wholly a placeholder the host declares (its
+ *   mark for an empty value) is passed, and a text run between two elements
+ *   never is.
  *
  * Every reader reads a source with its comments left out, found in one pass
  * in source order (`withoutComments`), so a `//` comment holding `/*` hides
@@ -308,10 +310,20 @@ export declare function plainLanguageFaults(source: string, file?: string): stri
  * Every em dash and en dash in a string of the source a person reads, as
  * `em dash: "excerpt" (line n)`, one finding for each kind of dash in each
  * string. The strings are those `plainLanguageFaults` reads, a single word
- * or mark among them; a dash counts as a character, an HTML entity or a
- * script's escape. A comma, a colon, parentheses or a new sentence say it
- * instead. A string that is wholly one of the `placeholders` a host declares
- * (its mark for an empty value, one dash alone) is passed.
+ * or mark among them, and the quoted value of every attribute but the ones
+ * no person reads (`class`, `style`, `href`, `src`, `id`, `name`, `type`,
+ * `for`, `role`, `rel`, `target`, an id reference, a token the browser
+ * reads, an SVG shape, a directive, `data-` and `--`), so a component's
+ * `message`, `heading`, `emptyText`, `confirmLabel` and an image's `alt`
+ * are read; a dash counts as a character, an HTML entity or a script's
+ * escape. A comma, a colon, parentheses or a new sentence say it instead.
+ * A string that is wholly one of the `placeholders` a host declares (its
+ * mark for an empty value, one dash alone) is passed. A text run of markup
+ * is judged as the page shows it: a run between two elements
+ * (`<b>a</b> &mdash; <i>b</i>`) is never wholly a placeholder. A finding on
+ * a mark with no words beside it quotes the string as the page shows it,
+ * its spaces and the elements beside it (`…`) kept, so a separator with a
+ * space on each side never reads as the lone mark.
  */
 export declare function readableDashes(source: string, options?: {
     file?: string;

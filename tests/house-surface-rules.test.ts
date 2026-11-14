@@ -779,6 +779,12 @@ describe('plain everyday language', () => {
 		expect(plainLanguageFaults("const k = 'holds';", 'a.ts')).toEqual([]);
 		expect(plainLanguageFaults('<p>Shareholders and households</p>')).toEqual([]);
 	});
+
+	it('reads the strings after a regular expression that holds a quote', () => {
+		const source = "const m = (x) => /'/.test(x) ? 'Failed to save the rule.' : '';";
+		expect(plainLanguageFaults(`<script>${source}</script>`)).toEqual(['failed to: "Failed to save the rule." (line 1)']);
+		expect(plainLanguageFaults(`export ${source}`, 'a-copy.ts')).toEqual(['failed to: "Failed to save the rule." (line 1)']);
+	});
 });
 
 describe('comments read in source order', () => {
@@ -826,6 +832,43 @@ describe('comments read in source order', () => {
 		]);
 	});
 
+	it('reads a regular expression after an arrow, a keyword or an operator as one', () => {
+		// A `/*` in it opens no comment.
+		expect(surfaceShadows("const isApp = (p: string) => /^\\/app\\/*/.test(p);\nconst a = 'shadow-md';\n/* note */")).toEqual([
+			'shadow-md'
+		]);
+		// A backtick in it opens no template literal, so the comment after it is one.
+		expect(surfaceShadows("const q = (c: string) => /[`'" + '"' + "]/.test(c);\n// was shadow-md\nconst u = `https://x/`;")).toEqual(
+			[]
+		);
+		// A `\//` in it opens no line comment.
+		expect(surfaceShadows("const u = (s) => /^https?:\\/\\//.test(s) && 'shadow-md';")).toEqual(['shadow-md']);
+		// In a markup expression too, where the next `*/` is a style's.
+		expect(
+			surfaceShadows(
+				"<p class={items.some((s) => /[/*]/.test(s)) ? 'x' : 'y'}>a</p>\n<div class=\"shadow-md\">b</div>\n<style>\n\t/* x */\n</style>"
+			)
+		).toEqual(['shadow-md']);
+		expect(surfaceShadows("const n = 2 * /[/*]/.exec(s).length;\nconst a = 'shadow-md';\n/* note */")).toEqual([
+			'shadow-md'
+		]);
+		// A slash after a value is a division.
+		expect(surfaceShadows('const x = a > b / c; const d = f<T>(x) / 2; // shadow-md')).toEqual([]);
+	});
+
+	it('reads a comment in a style attribute as CSS reads it', () => {
+		expect(surfaceShadows('<div style="/* box-shadow: 0 4px 8px red */ color: red">x</div>')).toEqual([]);
+		expect(insetOverrides('<div style="/* --gawdux-page-inset: 0 */">x</div>')).toEqual([]);
+		expect(surfaceShadows('<div style:color="/* box-shadow: 0 4px 8px red */ red">x</div>')).toEqual([]);
+		// An expression in the value is code, and the comment ends with the value.
+		expect(
+			surfaceShadows('<div style="color: {c}; /* box-shadow: 0 4px 8px red">x</div>\n<p class="shadow-md">y</p>')
+		).toEqual(['shadow-md']);
+		// A CSS string in it opens no comment.
+		expect(surfaceShadows("<div style=\"content: '/*'; box-shadow: 0 4px 8px red\">x</div>")).toHaveLength(1);
+		expect(surfaceShadows('<div style="box-shadow: 0 4px 8px red">x</div>')).toHaveLength(1);
+	});
+
 	it('still leaves out every comment', () => {
 		expect(surfaceShadows('/* shadow-md */\n// shadow-lg\nconst a = 1;')).toEqual([]);
 		expect(
@@ -858,8 +901,11 @@ describe('no em dash or en dash in what a person reads', () => {
 	});
 
 	it('uses the declared mark only alone', () => {
-		for (const found of Object.values(findings((source, rel) => read(source, rel))).flat())
-			expect(found).toMatch(new RegExp(`^em dash: "${EM}" \\(line \\d+\\)$`));
+		const alone = new RegExp(`^em dash: "${EM}" \\(line \\d+\\)$`);
+		for (const found of Object.values(findings((source, rel) => read(source, rel))).flat()) expect(found).toMatch(alone);
+		// A separator's finding is told from the lone mark's.
+		expect(readableDashes(`<script>const s = ' ${EM} ';</script>`)[0]).not.toMatch(alone);
+		expect(readableDashes(`<p><b>a</b>${EM}<i>b</i></p>`)[0]).not.toMatch(alone);
 	});
 
 	it('reads a dash in text, an attribute a person reads, a string, an entity and an escape', () => {
@@ -896,6 +942,50 @@ describe('no em dash or en dash in what a person reads', () => {
 		expect(readableDashes('<td>&mdash;</td>', { placeholders })).toEqual([]);
 		expect(readableDashes(`<td>${EM} ms</td>`, { placeholders })).toEqual([`em dash: "${EM} ms" (line 1)`]);
 		expect(readableDashes(`<td>${EN}</td>`, { placeholders })).toEqual([`en dash: "${EN}" (line 1)`]);
+		expect(readableDashes(`<td>\n\t${EM}\n</td>`, { placeholders })).toEqual([]);
+		expect(readableDashes(`<td>{#if a}{a}{:else}${EM}{/if}</td>`, { placeholders })).toEqual([]);
+		expect(readableDashes(`<X emptyText="${EM}" />`, { placeholders })).toEqual([]);
+	});
+
+	it('shows a separator as the page shows it, never as a lone placeholder', () => {
+		const placeholders = [EM];
+		expect(readableDashes(`<script>\n\tconst sep = ' ${EM} ';\n</script>`, { placeholders })).toEqual([
+			`em dash: " ${EM} " (line 2)`
+		]);
+		// A run between two elements: each stands as an ellipsis.
+		expect(readableDashes(`<p><b>a</b> ${EM} <i>b</i></p>`, { placeholders })).toEqual([`em dash: "… ${EM} …" (line 1)`]);
+		expect(readableDashes(`<p>\n\t<b>a</b>\n\t${EM}\n\t<i>b</i>\n</p>`, { placeholders })).toEqual([
+			`em dash: "… ${EM} …" (line 3)`
+		]);
+		expect(readableDashes(`<p><b>a</b>${EM}<i>b</i></p>`, { placeholders })).toEqual([`em dash: "…${EM}…" (line 1)`]);
+		expect(readableDashes(`<td>{@html a} ${EM}</td>`, { placeholders })).toEqual([`em dash: "… ${EM}" (line 1)`]);
+		expect(readableDashes(`<span>a</span><span> ${EM} </span>`, { placeholders })).toEqual([
+			`em dash: " ${EM} " (line 1)`
+		]);
+	});
+
+	it('reads the quoted value of every attribute a person reads', () => {
+		const placeholders = [EM];
+		for (const attribute of ['message', 'heading', 'subtitle', 'confirmLabel', 'emptyText', 'ariaLabel', 'alt'])
+			expect(readableDashes(`<X ${attribute}="Archived ${EM} restore it later" />`, { placeholders })).toEqual([
+				`em dash: "Archived ${EM} restore it later" (line 1)`
+			]);
+		expect(readableDashes(`<X message="Saved {name} ${EN} now" />`)).toEqual([`en dash: "Saved … ${EN} now" (line 1)`]);
+		expect(
+			readableDashes(
+				`<a class="a${EM}b" href="/a${EM}b" id="a${EM}b" data-x="a ${EM} b" bind:value="a ${EM} b" style="--x: '${EM}'">x</a>`
+			)
+		).toEqual([]);
+	});
+
+	it('reads a regular expression after return, an arrow or an operator as one', () => {
+		expect(readableDashes(`<script>function f(x) { return /'/.test(x) ? 'Saved ${EM} now' : ''; }</script>`)).toEqual([
+			`em dash: "Saved ${EM} now" (line 1)`
+		]);
+		expect(readableDashes(`<script>const isSep = (t) => /^['${EN}${EM}]+$/.test(t);</script>`)).toEqual([]);
+		expect(readableDashes(`<script>const n = 2 * /'/.exec(s).length; const m = 'a ${EM} b';</script>`)).toEqual([
+			`em dash: "a ${EM} b" (line 1)`
+		]);
 	});
 
 	it('leaves comments, a console line, a regular expression and a hyphen', () => {
