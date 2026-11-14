@@ -104,6 +104,6 @@ export type { LongTextRun } from './long-text';
 export type { AppBreadcrumbItem, AppBreadcrumbData, PageCommandBarZone, PageCommandBarSlots, PageCommandBarContext, PageStatusClaim, PageStatusHost, PageTabClaim, PageTabHost, PageTabScope } from './page-chrome';
 export type { LifecycleAction, EditModeProps, LifecycleKindRenderers } from './PageActionBar.svelte';
 export type { ListQueryBarProps } from './ListQueryBar.svelte';
-export type { ActiveFilterDescriptor, ListSort, ListSortDirection, ListSortKey, ListSortOrder } from './list-query';
-export { listSortOptions } from './list-query';
+export type { ActiveFilterDescriptor, ListSort, ListSortDirection, ListSortKey, ListSortOrder, ListSortWords } from './list-query';
+export { listSortKeyFaults, listSortOptions, listSortWords } from './list-query';
 export type { FilterPill } from './FilterPillRow.svelte';

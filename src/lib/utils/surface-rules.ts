@@ -66,6 +66,11 @@
  *   `ListSurface` and `ListPageScaffold` pass on). `registersWithoutPhoneSort`
  *   lists every register that does not, every phone sort a host draws
  *   itself, and a register given two.
+ * - A sequence key says its own orders. A sort key that orders as a sequence
+ *   of the host's own gives the words of its two orders
+ *   (`ListSortKey.words`), since the kind's own name no order a reader
+ *   knows. `unwordedSequenceSorts` lists every sequence key written with
+ *   none.
  * - The bar holds the open tab's acts. On a tabbed page every act in the
  *   command bar names its tab (`PageCommandBarCenter`'s `tab`, a scaffold
  *   act's `tab`), so it shows only while its tab is open and a tab with no
@@ -2361,6 +2366,80 @@ export function takesPhoneSort(source: string): boolean {
 			(PHONE_SORT_TOOLBARS.has(tag.name) || PHONE_SORT_HOLDERS.has(tag.name)) &&
 			takesSort(tag.raw)
 	);
+}
+
+/** A sort key's kind written as a sequence: `order: 'sequence'`. */
+const SEQUENCE_ORDER = /(?<![\w$.])order\s*:\s*(['"`])sequence\1/g;
+
+/**
+ * Every sort key a source writes as a sequence (`order: 'sequence'`) with no
+ * words for its two orders (`ListSortKey.words`). A sequence is the host's
+ * own order (a schedule's states, a health from worst to best), so the phone
+ * sort can only say "first to last" and "last to first" for it, which name
+ * no order a reader knows: the key names them (`words: { asc: 'best first',
+ * desc: 'worst first' }`). It reads the code and the markup with comments
+ * left out, and judges an object only on what it writes out: one that takes
+ * a spread may hold its words there and is passed. A key built where no
+ * literal shows its kind is held by `listSortKeyFaults` over the keys.
+ */
+export function unwordedSequenceSorts(source: string, file?: string): string[] {
+	// Comments left out with their line breaks kept, so a finding names the source's own line.
+	let text = '';
+	let from = 0;
+	for (const [start, end] of commentRanges(source, file)) {
+		text += source.slice(from, start) + source.slice(start, end).replace(/[^\n]/g, '');
+		from = end;
+	}
+	text += source.slice(from);
+	const found: string[] = [];
+	// Every brace pair outside a string, so each key is read in the object that writes it.
+	// A quote left open at its line's end is an apostrophe in a page's words, not a string.
+	const pairs: [number, number][] = [];
+	const open: number[] = [];
+	let quote: string | null = null;
+	for (let i = 0; i < text.length; i++) {
+		const char = text[i]!;
+		if (quote) {
+			if (char === '\\') i++;
+			else if (char === quote || (char === '\n' && quote !== '`')) quote = null;
+			continue;
+		}
+		if (char === '"' || char === "'" || char === '`') quote = char;
+		else if (char === '{') open.push(i);
+		else if (char === '}' && open.length > 0) pairs.push([open.pop()!, i]);
+	}
+	for (const match of text.matchAll(SEQUENCE_ORDER)) {
+		const at = match.index!;
+		// The innermost object that holds it: of the pairs around it, the one that opens last.
+		let holder: [number, number] | null = null;
+		for (const pair of pairs)
+			if (pair[0] < at && pair[1] > at && (!holder || pair[0] > holder[0])) holder = pair;
+		if (!holder) continue;
+		// The object's own properties: what its nested objects, lists and calls hold is theirs.
+		let own = '';
+		let depth = 0;
+		quote = null;
+		for (let i = holder[0] + 1; i < holder[1]; i++) {
+			const char = text[i]!;
+			if (quote) {
+				if (char === '\\') i++;
+				else if (char === quote || (char === '\n' && quote !== '`')) quote = null;
+				if (depth === 0) own += char;
+				continue;
+			}
+			if (char === '"' || char === "'" || char === '`') quote = char;
+			if (char === '{' || char === '[' || char === '(') depth++;
+			else if (char === '}' || char === ']' || char === ')') depth--;
+			else if (depth === 0) own += char;
+		}
+		if (/(?:^|[,\s])\.\.\./.test(own)) continue;
+		if (/(?:^|[,\s])(?:words|'words'|"words")\s*(?::|,|$)/.test(own)) continue;
+		const key = own.match(/(?:^|[,\s])key\s*:\s*(['"`])([^'"`]*)\1/)?.[2];
+		found.push(
+			`a sequence sort key${key ? ` "${key}"` : ''} that names neither order: give it words (line ${lineAt(text, at)})`
+		);
+	}
+	return found;
 }
 
 /** The opening tags of a component in a source's markup. */

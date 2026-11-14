@@ -191,6 +191,7 @@ export {
 	takesPhoneSort,
 	untabbedBarActs,
 	unlabelledRegisterCells,
+	unwordedSequenceSorts,
 	vanishingDarkEdges,
 	withoutComments
 } from './surface-rules';

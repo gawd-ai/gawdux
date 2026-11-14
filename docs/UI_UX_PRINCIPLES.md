@@ -327,7 +327,21 @@ direction, each order worded ("Due: latest first", "Name: A to Z"). A
 register's own order before a key is chosen reads "Default order". No
 register draws a phone sort of its own, and no register is given two.
 
-Guard: `registersWithoutPhoneSort`, which reads each register on its own.
+A key says its own orders. Each kind has words of its own: text reads "A to
+Z" and "Z to A", a date "latest first" and "earliest first", a number
+"highest first" and "lowest first". A key gives its own in their place with
+`words` (`ListSortWords`): `{ asc: 'best first', desc: 'worst first',
+first: 'desc' }` reads "Health: worst first", then "Health: best first". A
+sequence (`order: 'sequence'`) is the app's own order, a schedule's states
+or a health from worst to best, and only the app knows what its two ends
+mean, so a sequence key always gives its words. One that gives none reads
+"first to last" and "last to first", and is reported. `listSortWords` gives
+one order's words to a line that says how a register is sorted.
+
+Guard: `registersWithoutPhoneSort`, which reads each register on its own,
+and `unwordedSequenceSorts`, which lists every sequence key written with no
+words (`listSortKeyFaults` reads the keys themselves, for keys no source
+writes out).
 Heads whose toolbar is another file's are listed with why, and the runner
 checks that file takes the sort, a query bar's or a list toolbar's
 (`rules.phoneSorts`, `takesPhoneSort`). The list allows a file only its

@@ -66,6 +66,11 @@
  *   `ListSurface` and `ListPageScaffold` pass on). `registersWithoutPhoneSort`
  *   lists every register that does not, every phone sort a host draws
  *   itself, and a register given two.
+ * - A sequence key says its own orders. A sort key that orders as a sequence
+ *   of the host's own gives the words of its two orders
+ *   (`ListSortKey.words`), since the kind's own name no order a reader
+ *   knows. `unwordedSequenceSorts` lists every sequence key written with
+ *   none.
  * - The bar holds the open tab's acts. On a tabbed page every act in the
  *   command bar names its tab (`PageCommandBarCenter`'s `tab`, a scaffold
  *   act's `tab`), so it shows only while its tab is open and a tab with no
@@ -342,6 +347,18 @@ export declare function readableDashes(source: string, options?: {
  * `ListPageScaffold`) taking a `sort`. A guard reads it over the file whose
  * toolbar serves heads another file draws. */
 export declare function takesPhoneSort(source: string): boolean;
+/**
+ * Every sort key a source writes as a sequence (`order: 'sequence'`) with no
+ * words for its two orders (`ListSortKey.words`). A sequence is the host's
+ * own order (a schedule's states, a health from worst to best), so the phone
+ * sort can only say "first to last" and "last to first" for it, which name
+ * no order a reader knows: the key names them (`words: { asc: 'best first',
+ * desc: 'worst first' }`). It reads the code and the markup with comments
+ * left out, and judges an object only on what it writes out: one that takes
+ * a spread may hold its words there and is passed. A key built where no
+ * literal shows its kind is held by `listSortKeyFaults` over the keys.
+ */
+export declare function unwordedSequenceSorts(source: string, file?: string): string[];
 /**
  * The stock lines a source gives a pane header as its second line: a
  * `PaneHeader`'s `subtitle` that is a quoted string or has one as a branch,

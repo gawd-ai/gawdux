@@ -42,6 +42,11 @@ describe('the rulebook', () => {
 		expect(sort).toContain("`FilterBar`'s `sort`, which `ListSurface` and `ListPageScaffold` pass on");
 		expect(sort).toContain('`registersWithoutPhoneSort`');
 		expect(sort).toContain('`takesPhoneSort`');
+		// A key says its own orders, and a sequence key with none is reported.
+		expect(sort).toContain('`words`');
+		expect(sort).toContain('`unwordedSequenceSorts`');
+		expect(sort).toContain('`listSortKeyFaults`');
+		expect(sort).not.toContain('in reverse order');
 	});
 
 	it('names only tokens and classes the stylesheet defines', () => {
@@ -61,7 +66,7 @@ describe('the rulebook', () => {
 		const names = named.filter((name) => /^(?:[A-Z][a-z]\w*|[A-Z][A-Z_]+)$/.test(name));
 		expect(names.length).toBeGreaterThan(40);
 		// A type has no value to import.
-		const types = new Set(['ListSort']);
+		const types = new Set(['ListSort', 'ListSortWords']);
 		expect([...new Set(names)].filter((name) => !exports.has(name) && !types.has(name))).toEqual([]);
 		// The helpers it names.
 		for (const name of [
@@ -76,6 +81,8 @@ describe('the rulebook', () => {
 			'createMessageCenter',
 			'savedViewsRailShows',
 			'listSortOptions',
+			'listSortWords',
+			'listSortKeyFaults',
 			'fitLabels',
 			'scrollEdges',
 			'breadcrumbWords',

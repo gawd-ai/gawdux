@@ -2,7 +2,8 @@
 	ListPhoneSort: a register's sort as the house phone sort, drawn by
 	FilterBar under its filter row (FilterBar's `sort`, which ListSurface and
 	ListPageScaffold pass on). "Sort by" and one choice per key and direction,
-	each order worded (A to Z, latest first: `listSortOptions`); before a key
+	each order worded (A to Z, latest first, or the key's own words, "worst
+	first": `listSortOptions`); before a key
 	is chosen it reads the register's own order. Choosing one writes the
 	register's sort at once, as a click on a column's head does, through the
 	sort's `onsort`; it is not staged with the filters.

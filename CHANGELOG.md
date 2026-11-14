@@ -1,5 +1,45 @@
 # Changelog
 
+## 0.46.0 - a sort key says its own orders
+
+### Added
+
+- `ListSortKey.words` (`ListSortWords`, `gawdux/primitives`): the words of a
+  sort key's two orders, in place of its kind's:
+  `{ asc: 'best first', desc: 'worst first', first: 'desc' }` reads "Health:
+  worst first", then "Health: best first". `first` is the order offered
+  first; with none it is the kind's own (ascending for text and a sequence,
+  descending for a date and a number). Any kind of key may give them. Both
+  phone sorts read them, a list toolbar's (`FilterBar`'s `sort`, through
+  `ListSurface` and `ListPageScaffold`) and `ListQueryBar`'s, since both
+  word their choices with `listSortOptions`. A word left blank falls back
+  to the kind's, so no choice ends at its colon.
+- `listSortWords(keys, field, direction)` (`gawdux/primitives`): one order's
+  words as the phone sort says them, for a line that says how a register is
+  sorted; null for a field not among the keys.
+- `listSortKeyFaults(keys)` (`gawdux/primitives`): what is wrong with the
+  words of a sort's keys, for a host's test to hold to none: a `sequence`
+  key with no words, a key whose words leave an order blank, and one whose
+  two orders read the same.
+- `unwordedSequenceSorts(source, file)` (`gawdux/utils`): a reader that
+  lists every sort key a source writes as a sequence (`order: 'sequence'`)
+  with no `words`, by its key and its line. It reads code and markup with
+  comments left out, and judges an object only on what it writes out: one
+  that takes a spread is passed. It runs through the house rule runner as
+  it stands (`rules.findings(unwordedSequenceSorts)`).
+
+### Changed
+
+- A `sequence` key that gives no words reads "first to last" and "last to
+  first", where it read "in order" and "in reverse order". No default reads
+  "in reverse order" any more. The words of text, a date and a number are
+  unchanged ("A to Z" and "Z to A", "latest first" and "earliest first",
+  "highest first" and "lowest first"). A sequence is the host's own order,
+  so a host gives each sequence key its words; the two readers above report
+  one that does not.
+- The rulebook's phone sort section says a key names its own orders and
+  names the guard.
+
 ## 0.45.0 - the tab icon table, the house rule runner and the rulebook
 
 ### Added

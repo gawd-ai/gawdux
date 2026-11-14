@@ -720,6 +720,36 @@ register that sorts by its heads with neither, or with both. It reads each
 register on its own: each list holding sortable heads, and the heads no
 list holds, a snippet's heads read where it is drawn.
 
+A key says its own orders. Each kind has its words (text "A to Z" and "Z to
+A", a date "latest first" and "earliest first", a number "highest first"
+and "lowest first"), and a key gives its own in their place:
+
+```ts
+const keys: ListSortKey[] = [
+  { key: 'name', label: 'Name' },
+  { key: 'seen', label: 'Last seen', order: 'date' },
+  {
+    key: 'health',
+    label: 'Health',
+    order: 'sequence',
+    words: { asc: 'best first', desc: 'worst first', first: 'desc' }
+  }
+];
+```
+
+The phone sort then offers "Health: worst first" and "Health: best first",
+the order named by `first` leading (the kind's own first order when it
+names none: ascending for text and a sequence, descending for a date and a
+number). A `sequence` key is the app's own order, so it always gives its
+words; with none it reads "first to last" and "last to first" (it read "in
+order" and "in reverse order" before 0.46.0) and is reported:
+`unwordedSequenceSorts(source, file)` (`gawdux/utils`) lists every sequence
+key a source writes with no words, a reader for the house rule runner
+(`rules.findings(unwordedSequenceSorts)`), and `listSortKeyFaults(keys)`
+(`gawdux/primitives`) reads the keys themselves: a sequence key with no
+words, a blank word, and two orders that read the same.
+`listSortWords(keys, field, direction)` gives one order's words.
+
 ## The house rules
 
 [docs/UI_UX_PRINCIPLES.md](docs/UI_UX_PRINCIPLES.md) is the rulebook: every

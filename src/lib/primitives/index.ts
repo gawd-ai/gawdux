@@ -164,7 +164,8 @@ export type {
 	ListSort,
 	ListSortDirection,
 	ListSortKey,
-	ListSortOrder
+	ListSortOrder,
+	ListSortWords
 } from './list-query';
-export { listSortOptions } from './list-query';
+export { listSortKeyFaults, listSortOptions, listSortWords } from './list-query';
 export type { FilterPill } from './FilterPillRow.svelte';
