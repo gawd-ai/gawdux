@@ -6,6 +6,7 @@ export {
 	componentStylesheet,
 	componentStylesheets,
 	createGeometry,
+	hostPackage,
 	launchGeometry,
 	mountAt,
 	openAt

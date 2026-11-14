@@ -52,6 +52,14 @@ export interface Geometry {
 }
 /** The viewports the phone geometry is held at: two phones, a tablet, a desk. */
 export declare const GEOMETRY_WIDTHS: readonly [360, 390, 900, 1440];
+/**
+ * A package the harness runs, taken from the host's own install: the
+ * stylesheet is the host's, so the Tailwind that compiles it, the bundler
+ * and the browser driver are the ones the host installed, never a copy that
+ * sits beside this library (a carried or linked tree installs its own
+ * development packages, of other versions).
+ */
+export declare function hostPackage<T>(root: string, specifier: string): Promise<T>;
 /** A headless Chromium of the revision the installed playwright-core expects. */
 export declare function launchGeometry(from?: string): Promise<Browser>;
 /**

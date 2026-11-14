@@ -10,21 +10,35 @@
  * `mountAt`).
  *
  * Node only: test support, never imported by a page. It needs
- * playwright-core, esbuild and @tailwindcss/node beside the test runner.
+ * playwright-core, esbuild and @tailwindcss/node in the host's install
+ * (`root`): each is resolved from there.
  */
 import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { compile as compileSvelte } from 'svelte/compiler';
 import { geometryChromium } from './chromium.js';
 /** The viewports the phone geometry is held at: two phones, a tablet, a desk. */
 export const GEOMETRY_WIDTHS = [360, 390, 900, 1440];
+/**
+ * A package the harness runs, taken from the host's own install: the
+ * stylesheet is the host's, so the Tailwind that compiles it, the bundler
+ * and the browser driver are the ones the host installed, never a copy that
+ * sits beside this library (a carried or linked tree installs its own
+ * development packages, of other versions).
+ */
+export async function hostPackage(root, specifier) {
+    const require = createRequire(path.join(path.resolve(root), 'package.json'));
+    return (await import(pathToFileURL(require.resolve(specifier)).href));
+}
 /** A headless Chromium of the revision the installed playwright-core expects. */
 export async function launchGeometry(from = process.cwd()) {
     const found = geometryChromium(from);
     if (!found.ok)
         throw new Error(`No Chromium for the geometry tests: ${found.reason}`);
-    const { chromium } = await import('playwright-core');
+    const { chromium } = await hostPackage(from, 'playwright-core');
     return chromium.launch({ headless: true, executablePath: found.executablePath });
 }
 /** Every class token in the markup: the candidates Tailwind builds utilities for. */
@@ -196,7 +210,7 @@ export function createGeometry(options) {
         return target ? path.join(at, target) : null;
     }
     async function appStylesheet(html) {
-        const { compile } = await import('@tailwindcss/node');
+        const { compile } = await hostPackage(root, '@tailwindcss/node');
         const entry = typeof options.stylesheet === 'string'
             ? {
                 css: await readFile(options.stylesheet, 'utf8'),
@@ -212,8 +226,8 @@ export function createGeometry(options) {
         return compiler.build(classCandidates(html));
     }
     async function clientBundle(file, props = {}) {
-        const { build, transform } = await import('esbuild');
-        const { compile, compileModule } = await import('svelte/compiler');
+        const { build, transform } = await hostPackage(root, 'esbuild');
+        const { compile, compileModule } = await hostPackage(root, 'svelte/compiler');
         const result = await build({
             stdin: {
                 contents: `import { mount } from 'svelte';\nimport Component from ${JSON.stringify(file)};\nmount(Component, { target: document.getElementById('host'), props: ${JSON.stringify(props)} });`,

@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.46.1 - the geometry harness runs the host's own packages
+
+### Fixed
+
+- `gawdux/test-support`: the geometry harness took `@tailwindcss/node`,
+  `esbuild`, `playwright-core` and the Svelte compiler from beside the
+  library. In a host that carries or links the library, an install puts the
+  library's own development packages there, of other versions, so the
+  host's stylesheet was compiled by another Tailwind than the host's and
+  could be refused (a newer `@source` form under an older Tailwind). Each is
+  now resolved from the host's `root`.
+
+### Added
+
+- `hostPackage(root, specifier)` in `gawdux/test-support`: a package taken
+  from the host's install, for test support a host writes beside the
+  harness.
+
 ## 0.46.0 - a sort key says its own orders
 
 ### Added

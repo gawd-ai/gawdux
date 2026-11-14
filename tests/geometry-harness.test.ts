@@ -14,6 +14,7 @@ import {
 	componentStylesheet,
 	geometryChromium,
 	geometrySkipReason,
+	hostPackage,
 	launchGeometry
 } from '../src/lib/test-support';
 
@@ -117,5 +118,32 @@ describe("a component's scoped rules for a server body", () => {
 		await expect(
 			componentStylesheet(file, '<div class="other svelte-zzz999"></div>', { fromMarkup: true })
 		).rejects.toThrow('No markup in the body carries the scoped classes of ShellBarEnd.svelte');
+	});
+});
+
+describe('the packages the harness runs are the host\'s own', () => {
+	let host: string;
+	beforeEach(() => {
+		host = mkdtempSync(path.join(tmpdir(), 'gawdux-host-'));
+		// A host that installed its own @tailwindcss/node: a stand-in module
+		// that says which copy it is.
+		const at = path.join(host, 'node_modules', '@tailwindcss', 'node');
+		mkdirSync(at, { recursive: true });
+		writeFileSync(path.join(host, 'package.json'), '{"name":"host","type":"module"}');
+		writeFileSync(path.join(at, 'package.json'), '{"name":"@tailwindcss/node","version":"9.9.9","type":"module","main":"index.js"}');
+		writeFileSync(path.join(at, 'index.js'), "export const copy = 'the host one';\n");
+	});
+	afterEach(() => rmSync(host, { recursive: true, force: true }));
+
+	it('takes a package from the root it is given, never the copy beside the library', async () => {
+		// This repository installs its own @tailwindcss/node too: a bare import
+		// from the harness would find that one, of another version than a host's.
+		expect(require.resolve('@tailwindcss/node')).not.toContain(host);
+		const found = await hostPackage<{ copy: string }>(host, '@tailwindcss/node');
+		expect(found.copy).toBe('the host one');
+	});
+
+	it('says which package a host has not installed', async () => {
+		await expect(hostPackage(host, 'esbuild-not-installed-here')).rejects.toThrow(/esbuild-not-installed-here/);
 	});
 });
