@@ -745,7 +745,10 @@ words; with none it reads "first to last" and "last to first" (it read "in
 order" and "in reverse order" before 0.46.0) and is reported:
 `unwordedSequenceSorts(source, file)` (`gawdux/utils`) lists every sequence
 key a source writes with no words, a reader for the house rule runner
-(`rules.findings(unwordedSequenceSorts)`), and `listSortKeyFaults(keys)`
+(`rules.findings(unwordedSequenceSorts)`): it reads code, never a page's
+words or a string's, passes a type, and reads any other object written with
+`order: 'sequence'` as a sort key, so one that is none is allowed in the
+runner with its reason; and `listSortKeyFaults(keys)`
 (`gawdux/primitives`) reads the keys themselves: a sequence key with no
 words, a blank word, and two orders that read the same.
 `listSortWords(keys, field, direction)` gives one order's words.

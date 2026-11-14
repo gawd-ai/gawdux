@@ -353,10 +353,19 @@ export declare function takesPhoneSort(source: string): boolean;
  * own order (a schedule's states, a health from worst to best), so the phone
  * sort can only say "first to last" and "last to first" for it, which name
  * no order a reader knows: the key names them (`words: { asc: 'best first',
- * desc: 'worst first' }`). It reads the code and the markup with comments
- * left out, and judges an object only on what it writes out: one that takes
- * a spread may hold its words there and is passed. A key built where no
- * literal shows its kind is held by `listSortKeyFaults` over the keys.
+ * desc: 'worst first' }`). It reads the code of a module, of a component's
+ * scripts and of its markup's expressions, comments left out: a page's own
+ * words, a string and a regular expression are never read as code, so a
+ * quote in them hides no key and a label's words decide nothing. It judges
+ * an object only on what it writes out: one that takes a spread may hold its
+ * words there and is passed. A type is no key: the body of an interface or
+ * of a type, a type joined to another (`&`, `|`), a type argument and a kind
+ * written as a member (`order: 'sequence';`) or as one of several
+ * (`'sequence' | 'text'`) are passed. Any other object written with
+ * `order: 'sequence'` is read as a sort key, whatever it is for: a host
+ * allows one that is none through the runner, with its reason. A key built
+ * where no literal shows its kind is held by `listSortKeyFaults` over the
+ * keys.
  */
 export declare function unwordedSequenceSorts(source: string, file?: string): string[];
 /**

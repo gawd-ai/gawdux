@@ -23,10 +23,20 @@
   two orders read the same.
 - `unwordedSequenceSorts(source, file)` (`gawdux/utils`): a reader that
   lists every sort key a source writes as a sequence (`order: 'sequence'`)
-  with no `words`, by its key and its line. It reads code and markup with
-  comments left out, and judges an object only on what it writes out: one
-  that takes a spread is passed. It runs through the house rule runner as
-  it stands (`rules.findings(unwordedSequenceSorts)`).
+  with no `words`, by its key and its line. It reads the code of a module,
+  of a component's scripts and of its markup's expressions, comments left
+  out: a page's own words, a string and a regular expression are never read
+  as code, so a quote in them hides no key and a label's words ("More ...",
+  "In other words") decide nothing. A property's name may be quoted
+  (`'order': 'sequence'`, `'words'`). It judges an object only on what it
+  writes out: one that takes a spread is passed. A type is no key: the body
+  of an interface or of a type, a type joined to another (`&`, `|`), a type
+  argument, a member that ends with a semicolon and a kind written as one
+  of several (`'sequence' | 'text'`) are passed. Any other object written
+  with `order: 'sequence'` is read as a sort key, whatever it is for: a
+  host allows one that is none through the runner, with its reason. It runs
+  through the house rule runner as it stands
+  (`rules.findings(unwordedSequenceSorts)`).
 
 ### Changed
 

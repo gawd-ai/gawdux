@@ -167,7 +167,20 @@ function opensRegex(prev, word) {
  * right after a colon is a URL's scheme and not a comment.
  */
 function commentRanges(source, file) {
+    return sourceRanges(source, file).comments;
+}
+/**
+ * The same pass as `commentRanges`, with what else it knows: where the
+ * source is code (a module, a script, a markup expression between its
+ * braces, the code a template literal holds), and where that code's strings
+ * lie (a quoted string, each written run of a template literal with its
+ * marks, a regular expression). Everything else is a page's words, its tags
+ * and its styles, where a quote opens nothing.
+ */
+function sourceRanges(source, file) {
     const ranges = [];
+    const strings = [];
+    const codes = [];
     const comment = (from, end) => {
         ranges.push([from, end]);
         return end;
@@ -207,22 +220,34 @@ function commentRanges(source, file) {
     };
     const template = (at, to) => {
         let j = at + 1;
+        let run = at;
         while (j < to) {
             const char = source[j];
             if (char === '\\')
                 j += 2;
-            else if (char === '`')
+            else if (char === '`') {
+                strings.push([run, j + 1]);
                 return j + 1;
-            else if (char === '$' && source[j + 1] === '{')
-                j = code(j + 2, to, true) + 1;
+            }
+            else if (char === '$' && source[j + 1] === '{') {
+                strings.push([run, j + 2]);
+                run = Math.min(code(j + 2, to, true), to);
+                j = run + 1;
+            }
             else
                 j++;
         }
+        strings.push([run, to]);
         return to;
     };
     // Code: a module, a script, an expression. With `untilBrace` it stops at
     // the brace that closes the expression it opened in, and returns where.
     function code(from, to, untilBrace) {
+        const end = codeTo(from, to, untilBrace);
+        codes.push([from, end]);
+        return end;
+    }
+    function codeTo(from, to, untilBrace) {
         let depth = 0;
         let prev = '';
         let word = '';
@@ -239,7 +264,10 @@ function commentRanges(source, file) {
                 continue;
             }
             if (char === '"' || char === "'" || char === '`') {
-                j = char === '`' ? template(j, to) : quoted(j, to);
+                const end = char === '`' ? template(j, to) : quoted(j, to);
+                if (char !== '`')
+                    strings.push([j, end]);
+                j = end;
                 prev = 'a';
                 word = '';
                 continue;
@@ -250,6 +278,7 @@ function commentRanges(source, file) {
                 !/\burl\(\s*$/i.test(source.slice(Math.max(from, j - 8), j))) {
                 const end = regex(j, to);
                 if (end > j + 1) {
+                    strings.push([j, end]);
                     j = end;
                     prev = 'a';
                     word = '';
@@ -382,7 +411,7 @@ function commentRanges(source, file) {
         markup(0, source.length);
     else
         code(0, source.length, false);
-    return ranges;
+    return { comments: ranges, strings, code: codes };
 }
 /**
  * A source with its comments removed, so prose about a shadow is not one.
@@ -2381,88 +2410,145 @@ export function takesPhoneSort(source) {
         (PHONE_SORT_TOOLBARS.has(tag.name) || PHONE_SORT_HOLDERS.has(tag.name)) &&
         takesSort(tag.raw));
 }
-/** A sort key's kind written as a sequence: `order: 'sequence'`. */
-const SEQUENCE_ORDER = /(?<![\w$.])order\s*:\s*(['"`])sequence\1/g;
+/** A sort key's kind written as a sequence: `order: 'sequence'`, its name quoted or not. */
+const SEQUENCE_ORDER = /(?<![\w$.'"])(?:order|(['"])order\1)\s*:\s*(['"`])sequence\2/g;
+/** What opens a type's body and never an object: an interface, a type's own braces, a type argument. */
+const INTERFACE_OPENER = /\binterface\s+[\w$]+\s*(?:<[^{}]*>)?\s*(?:extends\s[^{}]*)?$/;
+const TYPE_OPENER = /\btype\s+[\w$]+\s*(?:<[^{}=]*>)?\s*=[^{};=]*$/;
+const TYPE_JOIN = /(?:(?<![&|])[&|]|<)\s*$/;
+/** A string where an object's own properties are read, and a nested object, list or call. */
+const STRING_MARK = '\u0000';
+const NESTED_MARK = '\u0001';
 /**
  * Every sort key a source writes as a sequence (`order: 'sequence'`) with no
  * words for its two orders (`ListSortKey.words`). A sequence is the host's
  * own order (a schedule's states, a health from worst to best), so the phone
  * sort can only say "first to last" and "last to first" for it, which name
  * no order a reader knows: the key names them (`words: { asc: 'best first',
- * desc: 'worst first' }`). It reads the code and the markup with comments
- * left out, and judges an object only on what it writes out: one that takes
- * a spread may hold its words there and is passed. A key built where no
- * literal shows its kind is held by `listSortKeyFaults` over the keys.
+ * desc: 'worst first' }`). It reads the code of a module, of a component's
+ * scripts and of its markup's expressions, comments left out: a page's own
+ * words, a string and a regular expression are never read as code, so a
+ * quote in them hides no key and a label's words decide nothing. It judges
+ * an object only on what it writes out: one that takes a spread may hold its
+ * words there and is passed. A type is no key: the body of an interface or
+ * of a type, a type joined to another (`&`, `|`), a type argument and a kind
+ * written as a member (`order: 'sequence';`) or as one of several
+ * (`'sequence' | 'text'`) are passed. Any other object written with
+ * `order: 'sequence'` is read as a sort key, whatever it is for: a host
+ * allows one that is none through the runner, with its reason. A key built
+ * where no literal shows its kind is held by `listSortKeyFaults` over the
+ * keys.
  */
 export function unwordedSequenceSorts(source, file) {
-    // Comments left out with their line breaks kept, so a finding names the source's own line.
-    let text = '';
-    let from = 0;
-    for (const [start, end] of commentRanges(source, file)) {
-        text += source.slice(from, start) + source.slice(start, end).replace(/[^\n]/g, '');
-        from = end;
+    const ranges = sourceRanges(source, file);
+    // What is code, comments left out, and which of it is a string: the same length as the
+    // source, so a finding names the source's own line.
+    const isCode = new Uint8Array(source.length);
+    for (const [from, to] of ranges.code)
+        isCode.fill(1, from, to);
+    for (const [from, to] of ranges.comments)
+        isCode.fill(0, from, to);
+    const stringEnds = new Map();
+    const inString = new Uint8Array(source.length);
+    for (const [from, to] of ranges.strings) {
+        stringEnds.set(from, to);
+        inString.fill(1, from, to);
     }
-    text += source.slice(from);
-    const found = [];
-    // Every brace pair outside a string, so each key is read in the object that writes it.
-    // A quote left open at its line's end is an apostrophe in a page's words, not a string.
+    let text = '';
+    for (let i = 0; i < source.length; i++)
+        text += isCode[i] || source[i] === '\n' ? source[i] : ' ';
+    // A string's own words, when it is a plain one that closes.
+    const literal = (from) => {
+        const to = stringEnds.get(from);
+        if (to === undefined || to - from < 2 || text[to - 1] !== text[from])
+            return undefined;
+        return text[from] === '/' ? undefined : text.slice(from + 1, to - 1);
+    };
+    // Every brace pair of the code, a string's braces left out, so each key is read in the
+    // object that writes it.
     const pairs = [];
     const open = [];
-    let quote = null;
     for (let i = 0; i < text.length; i++) {
-        const char = text[i];
-        if (quote) {
-            if (char === '\\')
-                i++;
-            else if (char === quote || (char === '\n' && quote !== '`'))
-                quote = null;
+        if (!isCode[i] || inString[i])
             continue;
-        }
-        if (char === '"' || char === "'" || char === '`')
-            quote = char;
-        else if (char === '{')
+        if (text[i] === '{')
             open.push(i);
-        else if (char === '}' && open.length > 0)
+        else if (text[i] === '}' && open.length > 0)
             pairs.push([open.pop(), i]);
     }
+    const found = [];
     for (const match of text.matchAll(SEQUENCE_ORDER)) {
         const at = match.index;
+        // Written in a string, it is that string's words.
+        if (inString[at] && !(match[1] && stringEnds.has(at)))
+            continue;
+        // One kind of several, or a member that ends as a type's does.
+        if (/^\s*[;|]/.test(text.slice(at + match[0].length)))
+            continue;
         // The innermost object that holds it: of the pairs around it, the one that opens last.
         let holder = null;
-        for (const pair of pairs)
-            if (pair[0] < at && pair[1] > at && (!holder || pair[0] > holder[0]))
+        let typed = false;
+        for (const pair of pairs) {
+            if (pair[0] >= at || pair[1] <= at)
+                continue;
+            if (!holder || pair[0] > holder[0])
                 holder = pair;
-        if (!holder)
+            const before = text.slice(Math.max(0, pair[0] - 400), pair[0]);
+            if (INTERFACE_OPENER.test(before) || TYPE_OPENER.test(before))
+                typed = true;
+        }
+        if (!holder || typed)
             continue;
-        // The object's own properties: what its nested objects, lists and calls hold is theirs.
+        if (TYPE_JOIN.test(text.slice(Math.max(0, holder[0] - 400), holder[0])))
+            continue;
+        // The object's own properties: what its nested objects, lists and calls hold is theirs,
+        // and a string is its place alone, its words kept apart.
         let own = '';
+        const literals = [];
         let depth = 0;
-        quote = null;
         for (let i = holder[0] + 1; i < holder[1]; i++) {
-            const char = text[i];
-            if (quote) {
-                if (char === '\\')
-                    i++;
-                else if (char === quote || (char === '\n' && quote !== '`'))
-                    quote = null;
-                if (depth === 0)
-                    own += char;
+            const end = stringEnds.get(i);
+            if (end !== undefined && end > i) {
+                if (depth === 0) {
+                    own += STRING_MARK;
+                    literals.push(literal(i));
+                }
+                i = end - 1;
                 continue;
             }
-            if (char === '"' || char === "'" || char === '`')
-                quote = char;
-            if (char === '{' || char === '[' || char === '(')
+            const char = text[i];
+            if (char === '{' || char === '[' || char === '(') {
+                if (depth === 0)
+                    own += NESTED_MARK;
                 depth++;
+            }
             else if (char === '}' || char === ']' || char === ')')
                 depth--;
             else if (depth === 0)
                 own += char;
         }
+        // A body whose members end with a semicolon is a type's.
+        if (own.includes(';'))
+            continue;
         if (/(?:^|[,\s])\.\.\./.test(own))
             continue;
-        if (/(?:^|[,\s])(?:words|'words'|"words")\s*(?::|,|$)/.test(own))
+        // Each property the object writes: its name, bare or quoted, and what it is given.
+        let worded = false;
+        let key;
+        let strings = 0;
+        for (const part of own.split(',')) {
+            const property = part.match(new RegExp(`^\\s*(?:(?:get|async)\\s+)?(?:([\\w$]+)|${STRING_MARK})\\s*(?:$|${NESTED_MARK}|\\??:\\s*(${STRING_MARK})?)`));
+            if (property) {
+                const name = property[1] ?? literals[strings];
+                if (name === 'words')
+                    worded = true;
+                else if (name === 'key' && property[2])
+                    key = literals[strings + (property[1] ? 0 : 1)];
+            }
+            strings += part.split(STRING_MARK).length - 1;
+        }
+        if (worded)
             continue;
-        const key = own.match(/(?:^|[,\s])key\s*:\s*(['"`])([^'"`]*)\1/)?.[2];
         found.push(`a sequence sort key${key ? ` "${key}"` : ''} that names neither order: give it words (line ${lineAt(text, at)})`);
     }
     return found;

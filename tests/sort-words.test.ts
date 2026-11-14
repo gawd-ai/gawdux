@@ -158,6 +158,80 @@ describe('a sequence key with no words is reported', () => {
 		).toEqual(['a sequence sort key "state" that names neither order: give it words (line 1)']);
 	});
 
+	const KEY = "{ key: 'state', label: 'State', order: 'sequence' }";
+	const reported = (line: number) => [`a sequence sort key "state" that names neither order: give it words (line ${line})`];
+
+	it("on what a key writes out, never on a string's words", () => {
+		for (const label of ['In other words, state', 'Key words: all', 'More ...', '...', 'words', "a 'words': b"])
+			expect(
+				unwordedSequenceSorts(`const keys = [{ key: 'state', label: ${JSON.stringify(label)}, order: 'sequence' }];`, 'keys.ts'),
+				label
+			).toEqual(reported(1));
+		// A key's name is the one it writes, not one a string holds.
+		expect(unwordedSequenceSorts(`const keys = [{ label: "say key: 'x' here", order: 'sequence' }];`, 'keys.ts')).toEqual([
+			'a sequence sort key that names neither order: give it words (line 1)'
+		]);
+		expect(unwordedSequenceSorts(`const keys = [{ label: "key: 'x'", key: 'state', order: 'sequence' }];`, 'keys.ts')).toEqual(reported(1));
+		// A string that only holds the kind's words is no key.
+		expect(unwordedSequenceSorts(`const note = { hint: "write order: 'sequence' here" };`, 'keys.ts')).toEqual([]);
+	});
+
+	it('with its properties quoted', () => {
+		expect(unwordedSequenceSorts(`const keys = [{ 'key': 'state', label: 'State', 'order': 'sequence' }];`, 'keys.ts')).toEqual(reported(1));
+		expect(unwordedSequenceSorts(`const keys = [{ key: 'state', "order": "sequence" }];`, 'keys.ts')).toEqual(reported(1));
+		expect(
+			unwordedSequenceSorts(`const keys = [{ key: 'state', 'order': 'sequence', 'words': { asc: 'a', desc: 'b' } }];`, 'keys.ts')
+		).toEqual([]);
+		expect(unwordedSequenceSorts(`const keys = [{ key: 'state', order: 'sequence', get words() { return w; } }];`, 'keys.ts')).toEqual([]);
+		// A value named words is not the property.
+		expect(unwordedSequenceSorts(`const keys = [{ key: 'state', label: words, order: 'sequence' }];`, 'keys.ts')).toEqual(reported(1));
+	});
+
+	it("after a quote in a page's words, a tag's value or a regular expression", () => {
+		const sort = `<X sort={{ keys: [${KEY}], field, direction, onsort }} />`;
+		expect(unwordedSequenceSorts(`<p>Don't</p> ${sort}`, 'Page.svelte')).toEqual(reported(1));
+		expect(unwordedSequenceSorts(`<p>It's here ${sort}</p>`, 'Page.svelte')).toEqual(reported(1));
+		expect(unwordedSequenceSorts(`<p title="Don't">a</p> ${sort}`, 'Page.svelte')).toEqual(reported(1));
+		expect(unwordedSequenceSorts(`<p>a \` b</p>\n<p>more</p>\n${sort}`, 'Page.svelte')).toEqual(reported(3));
+		expect(unwordedSequenceSorts(`<p>a { b</p>\n${sort}`, 'Page.svelte')).toHaveLength(1);
+		expect(unwordedSequenceSorts(`const r = /'/; const keys = [${KEY}];`, 'keys.ts')).toEqual(reported(1));
+		expect(unwordedSequenceSorts(`const r = /[{"]/; const keys = [${KEY}];`, 'keys.ts')).toEqual(reported(1));
+		expect(unwordedSequenceSorts(`const t = \`it's \${n} {\`; const keys = [${KEY}];`, 'keys.ts')).toEqual(reported(1));
+		// A page's words that read like a key are words.
+		expect(unwordedSequenceSorts(`<p>Write { order: 'sequence' } for a sequence</p>`, 'Page.svelte')).toEqual([]);
+	});
+
+	it('never over a type', () => {
+		for (const source of [
+			"type StateKey = { key: string; label: string; order: 'sequence' };",
+			"type StateKey = { key: string, label: string, order: 'sequence' }",
+			"interface K { key: string; order: 'sequence' }",
+			"interface K { order: 'sequence' }",
+			"export interface K<T> extends ListSortKey { order: 'sequence' }",
+			"type T = { order: 'sequence' | 'text' };",
+			"type Seq = ListSortKey & { order: 'sequence' };",
+			"type Seq = { order: 'sequence' } | ListSortKey;",
+			"type Keys = Array<{ key: string, order: 'sequence' }>;",
+			"type Page = { sort: { keys: { key: string, order: 'sequence' }[] } };",
+			"function sorted(key: ListSortKey & { order: 'sequence' }) {}",
+			"const keys: { key: string; order: 'sequence' }[] = [];"
+		]) {
+			expect(unwordedSequenceSorts(source, 'keys.ts'), source).toEqual([]);
+			expect(unwordedSequenceSorts(`<script lang="ts">\n${source}\n</script>\n<p>a</p>`, 'Page.svelte'), source).toEqual([]);
+		}
+		// A key written after a type is still read.
+		expect(unwordedSequenceSorts(`type Seq = ListSortKey & { order: 'sequence' };\nconst keys: Seq[] = [${KEY}];`, 'keys.ts')).toEqual(
+			reported(2)
+		);
+		expect(unwordedSequenceSorts(`interface K { order: 'sequence' }\nexport const keys = [${KEY}];`, 'keys.ts')).toEqual(reported(2));
+	});
+
+	it('over any other object written as a sequence, which a host allows with its reason', () => {
+		expect(unwordedSequenceSorts("const step = { id: 1, order: 'sequence' };", 'steps.ts')).toEqual([
+			'a sequence sort key that names neither order: give it words (line 1)'
+		]);
+	});
+
 	it("finds none in the library's own sources", () => {
 		const rules = createHouseRules(path.resolve(import.meta.dirname, '../src/lib'));
 		expect(rules.findings((source, rel) => unwordedSequenceSorts(source, rel))).toEqual({});
