@@ -1075,6 +1075,18 @@ div.inline-flex.items-center.justify-center.font-medium {
   max-width: var(--gawdux-panel-wide-max-width);
 }
 @media (max-width: 1024px) {
+  .card-header:has(> .card-header-tools) {
+    flex-wrap: wrap;
+    row-gap: 0.5rem;
+  }
+  .card-header-tools {
+    flex-grow: 1;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    row-gap: 0.5rem;
+  }
+}
+@media (max-width: 1024px) {
   .responsive-list-page .filter-row {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr));

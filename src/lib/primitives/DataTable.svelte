@@ -141,7 +141,7 @@
 				<h3 class="card-header-title">{title}</h3>
 			{/if}
 			{#if header || link}
-				<div class="ml-auto flex min-w-0 items-center gap-2">
+				<div class="card-header-tools ml-auto flex min-w-0 items-center gap-2">
 					{#if header}{@render header()}{/if}
 					{#if link}
 						<SectionLink

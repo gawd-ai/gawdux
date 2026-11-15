@@ -1487,6 +1487,28 @@ div.inline-flex.items-center.justify-center.font-medium {
 	max-width: var(--gawdux-panel-wide-max-width); /* default 72rem, Tailwind max-w-6xl */
 }
 
+/* ---------- A card header's tools on a phone ---------- */
+/* What a DataTable's card header holds beside its title (a freshness note,
+   a filter row, a search) stands on one line where it fits. At or below the
+   compact width it wraps instead: the tools go under the title when the
+   line cannot hold both, and each tool that does not fit beside the one
+   before it starts a new line. A filter row is a sideways scroller that may
+   shrink to nothing, so on one line with a fixed-width search it was drawn
+   0 px wide and the search ran past the card's edge. Wrapping is decided on
+   each tool's own width, so a header that fits keeps its one line. */
+@media (max-width: 1024px) {
+	.card-header:has(> .card-header-tools) {
+		flex-wrap: wrap;
+		row-gap: 0.5rem;
+	}
+	.card-header-tools {
+		flex-grow: 1;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+		row-gap: 0.5rem;
+	}
+}
+
 /* ---------- A register on a phone: its rows are cards ---------- */
 /* A register is a dense table above the compact width. At or below it every
    register's table (the table in a ListSurface's scroller, `.list-table-scroll`,

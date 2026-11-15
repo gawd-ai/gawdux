@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.47.1 - a card header's tools wrap on a phone
+
+### Fixed
+
+- A DataTable's card header that holds a filter row and a search beside its
+  title (`header`): at or below the compact width the tools wrap, under the
+  title when the line cannot hold both and each onto a new line when it
+  does not fit beside the one before it. On one line at 390 the filter row,
+  a sideways scroller that may shrink, was drawn 0 px wide and a
+  fixed-width search ran past the card's edge. A header that fits keeps its
+  one line, and nothing wraps above the compact width. The tools' wrapper
+  carries `card-header-tools`. `tests/card-header-tools.geometry.test.ts`
+  measures it in Chromium at 390, 360 and 1440 (two tests shown failing
+  first without the rule).
+
 ## 0.47.0 - a card's register on a phone: its sort, and cells as tall as their values
 
 ### Added
