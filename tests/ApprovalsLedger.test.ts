@@ -179,6 +179,60 @@ describe('ApprovalsLedger', () => {
 		expect(document.querySelector('summary')).toBeNull();
 		expect(document.body.textContent).not.toContain('Approved with');
 	});
+
+	// A mark is the host's own short words about the signer ("Also corrected
+	// this record"): each is a part of its own after "Also signed", so two
+	// marks share one kind and the row still wraps between them.
+	it('draws each mark as a part of its own after "Also signed" and before the note', () => {
+		const [supplier, quality, owner] = ledger.rows;
+		renderLedger({
+			...ledger,
+			rows: [
+				supplier!,
+				{ ...quality!, marks: ['Also corrected this record', 'Also ran the calculation'] },
+				owner!
+			]
+		});
+		const marked = document.querySelector('[data-ledger-row][data-step="quality"]')!;
+		expect(
+			[...marked.querySelectorAll('[data-ledger-part]')].map((el) => [
+				el.getAttribute('data-ledger-part'),
+				el.textContent
+			])
+		).toEqual([
+			['role', 'Quality'],
+			['signer', 'Dana Owner (dana@example.test)'],
+			['meaning', 'Approved'],
+			['at', '2026-10-01 21:15:00 EDT'],
+			['also', 'Also signed Supplier'],
+			['marks', 'Also corrected this record'],
+			['marks', 'Also ran the calculation'],
+			['note', 'Content changed since signature']
+		]);
+		expect(marked.textContent?.replace(/\s+/g, ' ').trim()).toBe(
+			'Quality · Dana Owner (dana@example.test) · Approved · 2026-10-01 21:15:00 EDT · Also signed Supplier · Also corrected this record · Also ran the calculation · Content changed since signature'
+		);
+		// The marks wrap like any part, and each separator stays with the part
+		// before it.
+		for (const mark of marked.querySelectorAll('[data-ledger-part="marks"]'))
+			expect(mark.className).not.toMatch(/whitespace-nowrap/);
+		const between = [...marked.childNodes]
+			.filter((node) => node.nodeType === Node.TEXT_NODE)
+			.map((node) => node.textContent ?? '')
+			.filter((text) => text.trim().length > 0);
+		expect(between).toEqual(Array(7).fill(LEDGER_PART_SEPARATOR));
+		// The rows without marks read as they did.
+		expect(document.querySelectorAll('[data-ledger-part="marks"]')).toHaveLength(2);
+	});
+
+	it('draws a row with no marks, or an empty list, exactly as before', () => {
+		renderLedger();
+		const before = document.body.innerHTML;
+		again();
+		renderLedger({ ...ledger, rows: ledger.rows.map((r) => ({ ...r, marks: [] })) });
+		expect(document.body.innerHTML).toBe(before);
+		expect(document.querySelector('[data-ledger-part="marks"]')).toBeNull();
+	});
 });
 
 describe('ledgerRowText', () => {
@@ -204,6 +258,66 @@ describe('ledgerRowText', () => {
 		).toEqual([
 			{ kind: 'role', text: 'Supplier' },
 			{ kind: 'note', text: 'Awaiting Quality' }
+		]);
+	});
+
+	it('puts each mark after "Also signed" and before the note, a blank mark left out', () => {
+		const marked = row({
+			alsoSigned: ['Quality'],
+			marks: ['Also corrected this record', '', '  ', 'Also wrote the code'],
+			note: 'Content changed since signature'
+		});
+		expect(ledgerRowParts(marked, stamp)).toEqual([
+			{ kind: 'role', text: 'Supplier' },
+			{ kind: 'signer', text: 'Dana Owner (dana@example.test)' },
+			{ kind: 'meaning', text: 'Reviewed' },
+			{ kind: 'at', text: 'at 2026-10-02T01:15:00.000Z' },
+			{ kind: 'also', text: 'Also signed Quality' },
+			{ kind: 'marks', text: 'Also corrected this record' },
+			{ kind: 'marks', text: 'Also wrote the code' },
+			{ kind: 'note', text: 'Content changed since signature' }
+		]);
+		expect(ledgerRowText(marked, stamp)).toBe(
+			'Supplier · Dana Owner (dana@example.test) · Reviewed · at 2026-10-02T01:15:00.000Z · Also signed Quality · Also corrected this record · Also wrote the code · Content changed since signature'
+		);
+		// With no "Also signed", the marks follow the moment.
+		expect(
+			ledgerRowParts(row({ marks: ['Also corrected this record'] }), stamp).map((part) => part.kind)
+		).toEqual(['role', 'signer', 'meaning', 'at', 'marks']);
+		// The host words them, so a row not signed draws them too, before its note.
+		expect(
+			ledgerRowText(
+				row({
+					state: 'withdrawn',
+					signer: null,
+					marks: ['Also corrected this record'],
+					note: 'Withdrawn'
+				}),
+				stamp
+			)
+		).toBe('Supplier · Also corrected this record · Withdrawn');
+	});
+
+	it('reads a row with no marks, or an empty list, exactly as before', () => {
+		const rows = [
+			row({ alsoSigned: ['Quality'], note: 'Content changed since signature' }),
+			row({}),
+			row({ state: 'awaiting', signer: null, note: 'Awaiting Quality' })
+		];
+		for (const plain of rows) {
+			expect('marks' in plain).toBe(false);
+			for (const marks of [[], [''], ['   ']]) {
+				expect(ledgerRowParts({ ...plain, marks }, stamp)).toEqual(ledgerRowParts(plain, stamp));
+				expect(ledgerRowText({ ...plain, marks }, stamp)).toBe(ledgerRowText(plain, stamp));
+			}
+		}
+		expect(ledgerRowParts(rows[0]!, stamp).map((part) => part.kind)).toEqual([
+			'role',
+			'signer',
+			'meaning',
+			'at',
+			'also',
+			'note'
 		]);
 	});
 

@@ -1,17 +1,20 @@
 // The approvals ledger: one compact block that says, one line per role, who
 // signed what and when, or why a role is not signed yet. Data in, words out:
-// the host composes every word (the row notes, the integrity sentence, the
-// "approved with" link) and pairs rows with signatures; the ledger draws them,
-// each moment at the zone it is given, named. Rendered by ApprovalsLedger.svelte
-// and its signatures table, ApprovalsLedgerSignatures.svelte.
+// the host composes every word (the row notes and marks, the integrity
+// sentence, the "approved with" link) and pairs rows with signatures; the
+// ledger draws them, each moment at the zone it is given, named. Rendered by
+// ApprovalsLedger.svelte and its signatures table,
+// ApprovalsLedgerSignatures.svelte.
 /**
  * One row in its parts, in order, a part the row does not carry left out: the
- * role, the signer, the meaning, the moment, "Also signed Supplier" and the
- * note (on a signed row that is not intact, its integrity words). An unsigned
- * row is its role and its note. `stamp` formats a moment at the site, zone
- * named. A surface draws each part as a run of its own, so the row wraps
- * between its parts and never inside the moment: a stamp broken inside itself
- * ("2026-10-21" over "14:03:11 EDT") reads as two facts.
+ * role, the signer, the meaning, the moment, "Also signed Supplier", each of
+ * the row's marks ("Also corrected this record") as a part of kind `marks`,
+ * and the note (on a signed row that is not intact, its integrity words). An
+ * unsigned row is its role, its marks and its note. A blank mark is left out.
+ * `stamp` formats a moment at the site, zone named. A surface draws each part
+ * as a run of its own, so the row wraps between its parts and never inside
+ * the moment: a stamp broken inside itself ("2026-10-21" over "14:03:11 EDT")
+ * reads as two facts.
  */
 export function ledgerRowParts(row, stamp) {
     const parts = [['role', row.role]];
@@ -26,6 +29,9 @@ export function ledgerRowParts(row, stamp) {
         if (row.alsoSigned.length > 0)
             parts.push(['also', `Also signed ${row.alsoSigned.join(', ')}`]);
     }
+    for (const mark of row.marks ?? [])
+        if (mark.trim())
+            parts.push(['marks', mark]);
     parts.push(['note', row.note]);
     return parts.flatMap(([kind, text]) => (text ? [{ kind, text }] : []));
 }
@@ -37,9 +43,9 @@ export function ledgerRowParts(row, stamp) {
 export const LEDGER_PART_SEPARATOR = '\u00a0· ';
 /**
  * One row as one line, its parts joined: "Quality · Jane Roe (jane@site) ·
- * Approved · 2026-10-21 14:03:11 EDT", then "Also signed Supplier" and, on a
- * signed row that is not intact, its integrity words. An unsigned row reads
- * its note.
+ * Approved · 2026-10-21 14:03:11 EDT", then "Also signed Supplier", the row's
+ * marks and, on a signed row that is not intact, its integrity words. An
+ * unsigned row reads its marks and its note.
  */
 export function ledgerRowText(row, stamp) {
     return ledgerRowParts(row, stamp)

@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.48.0 - marks on a ledger row
+
+### Added
+
+- `LedgerRow.marks` (`gawdux/primitives`): an optional list of short marks
+  the host words about a row, such as "Also corrected this record".
+  `ApprovalsLedger` draws each mark after "Also signed" and before the
+  row's note, as a part of its own (`data-ledger-part="marks"`), so the row
+  wraps between two marks as it does between its other parts. The host
+  words them, so a row that is not signed draws them too, before its note.
+  A blank mark is left out.
+- `ledgerRowParts` gives each mark as a part of kind `marks`, a kind
+  `LedgerRowPartKind` gains, and `ledgerRowText` reads the marks in the same
+  place, so the drawn row and the row written as text say the same words.
+- A row with no marks, or an empty list, draws and reads exactly as before.
+  `tests/ApprovalsLedger.test.ts` holds the parts with and without marks,
+  their place after "Also signed", the drawing and the row with none.
+
 ## 0.47.1 - a card header's tools wrap on a phone
 
 ### Fixed

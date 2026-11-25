@@ -1,7 +1,8 @@
 <!--
     The approvals ledger: one line per role of the workflow,
-    "Quality · Jane Roe (jane@site) · Approved · 2026-10-21 14:03:11 EDT", or
-    the role and why it is not signed yet. Each part is a run of its own: a
+    "Quality · Jane Roe (jane@site) · Approved · 2026-10-21 14:03:11 EDT", then
+    "Also signed Supplier" and the host's marks ("Also corrected this record"),
+    or the role and why it is not signed yet. Each part is a run of its own: a
     row wraps between its parts, never inside its moment. Under the rows: the integrity
     sentence, what the version was approved with, and a disclosure opening
     every signature, withdrawn ones kept. The host composes every word; this
@@ -52,8 +53,9 @@
 				<li data-ledger-row data-step={row.stepCode} data-state={row.state} class={tone(row)}>
 					<!-- The row's parts, each a run of its own: the row wraps between
 					     them, never inside the moment, and each separator stays with
-					     the part before it (LEDGER_PART_SEPARATOR). -->
-					{#each ledgerRowParts(row, stamp) as part, index (part.kind)}{index > 0
+					     the part before it (LEDGER_PART_SEPARATOR). Every mark is a
+					     part of kind marks, so a part is keyed by its place. -->
+					{#each ledgerRowParts(row, stamp) as part, index (`${index}:${part.kind}`)}{index > 0
 							? LEDGER_PART_SEPARATOR
 							: ''}<span
 							data-ledger-part={part.kind}
